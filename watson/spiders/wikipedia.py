@@ -8,31 +8,26 @@ from watson.items import NuggetItem
 
 class WikipediaSpider(CrawlSpider):
     name = "wikipedia"
-    allowed_domains = ["http://en.wikipedia.org/"]
-    start_urls = ["http://en.wikipedia.org/wiki/Data_structure",
-                    "http://en.wikipedia.org/wiki/Array_data_structure",
-                    "http://en.wikipedia.org/wiki/Record_(computer_science)",
-                    "http://en.wikipedia.org/wiki/Associative_array",
-                    "http://en.wikipedia.org/wiki/Hash_table",
-                    "http://en.wikipedia.org/wiki/B-tree",
-                    "http://en.wikipedia.org/wiki/Heap_(data_structure)",
-                    "http://en.wikipedia.org/wiki/Binary_heap",
-                    "http://en.wikipedia.org/wiki/Doubly_linked_list"
+    allowed_domains = ["wikipedia.org"]
+    start_urls = [
+                    "http://en.wikipedia.org/wiki/Abstract_data_type",                    
     ]
 
     rules = (
-        #Rule(LinkExtractor(allow=(), restrict_xpaths=('/body//a')), callback='parse_item', follow=True),
+        Rule(LinkExtractor(allow=(r'(.*?computer_science\)$)|(.*?abstract_data_type\)$)|(.*?_programming\)$)|(.*?_programming$)'), restrict_xpaths=('//*[@id="mw-content-text"]')), callback='parse_item', follow=True),
     )
 
     def parse_item(self, response):
-        for sel in response.xpath('//h1 | //h2 | //p | //pre'):
+        scope = response.xpath('//*[@id="mw-content-text"]')
+        for sel in scope.xpath('//h1 | .//h2 | .//h3 | .//h4 | .//p | .//ol | .//ul | .//pre'):
             item = NuggetItem()
             item['content'] = sel.extract()
             item['title'] = response.xpath('//title/text()').extract()
             yield item
 
     def parse_start_url(self, response):
-        for sel in response.xpath('//h1 | //h2 | //p | //pre'):
+        scope = response.xpath('//*[@id="mw-content-text"]')
+        for sel in scope.xpath('//h1 | .//h2 | .//h3 | .//h4 | .//p | .//ol | .//ul | .//pre'):   # use: '//h2[1]/preceding-sibling::p' to get intro paragraphs
                 item = NuggetItem()
                 item['content'] = sel.extract()
                 item['title'] = response.xpath('//title/text()').extract()
