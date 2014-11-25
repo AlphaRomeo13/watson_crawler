@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Object-composition---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Object composition</h1>
+<p>In computer science, <b>object composition</b> (not to be confused with function composition) is a way to combine simple objects or data types into more complex ones. Compositions are a critical building block of many basic data structures, including the tagged union, the linked list, and the binary tree, as well as the object used in object-oriented programming.</p>
+<p>A real-world example of composition may be seen in the relation of an automobile to its parts, specifically: the <i>automobile</i> 'has or is composed from' objects including <i>steering wheel</i>, <i>seat</i>, <i>gearbox</i> and <i>engine</i>.</p>
+<p>When, in a language, objects are typed, types can often be divided into composite and noncomposite types, and composition can be regarded as a relationship between types: an object of a composite type (e.g. <i>car</i>) "has an" object of a simpler type (e.g. <i>wheel</i>).</p>
+<p>Composition must be distinguished from subtyping, which is the process of adding detail to a general data type to create a more specific data type. For instance, cars may be a specific type of vehicle: <i>car</i> is a <i>vehicle</i>. Subtyping doesn't describe a relationship between different objects, but instead, says that objects of a type are simultaneously objects of another type.</p>
+<p>In programming languages, composite objects are usually expressed by means of references from one object to another; depending on the language, such references may be known as <b>fields</b>, <b>members</b>, <b>properties</b> or <b>attributes</b>, and the resulting composition as a <b>structure</b>, <b>storage record</b>, <b>tuple</b>, <b>user-defined type (UDT)</b>, or <b>composite type</b>. Fields are given a unique name so that each one can be distinguished from the others. However, having such references doesn't necessarily mean that an object is a composite. It is only called composite if the objects it refers to are really its parts, i.e. have no independent existence. For details, see the aggregation section below.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 UML notation</li>
+<li>2 Composite types in C</li>
+<li>3 Recursive composition</li>
+<li>4 Timeline of composition in various languages</li>
+<li>5 Aggregation</li>
+<li>6 Containment</li>
+<li>7 Aggregation in COM</li>
+<li>8 See also</li>
+<li>9 References</li>
+</ul>
+<p></p>
+<h2>UML notation</h2>
+<p>In UML, there are two ways of modelling composition: Composition and aggregation. Beware that in UML composition has a more narrow meaning than in ordinary language:</p>
+<p>Composition is depicted as a <b>filled diamond</b> and a solid line.</p>
+<p>Composition is a kind of association where the composite object has sole responsibility for the disposition of the component parts. The relationship between the composite and the component is a strong “has a” relationship, as the composite object takes ownership of the component. This means the composite is responsible for the creation and destruction of the component parts. An object may only be part of one composite. If the composite object is destroyed, all the component parts must be destroyed. The part has no life of itself and cannot be transferred to another object. Composition enforces encapsulation as the component parts usually are members of the composite object.</p>
+<p>The more general form, aggregation, is depicted as an <b>unfilled diamond</b> and a solid line.</p>
+<p>Aggregation is a kind of association that specifies a whole/part relationship between the aggregate (whole) and component part. This relationship between the aggregate and component is a weak “has a” relationship as the component may survive the aggregate object. The component object may be accessed through other objects without going through the aggregate object. The aggregate object does not take part in the lifecycle of the component object, meaning the component object may outlive the aggregate object. The state of the component object still forms part of the aggregate object.</p>
+<p>The image below shows both composition and aggregation. (Note that the examples show abstracted data models, disregarding the fact that in a real world carburetor -&gt; car association, there is a market for spare parts.) The C++ code below shows what the source code is likely to look like.</p>
+<p><img alt="AggregationAndComposition.svg" src="//upload.wikimedia.org/wikipedia/en/thumb/9/9f/AggregationAndComposition.svg/250px-AggregationAndComposition.svg.png" width="250" height="89" srcset="//upload.wikimedia.org/wikipedia/en/thumb/9/9f/AggregationAndComposition.svg/375px-AggregationAndComposition.svg.png 1.5x, //upload.wikimedia.org/wikipedia/en/thumb/9/9f/AggregationAndComposition.svg/500px-AggregationAndComposition.svg.png 2x" data-file-width="400" data-file-height="143"></p>
+<p>WHATSON? 0af4876f-affe-4c94-991b-579744849c41</p>
+<pre>
+// Composition
+class Car
+{
+private:
+ 
+    // Car is the owner of carburetor.
+    // Carburetor is created when Car is created,
+    // it is destroyed when Car is destroyed.
+    Carburetor carb;
+ 
+};
+</pre>
+<p>WHATSON? d7d94ef2-5862-4b4b-9fbd-2f1dc4be231a</p>
+<pre>
+// Aggregation
+class Pond
+{
+private:
+   std::vector&lt;Duck*&gt; ducks;
+};
+</pre>
+<h2>Composite types in C</h2>
+<p>This is an example of composition in C.</p>
+<p>WHATSON? 6484e76a-6be7-4334-8c9c-c9335d133851</p>
+<pre>
+struct Person
+{
+ int age;
+ char *name;
+ enum {they, she, he} pronoun;
+};
+</pre>
+<p>In this example, the primitive types <code>int</code>, <code>char *</code>, and <code>enum {they, she, he}</code> are combined to form the composite structure <code>Person</code>. Each <code>Person</code> structure then "has an" age, name, and a pronoun they are referred to by.</p>
+<h2>Recursive composition</h2>
+<p>Objects can be composited recursively with the use of recursive types or references. Consider a tree. Each node in a tree may be a branch or leaf; in other words, each node is a tree at the same time when it belongs to another tree.</p>
+<p>One implementation for the recursive composition is to let each object have references to others of the same type. In C, for example, a binary tree can be defined like:</p>
+<p>WHATSON? 10d1d774-ae13-4ca6-92b7-b699c783c6e7</p>
+<pre>
+struct bintree
+{
+ struct bintree *left, *right;
+ // some data
+};
+</pre>
+<p>If pointers <code>left</code> and <code>right</code> are valid, the node is thought to be a branch referring to each tree to which <code>left</code> and <code>right</code> point. If not, the node is a leaf. In this way, the recursion can be terminated.</p>
+<p>Another is to use a tagged union. For e.g. see tagged union.</p>
+<h2>Timeline of composition in various languages</h2>
+<p>C calls a record a struct or structure; object-oriented languages such as Java, Smalltalk, and C++ often keep their records hidden inside objects (class instances); languages in the ML family simply call them records. COBOL was the first programming language to support records directly; ALGOL 68 got it from COBOL and Pascal got it, more or less indirectly, from ALGOL 68. Common Lisp provides structures and classes (the latter via the Common Lisp Object System).</p>
+<p>WHATSON? 8f8b8245-6dc9-422f-8180-f7148a0d0269</p>
+<pre>
+01  customer-record.
+  03  customer-number     pic 9(8) comp.
+  03  customer-name.
+    05  given-names       pic x(15).
+    05  initial-2         pic x.
+    05  surname           pic x(15).
+  03  customer-address.
+    05  street.
+      07  house-number    pic 999 comp.
+      07  street-name     pic x(15).
+    05  city              pic x(10).
+    05  country-code      pic x(3).
+    05  postcode          pic x(8).
+ 03  amount-owing         pic 9(8) comp.
+</pre>
+<p>Arrays were the only composite data type in Algol 60.</p>
+<p>WHATSON? 898073e5-781b-4c38-bcea-91764f6adbdd</p>
+<pre>
+dcl 1 newtypet based (P);
+ 2 (a, b, c) fixed bin(31),
+ 2 (i, j, k) float,
+ 2 r ptr;
+allocate newtypet;
+</pre>
+<p>WHATSON? b1cc4ba5-3587-4a16-b0d8-0aa1459e02c5</p>
+<pre>
+int max = 99;
+mode newtypet = [0..9] [0..max]struct (
+ long real a, b, c, short int i, j, k, ref real r
+);
+newtypet newarrayt = (1, 2, 3, 4, 5, 6, heap real := 7)
+</pre>
+<p>For an example of all this, here is the traditional linked list declaration:</p>
+<p>WHATSON? 457ee2e9-6354-4737-a037-64c9b9ddc02b</p>
+<pre>
+mode node = union (real, int, compl, string),
+ list = struct (node val, ref list next);
+</pre>
+<p>Note that for ALGOL 68 only the newtype name appears to the left of the equality, and most notably the construction is made – and can be read – from left to right without regard to priorities.</p>
+<p>WHATSON? d1184a89-fb68-44bf-8aea-c15433cbe200</p>
+<pre>
+type
+ a = array [1..10] of integer;
+ b = record
+ a, b, c: real;
+ i, j, k: integer;
+ end;
+</pre>
+<p>WHATSON? f3104773-6ec1-42db-8a27-efd64c3bc170</p>
+<pre>
+#define max 99
+struct newtypet {
+ double a, b, c;
+ float r;
+ short i, j, k;
+} newarrayt[10] [max + 1];
+</pre>
+<p>Fortran 77 has arrays, but lacked any formal record/structure definitions. Typically compound structures were built up using <code>EQUIVALENCE</code> or <code>COMMON</code> statements:</p>
+<p>WHATSON? 2a77d644-5924-4d63-a237-2fa9a6b6b72b</p>
+<pre>
+      CHARACTER NAME*32, ADDR*32, PHONE*16
+      REAL OWING
+      COMMON /CUST/NAME, ADDR, PHONE, OWING
+</pre>
+<p>WHATSON? 7b5a259b-3765-43fd-a632-e4f14c679ddb</p>
+<pre>
+type Cust is
+ record
+ Name : Name_Type;
+ Addr : Addr_Type;
+ Phone : Phone_Type;
+ Owing : Integer range 1..999999;
+ end record;
+</pre>
+<p>WHATSON? 67ba3248-2575-4caa-ad3c-c15197972107</p>
+<pre>
+const int max = 99;
+class{
+ public:
+ double a, b, c;
+ float &amp;r;
+ short i, j, k;
+}newtypet[10] [max + 1];
+</pre>
+<p>WHATSON? 7669b440-8e30-4975-a0c5-85032d412557</p>
+<pre>
+max = 99
+class NewTypeT:
+  def __init__(self):
+    self.a = self.b = self.c = 0
+    self.i = self.j = self.k = 0.0
+# Initialise an example array of this class.
+newarrayt = [[NewTypeT() for i in range(max + 1)] for j in range(10)]
+</pre>
+<p>Arrays and strings were inherited from FORTRAN 77, and a new reserved word was introduced: <b>type</b></p>
+<p>WHATSON? ec6f43cc-6e43-486c-bc52-ae7140568cd2</p>
+<pre>
+type newtypet
+ double precision a, b, c
+ integer*2 i, j, k
+* No pointer type REF REAL R
+ end type
+ 
+type (newtypet) t(10, 100)
+</pre>
+<p>FORTRAN 90 updated and included FORTRAN IV's concept called NAMELIST.</p>
+<p>WHATSON? b3ff0c9b-6bab-4690-bb60-edf0b6ac621a</p>
+<pre>
+INTEGER :: jan = 1, feb = 2, mar = 3, apr = 4
+NAMELIST / week / jan, feb, mar, apr
+</pre>
+<p>Common Lisp provides structures and the ANSI Common Lisp standard added CLOS classes.</p>
+<p>WHATSON? b16fd961-749e-4841-b4bc-5bc45e71154a</p>
+<pre>
+(defclass some-class ()
+ ((f :type float)
+ (i :type integer)
+ (a :type (array integer (10)))))
+</pre>
+<p>For more details about composition in C/C++, see Composite type.</p>
+<h2>Aggregation</h2>
+<p>Aggregation differs from ordinary composition in that it does not imply ownership. In composition, when the owning object is destroyed, so are the contained objects. In aggregation, this is not necessarily true. For example, a university owns various departments (e.g., chemistry), and each department has a number of professors. If the university closes, the departments will no longer exist, but the professors in those departments will continue to exist. Therefore, a University can be seen as a composition of departments, whereas departments have an aggregation of professors. In addition, a Professor could work in more than one department, but a department could not be part of more than one university.</p>
+<p>Composition is usually implemented such that an object contains another object. For example, in C++:</p>
+<p>WHATSON? 767443a3-a5ab-430c-a698-a025f91b330c</p>
+<pre>
+class Professor;
+ 
+class Department
+{
+    ...
+    private:
+    // Aggregation
+    Professor* members[5];
+    ...
+};
+ 
+class University
+{
+    ...
+    private:
+ 
+    std::vector&lt; Department &gt; faculty;
+    ...
+ 
+    create_dept()
+    {
+        ...
+        // Composition (must limit to 20)
+        faculty.push_back( Department(...) );
+        faculty.push_back( Department(...) );
+        ...
+    }
+};
+</pre>
+<p>In aggregation, the object may only contain a reference or pointer to the object (and not have lifetime responsibility for it).</p>
+<p>Sometimes aggregation is referred to as composition when the distinction between ordinary composition and aggregation is unimportant.</p>
+<p>The above code would transform into the following UML Class diagram:</p>
+<p><img alt="417.px" src="//upload.wikimedia.org/wikipedia/commons/d/d0/Aggregation-Composition3.png" width="417" height="59" data-file-width="417" data-file-height="59"></p>
+<h2>Containment</h2>
+<p>Composition that is used to store several instances of the composited data type is referred to as containment. Examples of such containers are arrays, linked lists, binary trees and associative arrays.</p>
+<p>In UML, containment is depicted with a multiplicity of 1 or 0..n (depending on the issue of ownership), indicating that the data type is composed of an unknown number of instances of the composited data type.</p>
+<h2>Aggregation in COM</h2>
+<p>In Microsoft's Component Object Model aggregation means that an object exports, as if it were their owner, one or several interfaces of another object it owns. Formally, this is more similar to composition or encapsulation than aggregation. However, instead of implementing the exported interfaces by calling the interfaces of the owned object, the interfaces of the owned object themselves are exported. The owned object is responsible for assuring that methods of those interfaces inherited from IUnknown actually invoke the corresponding methods of the owner. This is to guarantee that the reference count of the owner is correct and all interfaces of the owner are accessible through the exported interface, while no other (private) interfaces of the owned object are accessible.</p>
+<h2>See also</h2>
+<ul>
+<li>C++ structure</li>
+<li>Composite type</li>
+<li>Composition over inheritance</li>
+<li>Has-a</li>
+<li>Law of Demeter</li>
+<li>Implementation inheritance</li>
+<li>Inheritance semantics</li>
+<li>Virtual inheritance</li>
+</ul>
+</body>
+</html>

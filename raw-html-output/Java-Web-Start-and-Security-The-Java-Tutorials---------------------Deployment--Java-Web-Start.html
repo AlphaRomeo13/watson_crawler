@@ -1,0 +1,22 @@
+<h1>Java Web Start and Security</h1>
+<p>This section describes the basics of security for applications deployed through Java Web Start and includes:</p>
+<p>Applications launched with Java Web Start are, by default, run in a restricted environment, known as a <em>sandbox</em>. In this sandbox, Java Web Start:</p>
+<ul>
+<li>Protects users against malicious code that could affect local files</li>
+<li>Protects enterprises against code that could attempt to access or destroy data on networks</li>
+</ul>
+<p>Sandbox applications that are launched by Java Web Start remain in this sandbox, meaning they cannot access local files or the network. See 
+<a class="TutorialLink" target="_top" href="../doingMoreWithRIA/security.html">Security in Rich Internet Applications </a> for information.</p>
+<p><a name="https" id="https"></a></p>
+<h2>Dynamic Downloading of HTTPS Certificates</h2>
+<p>Java Web Start dynamically imports certificates as browsers typically do. To do this, Java Web Start sets its own <code>https</code> handler, using the <code>java.protocol.handler.pkgs</code> system properties, to initialize defaults for the 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/javax/net/ssl/SSLSocketFactory.html"><code>SSLSocketFactory</code></a> and 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/javax/net/ssl/HostnameVerifier.html"><code>HostnameVerifier</code></a>. It sets the defaults with the methods 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/javax/net/ssl/HttpsURLConnection.html#setDefaultSSLSocketFactory-javax.net.ssl.SSLSocketFactory-"><code>HttpsURLConnection.setDefaultSSLSocketFactory</code></a> and 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/javax/net/ssl/HttpsURLConnection.html#setDefaultHostnameVerifier-javax.net.ssl.HostnameVerifier-"><code>HttpsURLConnection.setDefaultHostnameVerifier</code></a>.</p>
+<p>If your application uses these two methods, ensure that they are invoked after the Java Web Start initializes the <code>https</code> handler, otherwise your custom handler will be replaced by the Java Web Start default handler.</p>
+<p>You can ensure that your own customized <code>SSLSocketFactory</code> and <code>HostnameVerifiter</code> are used by doing one of the following:</p>
+<ul>
+<li>Install your own <code>https</code> handler, to replace the Java Web Start <code>https</code> handler.</li>
+<li>In your application, invoke <code>HttpsURLConnection.setDefaultSSLSocketFactory</code> or <code>HttpsURLConnection.setDefaultHostnameVerifier</code> only after the first <code>https URL</code> object is created, which executes the Java Web Start <code>https</code> handler initialization code first.</li>
+</ul>

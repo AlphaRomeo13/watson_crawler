@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Catching-and-Handling-Exceptions-The-Java-Tutorials---------------------Essential-Classes--Exceptions.html</title></head>
+<body>
+<h1>Catching and Handling Exceptions</h1>
+<p>This section describes how to use the three exception handler components  the <code>try</code>, <code>catch</code>, and <code>finally</code> blocks  to write an exception handler. Then, the <code>try-</code>with-resources statement, introduced in Java SE 7, is explained. The <code>try-</code>with-resources statement is particularly suited to situations that use <code>Closeable</code> resources, such as streams.</p>
+<p>The last part of this section walks through an example and analyzes what occurs during various scenarios.</p>
+<p>The following example defines and implements a class named <code>ListOfNumbers</code>. When constructed, <code>ListOfNumbers</code> creates an <code>ArrayList</code> that contains 10 <code>Integer</code> elements with sequential values 0 through 9. The <code>ListOfNumbers</code> class also defines a method named <code>writeList</code>, which writes the list of numbers into a text file called <code>OutFile.txt</code>. This example uses output classes defined in <code>java.io</code>, which are covered in 
+Basic I/O.</p>
+<p>WHATSON? d91fce49-0e51-4d55-8a6e-3243f58189aa</p>
+<pre>
+// Note: This class will not compile yet.
+import java.io.*;
+import java.util.List;
+import java.util.ArrayList;
+
+public class ListOfNumbers {
+
+    private List&lt;Integer&gt; list;
+    private static final int SIZE = 10;
+
+    public ListOfNumbers () {
+        list = new ArrayList&lt;Integer&gt;(SIZE);
+        for (int i = 0; i &lt; SIZE; i++) {
+            list.add(new Integer(i));
+        }
+    }
+
+    public void writeList() {
+	// The FileWriter constructor throws IOException, which must be caught.
+        PrintWriter out = new PrintWriter(<b>new FileWriter("OutFile.txt")</b>);
+
+        for (int i = 0; i &lt; SIZE; i++) {
+            // The get(int) method throws IndexOutOfBoundsException, which must be caught.
+            out.println("Value at: " + i + " = " + <b>list.get(i)</b>);
+        }
+        out.close();
+    }
+}
+</pre>
+<p>The first line in boldface is a call to a constructor. The constructor initializes an output stream on a file. If the file cannot be opened, the constructor throws an <code>IOException</code>. The second boldface line is a call to the <code>ArrayList</code> class's <code>get</code> method, which throws an <code>IndexOutOfBoundsException</code> if the value of its argument is too small (less than 0) or too large (more than the number of elements currently contained by the <code>ArrayList</code>).</p>
+<p>If you try to compile the 
+<code><code>ListOfNumbers</code></code> class, the compiler prints an error message about the exception thrown by the <code>FileWriter</code> constructor. However, it does not display an error message about the exception thrown by <code>get</code>. The reason is that the exception thrown by the constructor, <code>IOException</code>, is a checked exception, and the one thrown by the <code>get</code> method, <code>IndexOutOfBoundsException</code>, is an unchecked exception.</p>
+<p>Now that you're familiar with the <code>ListOfNumbers</code> class and where the exceptions can be thrown within it, you're ready to write exception handlers to catch and handle those exceptions.</p>
+</body>
+</html>

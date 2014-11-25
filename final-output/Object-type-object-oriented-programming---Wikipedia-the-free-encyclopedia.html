@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Object-type-object-oriented-programming---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Object type (object-oriented programming)</h1>
+<p>In computer science, an <b>object type</b> (a.k.a. <b>wrapping object</b>) is a datatype which is used in object-oriented programming to wrap a non-object type to make it look like a dynamic object.</p>
+<p>Some object-oriented programming languages make a distinction between reference and value types, often referred to as objects and non-objects on platforms where complex value types don't exist, for reasons such as runtime efficiency and syntax or semantic issues. For example, Java has primitive wrapper classes corresponding to each primitive type: Integer and int, Character and char, Float and float, etc. Languages like C++ have little or no notion of reference type; thus, the use of object type is of little interest.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Boxing
+<ul>
+<li>1.1 Autoboxing</li>
+<li>1.2 Unboxing</li>
+</ul>
+</li>
+<li>2 References</li>
+</ul>
+<ul>
+<li>1.1 Autoboxing</li>
+<li>1.2 Unboxing</li>
+</ul>
+<p></p>
+<h2>Boxing</h2>
+<p>Boxing, otherwise known as wrapping, is the process of placing a primitive type within an object so that the primitive can be used as a reference object. For example, lists may have certain methods which arrays might not, but the list might also require that all of its members be dynamic objects. In this case, the added functionality of the list might be unavailable to a simple array of numbers. For a more concrete example, in Java, a <code>LinkedList</code> can change its size, but an array must have a fixed size. One might desire to have a LinkedList of ints, but the LinkedList class only lists references to dynamic objects — it cannot list primitive types, which are value types.</p>
+<p>To circumvent this, ints can be boxed into Integers, which are dynamic objects, and then added to a LinkedList of Integers. (Using generic parameterized types introduced in J2SE 5.0, this type is represented as LinkedList&lt;Integer&gt;.) On the other hand, C# has no primitive wrapper classes, but allows boxing of any value type, returning a generic Object reference.</p>
+<p>The boxed object is always a copy of the value object, and is usually immutable. Unboxing the object also returns a copy of the stored value. Note that repeated boxing and unboxing of objects can have a severe performance impact, since it dynamically allocates new objects and then makes them eligible for Garbage collection.</p>
+<p>There is a direct equivalence between an unboxed primitive type and a reference to an immutable, boxed object type. In fact, it is possible to substitute all the primitive types in a program with boxed object types. Whereas assignment from one primitive to another will copy its value, assignment from one reference to a boxed object to another will copy the reference value to refer to the same object as the first reference. However, this will not cause any problems, because the objects are immutable, so there is semantically no real difference between two references to the same object or to different objects (unless you look at physical equality). For all operations other than assignment, such as arithmetic, comparison, and logical operators, one can unbox the boxed type, perform the operation, and re-box the result as needed. Thus, it is possible to not store primitive types at all.</p>
+<h3>Autoboxing</h3>
+<p>Autoboxing is the term for getting a reference type out of a value type just through type conversion (either implicit or explicit). The compiler automatically supplies the extra source code which creates the object.</p>
+<p>For example, in versions of Java prior to J2SE 5.0, the following code did not compile:</p>
+<p>WHATSON? a50e838f-5d60-40b3-9732-09f30a8ee686</p>
+<pre>
+Integer i = new Integer(9);
+Integer l = 9; // error in versions prior to 5.0!
+</pre>
+<p>Compilers prior to 5.0 would not accept the last line. Integers are reference objects, on the surface no different from List, Object, and so forth. To convert from an <tt>int</tt> to an Integer, one had to "manually" instantiate the Integer object. As of J2SE 5.0, the compiler will accept the last line, and automatically transform it so that an Integer object is created to store the value <tt>9</tt>. This means that, from J2SE 5.0 on, something like <tt>Integer c = a + b;</tt>, where <tt>a</tt> and <tt>b</tt> are Integers themselves, will compile now - a and b are unboxed, the integer values summed up, and the result is autoboxed into a new Integer, which is finally stored inside variable <tt>c</tt>. Note that the equality operators cannot be used this way, since the equality operators are already defined for reference types, for equality of the references; to test for equality of the value in a boxed type, one must still manually unbox them and compare the primitives, or use the <tt>equals(Object)</tt> method.</p>
+<p>Another example: J2SE 5.0 allows the programmer to treat a collection (such as a LinkedList) as if it contained <tt>int</tt> values instead of <tt>Integer</tt> objects. This does not contradict what was said above: the collection still only contains references to dynamic objects, and it cannot list primitive types. It can <b>not</b> be a <tt>List&lt;int&gt;</tt>, but it must be a <tt>List&lt;Integer&gt;</tt> instead. However, the compiler automatically transforms the code so that the list will "silently" receive objects, while the source code only mentions primitive values. For example, the programmer can now write <tt>list.add(3);</tt> and think as if the int <tt>3</tt> were added to the list; but, the compiler will have actually transformed the line into <tt>list.add(new Integer(3))</tt>.</p>
+<h3>Unboxing</h3>
+<p>Unboxing refers to getting the value which is associated to a given object, just through type conversion (either implicit or explicit). The compiler automatically supplies the extra source code which retrieves the value out of that object, either by invoking some method on that object, or by other means.</p>
+<p>For example, in versions of Java prior to J2SE 5.0, the following code did not compile:</p>
+<p>WHATSON? 7052754a-cb34-4257-b34b-852886980d9e</p>
+<pre>
+Integer k = new Integer(4);
+int l = k.intValue(); // always OK
+int m = k;            // would have been an error, but okay now - equivalent to previous line
+</pre>
+<p>C# doesn't support automatic unboxing in the same meaning as Java, since it doesn't have a separate set of 'primitive types' and 'object types'. All types that have both primitive and object version in Java, are automatically implemented by the C# compiler as either primitive (value) types or object (reference) types.</p>
+<p>In both languages, automatic boxing does not downcast automatically, i.e. the following code won't compile:</p>
+<p>C#:</p>
+<p>WHATSON? 044ebf2d-324d-4d54-9523-5b0b29ea4787</p>
+<pre>
+int i = 42;
+object o = i;         // box
+int j = o;            // unbox (ERROR)
+Console.WriteLine(j); // unreachable line, author might have expected output "42"
+</pre>
+<p>Java:</p>
+<p>WHATSON? b44e182b-5613-44c7-904c-8b88f1389792</p>
+<pre>
+int i = 42;
+Object o = i;          // box
+int j = o;             // unbox (ERROR)
+System.out.println(j); // unreachable line, author might have expected output "42"
+</pre>
+</body>
+</html>

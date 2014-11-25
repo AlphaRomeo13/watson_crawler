@@ -1,0 +1,105 @@
+<h1>How to Use Actions</h1>
+<p>An 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/javax/swing/Action.html"><code>Action</code></a> can be used to separate functionality and state from a component. For example, if you have two or more components that perform the same function, consider using an <code>Action</code> object to implement the function. An <code>Action</code> object is an 
+<a class="TutorialLink" target="_top" href="../events/actionlistener.html">action listener</a> that provides not only action-event handling, but also centralized handling of the state of action-event-firing components such as 
+<a class="TutorialLink" target="_top" href="../components/toolbar.html">tool bar buttons</a>, 
+<a class="TutorialLink" target="_top" href="../components/menu.html">menu items</a>, 
+<a class="TutorialLink" target="_top" href="../components/button.html">common buttons</a>, and 
+<a class="TutorialLink" target="_top" href="../components/textfield.html">text fields</a>. The state that an action can handle includes text, icon, mnemonic, enabled, and selected status.</p>
+<p>You typically attach an action to a component using the <code>setAction</code> method. Here's what happens when <code>setAction</code> is invoked on a component:</p>
+<ul>
+<li>The component's state is updated to match the state of the <code>Action</code>. For example, if the <code>Action</code>'s text and icon values were set, the component's text and icon are set to those values.</li>
+<li>The <code>Action</code> object is registered as an action listener on the component.</li>
+<li>If the state of the <code>Action</code> changes, the component's state is updated to match the <code>Action</code>. For example, if you change the enabled status of the action, all components it's attached to change their enabled states to match the action.</li>
+</ul>
+<p>Here's an example of creating a tool-bar button and menu item that perform the same function:</p>
+<p>WHATSON? 9a743ddb-03bb-4f82-bb23-ee8fe1c618cd</p>
+<pre>
+Action leftAction = new LeftAction(); <em>//LeftAction code is shown later</em>
+...
+button = new JButton(leftAction)
+...
+menuItem = new JMenuItem(leftAction);
+</pre>
+<p>To create an <code>Action</code> object, you generally create a subclass of 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/javax/swing/AbstractAction.html"><code>AbstractAction</code></a> and then instantiate it. In your subclass, you must implement the <code>actionPerformed</code> method to react appropriately when the action event occurs. Here's an example of creating and instantiating an <code>AbstractAction</code> subclass:</p>
+<p>WHATSON? 7bb1e035-6d31-4ff4-a1d7-0a7ada578afc</p>
+<pre>
+leftAction = new LeftAction("Go left", anIcon,
+             "This is the left button.",
+             new Integer(KeyEvent.VK_L));
+...
+class LeftAction extends AbstractAction {
+    public LeftAction(String text, ImageIcon icon,
+                      String desc, Integer mnemonic) {
+        super(text, icon);
+        putValue(SHORT_DESCRIPTION, desc);
+        putValue(MNEMONIC_KEY, mnemonic);
+    }
+    public void actionPerformed(ActionEvent e) {
+        displayResult("Action for first button/menu item", e);
+    }
+}
+</pre>
+<p>When the action created by the preceding code is attached to a button and a menu item, the button and menu item display the text and icon associated with the action. The <code>L</code> character is used for mnemonics on the button and menu item, and their tool-tip text is set to the <code>SHORT_DESCRIPTION</code> string followed by a representation of the mnemonic key.</p>
+<p>For example, we have provided a simple example, 
+<a class="SourceLink" target="_blank" href="../examples/misc/ActionDemoProject/src/misc/ActionDemo.java" onclick="showCode('../../displayCode.html', '../examples/misc/ActionDemoProject/src/misc/ActionDemo.java'); return false;"><code>ActionDemo.java</code></a>, which defines three actions. Each action is attached to a button and a menu item. Thanks to the mnemonic values set for each button's action, the key sequence <code>Alt-L</code> activates the left button, <code>Alt-M</code> the middle button, and <code>Alt-R</code> the right button. The tool tip for the left button displays <em>This is the left button. Alt-L.</em> All of this configuration occurs automatically, without the program making explicit calls to set the mnemonic or tool-tip text. As we'll show later, the program <em>does</em> make calls to set the button text, but only to avoid using the values already set by the actions.</p>
+<ol>
+<li>
+<p>Click the Launch button to run ActionDemo using 
+<a class="OutsideLink" target="_blank" href="http://www.oracle.com/technetwork/java/javase/javawebstart/index.html">Java™ Web Start</a> (<a href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">download JDK 7 or later</a>). Or, to compile and run the example yourself, consult the <a href="../examples/misc/index.html#ActionDemo">example index</a>.</p>
+<a href="http://docs.oracle.com/javase/tutorialJWS/samples/uiswing/ActionDemoProject/ActionDemo.jnlp"><img src="../../images/jws-launch-button.png" width="88" height="23" align="bottom" alt="Launches the ActionDemo example"></a><br></li>
+<li>
+<p>Choose the top item from the left menu (<b>Menu &gt; Go left</b>).<br>
+The text area displays some text identifying both the event source and the action listener that received the event.</p>
+</li>
+<li>
+<p>Click the leftmost button in the tool bar.<br>
+The text area again displays information about the event. Note that although the source of the events is different, both events were detected by the same action listener: the <code>Action</code> object attached to the components.</p>
+</li>
+<li>
+<p>Choose the top item from the <b>Action State</b> menu.<br>
+This disables the "Go left" <code>Action</code> object, which in turn disables its associated menu item and button.</p>
+</li>
+</ol>
+<p>Click the Launch button to run ActionDemo using 
+<a class="OutsideLink" target="_blank" href="http://www.oracle.com/technetwork/java/javase/javawebstart/index.html">Java™ Web Start</a> (<a href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">download JDK 7 or later</a>). Or, to compile and run the example yourself, consult the <a href="../examples/misc/index.html#ActionDemo">example index</a>.</p>
+<p>Choose the top item from the left menu (<b>Menu &gt; Go left</b>).<br>
+The text area displays some text identifying both the event source and the action listener that received the event.</p>
+<p>Click the leftmost button in the tool bar.<br>
+The text area again displays information about the event. Note that although the source of the events is different, both events were detected by the same action listener: the <code>Action</code> object attached to the components.</p>
+<p>Choose the top item from the <b>Action State</b> menu.<br>
+This disables the "Go left" <code>Action</code> object, which in turn disables its associated menu item and button.</p>
+<p>Here is what the user sees when the "Go left" action is disabled:</p>
+<p>Here's the code that disables the "Go left" action:</p>
+<p>WHATSON? 1f36f9f7-11f9-46b6-aa18-9b6aa6632854</p>
+<pre>
+boolean selected = ...//<em>true if the action should be enabled;</em>
+                      //<em>false, otherwise</em>
+leftAction.setEnabled(selected);
+</pre>
+<p>After you create components using an <code>Action</code>, you might well need to customize them. For example, you might want to customize the appearance of one of the components by adding or deleting the icon or text. For example, 
+<a class="SourceLink" target="_blank" href="../examples/misc/ActionDemoProject/src/misc/ActionDemo.java" onclick="showCode('../../displayCode.html', '../examples/misc/ActionDemoProject/src/misc/ActionDemo.java'); return false;"><code>ActionDemo.java</code></a> has no icons in its menus, and no text in its buttons. Here's the code that accomplishes this:</p>
+<p>WHATSON? 71e996f6-85ac-4923-bc21-5e1d48d8c1f6</p>
+<pre>
+menuItem = new JMenuItem();
+menuItem.setAction(leftAction);
+menuItem.setIcon(null); //arbitrarily chose not to use icon in menu
+...
+button = new JButton();
+button.setAction(leftAction);
+button.setText(""); //an icon-only button
+</pre>
+<p>We chose to create an icon-only button and a text-only menu item from the same action by setting the icon property to <code>null</code> and the text to an empty string. However, if a property of the <code>Action</code> changes, the widget may try to reset the icon and text from the <code>Action</code> again.</p>
+<h2><a name="api" id="api">The Action API</a></h2>
+<p>The following tables list the commonly used <code>Action</code> constructors and methods. The API for using <code>Action</code> objects falls into three categories:</p>
+<ul>
+<li><a href="#actioncomponents">Components that Support set/getAction</a></li>
+<li><a href="#actionapi">Creating and Using an AbstractAction</a></li>
+<li><a href="#properties">Action Properties</a></li>
+</ul>
+<p style="text-align: center"><a name="properties" id="properties">Action Properties</a></p>
+<p>This table defines the properties that can be set on an action. The second column lists which components automatically use the properties (and what method is specifically called). For example, setting the <code>ACCELERATOR_KEY</code> on an action that is then attached to a menu item, means that <code>JMenuItem.setAccelerator(KeyStroke)</code> is called automatically. 
+</p>
+<h2><a name="eg" id="eg">Examples that Use Actions</a></h2>
+<p>The following examples use <code>Action</code> objects.</p>

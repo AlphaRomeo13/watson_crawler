@@ -1,0 +1,146 @@
+<h1>How to Use Color Choosers</h1>
+<p>Use the
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/javax/swing/JColorChooser.html"><code>JColorChooser</code></a> class to enable users to choose from a palette of colors. A color chooser is a component that you can place anywhere within your program GUI. The <code>JColorChooser</code> API also makes it easy to bring up a <a href="dialog.html">dialog</a> (modal or not) that contains a color chooser.</p>
+<p>Here is a picture of an application that uses a color chooser to set the text color in a banner:</p>
+<ul>
+<li>Click the Launch button to run the ColorChooser Demo using
+<a class="OutsideLink" target="_blank" href="http://www.oracle.com/technetwork/java/javase/javawebstart/index.html">Java™ Web Start</a> (<a href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">download the JDK</a>). Alternatively, to compile and run the example yourself, consult the <a href="../examples/components/index.html#ColorChooserDemo">example index</a>.<a href="http://docs.oracle.com/javase/tutorialJWS/samples/uiswing/ColorChooserDemoProject/ColorChooserDemo.jnlp"><img src="../../images/jws-launch-button.png" width="88" height="23" align="bottom" alt="Launches the ButtonDemo example"></a><br></li>
+</ul>
+<p>The source code for the program is in
+<a class="SourceLink" target="_blank" href="../examples/components/ColorChooserDemoProject/src/components/ColorChooserDemo.java" onclick="showCode('../../displayCode.html', '../examples/components/ColorChooserDemoProject/src/components/ColorChooserDemo.java'); return false;"><code>ColorChooserDemo.java</code></a>.</p>
+<p>The color chooser consists of everything within the box labeled <strong>Choose Text Color</strong>. This is what a standard color chooser looks like in the Java Look &amp; Feel. It contains two parts, a tabbed pane and a preview panel. The three tabs in the tabbed pane select <em>chooser panels</em>. The <em>preview panel</em> below the tabbed pane displays the currently selected color.</p>
+<p>Here is the code from the example that creates a <code>JColorChooser</code> instance and adds it to a container:</p>
+<p>WHATSON? eac40c7e-2f1f-4d0d-afd8-1198dc45bb03</p>
+<pre>
+public class ColorChooserDemo extends JPanel ... {
+    public ColorChooserDemo() {
+        super(new BorderLayout());
+        banner = new JLabel("Welcome to the Tutorial Zone!",
+                            JLabel.CENTER);
+        banner.setForeground(Color.yellow);
+        . . .
+        tcc = new JColorChooser(banner.getForeground());
+        . . .
+        add(tcc, BorderLayout.PAGE_END);
+    }
+</pre>
+<p>The <code>JColorChooser</code> constructor in the previous code snippet takes a <code>Color</code> argument, which specifies the chooser's initially selected color. If you do not specify the initial color, then the color chooser displays <code>Color.white</code>. See the
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/awt/Color.html"><code>Color</code> API documentation</a> for a list of color constants you can use.</p>
+<p><a name="changelistener" id="changelistener">A color chooser uses an instance of</a>
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/javax/swing/colorchooser/ColorSelectionModel.html"><code>ColorSelectionModel</code></a> to contain and manage the current selection. The color selection model fires a change event whenever the user changes the color in the color chooser. The example program registers a change listener with the color selection model so that it can update the banner at the top of the window. The following code registers and implements the change listener:</p>
+<p>WHATSON? ff4669dc-eb6e-407a-8996-0a90af9cbcf8</p>
+<pre>
+tcc.getSelectionModel().addChangeListener(this);
+. . .
+public void stateChanged(ChangeEvent e) {
+    Color newColor = tcc.getColor();
+    banner.setForeground(newColor);
+}
+</pre>
+<p>See <a href="../events/changelistener.html">How to Write a Change Listener</a> for general information about change listeners and change events.</p>
+<p>A basic color chooser, like the one used in the example program, is sufficient for many programs. However, the color chooser API allows you to customize a color chooser by providing it with a preview panel of your own design, by adding your own chooser panels to it, or by removing existing chooser panels from the color chooser. Additionally, the <code>JColorChooser</code> class provides two methods that make it easy to use a color chooser within a dialog.</p>
+<p>
+The rest of this section discusses these topics:
+</p>
+<ul>
+<li><a href="#advancedexample">Another Example: ColorChooserDemo2</a></li>
+<li><a href="#dialog">Showing a Color Chooser in a Dialog</a></li>
+<li><a href="#previewpanel">Removing or Replacing the Preview Panel</a></li>
+<li><a href="#chooserpanel">Creating a Custom Chooser Panel</a></li>
+<li><a href="#api">The Color Chooser API</a></li>
+<li><a href="#eg">Examples that Use Color Choosers</a></li>
+</ul>
+<h2><a name="advancedexample__1" id="advancedexample__1">Another Example: ColorChooserDemo2</a></h2>
+<p>Now let's turn our attention to <a href="../examples/components/index.html#ColorChooserDemo2">ColorChooserDemo2</a>, a modified version of the previous demo program that uses more of the <code>JColorChooser</code> API. <!-- *******  boilerplate stuff ******* --></p>
+<ul>
+<li>Click the Launch button to run the ColorChooser Demo using
+<a class="OutsideLink" target="_blank" href="http://www.oracle.com/technetwork/java/javase/javawebstart/index.html">Java™ Web Start</a> (<a href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">download the JDK</a>). Alternatively, to compile and run the example yourself, consult the <a href="../examples/components/index.html#ColorChooserDemo2">example index</a>.<a href="http://docs.oracle.com/javase/tutorialJWS/samples/uiswing/ColorChooserDemo2Project/ColorChooserDemo2.jnlp"><img src="../../images/jws-launch-button.png" width="88" height="23" align="bottom" alt="Launches the ButtonDemo example"></a><br></li>
+</ul>
+<p>Here is a picture of ColorChooserDemo2:</p>
+<p>This program customizes the banner text color chooser in these ways:</p>
+<ul>
+<li>Removes the preview panel</li>
+<li>Removes all of the default chooser panels</li>
+<li>Adds a custom chooser panel</li>
+</ul>
+<p><a href="#previewpanel">Removing or Replacing the Preview Panel</a> covers the first customization. <a href="#chooserpanel">Creating a Custom Chooser Panel</a> discusses the last two.</p>
+<p>This program also adds a button that brings up a color chooser in a dialog, which you can use to set the banner background color.</p>
+<h2><a name="dialog" id="dialog">Showing a Color Chooser in a Dialog</a></h2>
+<p>The <code>JColorChooser</code> class provides two class methods to make it easy to use a color chooser in a dialog. ColorChooserDemo2 uses one of these methods, <code>showDialog</code>, to display the background color chooser when the user clicks the <strong>Show Color Chooser...</strong> button. Here is the single line of code from the example that brings up the background color chooser in a dialog:</p>
+<p>WHATSON? 3684b096-65ff-4da4-bb2c-6f6349963905</p>
+<pre>
+Color newColor = JColorChooser.showDialog(
+                     ColorChooserDemo2.this,
+                     "Choose Background Color",
+                     banner.getBackground());
+</pre>
+<p>The first argument is the parent for the dialog, the second is the dialog title, and the third is the initially selected color.</p>
+<p>The dialog disappears under three conditions: the user chooses a color and clicks the <strong>OK</strong> button, the user cancels the operation with the <strong>Cancel</strong> button, or the user dismisses the dialog with a frame control. If the user chooses a color, the <code>showDialog</code> method returns the new color. If the user cancels the operation or dismisses the window, the method returns <code>null</code>. Here is the code from the example that updates the banner background color according to the value returned by <code>showDialog</code>:</p>
+<p>WHATSON? 5c7126ba-3384-449f-b125-945ed049d4cc</p>
+<pre>
+if (newColor != null) {
+    banner.setBackground(newColor);
+}
+</pre>
+<p>The dialog created by <code>showDialog</code> is modal. If you want a non-modal dialog, you can use <code>JColorChooser</code>'s <code>createDialog</code> method to create the dialog. This method also lets you specify action listeners for the <strong>OK</strong> and <strong>Cancel</strong> buttons in the dialog window. Use <code>JDialog</code>'s <code>show</code> method to display the dialog created by this method. For an example that uses this method, see <a href="table.html#editor">Specifying Other Editors</a> in the <a href="table.html">How to Use Tables</a> section.</p>
+<h2><a name="previewpanel" id="previewpanel">Removing or Replacing the Preview Panel</a></h2>
+<p>By default, the color chooser displays a preview panel. ColorChooserDemo2 removes the text color chooser's preview panel with this line of code:</p>
+<p>WHATSON? f67533a5-8275-44a2-aae5-c4980b8ae1b1</p>
+<pre>
+tcc.setPreviewPanel(new JPanel());
+</pre>
+<p>This effectively removes the preview panel because a plain <code>JPanel</code> has no size and no default view. To set the preview panel back to the default, use <code>null</code> as the argument to <code>setPreviewPanel</code>.</p>
+<p>To provide a custom preview panel, you also use <code>setPreviewPanel</code>. The component you pass into the method should inherit from <code>JComponent</code>, specify a reasonable size, and provide a customized view of the current color. To get notified when the user changes the color in the color chooser, the preview panel must register as a change listener on the color chooser's color selection model as described <a href="#changelistener">previously</a>.</p>
+<h2><a name="chooserpanel" id="chooserpanel">Creating a Custom Chooser Panel</a></h2>
+<p>The default color chooser provides five chooser panels:</p>
+<ul>
+<li>Swatches  for choosing a color from a collection of swatches.</li>
+<li><a href="http://en.wikipedia.org/wiki/HSL_and_HSV">HSV</a>  for choosing a color using the Hue-Saturation-Value color representation. Prior to JDK 7, this was called HSB, for Hue-Saturation-Brightness.</li>
+<li><a href="http://en.wikipedia.org/wiki/HSL_and_HSV">HSL</a>  for choosing a color using the Hue-Saturation-Lightness color representation. This is new in JDK 7.</li>
+<li><a href="http://en.wikipedia.org/wiki/RGB_color_model">RGB</a>  for choosing a color using the Red-Green-Blue color model.</li>
+<li><a href="http://en.wikipedia.org/wiki/Cmyk">CMYK</a>  for choosing a color using the process color or four color model. This is new in JDK 7.</li>
+</ul>
+<p>You can extend the default color chooser by adding chooser panels of your own design with <code>addChooserPanel</code>, or you can limit it by removing chooser panels with <code>removeChooserPanel</code>.</p>
+<p>If you want to remove all of the default chooser panels and add one or more of your own, you can do this with a single call to <code>setChooserPanels</code>. ColorChooserDemo2 uses this method to replace the default chooser panels with an instance of
+<a class="SourceLink" target="_blank" href="../examples/components/ColorChooserDemo2Project/src/components/CrayonPanel.java" onclick="showCode('../../displayCode.html', '../examples/components/ColorChooserDemo2Project/src/components/CrayonPanel.java'); return false;"><code>CrayonPanel</code></a>, a custom chooser panel. Here is the call to <code>setChooserPanels</code> from that example:</p>
+<p>WHATSON? 77b32fda-c20f-41ea-9c44-a4c4a6fbc6f7</p>
+<pre>
+//Override the chooser panels with our own.
+AbstractColorChooserPanel panels[] = { new CrayonPanel() };
+tcc.setChooserPanels(panels);
+</pre>
+<p>The code is straighforward: it creates an array containing the <code>CrayonPanel</code>. Next the code calls <code>setChooserPanels</code> to set the contents of the array as the color chooser's chooser panels.</p>
+<p><code>CrayonPanel</code> is a subclass of
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/javax/swing/colorchooser/AbstractColorChooserPanel.html"><code>AbstractColorChooserPanel</code></a> and overrides the five abstract methods defined in its superclass:</p>
+<p>WHATSON? 5cedeba5-4eca-4bd6-9d13-e110f13c39c7</p>
+<pre>
+public void updateChooser() {
+    Color color = getColorFromModel();
+    if (Color.red.equals(color)) {
+        redCrayon.setSelected(true);
+    } else if (Color.yellow.equals(color)) {
+        yellowCrayon.setSelected(true);
+    } else if (Color.green.equals(color)) {
+        greenCrayon.setSelected(true);
+    } else if (Color.blue.equals(color)) {
+        blueCrayon.setSelected(true);
+    }
+}
+</pre>
+<p>WHATSON? 780e579d-54cb-405d-bec4-da23dc47d5c5</p>
+<pre>
+public String getDisplayName() {
+    return "Crayons";
+}
+</pre>
+<p>
+</p>
+<h2><a name="api" id="api">The Color Chooser API</a></h2>
+<p>The following tables list the commonly used <code>JColorChooser</code> constructors and methods. Other methods you might call are listed in the API tables in <a href="jcomponent.html">The JComponent Class</a>. The API for using color choosers falls into these categories:</p>
+<ul>
+<li><a href="#creating">Creating and Displaying the Color Chooser</a></li>
+<li><a href="#customizing">Customizing the Color Chooser GUI</a></li>
+<li><a href="#selection">Setting or Getting the Current Color</a></li>
+</ul>
+<h2><a name="eg" id="eg">Examples that Use Color Choosers</a></h2>
+<p>This table shows the examples that use <code>JColorChooser</code> and where those examples are described.</p>

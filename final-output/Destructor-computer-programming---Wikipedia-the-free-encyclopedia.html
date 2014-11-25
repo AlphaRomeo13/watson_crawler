@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Destructor-computer-programming---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Destructor (computer programming)</h1>
+<p>In object-oriented programming, a <b>destructor</b> (sometimes shortened to <b>dtor</b>) is a method which is automatically invoked when the object is destroyed. It can happen when its lifetime is bound to scope and the execution leaves the scope, when it is embedded into another object whose lifetime ends, or when it was allocated dynamically and is released explicitly. Its main purpose is to free the resources (memory allocations, open files or sockets, database connections, resource locks, etc.) which were acquired by the object along its life cycle and/or deregister from other entities which may keep references to it. The use of destructors is a necessity to the concept of Resource Acquisition Is Initialization (RAII).</p>
+<p>In a language with an automatic garbage collection mechanism, it would be difficult to deterministically ensure the invocation of a destructor, and hence these languages are generally considered unsuitable for RAII. In such languages, unlinking an object from existing resources must be done by an explicit call of an appropriate function (usually called <code>Dispose()</code>). This method is also recommended for freeing resources rather than using finalizers for that.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Destructor syntax</li>
+<li>2 In C++
+<ul>
+<li>2.1 Example</li>
+</ul>
+</li>
+<li>3 In C with GCC extensions</li>
+<li>4 REALbasic</li>
+<li>5 See also</li>
+<li>6 References</li>
+</ul>
+<ul>
+<li>2.1 Example</li>
+</ul>
+<p></p>
+<h2>Destructor syntax</h2>
+<ul>
+<li>C++ has the naming convention in which destructors have the same name as the class of which they are associated with, but prefixed with a tilde (~).</li>
+<li>In Object Pascal, destructors have the keyword "<code>destructor</code>" and can have user-defined names (but are mostly called "Destroy").</li>
+<li>In Perl, the destructor method is named <i>DESTROY</i>.</li>
+<li>In Moose object system for Perl, the destructor method is named <i>DEMOLISH</i>.</li>
+<li>In Objective-C, the destructor method is named "<code>dealloc</code>".</li>
+<li>In Swift, the destructor method is named <code>deinit</code>.</li>
+<li>In PHP 5, the destructor method is named "<code>__destruct</code>". There were no destructors in previous versions of PHP.</li>
+</ul>
+<h2>In C++</h2>
+<p>The destructor has the same name as the class, but with a tilde (~) in front of it. If the object was created as an automatic variable, its destructor is automatically called when it goes out of scope. If the object was created with a <tt>new</tt> expression, then its destructor is called when the <tt>delete</tt> operator is applied to a pointer to the object. Usually that operation occurs within another destructor, typically the destructor of a smart pointer object.</p>
+<p>In inheritance hierarchies, the declaration of a virtual destructor in the base class ensures that the destructors of derived classes are invoked properly when an object is deleted through a pointer-to-base-class. Objects that may be deleted in this way need to inherit a virtual destructor.</p>
+<p>A destructor should never throw an exception.</p>
+<h3>Example</h3>
+<p>WHATSON? 7afdda4c-0a0f-4cf8-95e2-0b0e17bcd2b7</p>
+<pre>
+#include &lt;cstring&gt;
+#include &lt;iostream&gt;
+ 
+class foo_t
+{
+	friend std::ostream &amp; operator &lt;&lt; ( std::ostream &amp; os, foo_t const &amp; foo )
+	{
+		os &lt;&lt; foo.data;
+		return os;
+	}
+ 
+private:
+	char * data;
+	foo_t( foo_t const &amp; other );                // disable copy construction
+	foo_t&amp; operator = ( foo_t const &amp; other );   // disable assignment
+ 
+public:
+	foo_t( void ) : data( new char[ 14 ] ) { std::strcpy( data, "Hello, World!" ); } 
+	~foo_t( void ) { delete [] data; }
+};
+ 
+int main()
+{
+	foo_t foo;
+	std::cout &lt;&lt; foo &lt;&lt; '\n';
+}
+</pre>
+<p>Objects which cannot be safely copied and/or assigned should be disabled from such semantics by declaring their corresponding functions within a non-public encapsulation level (in the above example, "private"). A detailed description of this technique can be found in Scott Meyers' popular book, <i>Effective C++</i> (Item 6: "Explicitly disallow the use of compiler-generated functions you do not want.").</p>
+<h2>In C with GCC extensions</h2>
+<p>The GNU Compiler Collection's C compiler comes with 2 extensions that allow to implement destructors:</p>
+<ul>
+<li>the "destructor" function attribute allows defining global prioritized destructor functions: when <i>main()</i> returns, these functions are called in priority order before the process terminates. See also </li>
+<li>the "cleanup" variable attribute allows attaching a destructor function to a variable: the function is called when the variable goes out of scope.</li>
+</ul>
+<h2>REALbasic</h2>
+<p>Destructors in REALbasic can be in one of two forms. Each form uses a regular method declaration with a special name (with no parameters and no return value). The older form uses the same name as the Class itself with a ~ (tilde) prefix. The newer form uses the name "Destructor". The newer form is the preferred one because it makes refactoring the class easier.</p>
+<p>WHATSON? 2d558b6e-811b-4a02-abae-acd26e1b4488</p>
+<pre>
+Class Foobar
+  // Old form
+  Sub ~Foobar()
+  End Sub
+
+  // New form
+  Sub Destructor()
+  End Sub
+End Class
+</pre>
+<h2>See also</h2>
+<ul>
+<li>Finalizer</li>
+<li>Constructor</li>
+<li>Object lifetime</li>
+<li>Resource Acquisition Is Initialization</li>
+</ul>
+</body>
+</html>

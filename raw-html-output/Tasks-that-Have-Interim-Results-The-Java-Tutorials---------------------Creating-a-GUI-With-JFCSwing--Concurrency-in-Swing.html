@@ -1,0 +1,56 @@
+<h1>Tasks that Have Interim Results</h1>
+<p>It is often useful for a background task to provide interim results while it is still working. The task can do this by invoking 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/javax/swing/SwingWorker.html#publish-V...-"><code>SwingWorker.publish</code></a>. This method accepts a variable number of arguments. Each argument must be of the type specified by <code>SwingWorker</code>'s second type parameter.</p>
+<p>To collect results provided by <code>publish</code>, override 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/javax/swing/SwingWorker.html#process-java.util.List-"><code>SwingWorker.process</code></a> This method will be invoked from the event dispatch thread. Results from multiple invocations of <code>publish</code> are often accumulated for a single invocation of <code>process</code>.</p>
+<p>Let's look at the way the 
+<a class="SourceLink" target="_blank" href="../examples/concurrency/FlipperProject/src/concurrency/Flipper.java" onclick="showCode('../../displayCode.html', '../examples/concurrency/FlipperProject/src/concurrency/Flipper.java'); return false;"><code><code>Flipper.java</code></code></a> example uses <code>publish</code> to provide interim results. Click the Launch button to run <code>Flipper</code> using 
+<a class="OutsideLink" target="_blank" href="http://www.oracle.com/technetwork/java/javase/javawebstart/index.html">Java™ Web Start</a> (<a href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">download JDK 7 or later</a>). Or, to compile and run the example yourself, consult the <a href="../examples/concurrency/index.html#Flipper">example index</a>.</p>
+<p>This program tests the fairness of 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/util/Random.html"><code>java.util.Random</code></a> by generating a series of random <code>boolean</code> values in a background task. This is equivalent to flipping a coin; hence the name <code>Flipper</code>. To report its results, the background task uses an object of type <code>FlipPair</code></p>
+<p>WHATSON? c7c260b5-bf66-4701-85a9-cd1be51159bb</p>
+<pre>
+private static class FlipPair {
+    private final long heads, total;
+    FlipPair(long heads, long total) {
+        this.heads = heads;
+        this.total = total;
+    }
+}
+</pre>
+<p>The <code>heads</code> field is the number of times the random value has been <code>true</code>; the <code>total</code> field is the total number of random values.</p>
+<p>The background task is represented by an instance of <code>FlipTask</code>:</p>
+<p>WHATSON? 559f072e-5e25-470a-a194-16cc74276769</p>
+<pre>
+private class FlipTask extends SwingWorker&lt;Void, FlipPair&gt; {
+</pre>
+<p>Since the task does not return a final result, it does not matter what the first type parameter is; <code>Void</code> is used as a placeholder. The task invokes <code>publish</code> after each "coin flip":</p>
+<p>WHATSON? 2726289f-464b-45bd-84f9-1b6119a2bf98</p>
+<pre>
+@Override
+protected Void doInBackground() {
+    long heads = 0;
+    long total = 0;
+    Random random = new Random();
+    while (!isCancelled()) {
+        total++;
+        if (random.nextBoolean()) {
+            heads++;
+        }
+        publish(new FlipPair(heads, total));
+    }
+    return null;
+}
+</pre>
+<p>(The <code>isCancelled</code> method is discussed in the next section.) Because <code>publish</code> is invoked very frequently, a lot of <code>FlipPair</code> values will probably be accumulated before <code>process</code> is invoked in the event dispatch thread; <code>process</code> is only interested in the last value reported each time, using it to update the GUI:</p>
+<p>WHATSON? 28c0f88a-7a90-4222-9b17-4d0a456a775a</p>
+<pre>
+protected void process(List&lt;FlipPair&gt; pairs) {
+    FlipPair pair = pairs.get(pairs.size() - 1);
+    headsText.setText(String.format("%d", pair.heads));
+    totalText.setText(String.format("%d", pair.total));
+    devText.setText(String.format("%.10g", 
+            ((double) pair.heads)/((double) pair.total) - 0.5));
+}
+</pre>
+<p>If <code>Random</code> is fair, the value displayed in <code>devText</code> should get closer and closer to 0 as <code>Flipper</code> runs.</p>

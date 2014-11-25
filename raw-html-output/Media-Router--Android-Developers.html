@@ -1,0 +1,1156 @@
+<h1 itemprop="name">Media Router</h1>
+<h2>In this document</h2>
+<ol>
+      <li><a href="#overview">Overview</a>
+        <ol>
+          <li><a href="#mr-packages">Media router packages</a></li>
+        </ol>
+      </li>
+      <li><a href="#cast-ui">Cast User Interface</a>
+        <ol>
+          <li><a href="#cast-button">Cast button</a></li>
+          <li><a href="#selector">Media route selector</a></li>
+        </ol>
+      </li>
+      <li><a href="#media-routes">Connecting to Media Routes</a>
+        <ol>
+          <li><a href="#create-mr-callback">Creating a MediaRouter callback</a></li>
+          <li><a href="#attach-mr-callback">Attaching a callback to MediaRouter</a></li>
+        </ol>
+      </li><li><a href="#remote-playback">Remote Playback</a></li>
+      <li><a href="#secondary-output">Secondary Output</a>
+        <ol>
+          <li><a href="#pres-obj">Creating a Presentation object</a></li>
+          <li><a href="#pres-cntrlr">Creating a Presentation controller</a></li>
+        </ol>
+      </li>
+    </ol>
+<ol>
+          <li><a href="#mr-packages">Media router packages</a></li>
+        </ol>
+<ol>
+          <li><a href="#cast-button">Cast button</a></li>
+          <li><a href="#selector">Media route selector</a></li>
+        </ol>
+<ol>
+          <li><a href="#create-mr-callback">Creating a MediaRouter callback</a></li>
+          <li><a href="#attach-mr-callback">Attaching a callback to MediaRouter</a></li>
+        </ol>
+<ol>
+          <li><a href="#pres-obj">Creating a Presentation object</a></li>
+          <li><a href="#pres-cntrlr">Creating a Presentation controller</a></li>
+        </ol>
+<h2>Key Classes</h2>
+<ol>
+      <li><code><a href="/reference/android/support/v7/media/MediaRouter.html">MediaRouter</a></code></li>
+      <li><code><a href="/reference/android/support/v7/media/MediaRouter.Callback.html">MediaRouter.Callback</a></code></li>
+      <li><code><a href="/reference/android/support/v7/media/MediaRouteProvider.html">MediaRouteProvider</a></code></li>
+    </ol>
+<h2>Related Samples</h2>
+<ol>
+      <li><a href="/guide/topics/media/mediarouter.html">MediaRouter</a></li>
+    </ol>
+<p>As users connect their televisions, home theater systems and music players with wireless
+  technologies, they want to be able to play content from Android apps on these larger,
+  louder devices. Enabling this kind of playback can turn your one-device, one-user app
+  into a shared experience that delights and inspires multiple users.</p>
+<p>The Android media router APIs are designed to enable media display and playback on these
+  secondary devices. There are two main approaches you can use to play content using these
+  APIs:</p>
+<ul>
+  <li><strong>Remote Playback</strong>  — This approach uses the receiving device to handle
+  the content data retrieval, decoding, and playback, while an Android device in the user's hand
+  is used as a remote control. This approach is used by Android apps that support
+  <a href="https://developers.google.com/cast/">Google Cast</a>.</li>
+  <li><strong>Secondary Output</strong> — With this approach, your app retrieves, renders
+  and streams video or music directly to the receiving device. This approach is used to support
+  Wireless Display output
+  on Android.</li>
+</ul>
+<p>This guide explains how your app can deliver media to secondary playback devices using either
+  of these approaches.</p>
+<h2 id="overview">Overview</h2>
+<p>The media router APIs enable a broad range of media output to playback equipment connected to
+  Android devices through wireless and wired means. To enable these connections,
+  the media router framework abstracts the logical paths for audio and video output for an Android
+  device. This architecture allows your app to quickly channel media content to
+  connected playback devices such as home theaters and sound systems that provide Android media
+  route support.</p>
+<p>In order to use this framework within your app, you must get an instance
+  of the <code><a href="/reference/android/support/v7/media/MediaRouter.html">MediaRouter</a></code> framework object and attach a <code><a href="/reference/android/support/v7/media/MediaRouter.Callback.html">MediaRouter.Callback</a></code> object to listen for events in
+  available media routes. Content channelled through a media route passes through the route's
+  associated <code><a href="/reference/android/support/v7/media/MediaRouteProvider.html">MediaRouteProvider</a></code> (except in a few special cases,
+  such as a Bluetooth output device). The following diagram provides a high-level view of the
+  classes your app can use to play content with the media router framework.
+</p>
+<p class="img-caption">
+  <strong>Figure 1.</strong> Overview of key media router classes used by apps.
+</p>
+<p>Manufacturers of media playback hardware that is not supported by the media router framework
+  can add support for their devices by implementing a
+  <code><a href="/reference/android/support/v7/media/MediaRouteProvider.html">MediaRouteProvider</a></code> and distributing it as an application.
+  For more information on implementing a media route provider, see the <code><a href="/reference/android/support/v7/media/MediaRouteProvider.html">MediaRouteProvider</a></code> reference documentation and the v7-mediarouter
+  support library sample <code>&lt;sdk&gt;/extras/android/compatibility/v7/mediarouter</code>.
+</p>
+<h3 id="mr-packages">Media router packages</h3>
+<p>The media router APIs are provided as part of the Android Support Library version 18 and
+  higher, in the
+  <a href="/tools/support-library/features.html#v7-mediarouter">v7-mediarouter support
+  library</a>. Specifically, you should use the classes in the <code><a href="/reference/android/support/v7/media/package-summary.html">android.support.v7.media</a></code>
+  package for media router functions. These APIs are compatible with devices running Android 2.1
+  (API level 7) and higher.
+</p>
+<p class="caution">
+  <strong>Caution:</strong> There is another set of media router APIs provided in the
+  <code><a href="/reference/android/media/package-summary.html">android.media</a></code> that have been superseded by the v7-mediarouter support library.
+  You <em>should not</em> use the <code><a href="/reference/android/media/package-summary.html">android.media</a></code> classes for media router functions.
+</p>
+<p>In order to use the <code><a href="/reference/android/support/v7/media/package-summary.html">android.support.v7.media</a></code> media router classes, you must add
+  the <a href="/tools/support-library/features.html#v7-mediarouter">v7-mediarouter
+  support library package</a> to your app development project.  For more
+  information on adding support libraries to your app development project, see
+  <a href="/tools/support-library/setup.html">Support Library Setup</a>.
+</p>
+<h2 id="cast-ui">Cast User Interface</h2>
+<p>
+  Android apps that implement the media router API should include a Cast button
+  as part of their user interface, to allow users to select a media route to play media on
+  a secondary output device. The media router framework provides a standard interface for
+  the button, which you should use to help users recognize and use the feature in your app.
+  Figure 2 illustrates how the Cast button should appear in an app.
+</p>
+<p class="img-caption">
+  <strong>Figure 2.</strong> A Cast button shown on the right side of the action bar.
+</p>
+<p class="caution">
+  <strong>Caution:</strong> When implementing an activity that provides a media router interface
+  you <em>must</em> extend either <code><a href="/reference/android/support/v7/app/ActionBarActivity.html">ActionBarActivity</a></code>
+  or <code><a href="/reference/android/support/v4/app/FragmentActivity.html">FragmentActivity</a></code> from the Android Support Library, even if
+  your <code>android:minSdkVersion</code> is API 11 or higher.
+</p>
+<h3 id="cast-button">Cast button</h3>
+<p>The recommended way to implement the Cast button user interface is to extend your activity
+  from <code><a href="/reference/android/support/v7/app/ActionBarActivity.html">ActionBarActivity</a></code> and use the <code><a href="/reference/android/app/Activity.html#onCreateOptionsMenu(android.view.Menu)">onCreateOptionsMenu()</a></code> method to add an options menu.
+  The Cast button must use the <code><a href="/reference/android/support/v7/app/MediaRouteActionProvider.html">MediaRouteActionProvider</a></code> class
+  as its action:</p>
+<p>WHATSON? 2a61ecd5-f5af-4a0d-bd0c-c71cf47e889f</p>
+<pre>
+&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:app="http://schemas.android.com/apk/res-auto"
+      &gt;
+
+    &lt;item android:id="@+id/media_route_menu_item"
+        android:title="@string/media_route_menu_title"
+        <strong>app:actionProviderClass="android.support.v7.app.MediaRouteActionProvider"</strong>
+        app:showAsAction="always"
+    /&gt;
+&lt;/menu&gt;
+</pre>
+<p>For more information about implementing the action bar in your app,
+  see the <a href="/guide/topics/ui/actionbar.html">Action Bar</a>
+  developer guide.
+</p>
+<p>Once you have added the Cast button to your user interface, you must attach a media
+  route selector object. Building a selector is discussed in the next section.
+</p>
+<p>If you do not want a menu in your action bar, you can also add a Cast button to your app using
+  <code><a href="/reference/android/support/v7/app/MediaRouteButton.html">MediaRouteButton</a></code>. If you choose this approach, you should add
+  this button to your app's action bar according to the
+  <a href="https://developers.google.com/cast/docs/design_checklist">Google Cast Design
+  Checklist</a>. You must also attach a media route selector to the button using the
+  <code><a href="/reference/android/support/v7/app/MediaRouteButton.html#setRouteSelector(android.support.v7.media.MediaRouteSelector)">setRouteSelector()</a></code> method.
+</p>
+<p>For guidelines on incorporating the Cast button into your application, review the
+  <a href="https://developers.google.com/cast/docs/design_checklist">Google Cast Design
+  Checklist</a>.</p>
+<h3 id="selector">Media route selector</h3>
+<p>When a user presses the Cast button, the media router framework looks for available media
+  routes and presents a list of choices to the user, as shown in figure 3.</p>
+<p class="img-caption">
+  <strong>Figure 3.</strong> A list of available media routes, shown after pressing the Cast button.
+</p>
+<p>The <em>types</em> of media routes that appear on this list—Remote Playback, Secondary
+  Output or others—are defined by your app.You define these type by creating a <code><a href="/reference/android/support/v7/media/MediaRouteSelector.html">MediaRouteSelector</a></code>, which accepts <code><a href="/reference/android/support/v7/media/MediaControlIntent.html">MediaControlIntent</a></code> objects provided by the framework and other media
+  route providers created by you or other developers. The framework-provided route categories are as
+  follows:
+</p>
+<ul>
+  <li><code><a href="/reference/android/support/v7/media/MediaControlIntent.html#CATEGORY_LIVE_AUDIO">CATEGORY_LIVE_AUDIO</a></code> — Output of audio to a secondary output device, such as a
+    wireless-enabled music system.</li>
+  <li><code><a href="/reference/android/support/v7/media/MediaControlIntent.html#CATEGORY_LIVE_VIDEO">CATEGORY_LIVE_VIDEO</a></code> — Output of video to a secondary output device, such as Wireless
+    Display devices.</li>
+  <li><code><a href="/reference/android/support/v7/media/MediaControlIntent.html#CATEGORY_REMOTE_PLAYBACK">CATEGORY_REMOTE_PLAYBACK</a></code> — Play video or audio on a separate device that handles media
+    retrieval, decoding, and playback, such as
+    <a href="https://www.google.com/url?q=http://www.google.com/chromecast">Chromecast</a> devices.
+    </li>
+</ul>
+<p>When creating a <code><a href="/reference/android/support/v7/media/MediaRouteSelector.html">MediaRouteSelector</a></code> object, use the
+  <code><a href="/reference/android/support/v7/media/MediaRouteSelector.Builder.html">MediaRouteSelector.Builder</a></code> class to create the object and set
+  the media playback categories (control categories), as shown
+  in the following code sample:</p>
+<p>WHATSON? 0659ce95-c9d1-4bda-b2e1-e1791d23f81f</p>
+<pre>
+public class MediaRouterPlaybackActivity extends ActionBarActivity {
+    private MediaRouteSelector mSelector;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        // Create a route selector for the type of routes your app supports.
+        <strong>mSelector = new MediaRouteSelector.Builder()
+                // These are the framework-supported intents
+                .addControlCategory(MediaControlIntent.CATEGORY_LIVE_AUDIO)
+                .addControlCategory(MediaControlIntent.CATEGORY_LIVE_VIDEO)
+                .addControlCategory(MediaControlIntent.CATEGORY_REMOTE_PLAYBACK)</strong>
+                .build();
+    }
+}
+</pre>
+<p>The media router framework uses this selector object to provide an interface for selecting
+  media routes that your app supports, as shown in figure 3. Once you have defined this selector,
+  you attach it to the <code><a href="/reference/android/support/v7/app/MediaRouteActionProvider.html">MediaRouteActionProvider</a></code> object associated
+  with the Cast menu item, as shown in the following code sample:</p>
+<p>WHATSON? 3fab0a7b-649c-4dfa-833d-26feb5d1006b</p>
+<pre>
+@Override
+public boolean onCreateOptionsMenu(Menu menu) {
+    super.onCreateOptionsMenu(menu);
+
+    // Inflate the menu and configure the media router action provider.
+    getMenuInflater().inflate(R.menu.sample_media_router_menu, menu);
+
+    // Attach the MediaRouteSelector to the menu item
+    MenuItem mediaRouteMenuItem = menu.findItem(R.id.media_route_menu_item);
+    MediaRouteActionProvider mediaRouteActionProvider =
+            (MediaRouteActionProvider)MenuItemCompat.getActionProvider(
+            mediaRouteMenuItem);
+    <strong>mediaRouteActionProvider.setRouteSelector(mSelector);</strong>
+
+    // Return true to show the menu.
+    return true;
+}
+</pre>
+<p>Once you have made these changes to your app, you might expect the Cast button to appear in your
+  activity. Alas, it does not (unless your device is already paired with a Wireless Display). In
+  most cases, you must also connect with the media route framework, which is discussed in the next
+  section.
+</p>
+<h2 id="media-routes">Connecting to Media Routes</h2>
+<p>In order to connect to a media route selected by the user, your app must obtain the <code><a href="/reference/android/support/v7/media/MediaRouter.html">MediaRouter</a></code> framework object and then attach a <code><a href="/reference/android/support/v7/media/MediaRouter.Callback.html">MediaRouter.Callback</a></code> object. The callback object receives messages
+  from the media router framework when a route is selected, changed, or disconnected by the user.</p>
+<p>To obtain an instance of the <code><a href="/reference/android/support/v7/media/MediaRouter.html">MediaRouter</a></code> framework object,
+  call <code><a href="/reference/android/support/v7/media/MediaRouter.html#getInstance(android.content.Context)">MediaRouter.getInstance()</a></code>
+  from the <code><a href="/reference/android/app/Activity.html#onCreate(android.os.Bundle)">onCreate()</a></code> method of an activity that supports
+  the media router API.</p>
+<p class="note">
+  <strong>Note:</strong> The <code><a href="/reference/android/support/v7/media/MediaRouter.html">MediaRouter</a></code> object is a singleton
+  that is maintained by the framework. However, once your application obtains an instance of the
+  object you must retain that instance until your application terminates to prevent it from being
+  garbage collected.
+</p>
+<h3 id="create-mr-callback">Creating a MediaRouter callback</h3>
+<p>The media router framework communicates with an app through a callback object that
+  you attach to the <code><a href="/reference/android/support/v7/media/MediaRouter.html">MediaRouter</a></code> framework object. An app
+  that uses the media router framework must extend the <code><a href="/reference/android/support/v7/media/MediaRouter.Callback.html">MediaRouter.Callback</a></code> object in order to receive messages when a
+  media route is connected.</p>
+<p>There are several methods in the callback that you can override to receive information about
+  media router events. At minimum, your implementation of the <code><a href="/reference/android/support/v7/media/MediaRouter.Callback.html">MediaRouter.Callback</a></code> class should override the following
+  methods:</p>
+<ul>
+  <li><code><a href="/reference/android/support/v7/media/MediaRouter.Callback.html#onRouteSelected(android.support.v7.media.MediaRouter,%20android.support.v7.media.MediaRouter.RouteInfo)">onRouteSelected()</a></code>
+    — Called when the user connects to a media router output device.</li>
+  <li><code><a href="/reference/android/support/v7/media/MediaRouter.Callback.html#onRouteUnselected(android.support.v7.media.MediaRouter,%20android.support.v7.media.MediaRouter.RouteInfo)">onRouteUnselected()</a></code> — Called when the user disconnects from a media router output device.</li>
+  <li><code><a href="/reference/android/support/v7/media/MediaRouter.Callback.html#onRoutePresentationDisplayChanged(android.support.v7.media.MediaRouter,%20android.support.v7.media.MediaRouter.RouteInfo)">onRoutePresentationDisplayChanged()</a></code> — Called when the presentation display changes its
+    display metrics, such as changing from 720 pixel to 1080 pixel resolution.</li>
+</ul>
+<p>The methods of your <code><a href="/reference/android/support/v7/media/MediaRouter.Callback.html">MediaRouter.Callback</a></code>
+  implementation are the first opportunity to determine if the connected route is a remote playback
+  device, such as Chromecast, or a secondary output device, such as a Wireless Display device.
+  If your app supports both device types, then your implementation should branch here, as
+  shown in this sample code:</p>
+<p>WHATSON? aadc507f-eedc-4338-b60a-5a059c196de3</p>
+<pre>
+private final MediaRouter.Callback mMediaRouterCallback =
+        new MediaRouter.Callback() {
+
+    @Override
+    public void onRouteSelected(MediaRouter router, RouteInfo route) {
+        Log.d(TAG, "onRouteSelected: route=" + route);
+
+        if (route.supportsControlCategory(
+            MediaControlIntent.CATEGORY_REMOTE_PLAYBACK)){
+            // remote playback device
+            updateRemotePlayer(route);
+        } else {
+            // secondary output device
+            updatePresentation(route);
+        }
+    }
+
+    @Override
+    public void onRouteUnselected(MediaRouter router, RouteInfo route) {
+        Log.d(TAG, "onRouteUnselected: route=" + route);
+
+        if (route.supportsControlCategory(
+            MediaControlIntent.CATEGORY_REMOTE_PLAYBACK)){
+            // remote playback device
+            updateRemotePlayer(route);
+        } else {
+            // secondary output device
+            updatePresentation(route);
+        }
+    }
+
+    @Override
+    public void onRoutePresentationDisplayChanged(
+            MediaRouter router, RouteInfo route) {
+        Log.d(TAG, "onRoutePresentationDisplayChanged: route=" + route);
+
+        if (route.supportsControlCategory(
+            MediaControlIntent.CATEGORY_REMOTE_PLAYBACK)){
+            // remote playback device
+            updateRemotePlayer(route);
+        } else {
+            // secondary output device
+            updatePresentation(route);
+        }
+    }
+}
+</pre>
+<p>After defining your callback object for the media router, you still need to attach it to
+  the main media router framework object. The next section discusses the appropriate way to attach
+  your callbacks for media routes.</p>
+<h3 id="attach-mr-callback">Attaching a callback to MediaRouter</h3>
+<p>Since media routes are a shared interface, your app must attach and detach your
+  <code><a href="/reference/android/support/v7/media/MediaRouter.Callback.html">MediaRouter.Callback</a></code> object as your app starts up and shuts
+  down. To accomplish this, you must add and remove your app's
+  callback object from the media router framework as part of your app's activity lifecycle. This
+  approach allows other apps to make use of media route outputs while your app
+  is in the background or not running.</p>
+<p class="note">
+  <strong>Note:</strong> If you are writing a music playback app and want to allow music to play
+  while your app is in the background, you must build a <code><a href="/reference/android/app/Service.html">Service</a></code> for playback
+  and connect that service and it's lifecycle to the media router framework.
+</p>
+<p>The following code sample demonstrates how to use the lifecycle methods to appropriately
+  add and remove your app's media router callback object:</p>
+<p>WHATSON? c57d52d1-a45c-4132-8549-99793a97b455</p>
+<pre>
+public class MediaRouterPlaybackActivity extends ActionBarActivity {
+    private MediaRouter mMediaRouter;
+    private MediaRouteSelector mSelector;
+    private Callback mMediaRouterCallback;
+
+    // your app works with so the framework can discover them.
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        // Get the media router service.
+        mMediaRouter = MediaRouter.getInstance(this);
+        ...
+    }
+
+    // Add the callback on start to tell the media router what kinds of routes
+    // your app works with so the framework can discover them.
+    @Override
+    public void onStart() {
+        mMediaRouter.addCallback(mSelector, mMediaRouterCallback,
+                MediaRouter.CALLBACK_FLAG_REQUEST_DISCOVERY);
+        super.onStart();
+    }
+
+    // Remove the selector on stop to tell the media router that it no longer
+    // needs to discover routes for your app.
+    @Override
+    public void onStop() {
+        mMediaRouter.removeCallback(mMediaRouterCallback);
+        super.onStop();
+    }
+    ...
+}
+</pre>
+<p>You should add and remove the media router callback only in the <code><a href="/reference/android/app/Activity.html#onStart()">onStart()</a></code> and <code><a href="/reference/android/app/Activity.html#onStop()">onStop()</a></code>
+  lifecycle methods. Do not include these calls in the <code><a href="/reference/android/app/Activity.html#onResume()">onResume()</a></code> or <code><a href="/reference/android/app/Activity.html#onPause()">onPause()</a></code> methods.
+</p>
+<p class="note">
+  <strong>Note:</strong> The media route framework also provides a
+  <code><a href="/reference/android/support/v7/app/MediaRouteDiscoveryFragment.html">MediaRouteDiscoveryFragment</a></code> class, which takes care of adding and
+  removing the callback for an activity.
+</p>
+<p>Now when you run your application, you should see a Cast button appear in your activity.
+  When you touch the button, a route selection dialog appears as shown
+  in figure 3, allowing your user to select an available media route. Make sure you have a
+  supported device available on your local network when testing this interface.</p>
+<p class="note">
+  <strong>Note:</strong> In order for Wireless Display routes to show up in the media route
+  selection dialog, users must enable this option in the Settings app. The option is under
+  the <em>Display</em> category and is called <em>Cast screen</em> on Android 4.4 (KitKat) and higher
+  devices and <em>Wireless Display</em> on Android 4.2.x (Jelly Bean) devices. For more information
+  on enabling this feature see this
+  <a href="https://support.google.com/nexus/answer/2865484">Wireless display</a> support page.
+</p>
+<h2 id="remote-playback">Remote Playback</h2>
+<p>The remote playback approach sends control commands to a secondary device to initiate playback
+  and to control playback that is in progress (pause, rewind, fast-forward, volume up and down).
+  Using this approach, the receiving device (such as a Chromecast) is responsible for retrieving
+  and rendering content.</p>
+<p>When your app supports this type of media route, you must create a <code><a href="/reference/android/support/v7/media/RemotePlaybackClient.html">RemotePlaybackClient</a></code> object using a remote playback <code><a href="/reference/android/support/v7/media/MediaRouter.RouteInfo.html">MediaRouter.RouteInfo</a></code> object received through your app's
+  <code><a href="/reference/android/support/v7/media/MediaRouter.Callback.html">MediaRouter.Callback</a></code> object. The following sample
+  code demonstrates a controller method that creates a new remote playback client and sends it a
+  video for playback:</p>
+<p>WHATSON? 34686575-600a-4462-bb4c-3bb0e2f2775b</p>
+<pre>
+private void updateRemotePlayer(RouteInfo route) {
+    // Changed route: tear down previous client
+    if (mRoute != null &amp;&amp; mRemotePlaybackClient != null) {
+        mRemotePlaybackClient.release();
+        mRemotePlaybackClient = null;
+    }
+
+    // Save new route
+    mRoute = route;
+
+    // Attach new playback client
+    mRemotePlaybackClient = new RemotePlaybackClient(this, mRoute);
+
+    // Send file for playback
+    mRemotePlaybackClient.play(Uri.parse(
+            "http://archive.org/download/Sintel/sintel-2048-stereo_512kb.mp4"),
+            "video/mp4", null, 0, null, new ItemActionCallback() {
+
+            @Override
+            public void onResult(Bundle data, String sessionId,
+                    MediaSessionStatus sessionStatus,
+                    String itemId, MediaItemStatus itemStatus) {
+                logStatus("play: succeeded for item " + itemId);
+            }
+
+            @Override
+            public void onError(String error, int code, Bundle data) {
+                logStatus("play: failed - error:"+ code +" - "+ error);
+            }
+        });
+    }
+}
+</pre>
+<p>The <code><a href="/reference/android/support/v7/media/RemotePlaybackClient.html">RemotePlaybackClient</a></code> class provides additional methods
+  for managing content playback. Here are a few of the key playback methods from the <code><a href="/reference/android/support/v7/media/RemotePlaybackClient.html">RemotePlaybackClient</a></code> class:</p>
+<ul>
+  <li><code><a href="/reference/android/support/v7/media/RemotePlaybackClient.html#play(android.net.Uri,%20java.lang.String,%20android.os.Bundle,%20long,%20android.os.Bundle,%20android.support.v7.media.RemotePlaybackClient.ItemActionCallback)">play()</a></code> — Play a specific
+    media file, specified by a <code><a href="/reference/android/net/Uri.html">Uri</a></code>.</li>
+  <li><code><a href="/reference/android/support/v7/media/RemotePlaybackClient.html#pause(android.os.Bundle,%20android.support.v7.media.RemotePlaybackClient.SessionActionCallback)">pause()</a></code> — Pause the
+    currently playing media track.</li>
+  <li><code><a href="/reference/android/support/v7/media/RemotePlaybackClient.html#resume(android.os.Bundle,%20android.support.v7.media.RemotePlaybackClient.SessionActionCallback)">resume()</a></code> — Continue
+    playing the current track after a pause command.</li>
+  <li><code><a href="/reference/android/support/v7/media/RemotePlaybackClient.html#seek(java.lang.String,%20long,%20android.os.Bundle,%20android.support.v7.media.RemotePlaybackClient.ItemActionCallback)">seek()</a></code> — Move to a specific
+    position in the current track.</li>
+  <li><code><a href="/reference/android/support/v7/media/RemotePlaybackClient.html#release()">release()</a></code> — Tear down the
+    connection from your app to the remote playback device.</li>
+</ul>
+<p>You can use these methods to attach actions to playback controls you provide in your
+  app. Most of these methods also allow you to include a callback object so you can monitor
+  the progress of the playback task or control request.</p>
+<p>
+  The <code><a href="/reference/android/support/v7/media/RemotePlaybackClient.html">RemotePlaybackClient</a></code> class also supports queueing of
+  multiple media items for playback and management of the media queue. For a comprehensive sample
+  implementation of these features, see <code>SampleMediaRouterActivity</code> and its associated
+  classes in the v7 mediarouter support library sample
+  <code>&lt;sdk&gt;/extras/android/compatibility/v7/mediarouter</code>.
+</p>
+<p>
+  For additional information on using the Google Cast API for Chromecast devices, see the
+  <a href="http://developers.google.com/cast/">Google Cast</a> developer documentation.
+</p>
+<h2 id="secondary-output">Secondary Output</h2>
+<p>The secondary output approach sends prepared media content to a connected secondary device
+  for playback. Secondary devices can include televisions or wireless sound systems and can be
+  attached through wireless protocols or wires, such as an HDMI cable. With this approach, your
+  app is responsible for processing media content for playback (downloading, decoding,
+  synchronization of audio and video tracks), while the secondary device only outputs the content
+  in its final form.</p>
+<p class="note">
+  <strong>Note:</strong> Using the secondary output display routes with the media router framework
+  requires classes that are available only in Android 4.2 (API level 17) and higher, specifically the
+  <code><a href="/reference/android/app/Presentation.html">Presentation</a></code> class. If you are building an app that supports both
+  remote playback and secondary output devices, you must include checks that disable this code
+  below the supported Android version level.
+</p>
+<h3 id="pres-obj">Creating a Presentation object</h3>
+<p>When using a secondary output display with the media router framework, you create a <code><a href="/reference/android/app/Presentation.html">Presentation</a></code> object that contains the content you want to show on that display. The
+  <code><a href="/reference/android/app/Presentation.html">Presentation</a></code> is extended from the <code><a href="/reference/android/app/Dialog.html">Dialog</a></code> class, so can
+  add layouts and views to a <code><a href="/reference/android/app/Presentation.html">Presentation</a></code>.</p>
+<p>You should be aware that the <code><a href="/reference/android/app/Presentation.html">Presentation</a></code> object has its own
+  <code><a href="/reference/android/content/Context.html">Context</a></code> and
+  <code><a href="/reference/android/content/res/Resources.html">Resources</a></code>,
+  separate from the app activity that created the object. Having a secondary
+  context is required, because the content of the <code><a href="/reference/android/app/Presentation.html">Presentation</a></code> is drawn on a
+  display that is separate from your app's display on the local Android device.
+  Specifically, the secondary display needs a separate context because it may need to load
+  resources based on its specific screen metrics.</p>
+<p>The following code sample shows a minimal implementation of a
+  <code><a href="/reference/android/app/Presentation.html">Presentation</a></code> object, including a <code><a href="/reference/android/opengl/GLSurfaceView.html">GLSurfaceView</a></code>
+  object.</p>
+<p>WHATSON? 96504279-9741-4d06-b910-416a13653034</p>
+<pre>
+public class SamplePresentation extends Presentation {
+    public SamplePresentation(Context outerContext, Display display) {
+        super(outerContext, display);
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        // Notice that we get resources from the context of the Presentation
+        Resources resources = getContext().getResources();
+
+        // Inflate a layout.
+        setContentView(R.layout.presentation_with_media_router_content);
+
+        // Add presentation content here:
+        // Set up a surface view for visual interest
+        mSurfaceView = (GLSurfaceView)findViewById(R.id.surface_view);
+        mSurfaceView.setRenderer(new CubeRenderer(false));
+    }
+}
+</pre>
+<h3 id="pres-cntrlr">Creating a Presentation controller</h3>
+<p>In order to display a <code><a href="/reference/android/app/Presentation.html">Presentation</a></code> object, you should write a
+  controller layer that handles responses to the messages received by the <code><a href="/reference/android/support/v7/media/MediaRouter.Callback.html">MediaRouter.Callback</a></code> object and manages the creation and
+  removal of the <code><a href="/reference/android/app/Presentation.html">Presentation</a></code> object. The controller layer should also handle
+  attaching presentations to a selected <code><a href="/reference/android/view/Display.html">Display</a></code> object, which represents the
+  separate physical display device chosen by the user. The controller layer can simply be a method
+  in the activity that supports a secondary display.</p>
+<p>The following code sample shows a controller layer for a <code><a href="/reference/android/app/Presentation.html">Presentation</a></code>
+  implemented as a single method. This method handles dismissing invalid presentations when a
+  <code><a href="/reference/android/view/Display.html">Display</a></code> is unselected or disconnected, and creates the <code><a href="/reference/android/app/Presentation.html">Presentation</a></code> object when a display device is connected.</p>
+<p>WHATSON? c555096a-8d60-4533-bc1f-1dd82c8dd680</p>
+<pre>
+private void updatePresentation(RouteInfo route) {
+    // Get its Display if a valid route has been selected
+    Display selectedDisplay = null;
+    if (route != null) {
+        selectedDisplay = route.getPresentationDisplay();
+    }
+
+    // Dismiss the current presentation if the display has changed or no new
+    // route has been selected
+    if (mPresentation != null &amp;&amp; mPresentation.getDisplay() != selectedDisplay) {
+        mPresentation.dismiss();
+            mPresentation = null;
+    }
+
+    // Show a new presentation if the previous one has been dismissed and a
+    // route has been selected.
+    if (mPresentation == null &amp;&amp; selectedDisplay != null) {
+        // Initialize a new Presentation for the Display
+        mPresentation = new SamplePresentation(this, selectedDisplay);
+        mPresentation.setOnDismissListener(
+                new DialogInterface.OnDismissListener() {
+                    // Listen for presentation dismissal and then remove it
+                    @Override
+                    public void onDismiss(DialogInterface dialog) {
+                        if (dialog == mPresentation) {
+                            mPresentation = null;
+                        }
+                    }
+                });
+
+        // Try to show the presentation, this might fail if the display has
+        // gone away in the meantime
+        try {
+            mPresentation.show();
+        } catch (WindowManager.InvalidDisplayException ex) {
+            // Couldn't show presentation - display was already removed
+            mPresentation = null;
+        }
+    }
+}
+</pre>
+<p class="note">
+  <strong>Note:</strong> When the a user connects to a Wireless Display, the media router
+  framework automatically provides a notification that it is displaying screen content on a
+  connected device.
+</p>
+<h1 itemprop="name">Media Router</h1>
+<h2>In this document</h2>
+<ol>
+      <li><a href="#overview">Overview</a>
+        <ol>
+          <li><a href="#mr-packages">Media router packages</a></li>
+        </ol>
+      </li>
+      <li><a href="#cast-ui">Cast User Interface</a>
+        <ol>
+          <li><a href="#cast-button">Cast button</a></li>
+          <li><a href="#selector">Media route selector</a></li>
+        </ol>
+      </li>
+      <li><a href="#media-routes">Connecting to Media Routes</a>
+        <ol>
+          <li><a href="#create-mr-callback">Creating a MediaRouter callback</a></li>
+          <li><a href="#attach-mr-callback">Attaching a callback to MediaRouter</a></li>
+        </ol>
+      </li><li><a href="#remote-playback">Remote Playback</a></li>
+      <li><a href="#secondary-output">Secondary Output</a>
+        <ol>
+          <li><a href="#pres-obj">Creating a Presentation object</a></li>
+          <li><a href="#pres-cntrlr">Creating a Presentation controller</a></li>
+        </ol>
+      </li>
+    </ol>
+<ol>
+          <li><a href="#mr-packages">Media router packages</a></li>
+        </ol>
+<ol>
+          <li><a href="#cast-button">Cast button</a></li>
+          <li><a href="#selector">Media route selector</a></li>
+        </ol>
+<ol>
+          <li><a href="#create-mr-callback">Creating a MediaRouter callback</a></li>
+          <li><a href="#attach-mr-callback">Attaching a callback to MediaRouter</a></li>
+        </ol>
+<ol>
+          <li><a href="#pres-obj">Creating a Presentation object</a></li>
+          <li><a href="#pres-cntrlr">Creating a Presentation controller</a></li>
+        </ol>
+<h2>Key Classes</h2>
+<ol>
+      <li><code><a href="/reference/android/support/v7/media/MediaRouter.html">MediaRouter</a></code></li>
+      <li><code><a href="/reference/android/support/v7/media/MediaRouter.Callback.html">MediaRouter.Callback</a></code></li>
+      <li><code><a href="/reference/android/support/v7/media/MediaRouteProvider.html">MediaRouteProvider</a></code></li>
+    </ol>
+<h2>Related Samples</h2>
+<ol>
+      <li><a href="/guide/topics/media/mediarouter.html">MediaRouter</a></li>
+    </ol>
+<p>As users connect their televisions, home theater systems and music players with wireless
+  technologies, they want to be able to play content from Android apps on these larger,
+  louder devices. Enabling this kind of playback can turn your one-device, one-user app
+  into a shared experience that delights and inspires multiple users.</p>
+<p>The Android media router APIs are designed to enable media display and playback on these
+  secondary devices. There are two main approaches you can use to play content using these
+  APIs:</p>
+<ul>
+  <li><strong>Remote Playback</strong>  — This approach uses the receiving device to handle
+  the content data retrieval, decoding, and playback, while an Android device in the user's hand
+  is used as a remote control. This approach is used by Android apps that support
+  <a href="https://developers.google.com/cast/">Google Cast</a>.</li>
+  <li><strong>Secondary Output</strong> — With this approach, your app retrieves, renders
+  and streams video or music directly to the receiving device. This approach is used to support
+  Wireless Display output
+  on Android.</li>
+</ul>
+<p>This guide explains how your app can deliver media to secondary playback devices using either
+  of these approaches.</p>
+<h2 id="overview">Overview</h2>
+<p>The media router APIs enable a broad range of media output to playback equipment connected to
+  Android devices through wireless and wired means. To enable these connections,
+  the media router framework abstracts the logical paths for audio and video output for an Android
+  device. This architecture allows your app to quickly channel media content to
+  connected playback devices such as home theaters and sound systems that provide Android media
+  route support.</p>
+<p>In order to use this framework within your app, you must get an instance
+  of the <code><a href="/reference/android/support/v7/media/MediaRouter.html">MediaRouter</a></code> framework object and attach a <code><a href="/reference/android/support/v7/media/MediaRouter.Callback.html">MediaRouter.Callback</a></code> object to listen for events in
+  available media routes. Content channelled through a media route passes through the route's
+  associated <code><a href="/reference/android/support/v7/media/MediaRouteProvider.html">MediaRouteProvider</a></code> (except in a few special cases,
+  such as a Bluetooth output device). The following diagram provides a high-level view of the
+  classes your app can use to play content with the media router framework.
+</p>
+<p class="img-caption">
+  <strong>Figure 1.</strong> Overview of key media router classes used by apps.
+</p>
+<p>Manufacturers of media playback hardware that is not supported by the media router framework
+  can add support for their devices by implementing a
+  <code><a href="/reference/android/support/v7/media/MediaRouteProvider.html">MediaRouteProvider</a></code> and distributing it as an application.
+  For more information on implementing a media route provider, see the <code><a href="/reference/android/support/v7/media/MediaRouteProvider.html">MediaRouteProvider</a></code> reference documentation and the v7-mediarouter
+  support library sample <code>&lt;sdk&gt;/extras/android/compatibility/v7/mediarouter</code>.
+</p>
+<h3 id="mr-packages">Media router packages</h3>
+<p>The media router APIs are provided as part of the Android Support Library version 18 and
+  higher, in the
+  <a href="/tools/support-library/features.html#v7-mediarouter">v7-mediarouter support
+  library</a>. Specifically, you should use the classes in the <code><a href="/reference/android/support/v7/media/package-summary.html">android.support.v7.media</a></code>
+  package for media router functions. These APIs are compatible with devices running Android 2.1
+  (API level 7) and higher.
+</p>
+<p class="caution">
+  <strong>Caution:</strong> There is another set of media router APIs provided in the
+  <code><a href="/reference/android/media/package-summary.html">android.media</a></code> that have been superseded by the v7-mediarouter support library.
+  You <em>should not</em> use the <code><a href="/reference/android/media/package-summary.html">android.media</a></code> classes for media router functions.
+</p>
+<p>In order to use the <code><a href="/reference/android/support/v7/media/package-summary.html">android.support.v7.media</a></code> media router classes, you must add
+  the <a href="/tools/support-library/features.html#v7-mediarouter">v7-mediarouter
+  support library package</a> to your app development project.  For more
+  information on adding support libraries to your app development project, see
+  <a href="/tools/support-library/setup.html">Support Library Setup</a>.
+</p>
+<h2 id="cast-ui">Cast User Interface</h2>
+<p>
+  Android apps that implement the media router API should include a Cast button
+  as part of their user interface, to allow users to select a media route to play media on
+  a secondary output device. The media router framework provides a standard interface for
+  the button, which you should use to help users recognize and use the feature in your app.
+  Figure 2 illustrates how the Cast button should appear in an app.
+</p>
+<p class="img-caption">
+  <strong>Figure 2.</strong> A Cast button shown on the right side of the action bar.
+</p>
+<p class="caution">
+  <strong>Caution:</strong> When implementing an activity that provides a media router interface
+  you <em>must</em> extend either <code><a href="/reference/android/support/v7/app/ActionBarActivity.html">ActionBarActivity</a></code>
+  or <code><a href="/reference/android/support/v4/app/FragmentActivity.html">FragmentActivity</a></code> from the Android Support Library, even if
+  your <code>android:minSdkVersion</code> is API 11 or higher.
+</p>
+<h3 id="cast-button">Cast button</h3>
+<p>The recommended way to implement the Cast button user interface is to extend your activity
+  from <code><a href="/reference/android/support/v7/app/ActionBarActivity.html">ActionBarActivity</a></code> and use the <code><a href="/reference/android/app/Activity.html#onCreateOptionsMenu(android.view.Menu)">onCreateOptionsMenu()</a></code> method to add an options menu.
+  The Cast button must use the <code><a href="/reference/android/support/v7/app/MediaRouteActionProvider.html">MediaRouteActionProvider</a></code> class
+  as its action:</p>
+<p>WHATSON? 144bd482-8f25-403c-bbfa-fb487a0d5b68</p>
+<pre>
+&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;menu xmlns:android="http://schemas.android.com/apk/res/android"
+      xmlns:app="http://schemas.android.com/apk/res-auto"
+      &gt;
+
+    &lt;item android:id="@+id/media_route_menu_item"
+        android:title="@string/media_route_menu_title"
+        <strong>app:actionProviderClass="android.support.v7.app.MediaRouteActionProvider"</strong>
+        app:showAsAction="always"
+    /&gt;
+&lt;/menu&gt;
+</pre>
+<p>For more information about implementing the action bar in your app,
+  see the <a href="/guide/topics/ui/actionbar.html">Action Bar</a>
+  developer guide.
+</p>
+<p>Once you have added the Cast button to your user interface, you must attach a media
+  route selector object. Building a selector is discussed in the next section.
+</p>
+<p>If you do not want a menu in your action bar, you can also add a Cast button to your app using
+  <code><a href="/reference/android/support/v7/app/MediaRouteButton.html">MediaRouteButton</a></code>. If you choose this approach, you should add
+  this button to your app's action bar according to the
+  <a href="https://developers.google.com/cast/docs/design_checklist">Google Cast Design
+  Checklist</a>. You must also attach a media route selector to the button using the
+  <code><a href="/reference/android/support/v7/app/MediaRouteButton.html#setRouteSelector(android.support.v7.media.MediaRouteSelector)">setRouteSelector()</a></code> method.
+</p>
+<p>For guidelines on incorporating the Cast button into your application, review the
+  <a href="https://developers.google.com/cast/docs/design_checklist">Google Cast Design
+  Checklist</a>.</p>
+<h3 id="selector">Media route selector</h3>
+<p>When a user presses the Cast button, the media router framework looks for available media
+  routes and presents a list of choices to the user, as shown in figure 3.</p>
+<p class="img-caption">
+  <strong>Figure 3.</strong> A list of available media routes, shown after pressing the Cast button.
+</p>
+<p>The <em>types</em> of media routes that appear on this list—Remote Playback, Secondary
+  Output or others—are defined by your app.You define these type by creating a <code><a href="/reference/android/support/v7/media/MediaRouteSelector.html">MediaRouteSelector</a></code>, which accepts <code><a href="/reference/android/support/v7/media/MediaControlIntent.html">MediaControlIntent</a></code> objects provided by the framework and other media
+  route providers created by you or other developers. The framework-provided route categories are as
+  follows:
+</p>
+<ul>
+  <li><code><a href="/reference/android/support/v7/media/MediaControlIntent.html#CATEGORY_LIVE_AUDIO">CATEGORY_LIVE_AUDIO</a></code> — Output of audio to a secondary output device, such as a
+    wireless-enabled music system.</li>
+  <li><code><a href="/reference/android/support/v7/media/MediaControlIntent.html#CATEGORY_LIVE_VIDEO">CATEGORY_LIVE_VIDEO</a></code> — Output of video to a secondary output device, such as Wireless
+    Display devices.</li>
+  <li><code><a href="/reference/android/support/v7/media/MediaControlIntent.html#CATEGORY_REMOTE_PLAYBACK">CATEGORY_REMOTE_PLAYBACK</a></code> — Play video or audio on a separate device that handles media
+    retrieval, decoding, and playback, such as
+    <a href="https://www.google.com/url?q=http://www.google.com/chromecast">Chromecast</a> devices.
+    </li>
+</ul>
+<p>When creating a <code><a href="/reference/android/support/v7/media/MediaRouteSelector.html">MediaRouteSelector</a></code> object, use the
+  <code><a href="/reference/android/support/v7/media/MediaRouteSelector.Builder.html">MediaRouteSelector.Builder</a></code> class to create the object and set
+  the media playback categories (control categories), as shown
+  in the following code sample:</p>
+<p>WHATSON? 02404e78-bbb1-4c1c-b191-34e78320d219</p>
+<pre>
+public class MediaRouterPlaybackActivity extends ActionBarActivity {
+    private MediaRouteSelector mSelector;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        // Create a route selector for the type of routes your app supports.
+        <strong>mSelector = new MediaRouteSelector.Builder()
+                // These are the framework-supported intents
+                .addControlCategory(MediaControlIntent.CATEGORY_LIVE_AUDIO)
+                .addControlCategory(MediaControlIntent.CATEGORY_LIVE_VIDEO)
+                .addControlCategory(MediaControlIntent.CATEGORY_REMOTE_PLAYBACK)</strong>
+                .build();
+    }
+}
+</pre>
+<p>The media router framework uses this selector object to provide an interface for selecting
+  media routes that your app supports, as shown in figure 3. Once you have defined this selector,
+  you attach it to the <code><a href="/reference/android/support/v7/app/MediaRouteActionProvider.html">MediaRouteActionProvider</a></code> object associated
+  with the Cast menu item, as shown in the following code sample:</p>
+<p>WHATSON? 1f454607-4947-4ed3-aff7-ecc867518598</p>
+<pre>
+@Override
+public boolean onCreateOptionsMenu(Menu menu) {
+    super.onCreateOptionsMenu(menu);
+
+    // Inflate the menu and configure the media router action provider.
+    getMenuInflater().inflate(R.menu.sample_media_router_menu, menu);
+
+    // Attach the MediaRouteSelector to the menu item
+    MenuItem mediaRouteMenuItem = menu.findItem(R.id.media_route_menu_item);
+    MediaRouteActionProvider mediaRouteActionProvider =
+            (MediaRouteActionProvider)MenuItemCompat.getActionProvider(
+            mediaRouteMenuItem);
+    <strong>mediaRouteActionProvider.setRouteSelector(mSelector);</strong>
+
+    // Return true to show the menu.
+    return true;
+}
+</pre>
+<p>Once you have made these changes to your app, you might expect the Cast button to appear in your
+  activity. Alas, it does not (unless your device is already paired with a Wireless Display). In
+  most cases, you must also connect with the media route framework, which is discussed in the next
+  section.
+</p>
+<h2 id="media-routes">Connecting to Media Routes</h2>
+<p>In order to connect to a media route selected by the user, your app must obtain the <code><a href="/reference/android/support/v7/media/MediaRouter.html">MediaRouter</a></code> framework object and then attach a <code><a href="/reference/android/support/v7/media/MediaRouter.Callback.html">MediaRouter.Callback</a></code> object. The callback object receives messages
+  from the media router framework when a route is selected, changed, or disconnected by the user.</p>
+<p>To obtain an instance of the <code><a href="/reference/android/support/v7/media/MediaRouter.html">MediaRouter</a></code> framework object,
+  call <code><a href="/reference/android/support/v7/media/MediaRouter.html#getInstance(android.content.Context)">MediaRouter.getInstance()</a></code>
+  from the <code><a href="/reference/android/app/Activity.html#onCreate(android.os.Bundle)">onCreate()</a></code> method of an activity that supports
+  the media router API.</p>
+<p class="note">
+  <strong>Note:</strong> The <code><a href="/reference/android/support/v7/media/MediaRouter.html">MediaRouter</a></code> object is a singleton
+  that is maintained by the framework. However, once your application obtains an instance of the
+  object you must retain that instance until your application terminates to prevent it from being
+  garbage collected.
+</p>
+<h3 id="create-mr-callback">Creating a MediaRouter callback</h3>
+<p>The media router framework communicates with an app through a callback object that
+  you attach to the <code><a href="/reference/android/support/v7/media/MediaRouter.html">MediaRouter</a></code> framework object. An app
+  that uses the media router framework must extend the <code><a href="/reference/android/support/v7/media/MediaRouter.Callback.html">MediaRouter.Callback</a></code> object in order to receive messages when a
+  media route is connected.</p>
+<p>There are several methods in the callback that you can override to receive information about
+  media router events. At minimum, your implementation of the <code><a href="/reference/android/support/v7/media/MediaRouter.Callback.html">MediaRouter.Callback</a></code> class should override the following
+  methods:</p>
+<ul>
+  <li><code><a href="/reference/android/support/v7/media/MediaRouter.Callback.html#onRouteSelected(android.support.v7.media.MediaRouter,%20android.support.v7.media.MediaRouter.RouteInfo)">onRouteSelected()</a></code>
+    — Called when the user connects to a media router output device.</li>
+  <li><code><a href="/reference/android/support/v7/media/MediaRouter.Callback.html#onRouteUnselected(android.support.v7.media.MediaRouter,%20android.support.v7.media.MediaRouter.RouteInfo)">onRouteUnselected()</a></code> — Called when the user disconnects from a media router output device.</li>
+  <li><code><a href="/reference/android/support/v7/media/MediaRouter.Callback.html#onRoutePresentationDisplayChanged(android.support.v7.media.MediaRouter,%20android.support.v7.media.MediaRouter.RouteInfo)">onRoutePresentationDisplayChanged()</a></code> — Called when the presentation display changes its
+    display metrics, such as changing from 720 pixel to 1080 pixel resolution.</li>
+</ul>
+<p>The methods of your <code><a href="/reference/android/support/v7/media/MediaRouter.Callback.html">MediaRouter.Callback</a></code>
+  implementation are the first opportunity to determine if the connected route is a remote playback
+  device, such as Chromecast, or a secondary output device, such as a Wireless Display device.
+  If your app supports both device types, then your implementation should branch here, as
+  shown in this sample code:</p>
+<p>WHATSON? eedc8a18-0e5c-496b-921d-6b6de786915e</p>
+<pre>
+private final MediaRouter.Callback mMediaRouterCallback =
+        new MediaRouter.Callback() {
+
+    @Override
+    public void onRouteSelected(MediaRouter router, RouteInfo route) {
+        Log.d(TAG, "onRouteSelected: route=" + route);
+
+        if (route.supportsControlCategory(
+            MediaControlIntent.CATEGORY_REMOTE_PLAYBACK)){
+            // remote playback device
+            updateRemotePlayer(route);
+        } else {
+            // secondary output device
+            updatePresentation(route);
+        }
+    }
+
+    @Override
+    public void onRouteUnselected(MediaRouter router, RouteInfo route) {
+        Log.d(TAG, "onRouteUnselected: route=" + route);
+
+        if (route.supportsControlCategory(
+            MediaControlIntent.CATEGORY_REMOTE_PLAYBACK)){
+            // remote playback device
+            updateRemotePlayer(route);
+        } else {
+            // secondary output device
+            updatePresentation(route);
+        }
+    }
+
+    @Override
+    public void onRoutePresentationDisplayChanged(
+            MediaRouter router, RouteInfo route) {
+        Log.d(TAG, "onRoutePresentationDisplayChanged: route=" + route);
+
+        if (route.supportsControlCategory(
+            MediaControlIntent.CATEGORY_REMOTE_PLAYBACK)){
+            // remote playback device
+            updateRemotePlayer(route);
+        } else {
+            // secondary output device
+            updatePresentation(route);
+        }
+    }
+}
+</pre>
+<p>After defining your callback object for the media router, you still need to attach it to
+  the main media router framework object. The next section discusses the appropriate way to attach
+  your callbacks for media routes.</p>
+<h3 id="attach-mr-callback">Attaching a callback to MediaRouter</h3>
+<p>Since media routes are a shared interface, your app must attach and detach your
+  <code><a href="/reference/android/support/v7/media/MediaRouter.Callback.html">MediaRouter.Callback</a></code> object as your app starts up and shuts
+  down. To accomplish this, you must add and remove your app's
+  callback object from the media router framework as part of your app's activity lifecycle. This
+  approach allows other apps to make use of media route outputs while your app
+  is in the background or not running.</p>
+<p class="note">
+  <strong>Note:</strong> If you are writing a music playback app and want to allow music to play
+  while your app is in the background, you must build a <code><a href="/reference/android/app/Service.html">Service</a></code> for playback
+  and connect that service and it's lifecycle to the media router framework.
+</p>
+<p>The following code sample demonstrates how to use the lifecycle methods to appropriately
+  add and remove your app's media router callback object:</p>
+<p>WHATSON? 336a66bc-571b-41b2-ad20-a60d0133b967</p>
+<pre>
+public class MediaRouterPlaybackActivity extends ActionBarActivity {
+    private MediaRouter mMediaRouter;
+    private MediaRouteSelector mSelector;
+    private Callback mMediaRouterCallback;
+
+    // your app works with so the framework can discover them.
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        // Get the media router service.
+        mMediaRouter = MediaRouter.getInstance(this);
+        ...
+    }
+
+    // Add the callback on start to tell the media router what kinds of routes
+    // your app works with so the framework can discover them.
+    @Override
+    public void onStart() {
+        mMediaRouter.addCallback(mSelector, mMediaRouterCallback,
+                MediaRouter.CALLBACK_FLAG_REQUEST_DISCOVERY);
+        super.onStart();
+    }
+
+    // Remove the selector on stop to tell the media router that it no longer
+    // needs to discover routes for your app.
+    @Override
+    public void onStop() {
+        mMediaRouter.removeCallback(mMediaRouterCallback);
+        super.onStop();
+    }
+    ...
+}
+</pre>
+<p>You should add and remove the media router callback only in the <code><a href="/reference/android/app/Activity.html#onStart()">onStart()</a></code> and <code><a href="/reference/android/app/Activity.html#onStop()">onStop()</a></code>
+  lifecycle methods. Do not include these calls in the <code><a href="/reference/android/app/Activity.html#onResume()">onResume()</a></code> or <code><a href="/reference/android/app/Activity.html#onPause()">onPause()</a></code> methods.
+</p>
+<p class="note">
+  <strong>Note:</strong> The media route framework also provides a
+  <code><a href="/reference/android/support/v7/app/MediaRouteDiscoveryFragment.html">MediaRouteDiscoveryFragment</a></code> class, which takes care of adding and
+  removing the callback for an activity.
+</p>
+<p>Now when you run your application, you should see a Cast button appear in your activity.
+  When you touch the button, a route selection dialog appears as shown
+  in figure 3, allowing your user to select an available media route. Make sure you have a
+  supported device available on your local network when testing this interface.</p>
+<p class="note">
+  <strong>Note:</strong> In order for Wireless Display routes to show up in the media route
+  selection dialog, users must enable this option in the Settings app. The option is under
+  the <em>Display</em> category and is called <em>Cast screen</em> on Android 4.4 (KitKat) and higher
+  devices and <em>Wireless Display</em> on Android 4.2.x (Jelly Bean) devices. For more information
+  on enabling this feature see this
+  <a href="https://support.google.com/nexus/answer/2865484">Wireless display</a> support page.
+</p>
+<h2 id="remote-playback">Remote Playback</h2>
+<p>The remote playback approach sends control commands to a secondary device to initiate playback
+  and to control playback that is in progress (pause, rewind, fast-forward, volume up and down).
+  Using this approach, the receiving device (such as a Chromecast) is responsible for retrieving
+  and rendering content.</p>
+<p>When your app supports this type of media route, you must create a <code><a href="/reference/android/support/v7/media/RemotePlaybackClient.html">RemotePlaybackClient</a></code> object using a remote playback <code><a href="/reference/android/support/v7/media/MediaRouter.RouteInfo.html">MediaRouter.RouteInfo</a></code> object received through your app's
+  <code><a href="/reference/android/support/v7/media/MediaRouter.Callback.html">MediaRouter.Callback</a></code> object. The following sample
+  code demonstrates a controller method that creates a new remote playback client and sends it a
+  video for playback:</p>
+<p>WHATSON? f1ca456d-c7fc-4241-b68f-dd955425445e</p>
+<pre>
+private void updateRemotePlayer(RouteInfo route) {
+    // Changed route: tear down previous client
+    if (mRoute != null &amp;&amp; mRemotePlaybackClient != null) {
+        mRemotePlaybackClient.release();
+        mRemotePlaybackClient = null;
+    }
+
+    // Save new route
+    mRoute = route;
+
+    // Attach new playback client
+    mRemotePlaybackClient = new RemotePlaybackClient(this, mRoute);
+
+    // Send file for playback
+    mRemotePlaybackClient.play(Uri.parse(
+            "http://archive.org/download/Sintel/sintel-2048-stereo_512kb.mp4"),
+            "video/mp4", null, 0, null, new ItemActionCallback() {
+
+            @Override
+            public void onResult(Bundle data, String sessionId,
+                    MediaSessionStatus sessionStatus,
+                    String itemId, MediaItemStatus itemStatus) {
+                logStatus("play: succeeded for item " + itemId);
+            }
+
+            @Override
+            public void onError(String error, int code, Bundle data) {
+                logStatus("play: failed - error:"+ code +" - "+ error);
+            }
+        });
+    }
+}
+</pre>
+<p>The <code><a href="/reference/android/support/v7/media/RemotePlaybackClient.html">RemotePlaybackClient</a></code> class provides additional methods
+  for managing content playback. Here are a few of the key playback methods from the <code><a href="/reference/android/support/v7/media/RemotePlaybackClient.html">RemotePlaybackClient</a></code> class:</p>
+<ul>
+  <li><code><a href="/reference/android/support/v7/media/RemotePlaybackClient.html#play(android.net.Uri,%20java.lang.String,%20android.os.Bundle,%20long,%20android.os.Bundle,%20android.support.v7.media.RemotePlaybackClient.ItemActionCallback)">play()</a></code> — Play a specific
+    media file, specified by a <code><a href="/reference/android/net/Uri.html">Uri</a></code>.</li>
+  <li><code><a href="/reference/android/support/v7/media/RemotePlaybackClient.html#pause(android.os.Bundle,%20android.support.v7.media.RemotePlaybackClient.SessionActionCallback)">pause()</a></code> — Pause the
+    currently playing media track.</li>
+  <li><code><a href="/reference/android/support/v7/media/RemotePlaybackClient.html#resume(android.os.Bundle,%20android.support.v7.media.RemotePlaybackClient.SessionActionCallback)">resume()</a></code> — Continue
+    playing the current track after a pause command.</li>
+  <li><code><a href="/reference/android/support/v7/media/RemotePlaybackClient.html#seek(java.lang.String,%20long,%20android.os.Bundle,%20android.support.v7.media.RemotePlaybackClient.ItemActionCallback)">seek()</a></code> — Move to a specific
+    position in the current track.</li>
+  <li><code><a href="/reference/android/support/v7/media/RemotePlaybackClient.html#release()">release()</a></code> — Tear down the
+    connection from your app to the remote playback device.</li>
+</ul>
+<p>You can use these methods to attach actions to playback controls you provide in your
+  app. Most of these methods also allow you to include a callback object so you can monitor
+  the progress of the playback task or control request.</p>
+<p>
+  The <code><a href="/reference/android/support/v7/media/RemotePlaybackClient.html">RemotePlaybackClient</a></code> class also supports queueing of
+  multiple media items for playback and management of the media queue. For a comprehensive sample
+  implementation of these features, see <code>SampleMediaRouterActivity</code> and its associated
+  classes in the v7 mediarouter support library sample
+  <code>&lt;sdk&gt;/extras/android/compatibility/v7/mediarouter</code>.
+</p>
+<p>
+  For additional information on using the Google Cast API for Chromecast devices, see the
+  <a href="http://developers.google.com/cast/">Google Cast</a> developer documentation.
+</p>
+<h2 id="secondary-output">Secondary Output</h2>
+<p>The secondary output approach sends prepared media content to a connected secondary device
+  for playback. Secondary devices can include televisions or wireless sound systems and can be
+  attached through wireless protocols or wires, such as an HDMI cable. With this approach, your
+  app is responsible for processing media content for playback (downloading, decoding,
+  synchronization of audio and video tracks), while the secondary device only outputs the content
+  in its final form.</p>
+<p class="note">
+  <strong>Note:</strong> Using the secondary output display routes with the media router framework
+  requires classes that are available only in Android 4.2 (API level 17) and higher, specifically the
+  <code><a href="/reference/android/app/Presentation.html">Presentation</a></code> class. If you are building an app that supports both
+  remote playback and secondary output devices, you must include checks that disable this code
+  below the supported Android version level.
+</p>
+<h3 id="pres-obj">Creating a Presentation object</h3>
+<p>When using a secondary output display with the media router framework, you create a <code><a href="/reference/android/app/Presentation.html">Presentation</a></code> object that contains the content you want to show on that display. The
+  <code><a href="/reference/android/app/Presentation.html">Presentation</a></code> is extended from the <code><a href="/reference/android/app/Dialog.html">Dialog</a></code> class, so can
+  add layouts and views to a <code><a href="/reference/android/app/Presentation.html">Presentation</a></code>.</p>
+<p>You should be aware that the <code><a href="/reference/android/app/Presentation.html">Presentation</a></code> object has its own
+  <code><a href="/reference/android/content/Context.html">Context</a></code> and
+  <code><a href="/reference/android/content/res/Resources.html">Resources</a></code>,
+  separate from the app activity that created the object. Having a secondary
+  context is required, because the content of the <code><a href="/reference/android/app/Presentation.html">Presentation</a></code> is drawn on a
+  display that is separate from your app's display on the local Android device.
+  Specifically, the secondary display needs a separate context because it may need to load
+  resources based on its specific screen metrics.</p>
+<p>The following code sample shows a minimal implementation of a
+  <code><a href="/reference/android/app/Presentation.html">Presentation</a></code> object, including a <code><a href="/reference/android/opengl/GLSurfaceView.html">GLSurfaceView</a></code>
+  object.</p>
+<p>WHATSON? b34a6ed8-828c-4f12-aa68-be3ddb437ff2</p>
+<pre>
+public class SamplePresentation extends Presentation {
+    public SamplePresentation(Context outerContext, Display display) {
+        super(outerContext, display);
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        // Notice that we get resources from the context of the Presentation
+        Resources resources = getContext().getResources();
+
+        // Inflate a layout.
+        setContentView(R.layout.presentation_with_media_router_content);
+
+        // Add presentation content here:
+        // Set up a surface view for visual interest
+        mSurfaceView = (GLSurfaceView)findViewById(R.id.surface_view);
+        mSurfaceView.setRenderer(new CubeRenderer(false));
+    }
+}
+</pre>
+<h3 id="pres-cntrlr">Creating a Presentation controller</h3>
+<p>In order to display a <code><a href="/reference/android/app/Presentation.html">Presentation</a></code> object, you should write a
+  controller layer that handles responses to the messages received by the <code><a href="/reference/android/support/v7/media/MediaRouter.Callback.html">MediaRouter.Callback</a></code> object and manages the creation and
+  removal of the <code><a href="/reference/android/app/Presentation.html">Presentation</a></code> object. The controller layer should also handle
+  attaching presentations to a selected <code><a href="/reference/android/view/Display.html">Display</a></code> object, which represents the
+  separate physical display device chosen by the user. The controller layer can simply be a method
+  in the activity that supports a secondary display.</p>
+<p>The following code sample shows a controller layer for a <code><a href="/reference/android/app/Presentation.html">Presentation</a></code>
+  implemented as a single method. This method handles dismissing invalid presentations when a
+  <code><a href="/reference/android/view/Display.html">Display</a></code> is unselected or disconnected, and creates the <code><a href="/reference/android/app/Presentation.html">Presentation</a></code> object when a display device is connected.</p>
+<p>WHATSON? 13376b8d-09bc-4c74-a138-dfb25ba881ef</p>
+<pre>
+private void updatePresentation(RouteInfo route) {
+    // Get its Display if a valid route has been selected
+    Display selectedDisplay = null;
+    if (route != null) {
+        selectedDisplay = route.getPresentationDisplay();
+    }
+
+    // Dismiss the current presentation if the display has changed or no new
+    // route has been selected
+    if (mPresentation != null &amp;&amp; mPresentation.getDisplay() != selectedDisplay) {
+        mPresentation.dismiss();
+            mPresentation = null;
+    }
+
+    // Show a new presentation if the previous one has been dismissed and a
+    // route has been selected.
+    if (mPresentation == null &amp;&amp; selectedDisplay != null) {
+        // Initialize a new Presentation for the Display
+        mPresentation = new SamplePresentation(this, selectedDisplay);
+        mPresentation.setOnDismissListener(
+                new DialogInterface.OnDismissListener() {
+                    // Listen for presentation dismissal and then remove it
+                    @Override
+                    public void onDismiss(DialogInterface dialog) {
+                        if (dialog == mPresentation) {
+                            mPresentation = null;
+                        }
+                    }
+                });
+
+        // Try to show the presentation, this might fail if the display has
+        // gone away in the meantime
+        try {
+            mPresentation.show();
+        } catch (WindowManager.InvalidDisplayException ex) {
+            // Couldn't show presentation - display was already removed
+            mPresentation = null;
+        }
+    }
+}
+</pre>
+<p class="note">
+  <strong>Note:</strong> When the a user connects to a Wireless Display, the media router
+  framework automatically provides a notification that it is displaying screen content on a
+  connected device.
+</p>

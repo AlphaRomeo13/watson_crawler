@@ -1,0 +1,69 @@
+<h1>Reducing the Download Time</h1>
+<p>Rich Internet applications (RIAs) are downloaded from a web site when the user tries to access them. (RIAs can be cached after the initial download to improve performance). The time taken to download a RIA depends on the size of the RIA's JAR file. Larger JAR files take longer to download.</p>
+<p>You can reduce the download time of your RIA by applying the following techniques:</p>
+<ul>
+<li>Compress your RIA's JAR file by using the 
+<a class="OutsideLink" target="_blank" href="http://docs.oracle.com/javase/8/docs/technotes/tools/windows/pack200.html"><code>pack200</code></a> tool.</li>
+<li>Remove unnecessary white space from the Java Network Launch Protocol (JNLP) file and the JavaScript files.</li>
+<li>Optimize images and animation.</li>
+</ul>
+<p>The following steps describe how to create and deploy a compressed JAR file for a signed RIA.</p>
+<ol>
+<li>Normalize the JAR file using the <code>--repack</code> option.
+<p>This step ensures that the security certificate and JAR file will pass verification checks when the RIA is launched.</p>
+<div class="codeblock"><pre>
+pack200 --repack DynamicTreeDemo.jar
+</pre></div>
+</li>
+<li>Sign the normalized JAR file.
+<div class="codeblock"><pre>
+jarsigner -keystore myKeyStore DynamicTreeDemo.jar me
+</pre></div>
+where <code>myKeyStore</code> is the name of the keystore and <code>me</code> is the alias for the keystore.</li>
+<li>Pack the signed JAR file
+<div class="codeblock"><pre>
+pack200 DynamicTreeDemo.jar.pack.gz DynamicTreeDemo.jar    
+</pre></div>
+</li>
+<li>Set the <code>jnlp.packEnabled</code> property to <code>true</code> in the RIA's JNLP file.
+<div class="codeblock"><pre>
+&lt;resources&gt;    
+    &lt;j2se version="1.6+"
+        href="http://java.sun.com/products/autodl/j2se"
+              max-heap-size="128m" /&gt;
+    &lt;jar href="DynamicTreeDemo.jar"
+        main="true"/&gt;
+    <b>&lt;property name="jnlp.packEnabled"
+        value="true"/&gt;</b>
+    &lt;!-- ... --&gt;
+&lt;/resources&gt;
+</pre></div>    
+</li>
+</ol>
+<p>This step ensures that the security certificate and JAR file will pass verification checks when the RIA is launched.</p>
+<p>WHATSON? 74d39b0f-73e7-43b6-a8ae-5f9ecd84b9e9</p>
+<pre>
+pack200 --repack DynamicTreeDemo.jar
+</pre>
+<p>WHATSON? 905369ff-002b-4349-ba21-1fa01f4b7ec4</p>
+<pre>
+jarsigner -keystore myKeyStore DynamicTreeDemo.jar me
+</pre>
+<p>WHATSON? 417925f3-b7f2-4d1f-98e2-7b399cef555e</p>
+<pre>
+pack200 DynamicTreeDemo.jar.pack.gz DynamicTreeDemo.jar    
+</pre>
+<p>WHATSON? f135bba0-61b8-4476-b0bc-80c01cd3a444</p>
+<pre>
+&lt;resources&gt;    
+    &lt;j2se version="1.6+"
+        href="http://java.sun.com/products/autodl/j2se"
+              max-heap-size="128m" /&gt;
+    &lt;jar href="DynamicTreeDemo.jar"
+        main="true"/&gt;
+    <b>&lt;property name="jnlp.packEnabled"
+        value="true"/&gt;</b>
+    &lt;!-- ... --&gt;
+&lt;/resources&gt;
+</pre>
+<p>When the <code>jnlp.packEnabled</code> property is set in the JNLP file, the Java Plug-in software looks for the compressed JAR file with the <code>.pack.gz</code> extension (for example, <code>DynamicTreeDemo.jar.pack.gz</code>). If found, the Java Plug-in software automatically unpacks and loads the JAR file. If a file with the <code>.pack.gz</code> extension is not found, then the Java Plug-in software attempts to load the regular JAR file (for example, <code>DynamicTreeDemo.jar</code>).</p>

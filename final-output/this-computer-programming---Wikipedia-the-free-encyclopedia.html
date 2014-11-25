@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>this-computer-programming---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>this (computer programming)</h1>
+<p><b>this</b>, <b>self</b>, and <b>Me</b> are keywords used in some computer programming languages to refer to the object, class, or other entity that the currently running code is part of. The entity referred to by these keywords thus depends on the execution context (such as which object is having its method called). Different programming languages use these keywords in slightly different ways. In languages where a keyword like "this" is mandatory, the keyword is the only way to access data and methods stored in the current object. Where optional, they can disambiguate variables and functions with the same name.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Object-oriented programming</li>
+<li>2 Subtleties and difficulties
+<ul>
+<li>2.1 Open recursion</li>
+</ul>
+</li>
+<li>3 Implementations
+<ul>
+<li>3.1 C++</li>
+<li>3.2 Java</li>
+<li>3.3 C#</li>
+<li>3.4 D</li>
+<li>3.5 Dylan</li>
+<li>3.6 Eiffel</li>
+<li>3.7 JavaScript</li>
+<li>3.8 Python</li>
+<li>3.9 Self</li>
+<li>3.10 Xbase++</li>
+</ul>
+</li>
+<li>4 See also</li>
+<li>5 References</li>
+<li>6 Further reading</li>
+<li>7 External links</li>
+</ul>
+<ul>
+<li>2.1 Open recursion</li>
+</ul>
+<ul>
+<li>3.1 C++</li>
+<li>3.2 Java</li>
+<li>3.3 C#</li>
+<li>3.4 D</li>
+<li>3.5 Dylan</li>
+<li>3.6 Eiffel</li>
+<li>3.7 JavaScript</li>
+<li>3.8 Python</li>
+<li>3.9 Self</li>
+<li>3.10 Xbase++</li>
+</ul>
+<p></p>
+<h2>Object-oriented programming</h2>
+<p>In many object-oriented programming languages, <code>this</code> (also called <code>self</code> or <code>Me</code>) is a keyword that is used in instance methods to refer to the object on which they are working. C++ and languages which derive in style from it (such as Java, C#, D, PHP, and Perl) generally use <code>this</code>. Smalltalk and others, such as Object Pascal, Python, Ruby, Objective-C, and Swift, use <code>self</code>; Microsoft's Visual Basic uses <code>Me</code>.</p>
+<p>The concept is similar in all languages: <code>this</code> is usually an immutable reference or pointer which refers to the current object; the current object often being the code that acts as 'parent' to the property, method, sub-routine or function that contains the <code>this</code> keyword. After an object is properly constructed, or instantiated, <code>this</code> is always a valid reference. Some languages require it explicitly; others use lexical scoping to use it implicitly to make symbols within their class visible. Or alternatively, the current object referred to by <code>this</code> may be an independent code object that has called the function or method containing the keyword <code>this</code>. Such a thing happens, for example, when a Javascript event handler attached to an HTML tag in a web page calls a function containing the keyword <code>this</code> stored in the global space outside the document object; in that context, <code>this</code> will refer to the page element within the document object, not the enclosing window object.</p>
+<p>In some languages, for example Python and Perl 5 which require explicit use of <code>this</code>, the first parameter of an instance method is such a reference. It needs explicitly to be specified. In that case, the parameter need not necessarily be named <code>this</code> or <code>self</code>; it can be named freely by the programmer like any other parameter; however, by informal convention, the first parameter of an instance method in Perl and Python is named <code>self</code>.</p>
+<p>Static methods in C++ or Java are not associated with instances but classes, and so cannot use <code>this</code>, because there is no object. In others, such as Python, Ruby, Smalltalk, Objective-C, or Swift, the method is associated with a <i>class object</i> that is passed as <code>this</code>, and they are called class methods.</p>
+<h2>Subtleties and difficulties</h2>
+<p>Some languages, such as Objective-C, allow assignment to <code>this</code>. Doing so can be very misleading to maintenance programmers, because the assignment does not modify the original object, but changes the identity of the object that the rest of the code in the method refers to, which can result in undefined behavior.</p>
+<p>When lexical scoping is used to infer <code>this</code>, the use of <code>this</code> in code, while not illegal, may raise warning bells to a maintenance programmer, although there are still legitimate uses of <code>this</code> in this case, such as referring to instance variables hidden by local variables of the same name, or if the method wants to return a reference to the current object, i.e. <code>this</code>, itself.</p>
+<p>In some compilers (for example GCC), pointers to C++ instance methods can be directly cast to a pointer of another type, with an explicit <code>this</code> pointer parameter.</p>
+<h3>Open recursion</h3>
+<p>The dispatch semantics of <code>this</code>, namely that method calls on <code>this</code> are dynamically dispatched, is known as <b>open recursion</b>, and means that these methods can be overridden by derived classes or objects. By contrast, direct named recursion or anonymous recursion of a function uses <b>closed recursion</b>, with early binding. For example, in the following Perl code for the factorial, the token <code>__SUB__</code> is a reference to the current function:</p>
+<p>WHATSON? 998cce87-6928-4d19-95f3-1753d4451de2</p>
+<pre>
+use feature ":5.16";
+sub {
+  my $x = shift;
+  $x == 0 ? 1 : $x * __SUB__-&gt;( $x - 1 );
+}
+</pre>
+<p>By contrast, in C++ (using an explicit <code>this</code> for clarity) the <code>this</code> binds to the object itself, but the method is resolved via dynamic dispatch (late binding):</p>
+<p>WHATSON? ee8ac880-28a6-4aa3-9f30-e4797857fc79</p>
+<pre>
+unsigned int factorial(unsigned int n)
+  if (n == 0)
+    return 1;
+  else
+    return n * this-&gt;factorial(n - 1);
+</pre>
+<p>This example is artificial, since this is direct recursion, so overriding the <code>factorial</code> method would override this function; more natural examples are when a method in a derived class calls the same method in a base class, or in cases of mutual recursion.</p>
+<p>The fragile base class problem has been blamed on open recursion, with the suggestion that invoking methods on <code>this</code> default to closed recursion (static dispatch, early binding) rather than open recursion (dynamic dispatch, late binding), only using open recursion when it is specifically requested; external calls (not using <code>this</code>) would be dynamically dispatched as usual.</p>
+<h2>Implementations</h2>
+<h3>C++</h3>
+<p>Early versions of C++ would let the <code>this</code> pointer be changed; by doing so a programmer could change which object a method was working on. This feature was eventually removed, and now <code>this</code> in C++ is an r-value.</p>
+<p>Early versions of C++ did not include references and it has been suggested that had they been so in C++ from the beginning, <code>this</code> would have been a reference, not a pointer.</p>
+<p>C++ lets objects destroy themselves with the source code statement: <code>delete this</code>.</p>
+<h3>Java</h3>
+<p>The keyword <code>this</code> is a Java language keyword that represents the current instance of the class in which it appears. It is used to access class variables and methods.</p>
+<p>Since all instance methods are virtual in Java, <code>this</code> can never be null.</p>
+<h3>C#</h3>
+<p>The keyword <code>this</code> in C# works the same way as in Java, for reference types. However, within C# value types, <code>this</code> has quite different semantics, being similar to an ordinary mutable variable reference, and can even occur on the left side of an assignment.</p>
+<p>One use of <code>this</code> in C# is to allow reference to an outer field variable within a method that contains a local variable that has the same name. In such a situation, for example, the statement <code>var n = localAndFieldname;</code> within the method will assign the type and value of the local variable <code>localAndFieldname</code> to <code>n</code>, whereas the statement <code>var n = this.localAndFieldname;</code> will assign the type and value of the outer field variable to <code>n</code>.</p>
+<h3>D</h3>
+<p>In D <code>this</code> in a class, struct or union method refers to an immutable reference of the instance of the enclosing aggregate. Classes are reference types, structs and unions are value types. In the first version of D, the keyword <code>this</code> is used as a pointer to the instance of the object the method is bound to, while in D2 it has the character of an implicit <code>ref</code> function argument.</p>
+<h3>Dylan</h3>
+<p>In the programming language Dylan, which is an object-oriented language that supports multimethods and hasn't a concept of <code>this</code>, sending a message to an object is still kept in the syntax. The two forms below work in the same way; the differences are just syntactic sugar.</p>
+<p>WHATSON? 8261632f-4d52-45f9-86fd-4f1580393da6</p>
+<pre>
+object.method(param1, param2)
+</pre>
+<p>and</p>
+<p>WHATSON? 984c1866-b33f-4e7e-a94b-188a69f7ea40</p>
+<pre>
+method (object, param1, param2)
+</pre>
+<h3>Eiffel</h3>
+<p>Within a class text, the <b>current type</b> is the type obtained from the <b>current class</b>. Within features (routines, commands and queries) of a class, one may use the keyword <code>Current</code> to reference the current class and its features. The use of the keyword <code>Current</code> is optional as the keyword <code>Current</code> is implied by simply referring to the name of the current class feature openly. For example: One might have a feature `foo' in a class MY_CLASS and refer to it by:</p>
+<ol>
+<li>
+<pre>
+  class
+</pre></li>
+<li>
+<pre>
+     MY_CLASS
+</pre></li>
+<li>
+<pre>
+ 
+</pre></li>
+<li>
+<pre>
+  feature -- Access
+</pre></li>
+<li>
+<pre>
+ 
+</pre></li>
+<li>
+<pre>
+     foo: INTEGER
+</pre></li>
+<li>
+<pre>
+ 
+</pre></li>
+<li>
+<pre>
+     my_function: INTEGER
+</pre></li>
+<li>
+<pre>
+        do
+</pre></li>
+<li>
+<pre>
+          Result := foo
+</pre></li>
+<li>
+<pre>
+       end
+</pre></li>
+<li>
+<pre>
+ 
+</pre></li>
+<li>
+<pre>
+ end
+</pre></li>
+</ol>
+<p>WHATSON? 2afdf5bc-149f-412c-9653-f9b984537847</p>
+<pre>
+  class
+</pre>
+<p>WHATSON? c49b1a84-d630-499b-9555-39e9173f5600</p>
+<pre>
+     MY_CLASS
+</pre>
+<p>WHATSON? f9b914d7-603a-48a2-8a2f-78127b4bf13a</p>
+<pre>
+ 
+</pre>
+<p>WHATSON? 71c16642-5239-490f-b250-a5470a9496e8</p>
+<pre>
+  feature -- Access
+</pre>
+<p>WHATSON? cbdd61c3-4f14-42bf-9036-8e40784c2bc3</p>
+<pre>
+ 
+</pre>
+<p>WHATSON? 1a514c6e-91a3-4b2b-8022-df3809ef897b</p>
+<pre>
+     foo: INTEGER
+</pre>
+<p>WHATSON? 94f76a3d-8aaf-4a11-8df3-d5926c1da6a4</p>
+<pre>
+ 
+</pre>
+<p>WHATSON? 37ad645e-6c04-40ec-b845-7b37aab0d02e</p>
+<pre>
+     my_function: INTEGER
+</pre>
+<p>WHATSON? 00f8cb8b-90db-4752-a2f3-dcd4a3eecb5e</p>
+<pre>
+        do
+</pre>
+<p>WHATSON? 7e1de321-dfed-4ead-8b42-77d44b0af7f2</p>
+<pre>
+          Result := foo
+</pre>
+<p>WHATSON? b3d0b7ee-2ef3-4d2a-a1c0-27bfc0d78edd</p>
+<pre>
+       end
+</pre>
+<p>WHATSON? d3799cbf-ef89-434e-b856-b33a39066fdc</p>
+<pre>
+ 
+</pre>
+<p>WHATSON? 42488521-52e1-4112-b49f-4117b54259ea</p>
+<pre>
+ end
+</pre>
+<p></p>
+<p>Line #10 (above) has the implied reference to <code>Current</code> by the call to simple `foo'.</p>
+<p>Line #10 (below) has the explicit reference to <code>Current</code> by the call to `Current.foo'.</p>
+<ol>
+<li>
+<pre>
+  class
+</pre></li>
+<li>
+<pre>
+     MY_CLASS
+</pre></li>
+<li>
+<pre>
+ 
+</pre></li>
+<li>
+<pre>
+  feature -- Access
+</pre></li>
+<li>
+<pre>
+ 
+</pre></li>
+<li>
+<pre>
+     foo: INTEGER
+</pre></li>
+<li>
+<pre>
+ 
+</pre></li>
+<li>
+<pre>
+     my_function: INTEGER
+</pre></li>
+<li>
+<pre>
+        do
+</pre></li>
+<li>
+<pre>
+           Result := Current.foo
+</pre></li>
+<li>
+<pre>
+       end
+</pre></li>
+<li>
+<pre>
+ 
+</pre></li>
+<li>
+<pre>
+ end
+</pre></li>
+</ol>
+<p>WHATSON? 36b34e90-ed7d-49a4-857a-741d55c36494</p>
+<pre>
+  class
+</pre>
+<p>WHATSON? 409a9ef7-b48f-46f7-8182-831bc97a113e</p>
+<pre>
+     MY_CLASS
+</pre>
+<p>WHATSON? 8d89eb8f-2f2e-49bf-95f6-8d620c8d4f23</p>
+<pre>
+ 
+</pre>
+<p>WHATSON? 7ab0aec1-bdd1-4622-86de-111b6c4cca67</p>
+<pre>
+  feature -- Access
+</pre>
+<p>WHATSON? e731b88d-2187-42f3-8c6a-b4ed8f22606d</p>
+<pre>
+ 
+</pre>
+<p>WHATSON? 6d3884fc-7199-4161-948f-b22f01564f5c</p>
+<pre>
+     foo: INTEGER
+</pre>
+<p>WHATSON? e6e099c9-faa0-42a3-a4e5-a1c767b1bb39</p>
+<pre>
+ 
+</pre>
+<p>WHATSON? f75021dd-3788-4d52-9c6d-e81ca2f69078</p>
+<pre>
+     my_function: INTEGER
+</pre>
+<p>WHATSON? 5e940ad8-fb66-4af3-9007-45933a50897c</p>
+<pre>
+        do
+</pre>
+<p>WHATSON? f7171f13-0e5d-4281-a7a4-b7166d1def7b</p>
+<pre>
+           Result := Current.foo
+</pre>
+<p>WHATSON? 4c245575-8b91-45c9-a7fc-c1fbfbf746c2</p>
+<pre>
+       end
+</pre>
+<p>WHATSON? 0902f1c3-000e-43d7-a988-909267d49b1c</p>
+<pre>
+ 
+</pre>
+<p>WHATSON? a23b7603-b145-42eb-a96b-d4c853bad0ef</p>
+<pre>
+ end
+</pre>
+<p>Either approach is acceptable to the compiler, but the implied version (e.g. <code>x := foo</code>) is preferred as it is less verbose.</p>
+<p>As with other languages, there are times when the use of the keyword <code>Current</code> is mandated, such as:</p>
+<ol>
+<li>
+<pre>
+  class
+</pre></li>
+<li>
+<pre>
+     MY_CLASS
+</pre></li>
+<li>
+<pre>
+ 
+</pre></li>
+<li>
+<pre>
+  feature -- Access
+</pre></li>
+<li>
+<pre>
+ 
+</pre></li>
+<li>
+<pre>
+     my_command
+</pre></li>
+<li>
+<pre>
+           -- Create MY_OTHER_CLASS with `Current'
+</pre></li>
+<li>
+<pre>
+        local
+</pre></li>
+<li>
+<pre>
+           x: MY_OTHER_CLASS
+</pre></li>
+<li>
+<pre>
+       do
+</pre></li>
+<li>
+<pre>
+          create x.make_with_something (Current)
+</pre></li>
+<li>
+<pre>
+       end
+</pre></li>
+<li>
+<pre>
+ 
+</pre></li>
+<li>
+<pre>
+ end
+</pre></li>
+</ol>
+<p>WHATSON? d922f598-a051-47c6-b28f-faad99333821</p>
+<pre>
+  class
+</pre>
+<p>WHATSON? 6a2081da-0eed-45fc-a2d1-0ae6ec22ccb6</p>
+<pre>
+     MY_CLASS
+</pre>
+<p>WHATSON? 7b58ce35-725f-4070-88f6-2d7ff04dfd3d</p>
+<pre>
+ 
+</pre>
+<p>WHATSON? 84f023fa-b023-4a32-980c-adc824480221</p>
+<pre>
+  feature -- Access
+</pre>
+<p>WHATSON? 945b2540-62b5-45f2-919a-1319d97d7f68</p>
+<pre>
+ 
+</pre>
+<p>WHATSON? a2f69d04-9574-4367-b06e-9029788a5b34</p>
+<pre>
+     my_command
+</pre>
+<p>WHATSON? 4182b26a-70a5-4237-9eb0-c6b3cad696b8</p>
+<pre>
+           -- Create MY_OTHER_CLASS with `Current'
+</pre>
+<p>WHATSON? 2256ecbc-70a7-492b-a64d-2983f1f92451</p>
+<pre>
+        local
+</pre>
+<p>WHATSON? 7261f470-6930-4502-8b10-7a404086f955</p>
+<pre>
+           x: MY_OTHER_CLASS
+</pre>
+<p>WHATSON? 7000e373-a95b-4c2f-9285-87c563114275</p>
+<pre>
+       do
+</pre>
+<p>WHATSON? 82cc41e6-0be7-4296-ade2-9eb6fc38568a</p>
+<pre>
+          create x.make_with_something (Current)
+</pre>
+<p>WHATSON? 5a12ae5d-5001-419a-b77e-4a52a1c5114e</p>
+<pre>
+       end
+</pre>
+<p>WHATSON? 36118e1f-939c-440b-ac7a-870e67c9981c</p>
+<pre>
+ 
+</pre>
+<p>WHATSON? 4013a523-d80e-4918-a6de-fce1be5f1bba</p>
+<pre>
+ end
+</pre>
+<p>In the case of the code above, the call on line #11 to <b>make_with_something</b> is passing the current class by explicitly passing the keyword <code>Current</code>.</p>
+<h3>JavaScript</h3>
+<p>In JavaScript, which is a programming or scripting language used extensively in web browsers, <code>this</code> is an important keyword, although what it evaluates to depends on where it is used.</p>
+<ul>
+<li>When used outside any function, in global space, <code>this</code> refers to the enclosing object, which in this case is the enclosing browser window, the <code>window</code> object.</li>
+<li>When used in a function defined in the global space, what the keyword <code>this</code> refers to depends on how the function is called. When such a function is called directly (e.g. <code>f(x)</code>), <code>this</code> will refer back to the global space in which the function is defined, and in which other global functions and variables may exist as well (or in strict mode, it is <code>undefined</code>). If a global function containing <code>this</code> is called as part of the event handler of an element in the document object, however, <code>this</code> will refer to the calling HTML element.</li>
+<li>When a function is attached as a property of an object and called as a method of that object (e.g. <code>obj.f(x)</code>), <code>this</code> will refer to the object that the function is contained within. It is even possible to manually specify <code>this</code> when calling a function, by using the <code>.call()</code> or <code>.apply()</code> methods of the function object. For example, the method call <code>obj.f(x)</code> could also be written as <code>obj.f.call(obj, x)</code>.</li>
+</ul>
+<p>To work around the different meaning of <code>this</code> in nested functions such as DOM event handlers, it is a common idiom in JavaScript to save the <code>this</code> reference of the calling object in a variable (commonly called <code>that</code> or <code>self</code>), and then use the variable to refer to the calling object in nested functions.</p>
+<p>For example:</p>
+<p>WHATSON? 3c34d56d-699a-439b-a287-639acefd7900</p>
+<pre>
+$(".element").hover(function() {
+    // Here, both this and that point to the element under the mouse cursor.
+    var that = this;
+ 
+    this.find('.elements').each(function(){
+        // Here, this points to the DOM element being iterated.
+        // However, that still points to the element under the mouse cursor.
+        this.addClass("highlight");
+    });
+});
+</pre>
+<h3>Python</h3>
+<p>In Python, there is no keyword for <code>this</code>. When a member function is called on an object, it invokes the member function with the same name on the object's class object, with the object automatically bound to the first argument of the function. Thus, the obligatory first parameter of instance methods serves as <code>this</code>; this parameter is conventionally named <code>self</code>, but can be named anything.</p>
+<p>In class methods (created with the <code>classmethod</code> decorator), the first argument refers to the class object itself, and is conventionally called <code>cls</code>; these are primarily used for inheritable constructors, where the use of the class as a parameter allows subclassing the constructor. In static methods (created with the <code>staticmethod</code> decorator), no special first argument exists.</p>
+<h3>Self</h3>
+<p>The Self language is named after this use of "self".</p>
+<h3>Xbase++</h3>
+<p><code>Self</code> is strictly used within methods of a class. Another way to refer to <code>Self</code> is to use <code>::</code>.</p>
+<h2>See also</h2>
+<ul>
+<li>Anonymous recursion</li>
+<li>Self-reference</li>
+<li>Inheritance (object-oriented programming)</li>
+</ul>
+</body>
+</html>

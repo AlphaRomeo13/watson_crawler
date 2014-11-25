@@ -1,0 +1,235 @@
+<h1 id="firstHeading" class="firstHeading" lang="en"><span dir="auto">Inline expansion</span></h1>
+<p>In <a href="/wiki/Computing" title="Computing">computing</a>, <b>inline expansion</b>, or <b>inlining</b>, is a manual or <a href="/wiki/Compiler_optimization" title="Compiler optimization" class="mw-redirect">compiler optimization</a> that replaces a function <a href="/wiki/Call_site" title="Call site">call site</a> with the body of the <a href="/wiki/Callee" title="Callee" class="mw-redirect">callee</a>. This optimization typically improves time and space usage at runtime, at the cost of increasing the final size of the program (i.e. the <a href="/wiki/Binary_file" title="Binary file">binary file</a> size), but in some cases may decrease runtime performance or decrease the final size of the program.</p>
+<p>Inlining is done automatically by many compilers, while in other cases it can be manually specified via compiler <a href="/wiki/Directive_(programming)" title="Directive (programming)">directives</a>, typically using the <tt>inline</tt> keyword; typically this only hints that inlining is desired, rather than requiring inlining. Compilers use a variety of mechanisms to decide which function calls should be inlined; these can include manual hints from programmers for specific functions, together with overall control via <a href="/wiki/Command-line_option" title="Command-line option" class="mw-redirect">command-line options</a>.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Overview"><span class="tocnumber">1</span> <span class="toctext">Overview</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Implementation"><span class="tocnumber">2</span> <span class="toctext">Implementation</span></a>
+<ul>
+<li class="toclevel-2 tocsection-3"><a href="#Inlining_by_assembly_macro_expansion"><span class="tocnumber">2.1</span> <span class="toctext">Inlining by assembly macro expansion</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-4"><a href="#Benefits"><span class="tocnumber">3</span> <span class="toctext">Benefits</span></a></li>
+<li class="toclevel-1 tocsection-5"><a href="#Problems"><span class="tocnumber">4</span> <span class="toctext">Problems</span></a></li>
+<li class="toclevel-1 tocsection-6"><a href="#Limitations"><span class="tocnumber">5</span> <span class="toctext">Limitations</span></a></li>
+<li class="toclevel-1 tocsection-7"><a href="#Selection_methods"><span class="tocnumber">6</span> <span class="toctext">Selection methods</span></a></li>
+<li class="toclevel-1 tocsection-8"><a href="#Language_support"><span class="tocnumber">7</span> <span class="toctext">Language support</span></a>
+<ul>
+<li class="toclevel-2 tocsection-9"><a href="#C_and_C.2B.2B"><span class="tocnumber">7.1</span> <span class="toctext">C and C++</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-10"><a href="#See_also"><span class="tocnumber">8</span> <span class="toctext">See also</span></a></li>
+<li class="toclevel-1 tocsection-11"><a href="#References"><span class="tocnumber">9</span> <span class="toctext">References</span></a></li>
+<li class="toclevel-1 tocsection-12"><a href="#External_links"><span class="tocnumber">10</span> <span class="toctext">External links</span></a></li>
+</ul>
+<ul>
+<li class="toclevel-2 tocsection-3"><a href="#Inlining_by_assembly_macro_expansion"><span class="tocnumber">2.1</span> <span class="toctext">Inlining by assembly macro expansion</span></a></li>
+</ul>
+<ul>
+<li class="toclevel-2 tocsection-9"><a href="#C_and_C.2B.2B"><span class="tocnumber">7.1</span> <span class="toctext">C and C++</span></a></li>
+</ul>
+<p></p>
+<h2><span class="mw-headline" id="Overview">Overview</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Inline_expansion&amp;action=edit&amp;section=1" title="Edit section: Overview">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Ordinarily, when a function is invoked, <a href="/wiki/Control_flow" title="Control flow">control</a> is transferred to its definition by a <a href="/wiki/Branch_(computer_science)" title="Branch (computer science)">branch</a> or call instruction. With inlining, control drops through directly to the code for the function, without a branch or call instruction. Inlining improves <a href="/wiki/Algorithmic_efficiency" title="Algorithmic efficiency">performance</a> in several ways:</p>
+<ul>
+<li>It removes the cost of the <a href="/wiki/Function_call" title="Function call" class="mw-redirect">function call</a> and <a href="/wiki/Return_statement" title="Return statement">return</a> instructions, as well as any other <a href="/wiki/Function_prologue" title="Function prologue">prologue and epilogue</a> code injected into every function by the compiler.</li>
+<li>Eliminating branches and keeping code that is executed close together in memory improves <a href="/wiki/Instruction_cache" title="Instruction cache" class="mw-redirect">instruction cache</a> performance by improving <a href="/wiki/Locality_of_reference" title="Locality of reference">locality of reference</a>.</li>
+<li>Once inlining has been performed, additional intraprocedural optimizations become possible on the inlined function body. For example, a <a href="/wiki/Constant_(programming)" title="Constant (programming)" class="mw-redirect">constant</a> passed as an argument can often be propagated to all instances of the matching parameter, or part of the function may be <a href="/wiki/Loop-invariant_code_motion" title="Loop-invariant code motion">"hoisted out" of a loop</a>.</li>
+</ul>
+<p>The primary cost of inlining is that it tends to increase code size, although it does not always do so. Inlining may also decrease performance in some cases – for instance, multiple copies of a function may increase code size enough that the code no longer fits in the cache, resulting in more cache misses.</p>
+<p><a href="/wiki/Compiler" title="Compiler">Compilers</a> usually implement <a href="/wiki/Statement_(computer_science)" title="Statement (computer science)">statements</a> with inlining. Loop conditions and loop bodies need <a href="/wiki/Lazy_evaluation" title="Lazy evaluation">lazy evaluation</a>. This property is fulfilled when the code to compute loop conditions and loop bodies is inlined. Performance considerations are another reason to inline statements.</p>
+<p>In the context of <a href="/wiki/Functional_programming_language" title="Functional programming language" class="mw-redirect">functional programming languages</a>, inline expansion is usually followed by the <a href="/wiki/Lambda_calculus#.CE.B2-reduction" title="Lambda calculus">beta-reduction</a> transformation.</p>
+<p>A programmer might inline a function manually through <a href="/wiki/Copy_and_paste_programming" title="Copy and paste programming">copy and paste programming</a>, as a one-time operation on the <a href="/wiki/Source_code" title="Source code">source code</a>. However, other methods of controlling inlining (see below) are preferable, because they do not precipitate bugs arising when the programmer overlooks a (possibly modified) duplicated version of the original function body, while fixing a bug in the inlined function.</p>
+<h2><span class="mw-headline" id="Implementation">Implementation</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Inline_expansion&amp;action=edit&amp;section=2" title="Edit section: Implementation">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Once the <a href="/wiki/Compiler" title="Compiler">compiler</a> has decided to inline a particular function, performing the inlining operation itself is usually simple. Depending on whether the compiler inlines functions across code in different languages, the compiler can do inlining on either a high-level <a href="/wiki/Intermediate_representation" title="Intermediate representation" class="mw-redirect">intermediate representation</a> (like <a href="/wiki/Abstract_syntax_tree" title="Abstract syntax tree">abstract syntax trees</a>) or a low-level intermediate representation. In either case, the compiler simply computes the <a href="/wiki/Parameter" title="Parameter">arguments</a>, stores them in variables corresponding to the function's arguments, and then inserts the body of the function at the call site.</p>
+<p><a href="/wiki/Linker_(computing)" title="Linker (computing)">Linkers</a>, as well as compilers, can also do function inlining. When a linker inlines functions, it may inline functions whose source is not available, such as library functions (see <a href="/wiki/Link-time_optimization" title="Link-time optimization" class="mw-redirect">link-time optimization</a>). A <a href="/wiki/Run-time_system" title="Run-time system" class="mw-redirect">run-time system</a> can inline function as well. <a href="/wiki/Run_time_(program_lifecycle_phase)" title="Run time (program lifecycle phase)">Run-time</a> inlining can use dynamic profiling information to make better decisions about which functions to inline, as in the <a href="/wiki/Java_Hotspot_compiler" title="Java Hotspot compiler" class="mw-redirect">Java Hotspot compiler</a>.</p>
+<p>Here is a simple example of inline expansion performed "by hand" at the source level in the <a href="/wiki/C_(programming_language)" title="C (programming language)">C programming language</a>:</p>
+<p>WHATSON? f62e54e7-ae63-4eba-86d1-150eac309663</p>
+<pre class="de1">
+<span class="kw4">int</span> pred<span class="br0">(</span><span class="kw4">int</span> x<span class="br0">)</span> <span class="br0">{</span>
+    <span class="kw1">if</span> <span class="br0">(</span>x <span class="sy0">==</span> <span class="nu0">0</span><span class="br0">)</span>
+       <span class="kw1">return</span> <span class="nu0">0</span><span class="sy0">;</span>
+    <span class="kw1">else</span>
+       <span class="kw1">return</span> x <span class="sy0">-</span> <span class="nu0">1</span><span class="sy0">;</span>
+<span class="br0">}</span>
+</pre>
+<p><i>Before inlining:</i></p>
+<p>WHATSON? 05aa940f-6d7e-49d4-9b21-e8f7236b83c0</p>
+<pre class="de1">
+ <span class="kw4">int</span> f<span class="br0">(</span><span class="kw4">int</span> y<span class="br0">)</span> <span class="br0">{</span>
+     <span class="kw1">return</span> pred<span class="br0">(</span>y<span class="br0">)</span> <span class="sy0">+</span> pred<span class="br0">(</span><span class="nu0">0</span><span class="br0">)</span> <span class="sy0">+</span> pred<span class="br0">(</span>y<span class="sy0">+</span><span class="nu0">1</span><span class="br0">)</span><span class="sy0">;</span>
+ <span class="br0">}</span>
+</pre>
+<p><i>After inlining:</i></p>
+<p>WHATSON? ce92e678-8fe0-44df-ab65-b48234f33485</p>
+<pre class="de1">
+<span class="kw4">int</span> f<span class="br0">(</span><span class="kw4">int</span> y<span class="br0">)</span> <span class="br0">{</span>
+    <span class="kw4">int</span> temp<span class="sy0">;</span>
+    <span class="kw1">if</span> <span class="br0">(</span>y   <span class="sy0">==</span> <span class="nu0">0</span><span class="br0">)</span> temp  <span class="sy0">=</span> <span class="nu0">0</span><span class="sy0">;</span> <span class="kw1">else</span> temp  <span class="sy0">=</span> y       <span class="sy0">-</span> <span class="nu0">1</span><span class="sy0">;</span> <span class="coMULTI">/* (1) */</span>
+    <span class="kw1">if</span> <span class="br0">(</span><span class="nu0">0</span>   <span class="sy0">==</span> <span class="nu0">0</span><span class="br0">)</span> temp <span class="sy0">+=</span> <span class="nu0">0</span><span class="sy0">;</span> <span class="kw1">else</span> temp <span class="sy0">+=</span> <span class="nu0">0</span>       <span class="sy0">-</span> <span class="nu0">1</span><span class="sy0">;</span> <span class="coMULTI">/* (2) */</span>
+    <span class="kw1">if</span> <span class="br0">(</span>y<span class="sy0">+</span><span class="nu0">1</span> <span class="sy0">==</span> <span class="nu0">0</span><span class="br0">)</span> temp <span class="sy0">+=</span> <span class="nu0">0</span><span class="sy0">;</span> <span class="kw1">else</span> temp <span class="sy0">+=</span> <span class="br0">(</span>y <span class="sy0">+</span> <span class="nu0">1</span><span class="br0">)</span> <span class="sy0">-</span> <span class="nu0">1</span><span class="sy0">;</span> <span class="coMULTI">/* (3) */</span>
+    <span class="kw1">return</span> temp<span class="sy0">;</span>
+<span class="br0">}</span>
+</pre>
+<p>Note that this is only an example. In an actual C application, it would be preferable to use an inlining language feature such as <a href="/wiki/Parameterized_macro" title="Parameterized macro">parameterized macros</a> or <a href="/wiki/Inline_function" title="Inline function">inline functions</a> to tell the compiler to transform the code in this way. The next section lists ways to optimize this code.</p>
+<h3><span class="mw-headline" id="Inlining_by_assembly_macro_expansion">Inlining by assembly macro expansion</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Inline_expansion&amp;action=edit&amp;section=3" title="Edit section: Inlining by assembly macro expansion">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p><a href="/wiki/Macro_assembler#Macros" title="Macro assembler" class="mw-redirect">Assembler macros</a> provide an alternative approach to inlining whereby a sequence of instructions can normally be generated inline by macro expansion from a single macro source statement (with zero or more parameters). One of the parameters might be an option to alternatively generate a one-time separate <a href="/wiki/Subroutine" title="Subroutine">subroutine</a> containing the sequence and processed instead by an inlined call to the function. Example:</p>
+<p>WHATSON? 0e7b4c0e-6202-4050-812f-0945bcff1a83</p>
+<pre>
+MOVE FROM=array1,TO=array2,INLINE=NO
+</pre>
+<h2><span class="mw-headline" id="Benefits">Benefits</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Inline_expansion&amp;action=edit&amp;section=4" title="Edit section: Benefits">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Inline expansion itself is an optimization, since it eliminates overhead from calls, but it is much more important as an <a href="/wiki/Enabling_transformation" title="Enabling transformation">enabling transformation</a>. That is, once the compiler expands a function body in the context of its call site—often with arguments that may be fixed <a href="/wiki/Constant_(mathematics)" title="Constant (mathematics)">constants</a> -- it may be able to do a variety of transformations that were not possible before. For example, a <a href="/wiki/Conditional_branch" title="Conditional branch" class="mw-redirect">conditional branch</a> may turn out to be always true or always false at this particular call site. This in turn may enable <a href="/wiki/Dead_code_elimination" title="Dead code elimination">dead code elimination</a>, <a href="/wiki/Loop-invariant_code_motion" title="Loop-invariant code motion">loop-invariant code motion</a>, or <a href="/wiki/Induction_variable_elimination" title="Induction variable elimination" class="mw-redirect">induction variable elimination</a>.</p>
+<p>In the C example in the previous section, optimization opportunities abound. The compiler may follow this sequence of steps:</p>
+<ul>
+<li>The <code>temp += 0</code> statements in the lines marked (2) and (3) do nothing. The compiler can remove them.</li>
+<li>The condition <code>0 == 0</code> is always true, so the compiler can replace the line marked (2) with the consequent, <code>temp += 0</code> (which does nothing).</li>
+<li>The compiler can rewrite the condition <code>y+1 == 0</code> to <code>y == -1</code>.</li>
+<li>The compiler can reduce the expression <code>(y + 1) - 1</code> to <code>y</code> (assuming wraparound overflow semantics)</li>
+<li>The expressions <code>y</code> and <code>y+1</code> cannot both equal zero. This lets the compiler eliminate one test.</li>
+</ul>
+<p>The new function looks like:</p>
+<p>WHATSON? f51c8a39-2e78-453d-a297-2fccf5193d83</p>
+<pre class="de1">
+<span class="kw4">int</span> f<span class="br0">(</span><span class="kw4">int</span> y<span class="br0">)</span> <span class="br0">{</span>
+    <span class="kw1">if</span> <span class="br0">(</span>y <span class="sy0">==</span> <span class="nu0">0</span><span class="br0">)</span>
+        <span class="kw1">return</span> y<span class="sy0">;</span>            <span class="coMULTI">/* or return 0 */</span>
+    <span class="kw1">else</span> <span class="kw1">if</span> <span class="br0">(</span>y <span class="sy0">==</span> <span class="sy0">-</span><span class="nu0">1</span><span class="br0">)</span>
+        <span class="kw1">return</span> y <span class="sy0">-</span> <span class="nu0">1</span><span class="sy0">;</span>        <span class="coMULTI">/* or return -2 */</span>
+    <span class="kw1">else</span>
+        <span class="kw1">return</span> y <span class="sy0">+</span> y <span class="sy0">-</span> <span class="nu0">1</span><span class="sy0">;</span>
+<span class="br0">}</span>
+</pre>
+<h2><span class="mw-headline" id="Problems">Problems</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Inline_expansion&amp;action=edit&amp;section=5" title="Edit section: Problems">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Replacing a call site with an expanded function body can worsen <a href="/wiki/Algorithmic_efficiency" title="Algorithmic efficiency">performance</a> in several ways :</p>
+<ul>
+<li>In applications where <a href="/wiki/Optimization_(computer_science)" title="Optimization (computer science)" class="mw-redirect">code size</a> is more important than speed, such as many <a href="/wiki/Embedded_system" title="Embedded system">embedded systems</a>, inlining is usually disadvantageous except for very small functions, such as trivial <a href="/wiki/Mutator_method" title="Mutator method">mutator methods</a>.</li>
+<li>The increase in code size may cause a small, critical section of code to no longer fit in the <a href="/wiki/CPU_cache" title="CPU cache">cache</a>, causing cache misses and slowdown.</li>
+<li>A language specification may allow a program to make additional assumptions about arguments to procedures that it can no longer make after the procedure is inlined.</li>
+<li>If code size is increased too much, resource constraints such as RAM size may be exceeded, leading to programs that either cannot be run or that cause <a href="/wiki/Thrashing_(computer_science)" title="Thrashing (computer science)">thrashing</a>. Today, this is unlikely to be an issue with desktop or server computers except with very aggressive inlining, but it can still be an issue for <a href="/wiki/Embedded_system" title="Embedded system">embedded systems</a>.</li>
+</ul>
+<p>Typically, compiler developers keep these issues in mind, and incorporate <a href="/wiki/Heuristics" title="Heuristics" class="mw-redirect">heuristics</a> into their compilers that choose which functions to inline so as to improve performance, rather than worsening it, in most cases.</p>
+<h2><span class="mw-headline" id="Limitations">Limitations</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Inline_expansion&amp;action=edit&amp;section=6" title="Edit section: Limitations">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>It is not always possible to inline a subroutine. Consider the case of a subroutine that calls itself recursively until it receives a particular piece of input data from a <a href="/wiki/Computer_peripheral" title="Computer peripheral" class="mw-redirect">peripheral</a>. The compiler cannot generally determine when this process will end, so it would never finish inlining if it was designed to inline every single subroutine invocation. Thus, compilers for languages which support recursion must have restrictions on what they will automatically choose to inline.</p>
+<h2><span class="mw-headline" id="Selection_methods">Selection methods</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Inline_expansion&amp;action=edit&amp;section=7" title="Edit section: Selection methods">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Many compilers aggressively inline functions wherever it is beneficial to do so. Although it can lead to larger <a href="/wiki/Executable" title="Executable">executables</a>, aggressive inlining has nevertheless become more and more desirable as memory capacity has increased faster than CPU speed. Inlining is a critical optimization in <a href="/wiki/Functional_programming" title="Functional programming">functional languages</a> and <a href="/wiki/Object-oriented_programming_language" title="Object-oriented programming language" class="mw-redirect">object-oriented programming languages</a>, which rely on it to provide enough context for their typically small functions to make classical optimizations effective.</p>
+<h2><span class="mw-headline" id="Language_support">Language support</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Inline_expansion&amp;action=edit&amp;section=8" title="Edit section: Language support">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Many languages, including <a href="/wiki/Java_(programming_language)" title="Java (programming language)">Java</a> and <a href="/wiki/Functional_language" title="Functional language" class="mw-redirect">functional languages</a>, do not provide language constructs for inline functions, but their compilers or interpreters often do perform aggressive <strong class="selflink">inline expansion</strong>. Other languages provide constructs for explicit hints, generally as compiler <a href="/wiki/Directive_(programming)" title="Directive (programming)">directives</a> (pragmas).</p>
+<p>In the <a href="/wiki/Ada_programming_language" title="Ada programming language" class="mw-redirect">Ada programming language</a>, there exists a pragma for inline functions.</p>
+<p>Functions in <a href="/wiki/Common_Lisp" title="Common Lisp">Common Lisp</a> may be defined as inline by the <code>inline</code> declaration as such:<sup id="cite_ref-1" class="reference"><a href="#cite_note-1"><span>[</span>1<span>]</span></a></sup></p>
+<p>WHATSON? 19416215-8131-493c-ba3f-8a812d4becfe</p>
+<pre class="de1">
+ <span class="br0">(</span>declaim <span class="br0">(</span>inline dispatch<span class="br0">)</span><span class="br0">)</span>
+ <span class="br0">(</span><span class="kw1">defun</span> dispatch <span class="br0">(</span>x<span class="br0">)</span>
+   <span class="br0">(</span><span class="kw1">funcall</span>
+     <span class="br0">(</span><span class="kw1">get</span> <span class="br0">(</span><span class="kw1">car</span> x<span class="br0">)</span> 'dispatch<span class="br0">)</span> x<span class="br0">)</span><span class="br0">)</span>
+</pre>
+<p>The <a href="/wiki/Haskell_(programming_language)" title="Haskell (programming language)">Haskell</a> compiler <a href="/wiki/Glasgow_Haskell_Compiler" title="Glasgow Haskell Compiler">GHC</a> tries to inline functions or values that are small enough but inlining may be noted explicitly using a language pragma:<sup id="cite_ref-2" class="reference"><a href="#cite_note-2"><span>[</span>2<span>]</span></a></sup></p>
+<p>WHATSON? 44fa1f72-c694-4aed-8c55-9cabf9cb611c</p>
+<pre class="de1">
+key_function <span class="sy0">::</span> <span class="kw4">Int</span> <span class="sy0">-&gt;</span> <span class="kw4">String</span> <span class="sy0">-&gt;</span> <span class="br0">(</span><span class="kw4">Bool</span>, <span class="kw4">Double</span><span class="br0">)</span>
+<span class="coMULTI">{-# INLINE key_function #-}</span>
+</pre>
+<h3><span class="mw-headline" id="C_and_C.2B.2B">C and C++</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Inline_expansion&amp;action=edit&amp;section=9" title="Edit section: C and C++">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p><a href="/wiki/C_(computer_language)" title="C (computer language)" class="mw-redirect">C</a> and <a href="/wiki/C%2B%2B" title="C++">C++</a> have an <code>inline</code> keyword, which functions both as a compiler directive – specifying that inlining is <i>desired</i> but not <i>required</i> – and also changes the visibility and linking behavior. The visibility change is necessary to allow the function to be inlined via the standard C toolchain, where compilation of individual files (rather, <a href="/wiki/Translation_unit_(programming)" title="Translation unit (programming)">translation units</a>) is followed by linking: for the linker to be able to inline functions, they must be specified in the header (to be visible) and marked <code>inline</code> (to avoid ambiguity from multiple definitions).</p>
+<h2><span class="mw-headline" id="See_also">See also</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Inline_expansion&amp;action=edit&amp;section=10" title="Edit section: See also">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul>
+<li><a href="/wiki/Macro_(computer_science)" title="Macro (computer science)">Macro</a></li>
+<li><a href="/wiki/Partial_evaluation" title="Partial evaluation">Partial evaluation</a></li>
+<li><a href="/wiki/Tail-call_elimination" title="Tail-call elimination" class="mw-redirect">Tail-call elimination</a></li>
+</ul>
+<h2><span class="mw-headline" id="References">References</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Inline_expansion&amp;action=edit&amp;section=11" title="Edit section: References">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ol class="references">
+<li id="cite_note-1"><span class="mw-cite-backlink"><b><a href="#cite_ref-1">^</a></b></span> <span class="reference-text"><a rel="nofollow" class="external text" href="http://www.lispworks.com/documentation/HyperSpec/Body/d_inline.htm#inline"><i>Declaration</i> <b>INLINE</b>, <b>NOTINLINE</b></a> at the <a href="/wiki/Common_Lisp_HyperSpec" title="Common Lisp HyperSpec">Common Lisp HyperSpec</a></span></li>
+<li id="cite_note-2"><span class="mw-cite-backlink"><b><a href="#cite_ref-2">^</a></b></span> <span class="reference-text"><a rel="nofollow" class="external text" href="http://www.haskell.org/ghc/docs/7.0.4/html/users_guide/pragmas.html">7.13.5.1. INLINE pragma</a> Chapter 7. GHC Language Features</span></li>
+</ol>
+<h2><span class="mw-headline" id="External_links">External links</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Inline_expansion&amp;action=edit&amp;section=12" title="Edit section: External links">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul>
+<li>"<a rel="nofollow" class="external text" href="http://citeseer.ist.psu.edu/viewdoc/summary?doi=10.1.1.114.1036">Eliminating Virtual Function Calls in C++ Programs</a>" by <a href="/w/index.php?title=Gerald_Aigner&amp;action=edit&amp;redlink=1" class="new" title="Gerald Aigner (page does not exist)">Gerald Aigner</a> and <a href="/wiki/Urs_H%C3%B6lzle" title="Urs Hölzle">Urs Hölzle</a></li>
+<li>"<a rel="nofollow" class="external text" href="http://citeseer.ist.psu.edu/viewdoc/summary?doi=10.1.1.187.7208">Reducing Indirect Function Call Overhead In C++ Programs</a>" by <a href="/w/index.php?title=Brad_Calder&amp;action=edit&amp;redlink=1" class="new" title="Brad Calder (page does not exist)">Brad Calder</a> and <a href="/w/index.php?title=Dirk_Grumwald&amp;action=edit&amp;redlink=1" class="new" title="Dirk Grumwald (page does not exist)">Dirk Grumwald</a></li>
+<li>"<a rel="nofollow" class="external text" href="http://research.microsoft.com/~simonpj/Papers/inlining/">Secrets of the Glasgow Haskell Compiler Inliner</a>" by <a href="/wiki/Simon_Peyton_Jones" title="Simon Peyton Jones">Simon Peyton Jones</a> and <a href="/w/index.php?title=Simon_Marlow&amp;action=edit&amp;redlink=1" class="new" title="Simon Marlow (page does not exist)">Simon Marlow</a></li>
+<li><a rel="nofollow" class="external text" href="http://www.cs.arizona.edu/alto/Doc/alto.html">ALTO - A Link-Time Optimizer for the DEC Alpha</a></li>
+<li>"<a rel="nofollow" class="external text" href="http://www.iecc.com/linker/linker11.html">Advanced techniques</a>" by <a href="/wiki/John_R._Levine" title="John R. Levine">John R. Levine</a></li>
+<li>"<a rel="nofollow" class="external text" href="http://home.pipeline.com/~hbaker1/Inlines.html">Inlining Semantics for Subroutines which are Recursive</a>" by <a href="/w/index.php?title=Henry_G._Baker&amp;action=edit&amp;redlink=1" class="new" title="Henry G. Baker (page does not exist)">Henry G. Baker</a></li>
+<li>"<a rel="nofollow" class="external text" href="http://codeproject.com/tips/gloption.asp">Whole Program Optimization with Visual C++ .NET</a>" by <a href="/w/index.php?title=Brandon_Bray&amp;action=edit&amp;redlink=1" class="new" title="Brandon Bray (page does not exist)">Brandon Bray</a></li>
+</ul>
+<p><br></p>
+<ul>
+<li class="nv-view"><a href="/wiki/Template:Compiler_optimizations" title="Template:Compiler optimizations"><span title="View this template" style=";;background:none transparent;border:none;;">v</span></a></li>
+<li class="nv-talk"><a href="/w/index.php?title=Template_talk:Compiler_optimizations&amp;action=edit&amp;redlink=1" class="new" title="Template talk:Compiler optimizations (page does not exist)"><span title="Discuss this template" style=";;background:none transparent;border:none;;">t</span></a></li>
+<li class="nv-edit"><a class="external text" href="//en.wikipedia.org/w/index.php?title=Template:Compiler_optimizations&amp;action=edit"><span title="Edit this template" style=";;background:none transparent;border:none;;">e</span></a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Peephole_optimization" title="Peephole optimization">Peephole optimization</a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Induction_variable" title="Induction variable">Induction variable</a></li>
+<li><a href="/wiki/Strength_reduction" title="Strength reduction">Strength reduction</a></li>
+<li><a href="/wiki/Loop_fusion" title="Loop fusion">Loop fusion</a></li>
+<li><a href="/wiki/Loop_inversion" title="Loop inversion">Loop inversion</a></li>
+<li><a href="/wiki/Loop_interchange" title="Loop interchange">Loop interchange</a></li>
+<li><a href="/wiki/Loop-invariant_code_motion" title="Loop-invariant code motion">Loop-invariant code motion</a></li>
+<li><a href="/wiki/Loop_nest_optimization" title="Loop nest optimization">Loop nest optimization</a></li>
+<li><a href="/w/index.php?title=Loop_reversal&amp;action=edit&amp;redlink=1" class="new" title="Loop reversal (page does not exist)">Loop reversal</a></li>
+<li><a href="/wiki/Loop_unrolling" title="Loop unrolling">Loop unrolling</a></li>
+<li><a href="/wiki/Loop_splitting" title="Loop splitting">Loop splitting</a></li>
+<li><a href="/wiki/Loop_unswitching" title="Loop unswitching">Loop unswitching</a></li>
+<li><a href="/wiki/Software_pipelining" title="Software pipelining">Software pipelining</a></li>
+<li><a href="/wiki/Automatic_parallelization" title="Automatic parallelization">Automatic parallelization</a></li>
+<li><a href="/w/index.php?title=Register_coloring&amp;action=edit&amp;redlink=1" class="new" title="Register coloring (page does not exist)">Register coloring</a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Common_subexpression_elimination" title="Common subexpression elimination">Common subexpression elimination</a></li>
+<li><a href="/wiki/Constant_folding" title="Constant folding">Constant folding</a></li>
+<li><a href="/wiki/Induction_variable_recognition_and_elimination" title="Induction variable recognition and elimination" class="mw-redirect">Induction variable recognition and elimination</a></li>
+<li><a href="/w/index.php?title=Alias_classification_and_pointer_analysis&amp;action=edit&amp;redlink=1" class="new" title="Alias classification and pointer analysis (page does not exist)">Alias classification and pointer analysis</a></li>
+<li><a href="/wiki/Dead_store" title="Dead store">Dead store</a> elimination</li>
+<li><a href="/w/index.php?title=Procedure_integration&amp;action=edit&amp;redlink=1" class="new" title="Procedure integration (page does not exist)">Procedure integration</a></li>
+<li><a href="/wiki/Use-define_chain" title="Use-define chain">Use-define chain</a></li>
+<li><a href="/wiki/Live_variable_analysis" title="Live variable analysis">Live variable analysis</a></li>
+<li><a href="/wiki/Available_expression" title="Available expression">Available expression</a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Global_value_numbering" title="Global value numbering">Global value numbering</a></li>
+<li><a href="/wiki/Sparse_conditional_constant_propagation" title="Sparse conditional constant propagation">Sparse conditional constant propagation</a></li>
+<li><a href="/w/index.php?title=Procedure_integration&amp;action=edit&amp;redlink=1" class="new" title="Procedure integration (page does not exist)">Procedure integration</a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Register_allocation" title="Register allocation">Register allocation</a></li>
+<li><a href="/wiki/Instruction_selection" title="Instruction selection">Instruction selection</a></li>
+<li><a href="/wiki/Instruction_scheduling" title="Instruction scheduling">Instruction scheduling</a></li>
+<li><a href="/wiki/Rematerialization" title="Rematerialization">Rematerialization</a></li>
+<li>Code factoring</li>
+<li>Trampolines</li>
+<li>Reordering</li>
+</ul>
+<ul>
+<li>Removing <a href="/wiki/Recursion" title="Recursion">recursion</a></li>
+<li><a href="/wiki/Deforestation_(computer_science)" title="Deforestation (computer science)">Deforestation</a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Interprocedural_optimization" title="Interprocedural optimization">Interprocedural optimization</a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Bounds-checking_elimination" title="Bounds-checking elimination">Bounds-checking elimination</a></li>
+<li>Code-block reordering</li>
+<li><a href="/wiki/Dead_code_elimination" title="Dead code elimination">Dead code elimination</a></li>
+<li>Factoring out invariants</li>
+<li><strong class="selflink">Inline expansion</strong></li>
+<li><a href="/wiki/Jump_threading" title="Jump threading">Jump threading</a></li>
+<li>Macro compression</li>
+<li>Reduction of cache collisions</li>
+<li>Stack height reduction</li>
+<li>Test reordering</li>
+</ul>
+<ul>
+<li><a href="/wiki/Alias_analysis" title="Alias analysis">Alias analysis</a></li>
+<li><a href="/wiki/Pointer_analysis" title="Pointer analysis">Pointer analysis</a></li>
+<li><a href="/wiki/Shape_analysis_(software)" title="Shape analysis (software)" class="mw-redirect">Shape analysis</a></li>
+<li><a href="/wiki/Escape_analysis" title="Escape analysis">Escape analysis</a></li>
+<li><a href="/wiki/Array_access_analysis" title="Array access analysis">Array access analysis</a></li>
+<li><a href="/wiki/Dependence_analysis" title="Dependence analysis">Dependence analysis</a></li>
+<li><a href="/wiki/Control_flow_analysis" title="Control flow analysis">Control flow analysis</a></li>
+<li><a href="/wiki/Data_flow_analysis" title="Data flow analysis" class="mw-redirect">Data flow analysis</a></li>
+</ul>

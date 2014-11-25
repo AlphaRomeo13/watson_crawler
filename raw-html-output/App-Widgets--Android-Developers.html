@@ -1,0 +1,2336 @@
+<h1 itemprop="name">App Widgets</h1>
+<h2>In this document</h2>
+<ol>
+      <li><a href="#Basics">The Basics</a></li>
+      <li><a href="#Manifest">Declaring an App Widget in the Manifest</a></li>
+      <li><a href="#MetaData">Adding the AppWidgetProviderInfo Metadata</a></li>
+      <li><a href="#CreatingLayout">Creating the App Widget Layout</a></li>
+      <li><a href="#AppWidgetProvider">Using the AppWidgetProvider Class</a>
+        <ol>
+          <li><a href="#ProviderBroadcasts">Receiving App Widget broadcast
+Intents</a></li>
+        </ol>
+      </li>
+      <li><a href="#Configuring">Creating an App Widget Configuration
+Activity</a>
+        <ol>
+          <li><a href="#UpdatingFromTheConfiguration">Updating the App Widget
+from 
+            the Configuration Activity</a></li>
+        </ol>
+      </li>
+      <li><a href="#preview">Setting a Preview Image</a></li>
+      <li><a href="#lockscreen">Enabling App Widgets on the Lockscreen</a>
+        <ol>
+          <li><a href="#lockscreen-sizing">Sizing guidelines</a></li>
+        </ol>
+      </li>
+
+      <li><a href="#collections">Using App Widgets with Collections</a>
+        <ol>
+          <li><a href="#collection_sample">Sample application</a></li>
+          <li><a href="#implementing_collections">Implementing app widgets with
+collections
+</a></li>
+          <li><a href="#fresh">Keeping Collection Data Fresh</a></li>
+        </ol>   
+      </li>
+    </ol>
+<ol>
+          <li><a href="#ProviderBroadcasts">Receiving App Widget broadcast
+Intents</a></li>
+        </ol>
+<ol>
+          <li><a href="#UpdatingFromTheConfiguration">Updating the App Widget
+from 
+            the Configuration Activity</a></li>
+        </ol>
+<ol>
+          <li><a href="#lockscreen-sizing">Sizing guidelines</a></li>
+        </ol>
+<ol>
+          <li><a href="#collection_sample">Sample application</a></li>
+          <li><a href="#implementing_collections">Implementing app widgets with
+collections
+</a></li>
+          <li><a href="#fresh">Keeping Collection Data Fresh</a></li>
+        </ol>
+<h2>Key classes</h2>
+<ol>
+      <li><code><a href="/reference/android/appwidget/AppWidgetProvider.html">AppWidgetProvider</a></code></li>
+      <li><code><a href="/reference/android/appwidget/AppWidgetProviderInfo.html">AppWidgetProviderInfo</a></code></li>
+      <li><code><a href="/reference/android/appwidget/AppWidgetManager.html">AppWidgetManager</a></code></li>
+    </ol>
+<p>App Widgets are miniature application views that can be embedded in other
+applications
+(such as the Home screen) and receive periodic updates. These views are
+referred 
+to as Widgets in the user interface,
+and you can publish one with an App Widget provider. An application component
+that is 
+able to hold other App Widgets is called an App Widget host. The screenshot
+below shows
+the Music App Widget.</p>
+<p>This document describes how to publish an App Widget using an App Widget
+provider. For a discussion of creating your own <code><a href="/reference/android/appwidget/AppWidgetHost.html">AppWidgetHost</a></code>
+to host app widgets, see <a href="/guide/topics/appwidgets/host.html">
+App Widget Host</a>.</p>
+<p><strong>Widget Design</strong></p>
+<p>For information about how to design your app widget, read the <a href="/design/patterns/widgets.html">Widgets</a> design guide.</p>
+<h2 id="Basics">The Basics</h2>
+<p>To create an App Widget, you need the following:</p>
+<p>Additionally, you can implement an App Widget configuration Activity. This is
+an optional 
+<code><a href="/reference/android/app/Activity.html">Activity</a></code> that launches when the user adds your App Widget
+and allows him or her
+to modify App Widget settings at create-time.</p>
+<p>The following sections describe how to set up each of these components.</p>
+<h2 id="Manifest">Declaring an App Widget in the Manifest</h2>
+<p>First, declare the <code><a href="/reference/android/appwidget/AppWidgetProvider.html">AppWidgetProvider</a></code> class in your
+application's
+<code>AndroidManifest.xml</code> file. For example:</p>
+<p>WHATSON? 3ff13cf7-c21e-46fb-a3f5-d52b237de25c</p>
+<pre style="clear:right">
+&lt;receiver android:name="ExampleAppWidgetProvider" &gt;
+    &lt;intent-filter&gt;
+        &lt;action android:name="android.appwidget.action.APPWIDGET_UPDATE" /&gt;
+    &lt;/intent-filter&gt;
+    &lt;meta-data android:name="android.appwidget.provider"
+               android:resource="@xml/example_appwidget_info" /&gt;
+&lt;/receiver&gt;
+</pre>
+<p>The <code>&lt;receiver&gt;</code> element requires the
+<code>android:name</code> 
+attribute, which specifies the <code><a href="/reference/android/appwidget/AppWidgetProvider.html">AppWidgetProvider</a></code> used
+by the App Widget.</p>
+<p>The <code>&lt;intent-filter&gt;</code> element must include an
+<code>&lt;action&gt;</code>
+element with the <code>android:name</code> attribute. This attribute specifies
+that the <code><a href="/reference/android/appwidget/AppWidgetProvider.html">AppWidgetProvider</a></code> accepts the <code><a href="/reference/android/appwidget/AppWidgetManager.html#ACTION_APPWIDGET_UPDATE">ACTION_APPWIDGET_UPDATE</a></code> broadcast.
+This is the only broadcast that you must explicitly declare. The <code><a href="/reference/android/appwidget/AppWidgetManager.html">AppWidgetManager</a></code>
+automatically sends all other App Widget broadcasts to the AppWidgetProvider as
+necessary.</p>
+<p>The <code>&lt;meta-data&gt;</code> element specifies the
+<code><a href="/reference/android/appwidget/AppWidgetProviderInfo.html">AppWidgetProviderInfo</a></code> resource and requires the 
+following attributes:</p>
+<ul>
+  <li><code>android:name</code> - Specifies the metadata name. Use
+<code>android.appwidget.provider</code>
+    to identify the data as the <code><a href="/reference/android/appwidget/AppWidgetProviderInfo.html">AppWidgetProviderInfo</a></code>
+descriptor.</li>
+  <li><code>android:resource</code> - Specifies the <code><a href="/reference/android/appwidget/AppWidgetProviderInfo.html">AppWidgetProviderInfo</a></code> 
+    resource location.</li>
+</ul>
+<h2 id="MetaData">Adding the AppWidgetProviderInfo Metadata</h2>
+<p>The <code><a href="/reference/android/appwidget/AppWidgetProviderInfo.html">AppWidgetProviderInfo</a></code> defines the essential 
+qualities of an App Widget, such as its minimum layout dimensions, its initial
+layout resource,
+how often to update the App Widget, and (optionally) a configuration Activity to
+launch at create-time.
+Define the AppWidgetProviderInfo object in an XML resource using a single
+<code>&lt;appwidget-provider&gt;</code> element and save it in the project's
+<code>res/xml/</code> 
+folder.</p>
+<p>For example:</p>
+<p>WHATSON? 4a382d63-d1db-47e9-ab7b-e440cc2ca13b</p>
+<pre>
+&lt;appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:minWidth="40dp"
+    android:minHeight="40dp"
+    android:updatePeriodMillis="86400000"
+    android:previewImage="@drawable/preview"
+    android:initialLayout="@layout/example_appwidget"
+    android:configure="com.example.android.ExampleAppWidgetConfigure" 
+    android:resizeMode="horizontal|vertical"
+    android:widgetCategory="home_screen|keyguard"
+    android:initialKeyguardLayout="@layout/example_keyguard"&gt;
+&lt;/appwidget-provider&gt;
+</pre>
+<p>Here's a summary of the <code>&lt;appwidget-provider&gt;</code> attributes:</p>
+<ul>
+  <li>The values for the <code>minWidth</code> and <code>minHeight</code>
+    attributes specify the minimum amount of space the App Widget consumes
+    <em>by default</em>. The default Home screen positions App Widgets in its
+    window based on a grid of cells that have a defined height and width. If
+    the values for an App Widget's minimum width or height don't match the
+    dimensions of the cells, then the App Widget dimensions round
+    <em>up</em> to the nearest cell size.
+    <p>See the <a href="/guide/practices/ui_guidelines/widget_design.html#anatomy_determining_size">
+    App Widget Design Guidelines</a> for more information on sizing your App
+    Widgets.</p>
+
+    <p class="note"><strong>Note:</strong> To make your app widget portable
+    across devices, your app widget's minimum size should never be larger
+    than 4 x 4 cells.</p>
+  </li>
+
+  <li>The <code>minResizeWidth</code> and <code>minResizeHeight</code> attributes
+    specify the App Widget's absolute minimum size. These values should specify
+    the size below which the App Widget would be illegible or otherwise unusable.
+    Using these attributes allows the user to resize the widget to a size that
+    may be smaller than the default widget size defined by the
+    <code>minWidth</code> and <code>minHeight</code> attributes.
+    Introduced in Android 3.1.
+
+    <p>See the <a href="/guide/practices/ui_guidelines/widget_design.html#anatomy_determining_size">
+    App Widget Design Guidelines</a> for more information on sizing your App
+    Widgets.</p>
+  </li>
+
+  <li>The <code>updatePeriodMillis</code> attribute defines how often the App
+Widget framework should request an update from the <code><a href="/reference/android/appwidget/AppWidgetProvider.html">AppWidgetProvider</a></code> by calling the 
+<code><a href="/reference/android/appwidget/AppWidgetProvider.html#onUpdate(android.content.Context,%20android.appwidget.AppWidgetManager,%20int%5B%5D)">onUpdate()</a></code> 
+callback method. The actual update
+is not guaranteed to occur exactly on time with this value and we suggest
+updating as infrequently as possible—perhaps no more than once an hour to
+conserve the battery. You might also allow the user to adjust the frequency in a
+configuration—some people might want a stock ticker to update every 15
+minutes, or maybe only four times a day. 
+    	<p class="note"><strong>Note:</strong> If the device is asleep when it
+is time for an update 
+    	(as defined by <code>updatePeriodMillis</code>), then the device will
+wake up in order 
+    	to perform the update. If you don't update more than once per hour, this
+probably won't 
+    	cause significant problems for the battery life. If, however, you need
+to update more 
+    	frequently and/or you do not need to update while the device is asleep,
+then you can instead 
+    	perform updates based on an alarm that will not wake the device. To do
+so, set an alarm with 
+    	an Intent that your AppWidgetProvider receives, using the	<code><a href="/reference/android/app/AlarmManager.html">AlarmManager</a></code>. 
+    	Set the alarm type to either <code><a href="/reference/android/app/AlarmManager.html#ELAPSED_REALTIME">ELAPSED_REALTIME</a></code> or 
+    	<code><a href="/reference/android/app/AlarmManager.html#RTC">RTC</a></code>, which will only
+    	deliver the alarm when the device is awake. Then set
+<code>updatePeriodMillis</code> to 
+    	zero (<code>"0"</code>).</p>
+  </li>
+  <li>The <code>initialLayout</code> attribute points to the layout resource
+that defines the
+    App Widget layout.</li>
+  <li>The <code>configure</code> attribute defines the <code><a href="/reference/android/app/Activity.html">Activity</a></code> to launch when
+    the user adds the App Widget, in order for him or her to configure App
+Widget properties. This is optional
+    (read <a href="#Configuring">Creating an App Widget Configuration
+Activity</a> below).</li>
+    
+   <li>The <code>previewImage</code> attribute specifies a preview of what the
+app widget will look like after it's configured, which the user sees when
+selecting the app widget. If not supplied, the user instead sees your
+application's launcher icon. This field corresponds to the
+<code>android:previewImage</code> attribute in the <code>&lt;receiver&gt;</code>
+element in the <code>AndroidManifest.xml</code> file. For more discussion of
+using <code>previewImage</code>, see <a href="#preview">Setting a Preview
+Image</a>. Introduced in Android 3.0.</li>
+
+   <li>The <code>autoAdvanceViewId</code> attribute specifies the view ID of the
+app widget subview that should be auto-advanced by the widget's host. Introduced in Android 3.0.</li> 
+
+<li>The <code>resizeMode</code> attribute specifies the rules by which a widget
+can be resized. You use this attribute to make homescreen widgets
+resizeable—horizontally, vertically, or on both axes. Users touch-hold a
+widget to show its resize handles, then drag the horizontal and/or vertical
+handles to change the size on the layout grid. Values for the
+<code>resizeMode</code> attribute include "horizontal", "vertical", and "none".
+To declare a widget as resizeable horizontally and vertically, supply the value
+"horizontal|vertical". Introduced in Android 3.1.</li> 
+
+<li>The <code>minResizeHeight</code> attribute specifies the minimum height (in dps) to which
+the widget can be resized. This field has no effect if it is greater than <code>minHeight</code> or if
+vertical resizing isn't enabled (see <code>resizeMode</code>). Introduced in Android 4.0.</li>
+
+<li>The <code> minResizeWidth </code> attribute specifies the minimum width (in dps) to which
+the widget can be resized. This field has no effect if it is greater than <code>minWidth</code> or if
+horizontal resizing isn't enabled (see <code>resizeMode</code>). Introduced in Android 4.0.</li>
+
+<li>The <code>widgetCategory</code> attribute declares whether your App Widget can be displayed on the home screen, 
+the lock screen (keyguard), or both. Values for this attribute include "home_screen" and "keyguard".  A widget that 
+is displayed on both needs to ensure that it follows the design guidelines for both widget classes. For more
+information, see <a href="#lockscreen">Enabling App Widgets on the Lockscreen</a>. The default value is "home_screen". Introduced in Android 4.2.
+</li>
+
+<li>The <code>initialKeyguardLayout</code> attribute points to the layout resource
+that defines the lock screen App Widget layout. This works the same way as the 
+<code><a href="/reference/android/appwidget/AppWidgetProviderInfo.html#initialLayout">android:initialLayout</a></code>, 
+in that it provides a layout that can appear immediately until your app widget is initialized and able to update 
+the layout. Introduced in Android 4.2.</li>
+
+</ul>
+<p>See the <a href="/guide/practices/ui_guidelines/widget_design.html#anatomy_determining_size">
+    App Widget Design Guidelines</a> for more information on sizing your App
+    Widgets.</p>
+<p class="note"><strong>Note:</strong> To make your app widget portable
+    across devices, your app widget's minimum size should never be larger
+    than 4 x 4 cells.</p>
+<p>See the <a href="/guide/practices/ui_guidelines/widget_design.html#anatomy_determining_size">
+    App Widget Design Guidelines</a> for more information on sizing your App
+    Widgets.</p>
+<p class="note"><strong>Note:</strong> If the device is asleep when it
+is time for an update 
+    	(as defined by <code>updatePeriodMillis</code>), then the device will
+wake up in order 
+    	to perform the update. If you don't update more than once per hour, this
+probably won't 
+    	cause significant problems for the battery life. If, however, you need
+to update more 
+    	frequently and/or you do not need to update while the device is asleep,
+then you can instead 
+    	perform updates based on an alarm that will not wake the device. To do
+so, set an alarm with 
+    	an Intent that your AppWidgetProvider receives, using the	<code><a href="/reference/android/app/AlarmManager.html">AlarmManager</a></code>. 
+    	Set the alarm type to either <code><a href="/reference/android/app/AlarmManager.html#ELAPSED_REALTIME">ELAPSED_REALTIME</a></code> or 
+    	<code><a href="/reference/android/app/AlarmManager.html#RTC">RTC</a></code>, which will only
+    	deliver the alarm when the device is awake. Then set
+<code>updatePeriodMillis</code> to 
+    	zero (<code>"0"</code>).</p>
+<p>See the <code><a href="/reference/android/appwidget/AppWidgetProviderInfo.html">AppWidgetProviderInfo</a></code> class for more
+information on the
+attributes accepted by the <code>&lt;appwidget-provider&gt;</code> element.</p>
+<h2 id="CreatingLayout">Creating the App Widget Layout</h2>
+<p>You must define an initial layout for your App Widget in XML and save it in
+the project's
+<code>res/layout/</code> directory. You can design your App Widget using the
+View objects listed
+below, but before you begin designing your App Widget, please read and
+understand the
+<a href="/guide/practices/ui_guidelines/widget_design.html">App Widget
+Design 
+Guidelines</a>.</p>
+<p>Creating the App Widget layout is simple if you're
+familiar with <a href="/guide/topics/ui/declaring-layout.html">Layouts</a>.
+However, you must be aware that App Widget layouts are based on <code><a href="/reference/android/widget/RemoteViews.html">RemoteViews</a></code>,
+which do not support every kind of layout or view widget.</p>
+<p>A RemoteViews object (and, consequently, an App Widget) can support the 
+following layout classes:</p>
+<ul class="nolist">
+  <li><code><a href="/reference/android/widget/FrameLayout.html">FrameLayout</a></code></li>
+  <li><code><a href="/reference/android/widget/LinearLayout.html">LinearLayout</a></code></li>
+  <li><code><a href="/reference/android/widget/RelativeLayout.html">RelativeLayout</a></code></li>
+  <li><code><a href="/reference/android/widget/GridLayout.html">GridLayout</a></code></li>
+</ul>
+<p>And the following widget classes:</p>
+<ul class="nolist">
+  <li><code><a href="/reference/android/widget/AnalogClock.html">AnalogClock</a></code></li>
+  <li><code><a href="/reference/android/widget/Button.html">Button</a></code></li>
+  <li><code><a href="/reference/android/widget/Chronometer.html">Chronometer</a></code></li>
+  <li><code><a href="/reference/android/widget/ImageButton.html">ImageButton</a></code></li>
+  <li><code><a href="/reference/android/widget/ImageView.html">ImageView</a></code></li>
+  <li><code><a href="/reference/android/widget/ProgressBar.html">ProgressBar</a></code></li>
+  <li><code><a href="/reference/android/widget/TextView.html">TextView</a></code></li>
+  <li><code><a href="/reference/android/widget/ViewFlipper.html">ViewFlipper</a></code></li>
+  <li><code><a href="/reference/android/widget/ListView.html">ListView</a></code></li>
+  <li><code><a href="/reference/android/widget/GridView.html">GridView</a></code></li>
+  <li><code><a href="/reference/android/widget/StackView.html">StackView</a></code></li>
+  <li><code><a href="/reference/android/widget/AdapterViewFlipper.html">AdapterViewFlipper</a></code></li>
+</ul>
+<p>Descendants of these classes are not supported.</p>
+<p>RemoteViews also supports <code><a href="/reference/android/view/ViewStub.html">ViewStub</a></code>, which is an invisible, zero-sized View you can use 
+to lazily inflate layout resources at runtime.</p>
+<h3 id="AddingMargins">Adding margins to App Widgets</h3>
+<p>Widgets should not generally extend to screen edges and should not visually be flush with other widgets, so you should add margins on all sides around your widget frame.</p>
+<p>As of Android 4.0, app widgets are automatically given padding between the widget frame and the app widget's bounding box to provide better alignment with other widgets and icons on the user's home screen. To take advantage of this strongly recommended behavior, set your application's <a href="/guide/topics/manifest/uses-sdk-element.html">targetSdkVersion</a> to 14 or greater.</p>
+<p>It's easy to write a single layout that has custom margins applied for earlier versions of the platform, and has no extra margins for Android 4.0 and greater:</p>
+<ol>
+  <li>Set your application's <code>targetSdkVersion</code> to 14 or greater.</li>
+  <li>Create a layout such as the one below, that references a <a href="/guide/topics/resources/more-resources.html#Dimension">dimension resource</a> for its margins:
+
+<pre>
+&lt;FrameLayout
+  android:layout_width="match_parent"
+  android:layout_height="match_parent"
+  <strong>android:padding="@dimen/widget_margin"&gt;</strong>
+
+  &lt;LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal"
+    android:background="@drawable/my_widget_background"&gt;
+    …
+  &lt;/LinearLayout&gt;
+
+&lt;/FrameLayout&gt;
+</pre>
+
+  </li>
+  <li>Create two dimensions resources, one in <code>res/values/</code> to provide the pre-Android 4.0 custom margins, and one in <code>res/values-v14/</code> to provide no extra padding for Android 4.0 widgets:
+
+    <p><strong>res/values/dimens.xml</strong>:<br>
+    </p><pre>&lt;dimen name="widget_margin"&gt;8dp&lt;/dimen&gt;</pre>
+
+    <p><strong>res/values-v14/dimens.xml</strong>:<br>
+    </p><pre>&lt;dimen name="widget_margin"&gt;0dp&lt;/dimen&gt;</pre>
+  </li>
+</ol>
+<p>WHATSON? ce4f1655-72d4-4c55-8217-7a435962e65e</p>
+<pre>
+&lt;FrameLayout
+  android:layout_width="match_parent"
+  android:layout_height="match_parent"
+  <strong>android:padding="@dimen/widget_margin"&gt;</strong>
+
+  &lt;LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal"
+    android:background="@drawable/my_widget_background"&gt;
+    …
+  &lt;/LinearLayout&gt;
+
+&lt;/FrameLayout&gt;
+</pre>
+<p><strong>res/values/dimens.xml</strong>:<br>
+    </p>
+<p>WHATSON? 9ef87987-fdef-44f7-b52d-c9d9de2e32b6</p>
+<pre>&lt;dimen name="widget_margin"&gt;8dp&lt;/dimen&gt;</pre>
+<p><strong>res/values-v14/dimens.xml</strong>:<br>
+    </p>
+<p>WHATSON? 6a63d927-3e92-4f6b-b21e-a98f293ed028</p>
+<pre>&lt;dimen name="widget_margin"&gt;0dp&lt;/dimen&gt;</pre>
+<p>Another option is to simply build extra margins into your <a href="/guide/topics/graphics/2d-graphics.html#nine-patch">nine-patch</a> background assets by default, and provide different nine-patches with no margins for API level 14 or later.</p>
+<h2 id="AppWidgetProvider">Using the AppWidgetProvider Class</h2>
+<p>You must declare your AppWidgetProvider class implementation as a
+broadcast receiver 
+    using the <code>&lt;receiver&gt;</code> element in the AndroidManifest (see
+    <a href="#Manifest">Declaring an App Widget in the Manifest</a> above).</p>
+<p>The <code><a href="/reference/android/appwidget/AppWidgetProvider.html">AppWidgetProvider</a></code> class extends
+BroadcastReceiver as a convenience
+class to handle the App Widget broadcasts. The AppWidgetProvider receives only
+the event broadcasts that
+are relevant to the App Widget, such as when the App Widget is updated, deleted,
+enabled, and disabled.
+When these broadcast events occur, the AppWidgetProvider receives the following
+method calls:</p>
+<ul>
+  <li><code><a href="/reference/android/appwidget/AppWidgetManager.html#OPTION_APPWIDGET_MIN_WIDTH">OPTION_APPWIDGET_MIN_WIDTH</a></code>—Contains 
+the lower bound on the current width, in dp units, of a widget instance.</li>
+  <li><code><a href="/reference/android/appwidget/AppWidgetManager.html#OPTION_APPWIDGET_MIN_HEIGHT">OPTION_APPWIDGET_MIN_HEIGHT</a></code>—Contains 
+the lower bound on the current height, in dp units, of a widget instance.</li>
+  <li><code><a href="/reference/android/appwidget/AppWidgetManager.html#OPTION_APPWIDGET_MAX_WIDTH">OPTION_APPWIDGET_MAX_WIDTH</a></code>—Contains
+ the upper bound on the current width, in dp units, of a widget instance.</li>
+  <li><code><a href="/reference/android/appwidget/AppWidgetManager.html#OPTION_APPWIDGET_MAX_HEIGHT">OPTION_APPWIDGET_MAX_HEIGHT</a></code>—Contains 
+the upper bound on the current width, in dp units, of a widget instance.</li>
+</ul>
+<p>The most important AppWidgetProvider callback is 
+<code><a href="/reference/android/appwidget/AppWidgetProvider.html#onUpdate(android.content.Context,%20android.appwidget.AppWidgetManager,%20int%5B%5D)">onUpdate()</a></code> 
+because it is called when
+each App Widget is added to a host (unless you use a configuration Activity). If
+your App Widget accepts any user interaction events, then you need to register
+the event handlers in this callback. If your App Widget doesn't create temporary
+files or databases, or perform other work that requires clean-up, then 
+<code><a href="/reference/android/appwidget/AppWidgetProvider.html#onUpdate(android.content.Context,%20android.appwidget.AppWidgetManager,%20int%5B%5D)">onUpdate()</a></code> 
+may be the only callback
+method you need to define. For example, if you want an App Widget with a button
+that launches an Activity when clicked, you could use the following
+implementation of AppWidgetProvider:</p>
+<p>WHATSON? 32d78aa8-347c-4e26-84aa-dbe278488815</p>
+<pre>
+public class ExampleAppWidgetProvider extends AppWidgetProvider {
+
+    public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
+        final int N = appWidgetIds.length;
+
+        // Perform this loop procedure for each App Widget that belongs to this provider
+        for (int i=0; i&lt;N; i++) {
+            int appWidgetId = appWidgetIds[i];
+
+            // Create an Intent to launch ExampleActivity
+            Intent intent = new Intent(context, ExampleActivity.class);
+            PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, 0);
+
+            // Get the layout for the App Widget and attach an on-click listener
+            // to the button
+            RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.appwidget_provider_layout);
+            views.setOnClickPendingIntent(R.id.button, pendingIntent);
+
+            // Tell the AppWidgetManager to perform an update on the current app widget
+            appWidgetManager.updateAppWidget(appWidgetId, views);
+        }
+    }
+}
+</pre>
+<p>This AppWidgetProvider defines only the 
+<code><a href="/reference/android/appwidget/AppWidgetProvider.html#onUpdate(android.content.Context,%20android.appwidget.AppWidgetManager,%20int%5B%5D)">onUpdate()</a></code> 
+method for the purpose of
+defining a <code><a href="/reference/android/app/PendingIntent.html">PendingIntent</a></code> that launches an <code><a href="/reference/android/app/Activity.html">Activity</a></code> and attaching it to the App Widget's button with <code><a href="/reference/android/widget/RemoteViews.html#setOnClickPendingIntent(int,%20android.app.PendingIntent)">setOnClickPendingIntent(int, PendingIntent)</a></code>. Notice
+that it includes a loop that iterates through each entry in
+<code>appWidgetIds</code>, which is an array of IDs that identify each App
+Widget created by this provider. In this way, if the user creates more than one
+instance of the App Widget, then they are all updated simultaneously. However,
+only one <code>updatePeriodMillis</code> schedule will be managed for all
+instances of the App Widget. For example, if the update schedule is defined to
+be every two hours, and a second instance of the App Widget is added one hour
+after the first one, then they will both be updated on the period defined by the
+first one and the second update period will be ignored (they'll both be updated
+every two hours, not every hour).</p>
+<p class="note"><strong>Note:</strong> Because <code><a href="/reference/android/appwidget/AppWidgetProvider.html">AppWidgetProvider</a></code> is an extension of <code><a href="/reference/android/content/BroadcastReceiver.html">BroadcastReceiver</a></code>, your process is not guaranteed to keep
+running after the callback methods return (see <code><a href="/reference/android/content/BroadcastReceiver.html">BroadcastReceiver</a></code> for information about the broadcast
+lifecycle). If your App Widget setup process can take several seconds (perhaps
+while performing web requests) and you require that your process continues,
+consider starting a <code><a href="/reference/android/app/Service.html">Service</a></code> in the 
+<code><a href="/reference/android/appwidget/AppWidgetProvider.html#onUpdate(android.content.Context,%20android.appwidget.AppWidgetManager,%20int%5B%5D)">onUpdate()</a></code> 
+method. From within the Service, you can perform your own updates
+to the App Widget without worrying about the AppWidgetProvider closing down due
+to an <a href="/guide/practices/responsiveness.html">Application
+Not Responding</a> (ANR) error. See the <a href="http://code.google.com/p/wiktionary-android/source/browse/trunk/Wiktionary/src/com/example/android/wiktionary/WordWidget.java">Wiktionary sample's AppWidgetProvider</a> for an example of an App Widget running a <code><a href="/reference/android/app/Service.html">Service</a></code>.</p>
+<p>Also see the <a href="/resources/samples/ApiDemos/src/com/example/android/apis/appwidget/ExampleAppWidgetProvider.html">ExampleAppWidgetProvider.java</a>
+sample class.</p>
+<h3 id="ProviderBroadcasts">Receiving App Widget broadcast Intents</h3>
+<p><code><a href="/reference/android/appwidget/AppWidgetProvider.html">AppWidgetProvider</a></code> is just a convenience class.  If
+you would like
+to receive the App Widget broadcasts directly, you can implement your own 
+<code><a href="/reference/android/content/BroadcastReceiver.html">BroadcastReceiver</a></code> or override the 
+<code><a href="/reference/android/appwidget/AppWidgetProvider.html#onReceive(android.content.Context,%20android.content.Intent)">onReceive(Context, Intent)</a></code> callback. 
+The Intents you need to care about are as follows:</p>
+<ul>
+  <li><code><a href="/reference/android/appwidget/AppWidgetManager.html#ACTION_APPWIDGET_UPDATE">ACTION_APPWIDGET_UPDATE</a></code></li>
+  <li><code><a href="/reference/android/appwidget/AppWidgetManager.html#ACTION_APPWIDGET_DELETED">ACTION_APPWIDGET_DELETED</a></code></li>
+  <li><code><a href="/reference/android/appwidget/AppWidgetManager.html#ACTION_APPWIDGET_ENABLED">ACTION_APPWIDGET_ENABLED</a></code></li>
+  <li><code><a href="/reference/android/appwidget/AppWidgetManager.html#ACTION_APPWIDGET_DISABLED">ACTION_APPWIDGET_DISABLED</a></code></li>
+  <li><code><a href="/reference/android/appwidget/AppWidgetManager.html#ACTION_APPWIDGET_OPTIONS_CHANGED">ACTION_APPWIDGET_OPTIONS_CHANGED</a></code></li>
+</ul>
+<h2 id="Configuring">Creating an App Widget Configuration Activity</h2>
+<p>If you would like the user to configure settings when he or she adds a new
+App Widget,
+you can create an App Widget configuration Activity. This <code><a href="/reference/android/app/Activity.html">Activity</a></code> 
+will be automatically launched by the App Widget host and allows the user to
+configure
+available settings for the App Widget at create-time, such as the App Widget
+color, size, 
+update period or other functionality settings.</p>
+<p>The configuration Activity should be declared as a normal Activity in the
+Android manifest file.
+However, it will be launched by the App Widget host with the <code><a href="/reference/android/appwidget/AppWidgetManager.html#ACTION_APPWIDGET_CONFIGURE">ACTION_APPWIDGET_CONFIGURE</a></code> action,
+so the Activity needs to accept this Intent. For example:</p>
+<p>WHATSON? 2dc1344e-6e85-48b5-8680-b71dd9bb4f75</p>
+<pre>
+&lt;activity android:name=".ExampleAppWidgetConfigure"&gt;
+    &lt;intent-filter&gt;
+        &lt;action android:name="android.appwidget.action.APPWIDGET_CONFIGURE"/&gt;
+    &lt;/intent-filter&gt;
+&lt;/activity&gt;
+</pre>
+<p>Also, the Activity must be declared in the AppWidgetProviderInfo XML file,
+with the 
+<code>android:configure</code> attribute (see <a href="#MetaData">Adding 
+the AppWidgetProviderInfo Metadata</a> above). For example, the configuration
+Activity
+can be declared like this:</p>
+<p>WHATSON? de1c13b7-a8f4-44e5-b307-370def335856</p>
+<pre>
+&lt;appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    ...
+    android:configure="com.example.android.ExampleAppWidgetConfigure" 
+    ... &gt;
+&lt;/appwidget-provider&gt;
+</pre>
+<p>Notice that the Activity is declared with a fully-qualified namespace,
+because 
+it will be referenced from outside your package scope.</p>
+<p>That's all you need to get started with a configuration Activity. Now all you
+need is the actual
+Activity. There are, however, two important things to remember when you
+implement the Activity:</p>
+<ul>
+  <li>The App Widget host calls the configuration Activity and the configuration
+Activity should always 
+    return a result. The result should include the App Widget ID
+    passed by the Intent that launched the Activity (saved in the Intent extras
+as
+    <code><a href="/reference/android/appwidget/AppWidgetManager.html#EXTRA_APPWIDGET_ID">EXTRA_APPWIDGET_ID</a></code>).</li>
+  <li>The 
+  <code><a href="/reference/android/appwidget/AppWidgetProvider.html#onUpdate(android.content.Context,%20android.appwidget.AppWidgetManager,%20int%5B%5D)">onUpdate()</a></code> 
+    method <strong>will not be called</strong> when the App Widget
+is created
+    (the system will not send the ACTION_APPWIDGET_UPDATE broadcast when a
+configuration Activity
+    is launched). It is the responsibility of the configuration Activity to
+request an update from the 
+    AppWidgetManager when the App Widget is first created. However, 
+<code><a href="/reference/android/appwidget/AppWidgetProvider.html#onUpdate(android.content.Context,%20android.appwidget.AppWidgetManager,%20int%5B%5D)">onUpdate()</a></code> 
+    will be called for subsequent updates—it is only skipped
+the first time.</li>
+</ul>
+<p>See the code snippets in the following section for an example of how to
+return a result
+from the configuration and update the App Widget.</p>
+<h3 id="UpdatingFromTheConfiguration">Updating the App Widget from the
+configuration Activity</h3>
+<p>When an App Widget uses a configuration Activity, it is the responsibility of
+the Activity
+to update the App Widget when configuration is complete. 
+You can do so by requesting an update directly from the 
+<code><a href="/reference/android/appwidget/AppWidgetManager.html">AppWidgetManager</a></code>.</p>
+<p>Here's a summary of the procedure to properly update the App Widget and close
+the configuration Activity:</p>
+<ol>
+  <li>First, get the App Widget ID from the Intent that launched the Activity:
+<pre>
+Intent intent = getIntent();
+Bundle extras = intent.getExtras();
+if (extras != null) {
+    mAppWidgetId = extras.getInt(
+            AppWidgetManager.EXTRA_APPWIDGET_ID, 
+            AppWidgetManager.INVALID_APPWIDGET_ID);
+}
+</pre>
+  </li>
+  <li>Perform your App Widget configuration.</li>
+  <li>When the configuration is complete, get an instance of the
+AppWidgetManager by calling
+    <code><a href="/reference/android/appwidget/AppWidgetManager.html#getInstance(android.content.Context)">getInstance(Context)</a></code>:
+<pre>
+AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
+</pre>
+  </li>
+  <li>Update the App Widget with a <code><a href="/reference/android/widget/RemoteViews.html">RemoteViews</a></code> layout by
+calling
+    <code><a href="/reference/android/appwidget/AppWidgetManager.html#updateAppWidget(int,%20android.widget.RemoteViews)">updateAppWidget(int, RemoteViews)</a></code>:
+<pre>
+RemoteViews views = new RemoteViews(context.getPackageName(),
+R.layout.example_appwidget);
+appWidgetManager.updateAppWidget(mAppWidgetId, views);
+</pre>
+  </li>
+  <li>Finally, create the return Intent, set it with the Activity result, and
+finish the Activity:</li>
+<pre>
+Intent resultValue = new Intent();
+resultValue.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, mAppWidgetId);
+setResult(RESULT_OK, resultValue);
+finish();
+</pre>
+  
+</ol>
+<p>WHATSON? 0bb80d0a-8b25-4c7d-9898-0ff3869a181b</p>
+<pre>
+Intent intent = getIntent();
+Bundle extras = intent.getExtras();
+if (extras != null) {
+    mAppWidgetId = extras.getInt(
+            AppWidgetManager.EXTRA_APPWIDGET_ID, 
+            AppWidgetManager.INVALID_APPWIDGET_ID);
+}
+</pre>
+<p>WHATSON? 73eadfdb-c140-4656-b035-d7098b73f351</p>
+<pre>
+AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
+</pre>
+<p>WHATSON? 638a6671-8424-496d-9298-c411c06ce52f</p>
+<pre>
+RemoteViews views = new RemoteViews(context.getPackageName(),
+R.layout.example_appwidget);
+appWidgetManager.updateAppWidget(mAppWidgetId, views);
+</pre>
+<p>WHATSON? fd847766-ece2-49fb-91f3-6939595d27e6</p>
+<pre>
+Intent resultValue = new Intent();
+resultValue.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, mAppWidgetId);
+setResult(RESULT_OK, resultValue);
+finish();
+</pre>
+<p class="note"><strong>Tip:</strong> When your configuration Activity first
+opens, set
+the Activity result to RESULT_CANCELED. This way, if the user backs-out of the
+Activity before
+reaching the end, the App Widget host is notified that the configuration was
+cancelled and the
+App Widget will not be added.</p>
+<p>See the <a href="/resources/samples/ApiDemos/src/com/example/android/apis/appwidget/ExampleAppWidgetConfigure.html">ExampleAppWidgetConfigure.java</a>
+sample class in ApiDemos for an example.</p>
+<h2 id="preview">Setting a Preview Image</h2>
+<p>Android 3.0 introduces the <code><a href="/reference/android/appwidget/AppWidgetProviderInfo.html#previewImage">previewImage</a></code> field, which specifies a
+preview of what the app widget looks like. This preview is shown to the user from the
+widget picker. If this field is not supplied, the app widget's icon is used for
+the preview.</p>
+<p>This is how you specify this setting in XML:</p>
+<p>WHATSON? d43eb4e3-10ed-478d-b0ef-266f34e035d7</p>
+<pre>&lt;appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+  ...
+  android:previewImage="@drawable/preview"&gt;
+&lt;/appwidget-provider&gt;</pre>
+<p>To help create a preview image for your app widget (to specify in the <code><a href="/reference/android/appwidget/AppWidgetProviderInfo.html#previewImage">previewImage</a></code> field), the Android
+emulator includes an application called "Widget Preview." To create a
+preview image, launch this application, select the app widget for your
+application and set it up how you'd like your preview image to appear, then save
+it and place it in your application's drawable resources.</p>
+<h2 id="lockscreen">Enabling App Widgets on the Lockscreen</h2>
+<p>Android 4.2 introduces the ability for users to add widgets to the lock screen. To indicate that your app widget is available for use on the lock screen, declare the <code><a href="/reference/android/appwidget/AppWidgetProviderInfo.html#widgetCategory">android:widgetCategory</a></code> attribute in the XML file that specifies your <code><a href="/reference/android/appwidget/AppWidgetProviderInfo.html">AppWidgetProviderInfo</a></code>. This attribute supports two values: "home_screen" and "keyguard". An app widget can declare support for one or both.</p>
+<p>By default, every app widget supports placement on the Home screen, so "home_screen" is the default value for the 
+<code><a href="/reference/android/appwidget/AppWidgetProviderInfo.html#widgetCategory">android:widgetCategory</a></code> attribute. If you want your app widget to be available for the lock screen, add the "keyguard" value:</p>
+<p>WHATSON? 2dbdd61a-e832-4044-8ab1-4284cb0de009</p>
+<pre>
+&lt;appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+   ...
+   android:widgetCategory="keyguard|home_screen"&gt;
+&lt;/appwidget-provider&gt;
+</pre>
+<p>If you declare a widget to be displayable on both keyguard (lockscreen) and home, it's likely that you'll want to customize the widget depending on where it is displayed. For example, you might create a separate layout file for keyguard vs. home. The next step is to detect the widget category at runtime and respond accordingly. 
+
+You can detect whether your widget is on the lockscreen or home screen by calling 
+<code><a href="/reference/android/appwidget/AppWidgetManager.html#getAppWidgetOptions(int)">getAppWidgetOptions()</a></code> 
+to get the widget's options as a <code><a href="/reference/android/os/Bundle.html">Bundle</a></code>. The returned bundle will include the key 
+<code><a href="/reference/android/appwidget/AppWidgetManager.html#OPTION_APPWIDGET_HOST_CATEGORY">OPTION_APPWIDGET_HOST_CATEGORY</a></code>, whose value will be one of <code><a href="/reference/android/appwidget/AppWidgetProviderInfo.html#WIDGET_CATEGORY_HOME_SCREEN">WIDGET_CATEGORY_HOME_SCREEN</a></code> or 
+<code><a href="/reference/android/appwidget/AppWidgetProviderInfo.html#WIDGET_CATEGORY_KEYGUARD">WIDGET_CATEGORY_KEYGUARD</a></code>. This value is determined by the host into which the widget is bound. In the <code><a href="/reference/android/appwidget/AppWidgetProvider.html">AppWidgetProvider</a></code>, you can then check the widget's category, for example:</p>
+<p>WHATSON? ab627299-e5f8-4e68-b0ef-ac004f8d1424</p>
+<pre>
+AppWidgetManager appWidgetManager;
+int widgetId;
+Bundle myOptions = appWidgetManager.getAppWidgetOptions (widgetId);
+
+// Get the value of OPTION_APPWIDGET_HOST_CATEGORY
+int category = myOptions.getInt(AppWidgetManager.OPTION_APPWIDGET_HOST_CATEGORY, -1);
+
+// If the value is WIDGET_CATEGORY_KEYGUARD, it's a lockscreen widget
+boolean isKeyguard = category == AppWidgetProviderInfo.WIDGET_CATEGORY_KEYGUARD;
+</pre>
+<p>Once you know the widget's category, you can optionally load a different base layout, set different properties, and so on. For example:</p>
+<p>WHATSON? f7981d89-64bf-431d-80a6-70ec1825d45c</p>
+<pre>
+int baseLayout = isKeyguard ? R.layout.keyguard_widget_layout : R.layout.widget_layout;
+</pre>
+<p>You should also specify an initial layout for your app widget when on the lock screen with the 
+<code><a href="/reference/android/appwidget/AppWidgetProviderInfo.html#initialKeyguardLayout">android:initialKeyguardLayout</a></code> attribute. This works the same way as the 
+<code><a href="/reference/android/appwidget/AppWidgetProviderInfo.html#initialLayout">android:initialLayout</a></code>, in that it provides a layout that can appear immediately until your app widget is initialized and able to update the layout.</p>
+<h3 id="lockscreen-sizing">Sizing guidelines</h3>
+<p>When a widget is hosted on the lockscreen, the framework ignores the <code>minWidth</code>, <code>minHeight</code>, <code>minResizeWidth</code>, and <code>minResizeHeight</code> fields. If a widget is also a home screen widget, these parameters are still needed as they're still used on home, but they will be ignored for purposes of the lockscreen.</p>
+<p>The width of a lockscreen widget always fills the provided space. For the height of a lockscreen widget, you have the following options:</p>
+<ul>
+    <li>If the widget does not mark itself as vertically resizable (<code>android:resizeMode="vertical"</code>), then the widget height will always be "small":
+      <ul>
+        <li>On a phone in portrait mode, "small" is defined as the space remaining when an unlock UI is being displayed.</li>
+        <li>On tablets and landscape phones, "small" is set on a per-device basis.</li>    
+      </ul>
+    </li>
+    <li>If the widget marks itself as vertically resizable, then the widget height shows up as "small" on portrait phones displaying an unlock UI. In all other cases, the widget sizes to fill the available height.</li>
+</ul>
+<ul>
+        <li>On a phone in portrait mode, "small" is defined as the space remaining when an unlock UI is being displayed.</li>
+        <li>On tablets and landscape phones, "small" is set on a per-device basis.</li>    
+      </ul>
+<h2 id="collections">Using App Widgets with Collections</h2>
+<p>Android 3.0 introduces app widgets with collections. These kinds of App
+Widgets use the <code><a href="/reference/android/widget/RemoteViewsService.html">RemoteViewsService</a></code> to display collections
+that are backed by remote data, such as from a <a href="/guide/topics/providers/content-providers.html">content
+provider</a>. The data provided by the <code><a href="/reference/android/widget/RemoteViewsService.html">RemoteViewsService</a></code>
+is presented in the app widget using one of the following view types, which
+we’ll refer to as “collection views:”</p>
+<p>As stated above, these collection views display collections backed by remote
+data. This means that they use an <code><a href="/reference/android/widget/Adapter.html">Adapter</a></code> to bind their
+user interface to their data. An <code><a href="/reference/android/widget/Adapter.html">Adapter</a></code> binds individual
+items from a set of data into individual <code><a href="/reference/android/view/View.html">View</a></code> objects.
+Because these collection views are backed by adapters, the Android framework
+must include extra architecture to support their use in app widgets. In the
+context of an app widget, the <code><a href="/reference/android/widget/Adapter.html">Adapter</a></code> is replaced by a
+<code><a href="/reference/android/widget/RemoteViewsService.RemoteViewsFactory.html">RemoteViewsFactory</a></code>,
+which is simply a thin wrapper around  the <code><a href="/reference/android/widget/Adapter.html">Adapter</a></code>
+interface. 
+ When
+requested for a specific item in the collection, the <code><a href="/reference/android/widget/RemoteViewsService.RemoteViewsFactory.html">RemoteViewsFactory</a></code> creates
+and returns the item for the collection as a <code><a href="/reference/android/widget/RemoteViews.html">RemoteViews</a></code>
+object.
+In order to include a collection view in your app widget, you
+must implement <code><a href="/reference/android/widget/RemoteViewsService.html">RemoteViewsService</a></code> and <code><a href="/reference/android/widget/RemoteViewsService.RemoteViewsFactory.html">RemoteViewsFactory</a></code>.</p>
+<p> <code><a href="/reference/android/widget/RemoteViewsService.html">RemoteViewsService</a></code> is a service that allows a remote
+adapter to request <code><a href="/reference/android/widget/RemoteViews.html">RemoteViews</a></code> objects. <code><a href="/reference/android/widget/RemoteViewsService.RemoteViewsFactory.html">RemoteViewsFactory</a></code> is an
+interface for an adapter between a collection view (such as <code><a href="/reference/android/widget/ListView.html">ListView</a></code>, <code><a href="/reference/android/widget/GridView.html">GridView</a></code>, and so on) and the
+underlying data for that view. From the  <a href="/resources/samples/StackWidget/index.html">StackView Widget
+sample</a>, here is an example of the boilerplate code you use to implement 
+this service and interface:
+</p>
+<p>WHATSON? 06851fb2-7d56-4e92-a49e-98e720082532</p>
+<pre>
+public class StackWidgetService extends RemoteViewsService {
+    @Override
+    public RemoteViewsFactory onGetViewFactory(Intent intent) {
+        return new StackRemoteViewsFactory(this.getApplicationContext(), intent);
+    }
+}
+
+class StackRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactory {
+
+//... include adapter-like methods here. See the StackView Widget sample.
+
+}
+</pre>
+<h3 id="collection_sample">Sample application</h3>
+<p>The code excerpts in this section are drawn from the <a href="/resources/samples/StackWidget/index.html">StackView Widget
+sample</a>:</p>
+<p>
+<img src="/images/appwidgets/StackWidget.png" alt="">
+</p>
+<p>This sample consists of a stack of 10 views, which  display the values
+<code>"0!"</code> through <code>"9!"</code> The sample
+app widget has these primary behaviors:</p>
+<ul>
+
+  <li>The user can vertically fling the top view in the
+app widget to display the next or previous view. This is a built-in StackView
+behavior.</li> 
+
+  <li>Without any user interaction, the app widget automatically advances
+through
+its views in sequence, like a slide show. This is due to the setting
+<code>android:autoAdvanceViewId="@id/stack_view"</code> in the
+<code>res/xml/stackwidgetinfo.xml</code> file. This setting applies to the view
+ID,
+which in this case is the view ID of the stack view.</li>
+  
+  <li>If the user touches the top view, the app widget displays the <code><a href="/reference/android/widget/Toast.html">Toast</a></code> message "Touched view <em>n</em>," where
+<em>n</em> is the index (position) of the touched view. For more discussion of
+how this is implemented, see  
+<a href="#behavior">Adding behavior to individual items</a>.</li>
+
+</ul>
+<h3 id="implementing_collections">Implementing app widgets with collections</h3>
+<p>To implement an app widget with collections, you follow the same basic steps 
+you would use to implement any app widget. The following sections  describe the
+additional steps you need to perform to implement an app widget with
+collections.</p>
+<h4>Manifest for app widgets with collections</h4>
+<p> In addition to the requirements listed in <a href="#Manifest">Declaring an
+app widget in the Manifest</a>, to make it possible for app widgets with
+collections to bind to your <code><a href="/reference/android/widget/RemoteViewsService.html">RemoteViewsService</a></code>, you must
+declare the service in your manifest file with the permission <code><a href="/reference/android/Manifest.permission.html#BIND_REMOTEVIEWS">BIND_REMOTEVIEWS</a></code>. This prevents other applications
+from freely accessing your app widget's data. For example, when creating an App
+Widget that uses <code><a href="/reference/android/widget/RemoteViewsService.html">RemoteViewsService</a></code> to populate a
+collection view, the manifest entry may look like this:</p>
+<p>WHATSON? 84581712-b2ef-4e7b-a51b-270253713909</p>
+<pre>&lt;service android:name="MyWidgetService"
+...
+android:permission="android.permission.BIND_REMOTEVIEWS" /&gt;</pre>
+<p>The line <code>android:name="MyWidgetService"</code>
+refers to your subclass of <code><a href="/reference/android/widget/RemoteViewsService.html">RemoteViewsService</a></code>. </p>
+<h4>Layout for app widgets with collections</h4>
+<p>The main requirement for your app widget layout XML file is that it
+include one of the collection views: <code><a href="/reference/android/widget/ListView.html">ListView</a></code>,
+<code><a href="/reference/android/widget/GridView.html">GridView</a></code>, <code><a href="/reference/android/widget/StackView.html">StackView</a></code>, or
+<code><a href="/reference/android/widget/AdapterViewFlipper.html">AdapterViewFlipper</a></code>. Here is the
+<code>widget_layout.xml</code> for
+the <a href="/resources/samples/StackWidget/index.html">StackView
+Widget sample</a>:</p>
+<p>WHATSON? 9c069b16-de34-40bc-bd7e-02a5c05a4525</p>
+<pre>&lt;?xml version="1.0" encoding="utf-8"?&gt;
+
+&lt;FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"&gt;
+    &lt;StackView xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/stack_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:loopViews="true" /&gt;
+    &lt;TextView xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/empty_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:background="@drawable/widget_item_background"
+        android:textColor="#ffffff"
+        android:textStyle="bold"
+        android:text="@string/empty_view_text"
+        android:textSize="20sp" /&gt;
+&lt;/FrameLayout&gt;</pre>
+<p> Note that empty views must be siblings of the collection view for which the
+empty view represents empty state. </p>
+<p>In addition to the layout file for your entire app widget, you must create
+another layout file that defines the layout for each item in the collection (for
+example, a layout for each book in a collection of books). For example, the <a href="/resources/samples/StackWidget/index.html">StackView Widget
+sample</a> only has one layout file, <code>widget_item.xml</code>, since all
+items use the same layout. But the <a href="/resources/samples/WeatherListWidget/index.html">
+WeatherListWidget sample</a> has two layout files:
+<code>dark_widget_item.xml</code> and <code>light_widget_item.xml</code>.</p>
+<h4 id="AppWidgetProvider-collections">AppWidgetProvider class for app widgets with collections</h4>
+<p>As with a regular app widget, the bulk of your code in your <code><a href="/reference/android/appwidget/AppWidgetProvider.html">AppWidgetProvider</a></code> subclass typically goes in <code><a href="/reference/android/appwidget/AppWidgetProvider.html#onUpdate(android.content.Context,%20android.appwidget.AppWidgetManager,%20int%5B%5D)">onUpdate()</a></code>. The major difference in
+your implementation for <code><a href="/reference/android/appwidget/AppWidgetProvider.html#onUpdate(android.content.Context,%20android.appwidget.AppWidgetManager,%20int%5B%5D)">onUpdate()</a></code> when creating an app
+widget with collections is that you must call <code><a href="/reference/android/widget/RemoteViews.html#setRemoteAdapter(int,%20android.content.Intent)">setRemoteAdapter()</a></code>. This tells the
+collection view where to get its data. The <code><a href="/reference/android/widget/RemoteViewsService.html">RemoteViewsService</a></code> can then return your implementation of <code><a href="/reference/android/widget/RemoteViewsService.RemoteViewsFactory.html">RemoteViewsFactory</a></code>, and
+the widget can serve up the appropriate data. When you call this method, you
+must pass an intent that  points to your implementation of <code><a href="/reference/android/widget/RemoteViewsService.html">RemoteViewsService</a></code> and the app widget ID that specifies the app
+widget to update.</p>
+<p>For example, here's how the StackView Widget sample implements the <code><a href="/reference/android/appwidget/AppWidgetProvider.html#onUpdate(android.content.Context,%20android.appwidget.AppWidgetManager,%20int%5B%5D)">onUpdate()</a></code> callback method to set
+the <code><a href="/reference/android/widget/RemoteViewsService.html">RemoteViewsService</a></code> as the remote adapter for the app widget
+collection:</p>
+<p>WHATSON? 45b60053-47d1-4ae9-a8d6-13a324832ff9</p>
+<pre>public void onUpdate(Context context, AppWidgetManager appWidgetManager,
+int[] appWidgetIds) {
+    // update each of the app widgets with the remote adapter
+    for (int i = 0; i &lt; appWidgetIds.length; ++i) {
+        
+        // Set up the intent that starts the StackViewService, which will
+        // provide the views for this collection.
+        Intent intent = new Intent(context, StackWidgetService.class);
+        // Add the app widget ID to the intent extras.
+        intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetIds[i]);
+        intent.setData(Uri.parse(intent.toUri(Intent.URI_INTENT_SCHEME)));
+        // Instantiate the RemoteViews object for the app widget layout.
+        RemoteViews rv = new RemoteViews(context.getPackageName(), R.layout.widget_layout);
+        // Set up the RemoteViews object to use a RemoteViews adapter. 
+        // This adapter connects
+        // to a RemoteViewsService  through the specified intent.
+        // This is how you populate the data.
+        rv.setRemoteAdapter(appWidgetIds[i], R.id.stack_view, intent);
+        
+        // The empty view is displayed when the collection has no items. 
+        // It should be in the same layout used to instantiate the RemoteViews
+        // object above.
+        rv.setEmptyView(R.id.stack_view, R.id.empty_view);
+
+        //
+        // Do additional processing specific to this app widget...
+        //
+        
+        appWidgetManager.updateAppWidget(appWidgetIds[i], rv);   
+    }
+    super.onUpdate(context, appWidgetManager, appWidgetIds);
+}</pre>
+<h4>RemoteViewsService class</h4>
+<h3>Persisting data</h3>
+<p>You can’t rely on a single instance of your service, or any data it
+contains, to persist. You should therefore not store any data in your <code><a href="/reference/android/widget/RemoteViewsService.html">RemoteViewsService</a></code> (unless it is static). If you want your
+app widget’s data to persist, the best approach is to use a <code><a href="/reference/android/content/ContentProvider.html">ContentProvider</a></code> whose data persists beyond the process
+lifecycle.</p>
+<p>As described above, your <code><a href="/reference/android/widget/RemoteViewsService.html">RemoteViewsService</a></code> subclass
+provides the <code><a href="/reference/android/widget/RemoteViewsService.RemoteViewsFactory.html">RemoteViewsFactory</a></code> used to  populate the remote collection view.</p>
+<p>Specifically, you need to
+perform these steps:</p>
+<ol>
+  <li>Subclass <code><a href="/reference/android/widget/RemoteViewsService.html">RemoteViewsService</a></code>. <code><a href="/reference/android/widget/RemoteViewsService.html">RemoteViewsService</a></code> is the service through which
+a remote adapter can request <code><a href="/reference/android/widget/RemoteViews.html">RemoteViews</a></code>.  </li>
+  
+  <li>In your <code><a href="/reference/android/widget/RemoteViewsService.html">RemoteViewsService</a></code> subclass, include a
+class that implements the <code><a href="/reference/android/widget/RemoteViewsService.RemoteViewsFactory.html">RemoteViewsFactory</a></code>
+interface. <code><a href="/reference/android/widget/RemoteViewsService.RemoteViewsFactory.html">RemoteViewsFactory</a></code> is an interface for an adapter between a remote collection
+view (such as <code><a href="/reference/android/widget/ListView.html">ListView</a></code>, <code><a href="/reference/android/widget/GridView.html">GridView</a></code>,
+and so on) and  the underlying data for that view.  Your implementation is
+responsible for making a <code><a href="/reference/android/widget/RemoteViews.html">RemoteViews</a></code> object  for each
+item in the data set. This interface is a thin wrapper around <code><a href="/reference/android/widget/Adapter.html">Adapter</a></code>.</li>
+</ol>
+<p>The primary contents of the <code><a href="/reference/android/widget/RemoteViewsService.html">RemoteViewsService</a></code>
+implementation is its <code><a href="/reference/android/widget/RemoteViewsService.RemoteViewsFactory.html">RemoteViewsFactory</a></code>,
+described below.</p>
+<h4>RemoteViewsFactory interface</h4>
+<p>Your custom class that implements the <code><a href="/reference/android/widget/RemoteViewsService.RemoteViewsFactory.html">RemoteViewsFactory</a></code>
+interface provides the app widget with the data for the items in its collection.
+To
+do this, it combines your app widget item XML layout file with a source of data.
+This source of data could be anything from a database to a simple array. In the
+<a href="/resources/samples/StackWidget/index.html">StackView Widget
+sample</a>, the data source is an array of <code>WidgetItems</code>. The <code><a href="/reference/android/widget/RemoteViewsService.RemoteViewsFactory.html">RemoteViewsFactory</a></code>
+functions as an adapter to glue the data to the remote collection view.</p>
+<p>The two most important methods you need to implement for your
+
+<code><a href="/reference/android/widget/RemoteViewsService.RemoteViewsFactory.html">RemoteViewsFactory</a></code>
+subclass are 
+<code><a href="/reference/android/widget/RemoteViewsService.RemoteViewsFactory.html#onCreate()">onCreate()</a></code> and
+<code><a href="/reference/android/widget/RemoteViewsService.RemoteViewsFactory.html#getViewAt(int)">getViewAt()</a></code>
+.</p>
+<p>The system calls <code><a href="/reference/android/widget/RemoteViewsService.RemoteViewsFactory.html#onCreate()">onCreate()</a></code> when
+creating your factory for the first time. This is where you set up any
+connections and/or cursors to your data source. For example, the <a href="/resources/samples/StackWidget/index.html">StackView Widget
+sample</a> uses <code><a href="/reference/android/widget/RemoteViewsService.RemoteViewsFactory.html#onCreate()">onCreate()</a></code> to
+initialize an array of <code>WidgetItem</code> objects. When your app widget is
+active, the system accesses these objects using their index position in the
+array and the text they contain is displayed  </p>
+<p>Here is an excerpt from the <a href="/resources/samples/StackWidget/index.html">StackView Widget</a>
+sample's 
+<code><a href="/reference/android/widget/RemoteViewsService.RemoteViewsFactory.html">RemoteViewsFactory</a></code> implementation that shows portions of the <code><a href="/reference/android/widget/RemoteViewsService.RemoteViewsFactory.html#onCreate()">onCreate()</a></code>
+method:</p>
+<p>WHATSON? d4d33043-ac3b-481a-ad4b-671c8cb9f1af</p>
+<pre>class StackRemoteViewsFactory implements
+RemoteViewsService.RemoteViewsFactory {
+    private static final int mCount = 10;
+    private List&lt;WidgetItem&gt; mWidgetItems = new ArrayList&lt;WidgetItem&gt;();
+    private Context mContext;
+    private int mAppWidgetId;
+
+    public StackRemoteViewsFactory(Context context, Intent intent) {
+        mContext = context;
+        mAppWidgetId = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,
+                AppWidgetManager.INVALID_APPWIDGET_ID);
+    }
+
+    public void onCreate() {
+        // In onCreate() you setup any connections / cursors to your data source. Heavy lifting,
+        // for example downloading or creating content etc, should be deferred to onDataSetChanged()
+        // or getViewAt(). Taking more than 20 seconds in this call will result in an ANR.
+        for (int i = 0; i &lt; mCount; i++) {
+            mWidgetItems.add(new WidgetItem(i + "!"));
+        }
+        ...
+    }
+...</pre>
+<p>The <code><a href="/reference/android/widget/RemoteViewsService.RemoteViewsFactory.html">RemoteViewsFactory</a></code> method <code><a href="/reference/android/widget/RemoteViewsService.RemoteViewsFactory.html#getViewAt(int)">getViewAt()</a></code>
+returns a <code><a href="/reference/android/widget/RemoteViews.html">RemoteViews</a></code> object corresponding to the data at
+the specified <code>position</code> in the data set. Here is an excerpt from 
+the <a href="http://developer.android.com/resources/samples/StackWidget/index.html">
+StackView Widget</a> sample's <code><a href="/reference/android/widget/RemoteViewsService.RemoteViewsFactory.html">RemoteViewsFactory</a></code>
+implementation:</p>
+<p>WHATSON? 1013d8e5-ea68-44f7-8377-5e8311ffd7ff</p>
+<pre>public RemoteViews getViewAt(int position) {
+   
+    // Construct a remote views item based on the app widget item XML file, 
+    // and set the text based on the position.
+    RemoteViews rv = new RemoteViews(mContext.getPackageName(), R.layout.widget_item);
+    rv.setTextViewText(R.id.widget_item, mWidgetItems.get(position).text);
+
+    ...
+    // Return the remote views object.
+    return rv;
+}</pre>
+<h4 id="behavior">Adding behavior to individual items</h4>
+<p>The above sections show you how to bind your data to your app widget
+collection. But what if you want to add dynamic behavior to the individual items
+in your collection view?</p>
+<p> As described in <a href="#AppWidgetProvider">Using the AppWidgetProvider
+Class</a>, you  normally use <code><a href="/reference/android/widget/RemoteViews.html#setOnClickPendingIntent(int,%20android.app.PendingIntent)">setOnClickPendingIntent()</a></code> to set an object's click
+behavior—such as to cause a button to launch an <code><a href="/reference/android/app/Activity.html">Activity</a></code>. But this approach is not allowed for child views in an
+individual collection item (to clarify, you could use <code><a href="/reference/android/widget/RemoteViews.html#setOnClickPendingIntent(int,%20android.app.PendingIntent)">setOnClickPendingIntent()</a></code> to set up a global button
+in the Gmail app widget that launches the app, for example, but not on the
+individual list items). Instead, to add click behavior to individual items in a
+collection, you  use <code><a href="/reference/android/widget/RemoteViews.html#setOnClickFillInIntent(int,%20android.content.Intent)">setOnClickFillInIntent()</a></code>. This entails setting up up a pending intent template
+for your collection view, and then setting a fill-in intent on each item in the
+collection via your <code><a href="/reference/android/widget/RemoteViewsService.RemoteViewsFactory.html">RemoteViewsFactory</a></code>.</p>
+<p>This section uses the <a href="/resources/samples/StackWidget/index.html">StackView Widget
+sample</a> to describe how to add behavior to individual items. In the <a href="/resources/samples/StackWidget/index.html">StackView Widget
+sample</a>, if the user touches the top view, the app widget displays the <code><a href="/reference/android/widget/Toast.html">Toast</a></code> message "Touched view <em>n</em>," where
+<em>n</em> is the index (position) of the touched view. This is how it
+works:</p>
+<ul>
+  <li>The <code>StackWidgetProvider</code> (an <code><a href="/reference/android/appwidget/AppWidgetProvider.html">AppWidgetProvider</a></code> subclass) creates a pending intent that has
+a custom action called <code>TOAST_ACTION</code>.</li>
+  <li>When the user touches a view, the intent is fired and it broadcasts
+<code>TOAST_ACTION</code>.</li>
+  
+  <li>This broadcast is intercepted by the <code>StackWidgetProvider</code>'s
+<code><a href="/reference/android/appwidget/AppWidgetProvider.html#onReceive(android.content.Context,%20android.content.Intent)">onReceive()</a></code> method, and the app widget displays the
+<code><a href="/reference/android/widget/Toast.html">Toast</a></code> message for the touched view. The data for the collection
+items is provided by the <code><a href="/reference/android/widget/RemoteViewsService.RemoteViewsFactory.html">RemoteViewsFactory</a></code>, via
+the <code><a href="/reference/android/widget/RemoteViewsService.html">RemoteViewsService</a></code>.</li>
+</ul>
+<p class="note"><strong>Note:</strong> The <a href="/resources/samples/StackWidget/index.html">StackView Widget
+sample</a> uses a broadcast, but typically an app widget would simply launch an
+activity in a scenario like this one.</p>
+<p>The <code>StackWidgetProvider</code> (<code><a href="/reference/android/appwidget/AppWidgetProvider.html">AppWidgetProvider</a></code> subclass) sets up a pending intent.
+Individuals items of a collection cannot set up their own pending intents.
+Instead, the collection as a whole sets up a pending intent template, and the
+individual items set a fill-in intent to create unique behavior on an
+item-by-item
+basis.</p>
+<p>This class  also receives the broadcast that is sent when the user touches a
+view. It processes this event in its <code><a href="/reference/android/appwidget/AppWidgetProvider.html#onReceive(android.content.Context,%20android.content.Intent)">onReceive()</a></code> method. If the intent's action is
+<code>TOAST_ACTION</code>, the app widget displays a <code><a href="/reference/android/widget/Toast.html">Toast</a></code>
+message for the current view.</p>
+<p>WHATSON? 191023e4-b725-45bb-9d85-d1a0c9f3429a</p>
+<pre>public class StackWidgetProvider extends AppWidgetProvider {
+    public static final String TOAST_ACTION = "com.example.android.stackwidget.TOAST_ACTION";
+    public static final String EXTRA_ITEM = "com.example.android.stackwidget.EXTRA_ITEM";
+
+    ...
+
+    // Called when the BroadcastReceiver receives an Intent broadcast.
+    // Checks to see whether the intent's action is TOAST_ACTION. If it is, the app widget 
+    // displays a Toast message for the current item.
+    @Override
+    public void onReceive(Context context, Intent intent) {
+        AppWidgetManager mgr = AppWidgetManager.getInstance(context);
+        if (intent.getAction().equals(TOAST_ACTION)) {
+            int appWidgetId = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,
+                AppWidgetManager.INVALID_APPWIDGET_ID);
+            int viewIndex = intent.getIntExtra(EXTRA_ITEM, 0);
+            Toast.makeText(context, "Touched view " + viewIndex, Toast.LENGTH_SHORT).show();
+        }
+        super.onReceive(context, intent);
+    }
+    
+    @Override
+    public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
+        // update each of the app widgets with the remote adapter
+        for (int i = 0; i &lt; appWidgetIds.length; ++i) {
+    
+            // Sets up the intent that points to the StackViewService that will
+            // provide the views for this collection.
+            Intent intent = new Intent(context, StackWidgetService.class);
+            intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetIds[i]);
+            // When intents are compared, the extras are ignored, so we need to embed the extras
+            // into the data so that the extras will not be ignored.
+            intent.setData(Uri.parse(intent.toUri(Intent.URI_INTENT_SCHEME)));
+            RemoteViews rv = new RemoteViews(context.getPackageName(), R.layout.widget_layout);
+            rv.setRemoteAdapter(appWidgetIds[i], R.id.stack_view, intent);
+    
+            // The empty view is displayed when the collection has no items. It should be a sibling
+            // of the collection view.
+            rv.setEmptyView(R.id.stack_view, R.id.empty_view);
+
+            // This section makes it possible for items to have individualized behavior.
+            // It does this by setting up a pending intent template. Individuals items of a collection
+            // cannot set up their own pending intents. Instead, the collection as a whole sets
+            // up a pending intent template, and the individual items set a fillInIntent
+            // to create unique behavior on an item-by-item basis.
+            Intent toastIntent = new Intent(context, StackWidgetProvider.class);
+            // Set the action for the intent.
+            // When the user touches a particular view, it will have the effect of
+            // broadcasting TOAST_ACTION.
+            toastIntent.setAction(StackWidgetProvider.TOAST_ACTION);
+            toastIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetIds[i]);
+            intent.setData(Uri.parse(intent.toUri(Intent.URI_INTENT_SCHEME)));
+            PendingIntent toastPendingIntent = PendingIntent.getBroadcast(context, 0, toastIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT);
+            rv.setPendingIntentTemplate(R.id.stack_view, toastPendingIntent);
+            
+            appWidgetManager.updateAppWidget(appWidgetIds[i], rv);
+        }
+    super.onUpdate(context, appWidgetManager, appWidgetIds);
+    }
+}</pre>
+<p>Your <code><a href="/reference/android/widget/RemoteViewsService.RemoteViewsFactory.html">RemoteViewsFactory</a></code> must set a fill-in intent on each item in the collection.
+This makes it possible to distinguish the individual on-click action of a given
+item. The fill-in intent is then combined with the <code><a href="/reference/android/app/PendingIntent.html">PendingIntent</a></code> template in order to determine the final intent that
+will be executed when the item is clicked. </p>
+<p>WHATSON? 1c6d9eeb-5714-4cbe-8ca6-edfe8a40b431</p>
+<pre>
+public class StackWidgetService extends RemoteViewsService {
+    @Override
+    public RemoteViewsFactory onGetViewFactory(Intent intent) {
+        return new StackRemoteViewsFactory(this.getApplicationContext(), intent);
+    }
+}
+
+class StackRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactory {
+    private static final int mCount = 10;
+    private List&lt;WidgetItem&gt; mWidgetItems = new ArrayList&lt;WidgetItem&gt;();
+    private Context mContext;
+    private int mAppWidgetId;
+
+    public StackRemoteViewsFactory(Context context, Intent intent) {
+        mContext = context;
+        mAppWidgetId = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,
+                AppWidgetManager.INVALID_APPWIDGET_ID);
+    }
+
+    // Initialize the data set.
+        public void onCreate() {
+            // In onCreate() you set up any connections / cursors to your data source. Heavy lifting,
+            // for example downloading or creating content etc, should be deferred to onDataSetChanged()
+            // or getViewAt(). Taking more than 20 seconds in this call will result in an ANR.
+            for (int i = 0; i &lt; mCount; i++) {
+                mWidgetItems.add(new WidgetItem(i + "!"));
+            }
+           ...
+        }
+        ...
+    
+        // Given the position (index) of a WidgetItem in the array, use the item's text value in 
+        // combination with the app widget item XML file to construct a RemoteViews object.
+        public RemoteViews getViewAt(int position) {
+            // position will always range from 0 to getCount() - 1.
+    
+            // Construct a RemoteViews item based on the app widget item XML file, and set the
+            // text based on the position.
+            RemoteViews rv = new RemoteViews(mContext.getPackageName(), R.layout.widget_item);
+            rv.setTextViewText(R.id.widget_item, mWidgetItems.get(position).text);
+    
+            // Next, set a fill-intent, which will be used to fill in the pending intent template
+            // that is set on the collection view in StackWidgetProvider.
+            Bundle extras = new Bundle();
+            extras.putInt(StackWidgetProvider.EXTRA_ITEM, position);
+            Intent fillInIntent = new Intent();
+            fillInIntent.putExtras(extras);
+            // Make it possible to distinguish the individual on-click
+            // action of a given item
+            rv.setOnClickFillInIntent(R.id.widget_item, fillInIntent);
+        
+            ...
+        
+            // Return the RemoteViews object.
+            return rv;
+        }
+    ...
+    }</pre>
+<h3 id="fresh">Keeping Collection Data Fresh</h3>
+<p>The following figure illustrates the flow that occurs in an app widget that
+uses
+collections when updates occur. It shows how the app widget code interacts with
+the  <code><a href="/reference/android/widget/RemoteViewsService.RemoteViewsFactory.html">RemoteViewsFactory</a></code>, and how you can trigger updates:</p>
+<p>One feature of app widgets that use collections is the ability to provide
+users with up-to-date content. For example, consider the Android 3.0 Gmail
+app widget, which provides users with a snapshot of their inbox. To make this
+possible, you need to be able to trigger your <code><a href="/reference/android/widget/RemoteViewsService.RemoteViewsFactory.html">RemoteViewsFactory</a></code> and
+collection view to fetch and display new data. You achieve this with the <code><a href="/reference/android/appwidget/AppWidgetManager.html">AppWidgetManager</a></code> call <code><a href="/reference/android/appwidget/AppWidgetManager.html#notifyAppWidgetViewDataChanged(int,%20int)">notifyAppWidgetViewDataChanged()</a></code>. This call results in a callback to your
+<code>RemoteViewsFactory</code>’s <code><a href="/reference/android/widget/RemoteViewsService.RemoteViewsFactory.html#onDataSetChanged()">onDataSetChanged()</a></code> method, which gives you the opportunity to fetch any new
+data. Note that you can perform
+processing-intensive operations synchronously within the  <code><a href="/reference/android/widget/RemoteViewsService.RemoteViewsFactory.html#onDataSetChanged()">onDataSetChanged()</a></code> callback. You are guaranteed that this call will be
+completed before the metadata or view data is fetched from the <code><a href="/reference/android/widget/RemoteViewsService.RemoteViewsFactory.html">RemoteViewsFactory</a></code>. In
+addition, you can perform processing-intensive operations within the <code><a href="/reference/android/widget/RemoteViewsService.RemoteViewsFactory.html#getViewAt(int)">getViewAt()</a></code>
+method. If this call takes a long time, the loading view (specified by the
+<code>RemoteViewsFactory</code>’s  <code><a href="/reference/android/widget/RemoteViewsService.RemoteViewsFactory.html#getLoadingView()">getLoadingView()</a></code> method)
+will be displayed in the corresponding position of the collection view until it
+returns.</p>
+<h1 itemprop="name">App Widgets</h1>
+<h2>In this document</h2>
+<ol>
+      <li><a href="#Basics">The Basics</a></li>
+      <li><a href="#Manifest">Declaring an App Widget in the Manifest</a></li>
+      <li><a href="#MetaData">Adding the AppWidgetProviderInfo Metadata</a></li>
+      <li><a href="#CreatingLayout">Creating the App Widget Layout</a></li>
+      <li><a href="#AppWidgetProvider">Using the AppWidgetProvider Class</a>
+        <ol>
+          <li><a href="#ProviderBroadcasts">Receiving App Widget broadcast
+Intents</a></li>
+        </ol>
+      </li>
+      <li><a href="#Configuring">Creating an App Widget Configuration
+Activity</a>
+        <ol>
+          <li><a href="#UpdatingFromTheConfiguration">Updating the App Widget
+from 
+            the Configuration Activity</a></li>
+        </ol>
+      </li>
+      <li><a href="#preview">Setting a Preview Image</a></li>
+      <li><a href="#lockscreen">Enabling App Widgets on the Lockscreen</a>
+        <ol>
+          <li><a href="#lockscreen-sizing">Sizing guidelines</a></li>
+        </ol>
+      </li>
+
+      <li><a href="#collections">Using App Widgets with Collections</a>
+        <ol>
+          <li><a href="#collection_sample">Sample application</a></li>
+          <li><a href="#implementing_collections">Implementing app widgets with
+collections
+</a></li>
+          <li><a href="#fresh">Keeping Collection Data Fresh</a></li>
+        </ol>   
+      </li>
+    </ol>
+<ol>
+          <li><a href="#ProviderBroadcasts">Receiving App Widget broadcast
+Intents</a></li>
+        </ol>
+<ol>
+          <li><a href="#UpdatingFromTheConfiguration">Updating the App Widget
+from 
+            the Configuration Activity</a></li>
+        </ol>
+<ol>
+          <li><a href="#lockscreen-sizing">Sizing guidelines</a></li>
+        </ol>
+<ol>
+          <li><a href="#collection_sample">Sample application</a></li>
+          <li><a href="#implementing_collections">Implementing app widgets with
+collections
+</a></li>
+          <li><a href="#fresh">Keeping Collection Data Fresh</a></li>
+        </ol>
+<h2>Key classes</h2>
+<ol>
+      <li><code><a href="/reference/android/appwidget/AppWidgetProvider.html">AppWidgetProvider</a></code></li>
+      <li><code><a href="/reference/android/appwidget/AppWidgetProviderInfo.html">AppWidgetProviderInfo</a></code></li>
+      <li><code><a href="/reference/android/appwidget/AppWidgetManager.html">AppWidgetManager</a></code></li>
+    </ol>
+<p>App Widgets are miniature application views that can be embedded in other
+applications
+(such as the Home screen) and receive periodic updates. These views are
+referred 
+to as Widgets in the user interface,
+and you can publish one with an App Widget provider. An application component
+that is 
+able to hold other App Widgets is called an App Widget host. The screenshot
+below shows
+the Music App Widget.</p>
+<p>This document describes how to publish an App Widget using an App Widget
+provider. For a discussion of creating your own <code><a href="/reference/android/appwidget/AppWidgetHost.html">AppWidgetHost</a></code>
+to host app widgets, see <a href="/guide/topics/appwidgets/host.html">
+App Widget Host</a>.</p>
+<p><strong>Widget Design</strong></p>
+<p>For information about how to design your app widget, read the <a href="/design/patterns/widgets.html">Widgets</a> design guide.</p>
+<h2 id="Basics">The Basics</h2>
+<p>To create an App Widget, you need the following:</p>
+<p>Additionally, you can implement an App Widget configuration Activity. This is
+an optional 
+<code><a href="/reference/android/app/Activity.html">Activity</a></code> that launches when the user adds your App Widget
+and allows him or her
+to modify App Widget settings at create-time.</p>
+<p>The following sections describe how to set up each of these components.</p>
+<h2 id="Manifest">Declaring an App Widget in the Manifest</h2>
+<p>First, declare the <code><a href="/reference/android/appwidget/AppWidgetProvider.html">AppWidgetProvider</a></code> class in your
+application's
+<code>AndroidManifest.xml</code> file. For example:</p>
+<p>WHATSON? ee692adb-fcf9-41e7-9b9f-ff42511a70b1</p>
+<pre style="clear:right">
+&lt;receiver android:name="ExampleAppWidgetProvider" &gt;
+    &lt;intent-filter&gt;
+        &lt;action android:name="android.appwidget.action.APPWIDGET_UPDATE" /&gt;
+    &lt;/intent-filter&gt;
+    &lt;meta-data android:name="android.appwidget.provider"
+               android:resource="@xml/example_appwidget_info" /&gt;
+&lt;/receiver&gt;
+</pre>
+<p>The <code>&lt;receiver&gt;</code> element requires the
+<code>android:name</code> 
+attribute, which specifies the <code><a href="/reference/android/appwidget/AppWidgetProvider.html">AppWidgetProvider</a></code> used
+by the App Widget.</p>
+<p>The <code>&lt;intent-filter&gt;</code> element must include an
+<code>&lt;action&gt;</code>
+element with the <code>android:name</code> attribute. This attribute specifies
+that the <code><a href="/reference/android/appwidget/AppWidgetProvider.html">AppWidgetProvider</a></code> accepts the <code><a href="/reference/android/appwidget/AppWidgetManager.html#ACTION_APPWIDGET_UPDATE">ACTION_APPWIDGET_UPDATE</a></code> broadcast.
+This is the only broadcast that you must explicitly declare. The <code><a href="/reference/android/appwidget/AppWidgetManager.html">AppWidgetManager</a></code>
+automatically sends all other App Widget broadcasts to the AppWidgetProvider as
+necessary.</p>
+<p>The <code>&lt;meta-data&gt;</code> element specifies the
+<code><a href="/reference/android/appwidget/AppWidgetProviderInfo.html">AppWidgetProviderInfo</a></code> resource and requires the 
+following attributes:</p>
+<ul>
+  <li><code>android:name</code> - Specifies the metadata name. Use
+<code>android.appwidget.provider</code>
+    to identify the data as the <code><a href="/reference/android/appwidget/AppWidgetProviderInfo.html">AppWidgetProviderInfo</a></code>
+descriptor.</li>
+  <li><code>android:resource</code> - Specifies the <code><a href="/reference/android/appwidget/AppWidgetProviderInfo.html">AppWidgetProviderInfo</a></code> 
+    resource location.</li>
+</ul>
+<h2 id="MetaData">Adding the AppWidgetProviderInfo Metadata</h2>
+<p>The <code><a href="/reference/android/appwidget/AppWidgetProviderInfo.html">AppWidgetProviderInfo</a></code> defines the essential 
+qualities of an App Widget, such as its minimum layout dimensions, its initial
+layout resource,
+how often to update the App Widget, and (optionally) a configuration Activity to
+launch at create-time.
+Define the AppWidgetProviderInfo object in an XML resource using a single
+<code>&lt;appwidget-provider&gt;</code> element and save it in the project's
+<code>res/xml/</code> 
+folder.</p>
+<p>For example:</p>
+<p>WHATSON? cd1768db-31f5-4835-97f1-4435e6fe78a9</p>
+<pre>
+&lt;appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:minWidth="40dp"
+    android:minHeight="40dp"
+    android:updatePeriodMillis="86400000"
+    android:previewImage="@drawable/preview"
+    android:initialLayout="@layout/example_appwidget"
+    android:configure="com.example.android.ExampleAppWidgetConfigure" 
+    android:resizeMode="horizontal|vertical"
+    android:widgetCategory="home_screen|keyguard"
+    android:initialKeyguardLayout="@layout/example_keyguard"&gt;
+&lt;/appwidget-provider&gt;
+</pre>
+<p>Here's a summary of the <code>&lt;appwidget-provider&gt;</code> attributes:</p>
+<ul>
+  <li>The values for the <code>minWidth</code> and <code>minHeight</code>
+    attributes specify the minimum amount of space the App Widget consumes
+    <em>by default</em>. The default Home screen positions App Widgets in its
+    window based on a grid of cells that have a defined height and width. If
+    the values for an App Widget's minimum width or height don't match the
+    dimensions of the cells, then the App Widget dimensions round
+    <em>up</em> to the nearest cell size.
+    <p>See the <a href="/guide/practices/ui_guidelines/widget_design.html#anatomy_determining_size">
+    App Widget Design Guidelines</a> for more information on sizing your App
+    Widgets.</p>
+
+    <p class="note"><strong>Note:</strong> To make your app widget portable
+    across devices, your app widget's minimum size should never be larger
+    than 4 x 4 cells.</p>
+  </li>
+
+  <li>The <code>minResizeWidth</code> and <code>minResizeHeight</code> attributes
+    specify the App Widget's absolute minimum size. These values should specify
+    the size below which the App Widget would be illegible or otherwise unusable.
+    Using these attributes allows the user to resize the widget to a size that
+    may be smaller than the default widget size defined by the
+    <code>minWidth</code> and <code>minHeight</code> attributes.
+    Introduced in Android 3.1.
+
+    <p>See the <a href="/guide/practices/ui_guidelines/widget_design.html#anatomy_determining_size">
+    App Widget Design Guidelines</a> for more information on sizing your App
+    Widgets.</p>
+  </li>
+
+  <li>The <code>updatePeriodMillis</code> attribute defines how often the App
+Widget framework should request an update from the <code><a href="/reference/android/appwidget/AppWidgetProvider.html">AppWidgetProvider</a></code> by calling the 
+<code><a href="/reference/android/appwidget/AppWidgetProvider.html#onUpdate(android.content.Context,%20android.appwidget.AppWidgetManager,%20int%5B%5D)">onUpdate()</a></code> 
+callback method. The actual update
+is not guaranteed to occur exactly on time with this value and we suggest
+updating as infrequently as possible—perhaps no more than once an hour to
+conserve the battery. You might also allow the user to adjust the frequency in a
+configuration—some people might want a stock ticker to update every 15
+minutes, or maybe only four times a day. 
+    	<p class="note"><strong>Note:</strong> If the device is asleep when it
+is time for an update 
+    	(as defined by <code>updatePeriodMillis</code>), then the device will
+wake up in order 
+    	to perform the update. If you don't update more than once per hour, this
+probably won't 
+    	cause significant problems for the battery life. If, however, you need
+to update more 
+    	frequently and/or you do not need to update while the device is asleep,
+then you can instead 
+    	perform updates based on an alarm that will not wake the device. To do
+so, set an alarm with 
+    	an Intent that your AppWidgetProvider receives, using the	<code><a href="/reference/android/app/AlarmManager.html">AlarmManager</a></code>. 
+    	Set the alarm type to either <code><a href="/reference/android/app/AlarmManager.html#ELAPSED_REALTIME">ELAPSED_REALTIME</a></code> or 
+    	<code><a href="/reference/android/app/AlarmManager.html#RTC">RTC</a></code>, which will only
+    	deliver the alarm when the device is awake. Then set
+<code>updatePeriodMillis</code> to 
+    	zero (<code>"0"</code>).</p>
+  </li>
+  <li>The <code>initialLayout</code> attribute points to the layout resource
+that defines the
+    App Widget layout.</li>
+  <li>The <code>configure</code> attribute defines the <code><a href="/reference/android/app/Activity.html">Activity</a></code> to launch when
+    the user adds the App Widget, in order for him or her to configure App
+Widget properties. This is optional
+    (read <a href="#Configuring">Creating an App Widget Configuration
+Activity</a> below).</li>
+    
+   <li>The <code>previewImage</code> attribute specifies a preview of what the
+app widget will look like after it's configured, which the user sees when
+selecting the app widget. If not supplied, the user instead sees your
+application's launcher icon. This field corresponds to the
+<code>android:previewImage</code> attribute in the <code>&lt;receiver&gt;</code>
+element in the <code>AndroidManifest.xml</code> file. For more discussion of
+using <code>previewImage</code>, see <a href="#preview">Setting a Preview
+Image</a>. Introduced in Android 3.0.</li>
+
+   <li>The <code>autoAdvanceViewId</code> attribute specifies the view ID of the
+app widget subview that should be auto-advanced by the widget's host. Introduced in Android 3.0.</li> 
+
+<li>The <code>resizeMode</code> attribute specifies the rules by which a widget
+can be resized. You use this attribute to make homescreen widgets
+resizeable—horizontally, vertically, or on both axes. Users touch-hold a
+widget to show its resize handles, then drag the horizontal and/or vertical
+handles to change the size on the layout grid. Values for the
+<code>resizeMode</code> attribute include "horizontal", "vertical", and "none".
+To declare a widget as resizeable horizontally and vertically, supply the value
+"horizontal|vertical". Introduced in Android 3.1.</li> 
+
+<li>The <code>minResizeHeight</code> attribute specifies the minimum height (in dps) to which
+the widget can be resized. This field has no effect if it is greater than <code>minHeight</code> or if
+vertical resizing isn't enabled (see <code>resizeMode</code>). Introduced in Android 4.0.</li>
+
+<li>The <code> minResizeWidth </code> attribute specifies the minimum width (in dps) to which
+the widget can be resized. This field has no effect if it is greater than <code>minWidth</code> or if
+horizontal resizing isn't enabled (see <code>resizeMode</code>). Introduced in Android 4.0.</li>
+
+<li>The <code>widgetCategory</code> attribute declares whether your App Widget can be displayed on the home screen, 
+the lock screen (keyguard), or both. Values for this attribute include "home_screen" and "keyguard".  A widget that 
+is displayed on both needs to ensure that it follows the design guidelines for both widget classes. For more
+information, see <a href="#lockscreen">Enabling App Widgets on the Lockscreen</a>. The default value is "home_screen". Introduced in Android 4.2.
+</li>
+
+<li>The <code>initialKeyguardLayout</code> attribute points to the layout resource
+that defines the lock screen App Widget layout. This works the same way as the 
+<code><a href="/reference/android/appwidget/AppWidgetProviderInfo.html#initialLayout">android:initialLayout</a></code>, 
+in that it provides a layout that can appear immediately until your app widget is initialized and able to update 
+the layout. Introduced in Android 4.2.</li>
+
+</ul>
+<p>See the <a href="/guide/practices/ui_guidelines/widget_design.html#anatomy_determining_size">
+    App Widget Design Guidelines</a> for more information on sizing your App
+    Widgets.</p>
+<p class="note"><strong>Note:</strong> To make your app widget portable
+    across devices, your app widget's minimum size should never be larger
+    than 4 x 4 cells.</p>
+<p>See the <a href="/guide/practices/ui_guidelines/widget_design.html#anatomy_determining_size">
+    App Widget Design Guidelines</a> for more information on sizing your App
+    Widgets.</p>
+<p class="note"><strong>Note:</strong> If the device is asleep when it
+is time for an update 
+    	(as defined by <code>updatePeriodMillis</code>), then the device will
+wake up in order 
+    	to perform the update. If you don't update more than once per hour, this
+probably won't 
+    	cause significant problems for the battery life. If, however, you need
+to update more 
+    	frequently and/or you do not need to update while the device is asleep,
+then you can instead 
+    	perform updates based on an alarm that will not wake the device. To do
+so, set an alarm with 
+    	an Intent that your AppWidgetProvider receives, using the	<code><a href="/reference/android/app/AlarmManager.html">AlarmManager</a></code>. 
+    	Set the alarm type to either <code><a href="/reference/android/app/AlarmManager.html#ELAPSED_REALTIME">ELAPSED_REALTIME</a></code> or 
+    	<code><a href="/reference/android/app/AlarmManager.html#RTC">RTC</a></code>, which will only
+    	deliver the alarm when the device is awake. Then set
+<code>updatePeriodMillis</code> to 
+    	zero (<code>"0"</code>).</p>
+<p>See the <code><a href="/reference/android/appwidget/AppWidgetProviderInfo.html">AppWidgetProviderInfo</a></code> class for more
+information on the
+attributes accepted by the <code>&lt;appwidget-provider&gt;</code> element.</p>
+<h2 id="CreatingLayout">Creating the App Widget Layout</h2>
+<p>You must define an initial layout for your App Widget in XML and save it in
+the project's
+<code>res/layout/</code> directory. You can design your App Widget using the
+View objects listed
+below, but before you begin designing your App Widget, please read and
+understand the
+<a href="/guide/practices/ui_guidelines/widget_design.html">App Widget
+Design 
+Guidelines</a>.</p>
+<p>Creating the App Widget layout is simple if you're
+familiar with <a href="/guide/topics/ui/declaring-layout.html">Layouts</a>.
+However, you must be aware that App Widget layouts are based on <code><a href="/reference/android/widget/RemoteViews.html">RemoteViews</a></code>,
+which do not support every kind of layout or view widget.</p>
+<p>A RemoteViews object (and, consequently, an App Widget) can support the 
+following layout classes:</p>
+<ul class="nolist">
+  <li><code><a href="/reference/android/widget/FrameLayout.html">FrameLayout</a></code></li>
+  <li><code><a href="/reference/android/widget/LinearLayout.html">LinearLayout</a></code></li>
+  <li><code><a href="/reference/android/widget/RelativeLayout.html">RelativeLayout</a></code></li>
+  <li><code><a href="/reference/android/widget/GridLayout.html">GridLayout</a></code></li>
+</ul>
+<p>And the following widget classes:</p>
+<ul class="nolist">
+  <li><code><a href="/reference/android/widget/AnalogClock.html">AnalogClock</a></code></li>
+  <li><code><a href="/reference/android/widget/Button.html">Button</a></code></li>
+  <li><code><a href="/reference/android/widget/Chronometer.html">Chronometer</a></code></li>
+  <li><code><a href="/reference/android/widget/ImageButton.html">ImageButton</a></code></li>
+  <li><code><a href="/reference/android/widget/ImageView.html">ImageView</a></code></li>
+  <li><code><a href="/reference/android/widget/ProgressBar.html">ProgressBar</a></code></li>
+  <li><code><a href="/reference/android/widget/TextView.html">TextView</a></code></li>
+  <li><code><a href="/reference/android/widget/ViewFlipper.html">ViewFlipper</a></code></li>
+  <li><code><a href="/reference/android/widget/ListView.html">ListView</a></code></li>
+  <li><code><a href="/reference/android/widget/GridView.html">GridView</a></code></li>
+  <li><code><a href="/reference/android/widget/StackView.html">StackView</a></code></li>
+  <li><code><a href="/reference/android/widget/AdapterViewFlipper.html">AdapterViewFlipper</a></code></li>
+</ul>
+<p>Descendants of these classes are not supported.</p>
+<p>RemoteViews also supports <code><a href="/reference/android/view/ViewStub.html">ViewStub</a></code>, which is an invisible, zero-sized View you can use 
+to lazily inflate layout resources at runtime.</p>
+<h3 id="AddingMargins">Adding margins to App Widgets</h3>
+<p>Widgets should not generally extend to screen edges and should not visually be flush with other widgets, so you should add margins on all sides around your widget frame.</p>
+<p>As of Android 4.0, app widgets are automatically given padding between the widget frame and the app widget's bounding box to provide better alignment with other widgets and icons on the user's home screen. To take advantage of this strongly recommended behavior, set your application's <a href="/guide/topics/manifest/uses-sdk-element.html">targetSdkVersion</a> to 14 or greater.</p>
+<p>It's easy to write a single layout that has custom margins applied for earlier versions of the platform, and has no extra margins for Android 4.0 and greater:</p>
+<ol>
+  <li>Set your application's <code>targetSdkVersion</code> to 14 or greater.</li>
+  <li>Create a layout such as the one below, that references a <a href="/guide/topics/resources/more-resources.html#Dimension">dimension resource</a> for its margins:
+
+<pre>
+&lt;FrameLayout
+  android:layout_width="match_parent"
+  android:layout_height="match_parent"
+  <strong>android:padding="@dimen/widget_margin"&gt;</strong>
+
+  &lt;LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal"
+    android:background="@drawable/my_widget_background"&gt;
+    …
+  &lt;/LinearLayout&gt;
+
+&lt;/FrameLayout&gt;
+</pre>
+
+  </li>
+  <li>Create two dimensions resources, one in <code>res/values/</code> to provide the pre-Android 4.0 custom margins, and one in <code>res/values-v14/</code> to provide no extra padding for Android 4.0 widgets:
+
+    <p><strong>res/values/dimens.xml</strong>:<br>
+    </p><pre>&lt;dimen name="widget_margin"&gt;8dp&lt;/dimen&gt;</pre>
+
+    <p><strong>res/values-v14/dimens.xml</strong>:<br>
+    </p><pre>&lt;dimen name="widget_margin"&gt;0dp&lt;/dimen&gt;</pre>
+  </li>
+</ol>
+<p>WHATSON? 785d6b52-e257-4361-8bc5-a89dcf7d881f</p>
+<pre>
+&lt;FrameLayout
+  android:layout_width="match_parent"
+  android:layout_height="match_parent"
+  <strong>android:padding="@dimen/widget_margin"&gt;</strong>
+
+  &lt;LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal"
+    android:background="@drawable/my_widget_background"&gt;
+    …
+  &lt;/LinearLayout&gt;
+
+&lt;/FrameLayout&gt;
+</pre>
+<p><strong>res/values/dimens.xml</strong>:<br>
+    </p>
+<p>WHATSON? 4fc075c2-80ff-4e4c-b718-35c66ca7bbe9</p>
+<pre>&lt;dimen name="widget_margin"&gt;8dp&lt;/dimen&gt;</pre>
+<p><strong>res/values-v14/dimens.xml</strong>:<br>
+    </p>
+<p>WHATSON? abb1039f-6702-428b-b6eb-3ecde43e4c91</p>
+<pre>&lt;dimen name="widget_margin"&gt;0dp&lt;/dimen&gt;</pre>
+<p>Another option is to simply build extra margins into your <a href="/guide/topics/graphics/2d-graphics.html#nine-patch">nine-patch</a> background assets by default, and provide different nine-patches with no margins for API level 14 or later.</p>
+<h2 id="AppWidgetProvider">Using the AppWidgetProvider Class</h2>
+<p>You must declare your AppWidgetProvider class implementation as a
+broadcast receiver 
+    using the <code>&lt;receiver&gt;</code> element in the AndroidManifest (see
+    <a href="#Manifest">Declaring an App Widget in the Manifest</a> above).</p>
+<p>The <code><a href="/reference/android/appwidget/AppWidgetProvider.html">AppWidgetProvider</a></code> class extends
+BroadcastReceiver as a convenience
+class to handle the App Widget broadcasts. The AppWidgetProvider receives only
+the event broadcasts that
+are relevant to the App Widget, such as when the App Widget is updated, deleted,
+enabled, and disabled.
+When these broadcast events occur, the AppWidgetProvider receives the following
+method calls:</p>
+<ul>
+  <li><code><a href="/reference/android/appwidget/AppWidgetManager.html#OPTION_APPWIDGET_MIN_WIDTH">OPTION_APPWIDGET_MIN_WIDTH</a></code>—Contains 
+the lower bound on the current width, in dp units, of a widget instance.</li>
+  <li><code><a href="/reference/android/appwidget/AppWidgetManager.html#OPTION_APPWIDGET_MIN_HEIGHT">OPTION_APPWIDGET_MIN_HEIGHT</a></code>—Contains 
+the lower bound on the current height, in dp units, of a widget instance.</li>
+  <li><code><a href="/reference/android/appwidget/AppWidgetManager.html#OPTION_APPWIDGET_MAX_WIDTH">OPTION_APPWIDGET_MAX_WIDTH</a></code>—Contains
+ the upper bound on the current width, in dp units, of a widget instance.</li>
+  <li><code><a href="/reference/android/appwidget/AppWidgetManager.html#OPTION_APPWIDGET_MAX_HEIGHT">OPTION_APPWIDGET_MAX_HEIGHT</a></code>—Contains 
+the upper bound on the current width, in dp units, of a widget instance.</li>
+</ul>
+<p>The most important AppWidgetProvider callback is 
+<code><a href="/reference/android/appwidget/AppWidgetProvider.html#onUpdate(android.content.Context,%20android.appwidget.AppWidgetManager,%20int%5B%5D)">onUpdate()</a></code> 
+because it is called when
+each App Widget is added to a host (unless you use a configuration Activity). If
+your App Widget accepts any user interaction events, then you need to register
+the event handlers in this callback. If your App Widget doesn't create temporary
+files or databases, or perform other work that requires clean-up, then 
+<code><a href="/reference/android/appwidget/AppWidgetProvider.html#onUpdate(android.content.Context,%20android.appwidget.AppWidgetManager,%20int%5B%5D)">onUpdate()</a></code> 
+may be the only callback
+method you need to define. For example, if you want an App Widget with a button
+that launches an Activity when clicked, you could use the following
+implementation of AppWidgetProvider:</p>
+<p>WHATSON? 21ba7141-526e-4759-83b6-806a4ec426c9</p>
+<pre>
+public class ExampleAppWidgetProvider extends AppWidgetProvider {
+
+    public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
+        final int N = appWidgetIds.length;
+
+        // Perform this loop procedure for each App Widget that belongs to this provider
+        for (int i=0; i&lt;N; i++) {
+            int appWidgetId = appWidgetIds[i];
+
+            // Create an Intent to launch ExampleActivity
+            Intent intent = new Intent(context, ExampleActivity.class);
+            PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, 0);
+
+            // Get the layout for the App Widget and attach an on-click listener
+            // to the button
+            RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.appwidget_provider_layout);
+            views.setOnClickPendingIntent(R.id.button, pendingIntent);
+
+            // Tell the AppWidgetManager to perform an update on the current app widget
+            appWidgetManager.updateAppWidget(appWidgetId, views);
+        }
+    }
+}
+</pre>
+<p>This AppWidgetProvider defines only the 
+<code><a href="/reference/android/appwidget/AppWidgetProvider.html#onUpdate(android.content.Context,%20android.appwidget.AppWidgetManager,%20int%5B%5D)">onUpdate()</a></code> 
+method for the purpose of
+defining a <code><a href="/reference/android/app/PendingIntent.html">PendingIntent</a></code> that launches an <code><a href="/reference/android/app/Activity.html">Activity</a></code> and attaching it to the App Widget's button with <code><a href="/reference/android/widget/RemoteViews.html#setOnClickPendingIntent(int,%20android.app.PendingIntent)">setOnClickPendingIntent(int, PendingIntent)</a></code>. Notice
+that it includes a loop that iterates through each entry in
+<code>appWidgetIds</code>, which is an array of IDs that identify each App
+Widget created by this provider. In this way, if the user creates more than one
+instance of the App Widget, then they are all updated simultaneously. However,
+only one <code>updatePeriodMillis</code> schedule will be managed for all
+instances of the App Widget. For example, if the update schedule is defined to
+be every two hours, and a second instance of the App Widget is added one hour
+after the first one, then they will both be updated on the period defined by the
+first one and the second update period will be ignored (they'll both be updated
+every two hours, not every hour).</p>
+<p class="note"><strong>Note:</strong> Because <code><a href="/reference/android/appwidget/AppWidgetProvider.html">AppWidgetProvider</a></code> is an extension of <code><a href="/reference/android/content/BroadcastReceiver.html">BroadcastReceiver</a></code>, your process is not guaranteed to keep
+running after the callback methods return (see <code><a href="/reference/android/content/BroadcastReceiver.html">BroadcastReceiver</a></code> for information about the broadcast
+lifecycle). If your App Widget setup process can take several seconds (perhaps
+while performing web requests) and you require that your process continues,
+consider starting a <code><a href="/reference/android/app/Service.html">Service</a></code> in the 
+<code><a href="/reference/android/appwidget/AppWidgetProvider.html#onUpdate(android.content.Context,%20android.appwidget.AppWidgetManager,%20int%5B%5D)">onUpdate()</a></code> 
+method. From within the Service, you can perform your own updates
+to the App Widget without worrying about the AppWidgetProvider closing down due
+to an <a href="/guide/practices/responsiveness.html">Application
+Not Responding</a> (ANR) error. See the <a href="http://code.google.com/p/wiktionary-android/source/browse/trunk/Wiktionary/src/com/example/android/wiktionary/WordWidget.java">Wiktionary sample's AppWidgetProvider</a> for an example of an App Widget running a <code><a href="/reference/android/app/Service.html">Service</a></code>.</p>
+<p>Also see the <a href="/resources/samples/ApiDemos/src/com/example/android/apis/appwidget/ExampleAppWidgetProvider.html">ExampleAppWidgetProvider.java</a>
+sample class.</p>
+<h3 id="ProviderBroadcasts">Receiving App Widget broadcast Intents</h3>
+<p><code><a href="/reference/android/appwidget/AppWidgetProvider.html">AppWidgetProvider</a></code> is just a convenience class.  If
+you would like
+to receive the App Widget broadcasts directly, you can implement your own 
+<code><a href="/reference/android/content/BroadcastReceiver.html">BroadcastReceiver</a></code> or override the 
+<code><a href="/reference/android/appwidget/AppWidgetProvider.html#onReceive(android.content.Context,%20android.content.Intent)">onReceive(Context, Intent)</a></code> callback. 
+The Intents you need to care about are as follows:</p>
+<ul>
+  <li><code><a href="/reference/android/appwidget/AppWidgetManager.html#ACTION_APPWIDGET_UPDATE">ACTION_APPWIDGET_UPDATE</a></code></li>
+  <li><code><a href="/reference/android/appwidget/AppWidgetManager.html#ACTION_APPWIDGET_DELETED">ACTION_APPWIDGET_DELETED</a></code></li>
+  <li><code><a href="/reference/android/appwidget/AppWidgetManager.html#ACTION_APPWIDGET_ENABLED">ACTION_APPWIDGET_ENABLED</a></code></li>
+  <li><code><a href="/reference/android/appwidget/AppWidgetManager.html#ACTION_APPWIDGET_DISABLED">ACTION_APPWIDGET_DISABLED</a></code></li>
+  <li><code><a href="/reference/android/appwidget/AppWidgetManager.html#ACTION_APPWIDGET_OPTIONS_CHANGED">ACTION_APPWIDGET_OPTIONS_CHANGED</a></code></li>
+</ul>
+<h2 id="Configuring">Creating an App Widget Configuration Activity</h2>
+<p>If you would like the user to configure settings when he or she adds a new
+App Widget,
+you can create an App Widget configuration Activity. This <code><a href="/reference/android/app/Activity.html">Activity</a></code> 
+will be automatically launched by the App Widget host and allows the user to
+configure
+available settings for the App Widget at create-time, such as the App Widget
+color, size, 
+update period or other functionality settings.</p>
+<p>The configuration Activity should be declared as a normal Activity in the
+Android manifest file.
+However, it will be launched by the App Widget host with the <code><a href="/reference/android/appwidget/AppWidgetManager.html#ACTION_APPWIDGET_CONFIGURE">ACTION_APPWIDGET_CONFIGURE</a></code> action,
+so the Activity needs to accept this Intent. For example:</p>
+<p>WHATSON? a7b949f8-20d8-4d63-81d4-84df07159cc8</p>
+<pre>
+&lt;activity android:name=".ExampleAppWidgetConfigure"&gt;
+    &lt;intent-filter&gt;
+        &lt;action android:name="android.appwidget.action.APPWIDGET_CONFIGURE"/&gt;
+    &lt;/intent-filter&gt;
+&lt;/activity&gt;
+</pre>
+<p>Also, the Activity must be declared in the AppWidgetProviderInfo XML file,
+with the 
+<code>android:configure</code> attribute (see <a href="#MetaData">Adding 
+the AppWidgetProviderInfo Metadata</a> above). For example, the configuration
+Activity
+can be declared like this:</p>
+<p>WHATSON? 177efbb0-c0fc-4a23-9505-6c7f03751435</p>
+<pre>
+&lt;appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    ...
+    android:configure="com.example.android.ExampleAppWidgetConfigure" 
+    ... &gt;
+&lt;/appwidget-provider&gt;
+</pre>
+<p>Notice that the Activity is declared with a fully-qualified namespace,
+because 
+it will be referenced from outside your package scope.</p>
+<p>That's all you need to get started with a configuration Activity. Now all you
+need is the actual
+Activity. There are, however, two important things to remember when you
+implement the Activity:</p>
+<ul>
+  <li>The App Widget host calls the configuration Activity and the configuration
+Activity should always 
+    return a result. The result should include the App Widget ID
+    passed by the Intent that launched the Activity (saved in the Intent extras
+as
+    <code><a href="/reference/android/appwidget/AppWidgetManager.html#EXTRA_APPWIDGET_ID">EXTRA_APPWIDGET_ID</a></code>).</li>
+  <li>The 
+  <code><a href="/reference/android/appwidget/AppWidgetProvider.html#onUpdate(android.content.Context,%20android.appwidget.AppWidgetManager,%20int%5B%5D)">onUpdate()</a></code> 
+    method <strong>will not be called</strong> when the App Widget
+is created
+    (the system will not send the ACTION_APPWIDGET_UPDATE broadcast when a
+configuration Activity
+    is launched). It is the responsibility of the configuration Activity to
+request an update from the 
+    AppWidgetManager when the App Widget is first created. However, 
+<code><a href="/reference/android/appwidget/AppWidgetProvider.html#onUpdate(android.content.Context,%20android.appwidget.AppWidgetManager,%20int%5B%5D)">onUpdate()</a></code> 
+    will be called for subsequent updates—it is only skipped
+the first time.</li>
+</ul>
+<p>See the code snippets in the following section for an example of how to
+return a result
+from the configuration and update the App Widget.</p>
+<h3 id="UpdatingFromTheConfiguration">Updating the App Widget from the
+configuration Activity</h3>
+<p>When an App Widget uses a configuration Activity, it is the responsibility of
+the Activity
+to update the App Widget when configuration is complete. 
+You can do so by requesting an update directly from the 
+<code><a href="/reference/android/appwidget/AppWidgetManager.html">AppWidgetManager</a></code>.</p>
+<p>Here's a summary of the procedure to properly update the App Widget and close
+the configuration Activity:</p>
+<ol>
+  <li>First, get the App Widget ID from the Intent that launched the Activity:
+<pre>
+Intent intent = getIntent();
+Bundle extras = intent.getExtras();
+if (extras != null) {
+    mAppWidgetId = extras.getInt(
+            AppWidgetManager.EXTRA_APPWIDGET_ID, 
+            AppWidgetManager.INVALID_APPWIDGET_ID);
+}
+</pre>
+  </li>
+  <li>Perform your App Widget configuration.</li>
+  <li>When the configuration is complete, get an instance of the
+AppWidgetManager by calling
+    <code><a href="/reference/android/appwidget/AppWidgetManager.html#getInstance(android.content.Context)">getInstance(Context)</a></code>:
+<pre>
+AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
+</pre>
+  </li>
+  <li>Update the App Widget with a <code><a href="/reference/android/widget/RemoteViews.html">RemoteViews</a></code> layout by
+calling
+    <code><a href="/reference/android/appwidget/AppWidgetManager.html#updateAppWidget(int,%20android.widget.RemoteViews)">updateAppWidget(int, RemoteViews)</a></code>:
+<pre>
+RemoteViews views = new RemoteViews(context.getPackageName(),
+R.layout.example_appwidget);
+appWidgetManager.updateAppWidget(mAppWidgetId, views);
+</pre>
+  </li>
+  <li>Finally, create the return Intent, set it with the Activity result, and
+finish the Activity:</li>
+<pre>
+Intent resultValue = new Intent();
+resultValue.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, mAppWidgetId);
+setResult(RESULT_OK, resultValue);
+finish();
+</pre>
+  
+</ol>
+<p>WHATSON? 1c432193-7bf0-4f33-b77e-25e75d9751da</p>
+<pre>
+Intent intent = getIntent();
+Bundle extras = intent.getExtras();
+if (extras != null) {
+    mAppWidgetId = extras.getInt(
+            AppWidgetManager.EXTRA_APPWIDGET_ID, 
+            AppWidgetManager.INVALID_APPWIDGET_ID);
+}
+</pre>
+<p>WHATSON? ebe3a877-4f7e-4bf6-824f-590e19d77880</p>
+<pre>
+AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
+</pre>
+<p>WHATSON? 671a6dfe-f5a5-417f-8fd8-8cc70dcecd43</p>
+<pre>
+RemoteViews views = new RemoteViews(context.getPackageName(),
+R.layout.example_appwidget);
+appWidgetManager.updateAppWidget(mAppWidgetId, views);
+</pre>
+<p>WHATSON? b43be681-cad9-4ca3-a520-d01755ff36bc</p>
+<pre>
+Intent resultValue = new Intent();
+resultValue.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, mAppWidgetId);
+setResult(RESULT_OK, resultValue);
+finish();
+</pre>
+<p class="note"><strong>Tip:</strong> When your configuration Activity first
+opens, set
+the Activity result to RESULT_CANCELED. This way, if the user backs-out of the
+Activity before
+reaching the end, the App Widget host is notified that the configuration was
+cancelled and the
+App Widget will not be added.</p>
+<p>See the <a href="/resources/samples/ApiDemos/src/com/example/android/apis/appwidget/ExampleAppWidgetConfigure.html">ExampleAppWidgetConfigure.java</a>
+sample class in ApiDemos for an example.</p>
+<h2 id="preview">Setting a Preview Image</h2>
+<p>Android 3.0 introduces the <code><a href="/reference/android/appwidget/AppWidgetProviderInfo.html#previewImage">previewImage</a></code> field, which specifies a
+preview of what the app widget looks like. This preview is shown to the user from the
+widget picker. If this field is not supplied, the app widget's icon is used for
+the preview.</p>
+<p>This is how you specify this setting in XML:</p>
+<p>WHATSON? 0ca01ba9-b33e-4280-ab89-6632e1752f6f</p>
+<pre>&lt;appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+  ...
+  android:previewImage="@drawable/preview"&gt;
+&lt;/appwidget-provider&gt;</pre>
+<p>To help create a preview image for your app widget (to specify in the <code><a href="/reference/android/appwidget/AppWidgetProviderInfo.html#previewImage">previewImage</a></code> field), the Android
+emulator includes an application called "Widget Preview." To create a
+preview image, launch this application, select the app widget for your
+application and set it up how you'd like your preview image to appear, then save
+it and place it in your application's drawable resources.</p>
+<h2 id="lockscreen">Enabling App Widgets on the Lockscreen</h2>
+<p>Android 4.2 introduces the ability for users to add widgets to the lock screen. To indicate that your app widget is available for use on the lock screen, declare the <code><a href="/reference/android/appwidget/AppWidgetProviderInfo.html#widgetCategory">android:widgetCategory</a></code> attribute in the XML file that specifies your <code><a href="/reference/android/appwidget/AppWidgetProviderInfo.html">AppWidgetProviderInfo</a></code>. This attribute supports two values: "home_screen" and "keyguard". An app widget can declare support for one or both.</p>
+<p>By default, every app widget supports placement on the Home screen, so "home_screen" is the default value for the 
+<code><a href="/reference/android/appwidget/AppWidgetProviderInfo.html#widgetCategory">android:widgetCategory</a></code> attribute. If you want your app widget to be available for the lock screen, add the "keyguard" value:</p>
+<p>WHATSON? 69dead76-cc36-476d-813d-29fac8c07119</p>
+<pre>
+&lt;appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+   ...
+   android:widgetCategory="keyguard|home_screen"&gt;
+&lt;/appwidget-provider&gt;
+</pre>
+<p>If you declare a widget to be displayable on both keyguard (lockscreen) and home, it's likely that you'll want to customize the widget depending on where it is displayed. For example, you might create a separate layout file for keyguard vs. home. The next step is to detect the widget category at runtime and respond accordingly. 
+
+You can detect whether your widget is on the lockscreen or home screen by calling 
+<code><a href="/reference/android/appwidget/AppWidgetManager.html#getAppWidgetOptions(int)">getAppWidgetOptions()</a></code> 
+to get the widget's options as a <code><a href="/reference/android/os/Bundle.html">Bundle</a></code>. The returned bundle will include the key 
+<code><a href="/reference/android/appwidget/AppWidgetManager.html#OPTION_APPWIDGET_HOST_CATEGORY">OPTION_APPWIDGET_HOST_CATEGORY</a></code>, whose value will be one of <code><a href="/reference/android/appwidget/AppWidgetProviderInfo.html#WIDGET_CATEGORY_HOME_SCREEN">WIDGET_CATEGORY_HOME_SCREEN</a></code> or 
+<code><a href="/reference/android/appwidget/AppWidgetProviderInfo.html#WIDGET_CATEGORY_KEYGUARD">WIDGET_CATEGORY_KEYGUARD</a></code>. This value is determined by the host into which the widget is bound. In the <code><a href="/reference/android/appwidget/AppWidgetProvider.html">AppWidgetProvider</a></code>, you can then check the widget's category, for example:</p>
+<p>WHATSON? a93ea56e-6eb9-4373-863c-3901e2f16494</p>
+<pre>
+AppWidgetManager appWidgetManager;
+int widgetId;
+Bundle myOptions = appWidgetManager.getAppWidgetOptions (widgetId);
+
+// Get the value of OPTION_APPWIDGET_HOST_CATEGORY
+int category = myOptions.getInt(AppWidgetManager.OPTION_APPWIDGET_HOST_CATEGORY, -1);
+
+// If the value is WIDGET_CATEGORY_KEYGUARD, it's a lockscreen widget
+boolean isKeyguard = category == AppWidgetProviderInfo.WIDGET_CATEGORY_KEYGUARD;
+</pre>
+<p>Once you know the widget's category, you can optionally load a different base layout, set different properties, and so on. For example:</p>
+<p>WHATSON? 26bd3b59-4240-4bfa-a7c8-50600deb116e</p>
+<pre>
+int baseLayout = isKeyguard ? R.layout.keyguard_widget_layout : R.layout.widget_layout;
+</pre>
+<p>You should also specify an initial layout for your app widget when on the lock screen with the 
+<code><a href="/reference/android/appwidget/AppWidgetProviderInfo.html#initialKeyguardLayout">android:initialKeyguardLayout</a></code> attribute. This works the same way as the 
+<code><a href="/reference/android/appwidget/AppWidgetProviderInfo.html#initialLayout">android:initialLayout</a></code>, in that it provides a layout that can appear immediately until your app widget is initialized and able to update the layout.</p>
+<h3 id="lockscreen-sizing">Sizing guidelines</h3>
+<p>When a widget is hosted on the lockscreen, the framework ignores the <code>minWidth</code>, <code>minHeight</code>, <code>minResizeWidth</code>, and <code>minResizeHeight</code> fields. If a widget is also a home screen widget, these parameters are still needed as they're still used on home, but they will be ignored for purposes of the lockscreen.</p>
+<p>The width of a lockscreen widget always fills the provided space. For the height of a lockscreen widget, you have the following options:</p>
+<ul>
+    <li>If the widget does not mark itself as vertically resizable (<code>android:resizeMode="vertical"</code>), then the widget height will always be "small":
+      <ul>
+        <li>On a phone in portrait mode, "small" is defined as the space remaining when an unlock UI is being displayed.</li>
+        <li>On tablets and landscape phones, "small" is set on a per-device basis.</li>    
+      </ul>
+    </li>
+    <li>If the widget marks itself as vertically resizable, then the widget height shows up as "small" on portrait phones displaying an unlock UI. In all other cases, the widget sizes to fill the available height.</li>
+</ul>
+<ul>
+        <li>On a phone in portrait mode, "small" is defined as the space remaining when an unlock UI is being displayed.</li>
+        <li>On tablets and landscape phones, "small" is set on a per-device basis.</li>    
+      </ul>
+<h2 id="collections">Using App Widgets with Collections</h2>
+<p>Android 3.0 introduces app widgets with collections. These kinds of App
+Widgets use the <code><a href="/reference/android/widget/RemoteViewsService.html">RemoteViewsService</a></code> to display collections
+that are backed by remote data, such as from a <a href="/guide/topics/providers/content-providers.html">content
+provider</a>. The data provided by the <code><a href="/reference/android/widget/RemoteViewsService.html">RemoteViewsService</a></code>
+is presented in the app widget using one of the following view types, which
+we’ll refer to as “collection views:”</p>
+<p>As stated above, these collection views display collections backed by remote
+data. This means that they use an <code><a href="/reference/android/widget/Adapter.html">Adapter</a></code> to bind their
+user interface to their data. An <code><a href="/reference/android/widget/Adapter.html">Adapter</a></code> binds individual
+items from a set of data into individual <code><a href="/reference/android/view/View.html">View</a></code> objects.
+Because these collection views are backed by adapters, the Android framework
+must include extra architecture to support their use in app widgets. In the
+context of an app widget, the <code><a href="/reference/android/widget/Adapter.html">Adapter</a></code> is replaced by a
+<code><a href="/reference/android/widget/RemoteViewsService.RemoteViewsFactory.html">RemoteViewsFactory</a></code>,
+which is simply a thin wrapper around  the <code><a href="/reference/android/widget/Adapter.html">Adapter</a></code>
+interface. 
+ When
+requested for a specific item in the collection, the <code><a href="/reference/android/widget/RemoteViewsService.RemoteViewsFactory.html">RemoteViewsFactory</a></code> creates
+and returns the item for the collection as a <code><a href="/reference/android/widget/RemoteViews.html">RemoteViews</a></code>
+object.
+In order to include a collection view in your app widget, you
+must implement <code><a href="/reference/android/widget/RemoteViewsService.html">RemoteViewsService</a></code> and <code><a href="/reference/android/widget/RemoteViewsService.RemoteViewsFactory.html">RemoteViewsFactory</a></code>.</p>
+<p> <code><a href="/reference/android/widget/RemoteViewsService.html">RemoteViewsService</a></code> is a service that allows a remote
+adapter to request <code><a href="/reference/android/widget/RemoteViews.html">RemoteViews</a></code> objects. <code><a href="/reference/android/widget/RemoteViewsService.RemoteViewsFactory.html">RemoteViewsFactory</a></code> is an
+interface for an adapter between a collection view (such as <code><a href="/reference/android/widget/ListView.html">ListView</a></code>, <code><a href="/reference/android/widget/GridView.html">GridView</a></code>, and so on) and the
+underlying data for that view. From the  <a href="/resources/samples/StackWidget/index.html">StackView Widget
+sample</a>, here is an example of the boilerplate code you use to implement 
+this service and interface:
+</p>
+<p>WHATSON? 82052438-383e-4670-b55c-437beac15a4c</p>
+<pre>
+public class StackWidgetService extends RemoteViewsService {
+    @Override
+    public RemoteViewsFactory onGetViewFactory(Intent intent) {
+        return new StackRemoteViewsFactory(this.getApplicationContext(), intent);
+    }
+}
+
+class StackRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactory {
+
+//... include adapter-like methods here. See the StackView Widget sample.
+
+}
+</pre>
+<h3 id="collection_sample">Sample application</h3>
+<p>The code excerpts in this section are drawn from the <a href="/resources/samples/StackWidget/index.html">StackView Widget
+sample</a>:</p>
+<p>
+<img src="/images/appwidgets/StackWidget.png" alt="">
+</p>
+<p>This sample consists of a stack of 10 views, which  display the values
+<code>"0!"</code> through <code>"9!"</code> The sample
+app widget has these primary behaviors:</p>
+<ul>
+
+  <li>The user can vertically fling the top view in the
+app widget to display the next or previous view. This is a built-in StackView
+behavior.</li> 
+
+  <li>Without any user interaction, the app widget automatically advances
+through
+its views in sequence, like a slide show. This is due to the setting
+<code>android:autoAdvanceViewId="@id/stack_view"</code> in the
+<code>res/xml/stackwidgetinfo.xml</code> file. This setting applies to the view
+ID,
+which in this case is the view ID of the stack view.</li>
+  
+  <li>If the user touches the top view, the app widget displays the <code><a href="/reference/android/widget/Toast.html">Toast</a></code> message "Touched view <em>n</em>," where
+<em>n</em> is the index (position) of the touched view. For more discussion of
+how this is implemented, see  
+<a href="#behavior">Adding behavior to individual items</a>.</li>
+
+</ul>
+<h3 id="implementing_collections">Implementing app widgets with collections</h3>
+<p>To implement an app widget with collections, you follow the same basic steps 
+you would use to implement any app widget. The following sections  describe the
+additional steps you need to perform to implement an app widget with
+collections.</p>
+<h4>Manifest for app widgets with collections</h4>
+<p> In addition to the requirements listed in <a href="#Manifest">Declaring an
+app widget in the Manifest</a>, to make it possible for app widgets with
+collections to bind to your <code><a href="/reference/android/widget/RemoteViewsService.html">RemoteViewsService</a></code>, you must
+declare the service in your manifest file with the permission <code><a href="/reference/android/Manifest.permission.html#BIND_REMOTEVIEWS">BIND_REMOTEVIEWS</a></code>. This prevents other applications
+from freely accessing your app widget's data. For example, when creating an App
+Widget that uses <code><a href="/reference/android/widget/RemoteViewsService.html">RemoteViewsService</a></code> to populate a
+collection view, the manifest entry may look like this:</p>
+<p>WHATSON? 2157d222-52a4-4039-812c-d1b6ab21131b</p>
+<pre>&lt;service android:name="MyWidgetService"
+...
+android:permission="android.permission.BIND_REMOTEVIEWS" /&gt;</pre>
+<p>The line <code>android:name="MyWidgetService"</code>
+refers to your subclass of <code><a href="/reference/android/widget/RemoteViewsService.html">RemoteViewsService</a></code>. </p>
+<h4>Layout for app widgets with collections</h4>
+<p>The main requirement for your app widget layout XML file is that it
+include one of the collection views: <code><a href="/reference/android/widget/ListView.html">ListView</a></code>,
+<code><a href="/reference/android/widget/GridView.html">GridView</a></code>, <code><a href="/reference/android/widget/StackView.html">StackView</a></code>, or
+<code><a href="/reference/android/widget/AdapterViewFlipper.html">AdapterViewFlipper</a></code>. Here is the
+<code>widget_layout.xml</code> for
+the <a href="/resources/samples/StackWidget/index.html">StackView
+Widget sample</a>:</p>
+<p>WHATSON? aaea2cbb-2950-4bd8-b147-8dc9132155d2</p>
+<pre>&lt;?xml version="1.0" encoding="utf-8"?&gt;
+
+&lt;FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"&gt;
+    &lt;StackView xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/stack_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:loopViews="true" /&gt;
+    &lt;TextView xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/empty_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:background="@drawable/widget_item_background"
+        android:textColor="#ffffff"
+        android:textStyle="bold"
+        android:text="@string/empty_view_text"
+        android:textSize="20sp" /&gt;
+&lt;/FrameLayout&gt;</pre>
+<p> Note that empty views must be siblings of the collection view for which the
+empty view represents empty state. </p>
+<p>In addition to the layout file for your entire app widget, you must create
+another layout file that defines the layout for each item in the collection (for
+example, a layout for each book in a collection of books). For example, the <a href="/resources/samples/StackWidget/index.html">StackView Widget
+sample</a> only has one layout file, <code>widget_item.xml</code>, since all
+items use the same layout. But the <a href="/resources/samples/WeatherListWidget/index.html">
+WeatherListWidget sample</a> has two layout files:
+<code>dark_widget_item.xml</code> and <code>light_widget_item.xml</code>.</p>
+<h4 id="AppWidgetProvider-collections">AppWidgetProvider class for app widgets with collections</h4>
+<p>As with a regular app widget, the bulk of your code in your <code><a href="/reference/android/appwidget/AppWidgetProvider.html">AppWidgetProvider</a></code> subclass typically goes in <code><a href="/reference/android/appwidget/AppWidgetProvider.html#onUpdate(android.content.Context,%20android.appwidget.AppWidgetManager,%20int%5B%5D)">onUpdate()</a></code>. The major difference in
+your implementation for <code><a href="/reference/android/appwidget/AppWidgetProvider.html#onUpdate(android.content.Context,%20android.appwidget.AppWidgetManager,%20int%5B%5D)">onUpdate()</a></code> when creating an app
+widget with collections is that you must call <code><a href="/reference/android/widget/RemoteViews.html#setRemoteAdapter(int,%20android.content.Intent)">setRemoteAdapter()</a></code>. This tells the
+collection view where to get its data. The <code><a href="/reference/android/widget/RemoteViewsService.html">RemoteViewsService</a></code> can then return your implementation of <code><a href="/reference/android/widget/RemoteViewsService.RemoteViewsFactory.html">RemoteViewsFactory</a></code>, and
+the widget can serve up the appropriate data. When you call this method, you
+must pass an intent that  points to your implementation of <code><a href="/reference/android/widget/RemoteViewsService.html">RemoteViewsService</a></code> and the app widget ID that specifies the app
+widget to update.</p>
+<p>For example, here's how the StackView Widget sample implements the <code><a href="/reference/android/appwidget/AppWidgetProvider.html#onUpdate(android.content.Context,%20android.appwidget.AppWidgetManager,%20int%5B%5D)">onUpdate()</a></code> callback method to set
+the <code><a href="/reference/android/widget/RemoteViewsService.html">RemoteViewsService</a></code> as the remote adapter for the app widget
+collection:</p>
+<p>WHATSON? 4aec19e0-4703-45f6-9866-709f4a8f5e9d</p>
+<pre>public void onUpdate(Context context, AppWidgetManager appWidgetManager,
+int[] appWidgetIds) {
+    // update each of the app widgets with the remote adapter
+    for (int i = 0; i &lt; appWidgetIds.length; ++i) {
+        
+        // Set up the intent that starts the StackViewService, which will
+        // provide the views for this collection.
+        Intent intent = new Intent(context, StackWidgetService.class);
+        // Add the app widget ID to the intent extras.
+        intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetIds[i]);
+        intent.setData(Uri.parse(intent.toUri(Intent.URI_INTENT_SCHEME)));
+        // Instantiate the RemoteViews object for the app widget layout.
+        RemoteViews rv = new RemoteViews(context.getPackageName(), R.layout.widget_layout);
+        // Set up the RemoteViews object to use a RemoteViews adapter. 
+        // This adapter connects
+        // to a RemoteViewsService  through the specified intent.
+        // This is how you populate the data.
+        rv.setRemoteAdapter(appWidgetIds[i], R.id.stack_view, intent);
+        
+        // The empty view is displayed when the collection has no items. 
+        // It should be in the same layout used to instantiate the RemoteViews
+        // object above.
+        rv.setEmptyView(R.id.stack_view, R.id.empty_view);
+
+        //
+        // Do additional processing specific to this app widget...
+        //
+        
+        appWidgetManager.updateAppWidget(appWidgetIds[i], rv);   
+    }
+    super.onUpdate(context, appWidgetManager, appWidgetIds);
+}</pre>
+<h4>RemoteViewsService class</h4>
+<h3>Persisting data</h3>
+<p>You can’t rely on a single instance of your service, or any data it
+contains, to persist. You should therefore not store any data in your <code><a href="/reference/android/widget/RemoteViewsService.html">RemoteViewsService</a></code> (unless it is static). If you want your
+app widget’s data to persist, the best approach is to use a <code><a href="/reference/android/content/ContentProvider.html">ContentProvider</a></code> whose data persists beyond the process
+lifecycle.</p>
+<p>As described above, your <code><a href="/reference/android/widget/RemoteViewsService.html">RemoteViewsService</a></code> subclass
+provides the <code><a href="/reference/android/widget/RemoteViewsService.RemoteViewsFactory.html">RemoteViewsFactory</a></code> used to  populate the remote collection view.</p>
+<p>Specifically, you need to
+perform these steps:</p>
+<ol>
+  <li>Subclass <code><a href="/reference/android/widget/RemoteViewsService.html">RemoteViewsService</a></code>. <code><a href="/reference/android/widget/RemoteViewsService.html">RemoteViewsService</a></code> is the service through which
+a remote adapter can request <code><a href="/reference/android/widget/RemoteViews.html">RemoteViews</a></code>.  </li>
+  
+  <li>In your <code><a href="/reference/android/widget/RemoteViewsService.html">RemoteViewsService</a></code> subclass, include a
+class that implements the <code><a href="/reference/android/widget/RemoteViewsService.RemoteViewsFactory.html">RemoteViewsFactory</a></code>
+interface. <code><a href="/reference/android/widget/RemoteViewsService.RemoteViewsFactory.html">RemoteViewsFactory</a></code> is an interface for an adapter between a remote collection
+view (such as <code><a href="/reference/android/widget/ListView.html">ListView</a></code>, <code><a href="/reference/android/widget/GridView.html">GridView</a></code>,
+and so on) and  the underlying data for that view.  Your implementation is
+responsible for making a <code><a href="/reference/android/widget/RemoteViews.html">RemoteViews</a></code> object  for each
+item in the data set. This interface is a thin wrapper around <code><a href="/reference/android/widget/Adapter.html">Adapter</a></code>.</li>
+</ol>
+<p>The primary contents of the <code><a href="/reference/android/widget/RemoteViewsService.html">RemoteViewsService</a></code>
+implementation is its <code><a href="/reference/android/widget/RemoteViewsService.RemoteViewsFactory.html">RemoteViewsFactory</a></code>,
+described below.</p>
+<h4>RemoteViewsFactory interface</h4>
+<p>Your custom class that implements the <code><a href="/reference/android/widget/RemoteViewsService.RemoteViewsFactory.html">RemoteViewsFactory</a></code>
+interface provides the app widget with the data for the items in its collection.
+To
+do this, it combines your app widget item XML layout file with a source of data.
+This source of data could be anything from a database to a simple array. In the
+<a href="/resources/samples/StackWidget/index.html">StackView Widget
+sample</a>, the data source is an array of <code>WidgetItems</code>. The <code><a href="/reference/android/widget/RemoteViewsService.RemoteViewsFactory.html">RemoteViewsFactory</a></code>
+functions as an adapter to glue the data to the remote collection view.</p>
+<p>The two most important methods you need to implement for your
+
+<code><a href="/reference/android/widget/RemoteViewsService.RemoteViewsFactory.html">RemoteViewsFactory</a></code>
+subclass are 
+<code><a href="/reference/android/widget/RemoteViewsService.RemoteViewsFactory.html#onCreate()">onCreate()</a></code> and
+<code><a href="/reference/android/widget/RemoteViewsService.RemoteViewsFactory.html#getViewAt(int)">getViewAt()</a></code>
+.</p>
+<p>The system calls <code><a href="/reference/android/widget/RemoteViewsService.RemoteViewsFactory.html#onCreate()">onCreate()</a></code> when
+creating your factory for the first time. This is where you set up any
+connections and/or cursors to your data source. For example, the <a href="/resources/samples/StackWidget/index.html">StackView Widget
+sample</a> uses <code><a href="/reference/android/widget/RemoteViewsService.RemoteViewsFactory.html#onCreate()">onCreate()</a></code> to
+initialize an array of <code>WidgetItem</code> objects. When your app widget is
+active, the system accesses these objects using their index position in the
+array and the text they contain is displayed  </p>
+<p>Here is an excerpt from the <a href="/resources/samples/StackWidget/index.html">StackView Widget</a>
+sample's 
+<code><a href="/reference/android/widget/RemoteViewsService.RemoteViewsFactory.html">RemoteViewsFactory</a></code> implementation that shows portions of the <code><a href="/reference/android/widget/RemoteViewsService.RemoteViewsFactory.html#onCreate()">onCreate()</a></code>
+method:</p>
+<p>WHATSON? ebd10794-bbc4-478b-85e4-6db9c9c30413</p>
+<pre>class StackRemoteViewsFactory implements
+RemoteViewsService.RemoteViewsFactory {
+    private static final int mCount = 10;
+    private List&lt;WidgetItem&gt; mWidgetItems = new ArrayList&lt;WidgetItem&gt;();
+    private Context mContext;
+    private int mAppWidgetId;
+
+    public StackRemoteViewsFactory(Context context, Intent intent) {
+        mContext = context;
+        mAppWidgetId = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,
+                AppWidgetManager.INVALID_APPWIDGET_ID);
+    }
+
+    public void onCreate() {
+        // In onCreate() you setup any connections / cursors to your data source. Heavy lifting,
+        // for example downloading or creating content etc, should be deferred to onDataSetChanged()
+        // or getViewAt(). Taking more than 20 seconds in this call will result in an ANR.
+        for (int i = 0; i &lt; mCount; i++) {
+            mWidgetItems.add(new WidgetItem(i + "!"));
+        }
+        ...
+    }
+...</pre>
+<p>The <code><a href="/reference/android/widget/RemoteViewsService.RemoteViewsFactory.html">RemoteViewsFactory</a></code> method <code><a href="/reference/android/widget/RemoteViewsService.RemoteViewsFactory.html#getViewAt(int)">getViewAt()</a></code>
+returns a <code><a href="/reference/android/widget/RemoteViews.html">RemoteViews</a></code> object corresponding to the data at
+the specified <code>position</code> in the data set. Here is an excerpt from 
+the <a href="http://developer.android.com/resources/samples/StackWidget/index.html">
+StackView Widget</a> sample's <code><a href="/reference/android/widget/RemoteViewsService.RemoteViewsFactory.html">RemoteViewsFactory</a></code>
+implementation:</p>
+<p>WHATSON? 483ee992-34f8-46d2-927f-cb79fd572b79</p>
+<pre>public RemoteViews getViewAt(int position) {
+   
+    // Construct a remote views item based on the app widget item XML file, 
+    // and set the text based on the position.
+    RemoteViews rv = new RemoteViews(mContext.getPackageName(), R.layout.widget_item);
+    rv.setTextViewText(R.id.widget_item, mWidgetItems.get(position).text);
+
+    ...
+    // Return the remote views object.
+    return rv;
+}</pre>
+<h4 id="behavior">Adding behavior to individual items</h4>
+<p>The above sections show you how to bind your data to your app widget
+collection. But what if you want to add dynamic behavior to the individual items
+in your collection view?</p>
+<p> As described in <a href="#AppWidgetProvider">Using the AppWidgetProvider
+Class</a>, you  normally use <code><a href="/reference/android/widget/RemoteViews.html#setOnClickPendingIntent(int,%20android.app.PendingIntent)">setOnClickPendingIntent()</a></code> to set an object's click
+behavior—such as to cause a button to launch an <code><a href="/reference/android/app/Activity.html">Activity</a></code>. But this approach is not allowed for child views in an
+individual collection item (to clarify, you could use <code><a href="/reference/android/widget/RemoteViews.html#setOnClickPendingIntent(int,%20android.app.PendingIntent)">setOnClickPendingIntent()</a></code> to set up a global button
+in the Gmail app widget that launches the app, for example, but not on the
+individual list items). Instead, to add click behavior to individual items in a
+collection, you  use <code><a href="/reference/android/widget/RemoteViews.html#setOnClickFillInIntent(int,%20android.content.Intent)">setOnClickFillInIntent()</a></code>. This entails setting up up a pending intent template
+for your collection view, and then setting a fill-in intent on each item in the
+collection via your <code><a href="/reference/android/widget/RemoteViewsService.RemoteViewsFactory.html">RemoteViewsFactory</a></code>.</p>
+<p>This section uses the <a href="/resources/samples/StackWidget/index.html">StackView Widget
+sample</a> to describe how to add behavior to individual items. In the <a href="/resources/samples/StackWidget/index.html">StackView Widget
+sample</a>, if the user touches the top view, the app widget displays the <code><a href="/reference/android/widget/Toast.html">Toast</a></code> message "Touched view <em>n</em>," where
+<em>n</em> is the index (position) of the touched view. This is how it
+works:</p>
+<ul>
+  <li>The <code>StackWidgetProvider</code> (an <code><a href="/reference/android/appwidget/AppWidgetProvider.html">AppWidgetProvider</a></code> subclass) creates a pending intent that has
+a custom action called <code>TOAST_ACTION</code>.</li>
+  <li>When the user touches a view, the intent is fired and it broadcasts
+<code>TOAST_ACTION</code>.</li>
+  
+  <li>This broadcast is intercepted by the <code>StackWidgetProvider</code>'s
+<code><a href="/reference/android/appwidget/AppWidgetProvider.html#onReceive(android.content.Context,%20android.content.Intent)">onReceive()</a></code> method, and the app widget displays the
+<code><a href="/reference/android/widget/Toast.html">Toast</a></code> message for the touched view. The data for the collection
+items is provided by the <code><a href="/reference/android/widget/RemoteViewsService.RemoteViewsFactory.html">RemoteViewsFactory</a></code>, via
+the <code><a href="/reference/android/widget/RemoteViewsService.html">RemoteViewsService</a></code>.</li>
+</ul>
+<p class="note"><strong>Note:</strong> The <a href="/resources/samples/StackWidget/index.html">StackView Widget
+sample</a> uses a broadcast, but typically an app widget would simply launch an
+activity in a scenario like this one.</p>
+<p>The <code>StackWidgetProvider</code> (<code><a href="/reference/android/appwidget/AppWidgetProvider.html">AppWidgetProvider</a></code> subclass) sets up a pending intent.
+Individuals items of a collection cannot set up their own pending intents.
+Instead, the collection as a whole sets up a pending intent template, and the
+individual items set a fill-in intent to create unique behavior on an
+item-by-item
+basis.</p>
+<p>This class  also receives the broadcast that is sent when the user touches a
+view. It processes this event in its <code><a href="/reference/android/appwidget/AppWidgetProvider.html#onReceive(android.content.Context,%20android.content.Intent)">onReceive()</a></code> method. If the intent's action is
+<code>TOAST_ACTION</code>, the app widget displays a <code><a href="/reference/android/widget/Toast.html">Toast</a></code>
+message for the current view.</p>
+<p>WHATSON? 44a8ea1a-e5df-43e0-8e9f-e3baac0c4b67</p>
+<pre>public class StackWidgetProvider extends AppWidgetProvider {
+    public static final String TOAST_ACTION = "com.example.android.stackwidget.TOAST_ACTION";
+    public static final String EXTRA_ITEM = "com.example.android.stackwidget.EXTRA_ITEM";
+
+    ...
+
+    // Called when the BroadcastReceiver receives an Intent broadcast.
+    // Checks to see whether the intent's action is TOAST_ACTION. If it is, the app widget 
+    // displays a Toast message for the current item.
+    @Override
+    public void onReceive(Context context, Intent intent) {
+        AppWidgetManager mgr = AppWidgetManager.getInstance(context);
+        if (intent.getAction().equals(TOAST_ACTION)) {
+            int appWidgetId = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,
+                AppWidgetManager.INVALID_APPWIDGET_ID);
+            int viewIndex = intent.getIntExtra(EXTRA_ITEM, 0);
+            Toast.makeText(context, "Touched view " + viewIndex, Toast.LENGTH_SHORT).show();
+        }
+        super.onReceive(context, intent);
+    }
+    
+    @Override
+    public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
+        // update each of the app widgets with the remote adapter
+        for (int i = 0; i &lt; appWidgetIds.length; ++i) {
+    
+            // Sets up the intent that points to the StackViewService that will
+            // provide the views for this collection.
+            Intent intent = new Intent(context, StackWidgetService.class);
+            intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetIds[i]);
+            // When intents are compared, the extras are ignored, so we need to embed the extras
+            // into the data so that the extras will not be ignored.
+            intent.setData(Uri.parse(intent.toUri(Intent.URI_INTENT_SCHEME)));
+            RemoteViews rv = new RemoteViews(context.getPackageName(), R.layout.widget_layout);
+            rv.setRemoteAdapter(appWidgetIds[i], R.id.stack_view, intent);
+    
+            // The empty view is displayed when the collection has no items. It should be a sibling
+            // of the collection view.
+            rv.setEmptyView(R.id.stack_view, R.id.empty_view);
+
+            // This section makes it possible for items to have individualized behavior.
+            // It does this by setting up a pending intent template. Individuals items of a collection
+            // cannot set up their own pending intents. Instead, the collection as a whole sets
+            // up a pending intent template, and the individual items set a fillInIntent
+            // to create unique behavior on an item-by-item basis.
+            Intent toastIntent = new Intent(context, StackWidgetProvider.class);
+            // Set the action for the intent.
+            // When the user touches a particular view, it will have the effect of
+            // broadcasting TOAST_ACTION.
+            toastIntent.setAction(StackWidgetProvider.TOAST_ACTION);
+            toastIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetIds[i]);
+            intent.setData(Uri.parse(intent.toUri(Intent.URI_INTENT_SCHEME)));
+            PendingIntent toastPendingIntent = PendingIntent.getBroadcast(context, 0, toastIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT);
+            rv.setPendingIntentTemplate(R.id.stack_view, toastPendingIntent);
+            
+            appWidgetManager.updateAppWidget(appWidgetIds[i], rv);
+        }
+    super.onUpdate(context, appWidgetManager, appWidgetIds);
+    }
+}</pre>
+<p>Your <code><a href="/reference/android/widget/RemoteViewsService.RemoteViewsFactory.html">RemoteViewsFactory</a></code> must set a fill-in intent on each item in the collection.
+This makes it possible to distinguish the individual on-click action of a given
+item. The fill-in intent is then combined with the <code><a href="/reference/android/app/PendingIntent.html">PendingIntent</a></code> template in order to determine the final intent that
+will be executed when the item is clicked. </p>
+<p>WHATSON? 3553979f-f4ec-4843-aa32-3ac760fa53d4</p>
+<pre>
+public class StackWidgetService extends RemoteViewsService {
+    @Override
+    public RemoteViewsFactory onGetViewFactory(Intent intent) {
+        return new StackRemoteViewsFactory(this.getApplicationContext(), intent);
+    }
+}
+
+class StackRemoteViewsFactory implements RemoteViewsService.RemoteViewsFactory {
+    private static final int mCount = 10;
+    private List&lt;WidgetItem&gt; mWidgetItems = new ArrayList&lt;WidgetItem&gt;();
+    private Context mContext;
+    private int mAppWidgetId;
+
+    public StackRemoteViewsFactory(Context context, Intent intent) {
+        mContext = context;
+        mAppWidgetId = intent.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,
+                AppWidgetManager.INVALID_APPWIDGET_ID);
+    }
+
+    // Initialize the data set.
+        public void onCreate() {
+            // In onCreate() you set up any connections / cursors to your data source. Heavy lifting,
+            // for example downloading or creating content etc, should be deferred to onDataSetChanged()
+            // or getViewAt(). Taking more than 20 seconds in this call will result in an ANR.
+            for (int i = 0; i &lt; mCount; i++) {
+                mWidgetItems.add(new WidgetItem(i + "!"));
+            }
+           ...
+        }
+        ...
+    
+        // Given the position (index) of a WidgetItem in the array, use the item's text value in 
+        // combination with the app widget item XML file to construct a RemoteViews object.
+        public RemoteViews getViewAt(int position) {
+            // position will always range from 0 to getCount() - 1.
+    
+            // Construct a RemoteViews item based on the app widget item XML file, and set the
+            // text based on the position.
+            RemoteViews rv = new RemoteViews(mContext.getPackageName(), R.layout.widget_item);
+            rv.setTextViewText(R.id.widget_item, mWidgetItems.get(position).text);
+    
+            // Next, set a fill-intent, which will be used to fill in the pending intent template
+            // that is set on the collection view in StackWidgetProvider.
+            Bundle extras = new Bundle();
+            extras.putInt(StackWidgetProvider.EXTRA_ITEM, position);
+            Intent fillInIntent = new Intent();
+            fillInIntent.putExtras(extras);
+            // Make it possible to distinguish the individual on-click
+            // action of a given item
+            rv.setOnClickFillInIntent(R.id.widget_item, fillInIntent);
+        
+            ...
+        
+            // Return the RemoteViews object.
+            return rv;
+        }
+    ...
+    }</pre>
+<h3 id="fresh">Keeping Collection Data Fresh</h3>
+<p>The following figure illustrates the flow that occurs in an app widget that
+uses
+collections when updates occur. It shows how the app widget code interacts with
+the  <code><a href="/reference/android/widget/RemoteViewsService.RemoteViewsFactory.html">RemoteViewsFactory</a></code>, and how you can trigger updates:</p>
+<p>One feature of app widgets that use collections is the ability to provide
+users with up-to-date content. For example, consider the Android 3.0 Gmail
+app widget, which provides users with a snapshot of their inbox. To make this
+possible, you need to be able to trigger your <code><a href="/reference/android/widget/RemoteViewsService.RemoteViewsFactory.html">RemoteViewsFactory</a></code> and
+collection view to fetch and display new data. You achieve this with the <code><a href="/reference/android/appwidget/AppWidgetManager.html">AppWidgetManager</a></code> call <code><a href="/reference/android/appwidget/AppWidgetManager.html#notifyAppWidgetViewDataChanged(int,%20int)">notifyAppWidgetViewDataChanged()</a></code>. This call results in a callback to your
+<code>RemoteViewsFactory</code>’s <code><a href="/reference/android/widget/RemoteViewsService.RemoteViewsFactory.html#onDataSetChanged()">onDataSetChanged()</a></code> method, which gives you the opportunity to fetch any new
+data. Note that you can perform
+processing-intensive operations synchronously within the  <code><a href="/reference/android/widget/RemoteViewsService.RemoteViewsFactory.html#onDataSetChanged()">onDataSetChanged()</a></code> callback. You are guaranteed that this call will be
+completed before the metadata or view data is fetched from the <code><a href="/reference/android/widget/RemoteViewsService.RemoteViewsFactory.html">RemoteViewsFactory</a></code>. In
+addition, you can perform processing-intensive operations within the <code><a href="/reference/android/widget/RemoteViewsService.RemoteViewsFactory.html#getViewAt(int)">getViewAt()</a></code>
+method. If this call takes a long time, the loading view (specified by the
+<code>RemoteViewsFactory</code>’s  <code><a href="/reference/android/widget/RemoteViewsService.RemoteViewsFactory.html#getLoadingView()">getLoadingView()</a></code> method)
+will be displayed in the corresponding position of the collection view until it
+returns.</p>

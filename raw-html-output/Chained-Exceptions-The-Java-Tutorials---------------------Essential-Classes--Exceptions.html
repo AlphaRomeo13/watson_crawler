@@ -1,0 +1,54 @@
+<h1>Chained Exceptions</h1>
+<p>An application often responds to an exception by throwing another exception. In effect, the first exception <i>causes</i> the second exception. It can be very helpful to know when one exception causes another. <i>Chained Exceptions</i> help the programmer do this.</p>
+<p>The following are the methods and constructors in <code>Throwable</code> that support chained exceptions.</p>
+<p>WHATSON? b7d782f1-31d9-40d1-800b-45c44b59efbf</p>
+<pre>
+Throwable getCause()
+Throwable initCause(Throwable)
+Throwable(String, Throwable)
+Throwable(Throwable)
+</pre>
+<p>The <code>Throwable</code> argument to <code>initCause</code> and the <code>Throwable</code> constructors is the exception that caused the current exception. <code>getCause</code> returns the exception that caused the current exception, and <code>initCause</code> sets the current exception's cause.</p>
+<p>The following example shows how to use a chained exception.</p>
+<p>WHATSON? 7bb6a825-890b-4ee4-a024-a16bfdb55852</p>
+<pre>
+try {
+
+} catch (IOException e) {
+    throw new SampleException("Other IOException", e);
+}
+</pre>
+<p>In this example, when an <code>IOException</code> is caught, a new <code>SampleException</code> exception is created with the original cause attached and the chain of exceptions is thrown up to the next higher level exception handler. <a name="stack" id="stack"></a></p>
+<h2>Accessing Stack Trace Information</h2>
+<p>Now let's suppose that the higher-level exception handler wants to dump the stack trace in its own format.</p>
+<p>The following code shows how to call the <code>getStackTrace</code> method on the exception object.</p>
+<p>WHATSON? 0e4255de-930a-43ce-98c2-2c94f3b9fbdf</p>
+<pre>
+catch (Exception cause) {
+    StackTraceElement elements[] = cause.getStackTrace();
+    for (int i = 0, n = elements.length; i &lt; n; i++) {       
+        System.err.println(elements[i].getFileName()
+            + ":" + elements[i].getLineNumber() 
+            + "&gt;&gt; "
+            + elements[i].getMethodName() + "()");
+    }
+}
+</pre>
+<p><a name="log" id="log"></a></p>
+<h2>Logging API</h2>
+<p>The next code snippet logs where an exception occurred from within the <code>catch</code> block. However, rather than manually parsing the stack trace and sending the output to <code>System.err()</code>, it sends the output to a file using the logging facility in the 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/util/logging/package-summary.html"><code>java.util.logging</code></a> package.</p>
+<p>WHATSON? 3f017c7b-0c4c-4974-8dac-4e6cd574d6b6</p>
+<pre>
+try {
+    Handler handler = new FileHandler("OutFile.log");
+    Logger.getLogger("").addHandler(handler);
+    
+} catch (IOException e) {
+    Logger logger = Logger.getLogger("<em>package.name</em>"); 
+    StackTraceElement elements[] = e.getStackTrace();
+    for (int i = 0, n = elements.length; i &lt; n; i++) {
+        logger.log(Level.WARNING, elements[i].getMethodName());
+    }
+}
+</pre>

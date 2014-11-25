@@ -1,0 +1,1336 @@
+<h1 itemprop="name">Calendar Provider</h1>
+<h2>In this document</h2>
+<ol>
+  <li><a href="#overview">Basics</a></li>
+  <li><a href="#manifest">User Permissions</a></li>
+  <li><a href="#calendar">Calendars table</a>
+<ol>
+      <li><a href="#query">Querying a calendar</a></li>
+      <li><a href="#modify-calendar">Modifying a calendar</a></li>
+      <li><a href="#insert-calendar">Inserting a calendar</a></li>
+    </ol>
+  </li>
+  <li><a href="#events">Events table</a>
+<ol>
+      <li><a href="#add-event">Adding Events</a></li>
+      <li><a href="#update-event">Updating Events</a></li>
+      <li><a href="#delete-event">Deleting Events</a></li>
+    </ol>
+  </li>
+  <li><a href="#attendees">Attendees table</a>
+<ol>
+      <li><a href="#add-attendees">Adding Attendees</a></li>
+    </ol>
+  </li>
+  <li><a href="#reminders">Reminders table</a>
+<ol>
+      <li><a href="#add-reminders">Adding Reminders</a></li>
+    </ol>
+  </li>
+  <li><a href="#instances">Instances table</a>
+  <ol>
+      <li><a href="#query-instances">Querying the Instances table</a></li>
+  </ol></li>
+  <li><a href="#intents">Calendar Intents</a>
+  <ol>
+      <li><a href="#intent-insert">Using an intent to insert an event</a></li>
+      <li><a href="#intent-edit">Using an intent to edit an event</a></li>
+      <li><a href="#intent-view">Using intents to view calendar data</a></li>
+    </ol>
+  </li>
+  
+  <li><a href="#sync-adapter">Sync Adapters</a></li>
+</ol>
+<ol>
+      <li><a href="#query">Querying a calendar</a></li>
+      <li><a href="#modify-calendar">Modifying a calendar</a></li>
+      <li><a href="#insert-calendar">Inserting a calendar</a></li>
+    </ol>
+<ol>
+      <li><a href="#add-event">Adding Events</a></li>
+      <li><a href="#update-event">Updating Events</a></li>
+      <li><a href="#delete-event">Deleting Events</a></li>
+    </ol>
+<ol>
+      <li><a href="#add-attendees">Adding Attendees</a></li>
+    </ol>
+<ol>
+      <li><a href="#add-reminders">Adding Reminders</a></li>
+    </ol>
+<ol>
+      <li><a href="#query-instances">Querying the Instances table</a></li>
+  </ol>
+<ol>
+      <li><a href="#intent-insert">Using an intent to insert an event</a></li>
+      <li><a href="#intent-edit">Using an intent to edit an event</a></li>
+      <li><a href="#intent-view">Using intents to view calendar data</a></li>
+    </ol>
+<h2>Key classes</h2>
+<ol>
+      <li><code><a href="/reference/android/provider/CalendarContract.Calendars.html">CalendarContract.Calendars</a></code></li>
+      <li><code><a href="/reference/android/provider/CalendarContract.Events.html">CalendarContract.Events</a></code></li>
+      <li><code><a href="/reference/android/provider/CalendarContract.Attendees.html">CalendarContract.Attendees</a></code></li>
+      <li><code><a href="/reference/android/provider/CalendarContract.Reminders.html">CalendarContract.Reminders</a></code></li>
+    </ol>
+<p>The Calendar Provider is a repository for a user's calendar events. The
+Calendar Provider API allows you to perform query, insert, update, and delete
+operations on calendars, events, attendees, reminders, and so on.</p>
+<p>The Calender Provider API can be used by applications and sync adapters. The
+rules vary depending on what type of program is making the calls. This document
+focuses primarily on using the Calendar Provider API as an application. For 
+a discussion of how sync adapters are different, see 
+<a href="#sync-adapter">Sync Adapters</a>.</p>
+<p>Normally, to read or write calendar data, an application's manifest must
+include the proper permissions, described in <a href="#manifest">User
+Permissions</a>. To make performing common operations easier, the Calendar
+Provider offers a set of intents, as described in <a href="#intents">Calendar
+Intents</a>. These intents take users to the Calendar application to insert, view,
+and edit events. The user interacts with the Calendar application and then
+returns to the original application. Thus your application doesn't need to request permissions,
+nor does it need to provide a user interface to view or create events.</p>
+<h2 id="overview">Basics</h2>
+<p><a href="/guide/topics/providers/content-providers.html">Content providers</a> store data and make it accessible to 
+applications. The content providers offered by the Android platform (including the Calendar Provider) typically expose data as a set of tables based on a
+relational database model, where each row is a record and each column is data of
+a particular type and meaning. Through the Calendar Provider API, applications
+and sync adapters can get read/write access to the database tables that hold a
+user's calendar data.</p>
+<p>Every content provider exposes a public URI (wrapped as a 
+<code><a href="/reference/android/net/Uri.html">Uri</a></code> 
+object) that uniquely identifies its data set.  A content provider that controls
+ multiple data sets (multiple tables) exposes a separate URI for each one.  All 
+URIs for providers begin with the string "content://".  This
+identifies the data as being controlled by a content provider. The Calendar
+Provider defines constants for the URIs for each of its classes (tables). These
+URIs have the format <code><em>&lt;class&gt;</em>.CONTENT_URI</code>. For
+example, <code><a href="/reference/android/provider/CalendarContract.Events.html#CONTENT_URI">Events.CONTENT_URI</a></code>.</p>
+<p>Figure 1 shows a graphical representation of the Calendar Provider data model. It shows the
+main tables and the fields that link them to each other.</p>
+<p class="img-caption"><strong>Figure 1.</strong> Calendar Provider data model.</p>
+<p>A user can have multiple calendars, and different calendars can be associated with different types of accounts (Google Calendar, Exchange, and so on).</p>
+<p>The <code><a href="/reference/android/provider/CalendarContract.html">CalendarContract</a></code> defines the data model of calendar and event related information. This data is stored in a number of tables, listed below.</p>
+<p><code><a href="/reference/android/provider/CalendarContract.Calendars.html">CalendarContract.Calendars</a></code></p>
+<p>The Calendar Provider API is designed to be flexible and powerful. At the
+same time, it's important to provide a good end user experience and
+protect the integrity of the calendar and its data. To this end, here are
+some things to keep in mind when using the API:</p>
+<ul>
+
+<li><strong>Inserting, updating, and viewing calendar events.</strong> To directly insert, modify, and read events from the Calendar Provider, you need the appropriate <a href="#manifest">permissions</a>. However, if you're not building a full-fledged calendar application or sync adapter, requesting these permissions isn't necessary. You can instead use intents supported by Android's Calendar application to hand off read and write operations to that application. When you use the intents, your application sends users to the Calendar application to perform the desired operation
+in a pre-filled form. After they're done, they're returned to your application.
+By designing your application to perform common operations through the Calendar,
+you provide users with a consistent, robust user interface. This is the
+recommended approach. For more information, see <a href="#intents">Calendar
+Intents</a>.
+
+
+</li><li><strong>Sync adapters.</strong> A sync adapter synchronizes the calendar data
+on a user's device with another server or data source. In the 
+<code><a href="/reference/android/provider/CalendarContract.Calendars.html">CalendarContract.Calendars</a></code> and
+<code><a href="/reference/android/provider/CalendarContract.Events.html">CalendarContract.Events</a></code> tables, 
+there are columns that are reserved for the sync adapters to use.
+The provider and applications should not modify them. In fact, they are not
+visible unless they are accessed as a sync adapter. For more information about
+sync adapters, see <a href="#sync-adapter">Sync Adapters</a>.</li>
+
+</ul>
+<h2 id="manifest">User Permissions</h2>
+<p>To read calendar data, an application must include the <code><a href="/reference/android/Manifest.permission.html#READ_CALENDAR">READ_CALENDAR</a></code> permission in its manifest file. It
+must include the <code><a href="/reference/android/Manifest.permission.html#WRITE_CALENDAR">WRITE_CALENDAR</a></code> permission
+to delete, insert or update calendar data:</p>
+<p>WHATSON? b33383ee-ad11-4c10-8dcc-9c03db901a4c</p>
+<pre>
+&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;manifest xmlns:android="http://schemas.android.com/apk/res/android"...&gt;
+    &lt;uses-sdk android:minSdkVersion="14" /&gt;
+    &lt;uses-permission android:name="android.permission.READ_CALENDAR" /&gt;
+    &lt;uses-permission android:name="android.permission.WRITE_CALENDAR" /&gt;
+    ...
+&lt;/manifest&gt;
+</pre>
+<h2 id="calendar">Calendars Table</h2>
+<p>The <code><a href="/reference/android/provider/CalendarContract.Calendars.html">CalendarContract.Calendars</a></code> table contains details 
+for individual calendars. The following
+Calendars columns are writable by both an application and a <a href="#sync-adapter">sync adapter</a>. 
+For a full list of supported fields, see the
+<code><a href="/reference/android/provider/CalendarContract.Calendars.html">CalendarContract.Calendars</a></code> reference.</p>
+<h3 id="query">Querying a calendar</h3>
+<p>Here is an example that shows how to get the calendars that are owned by a particular
+user. For simplicity's sake, in this example the query operation is shown in the
+user interface thread ("main thread"). In practice, this should be done in an asynchronous
+thread instead of on the main thread. For more discussion, see 
+<a href="/guide/components/loaders.html">Loaders</a>. If you are not just 
+reading data but modifying it, see <code><a href="/reference/android/content/AsyncQueryHandler.html">AsyncQueryHandler</a></code>.
+</p>
+<p>WHATSON? db5a3afe-d2d5-4396-aea8-24ad344adca1</p>
+<pre>
+// Projection array. Creating indices for this array instead of doing
+// dynamic lookups improves performance.
+public static final String[] EVENT_PROJECTION = new String[] {
+    Calendars._ID,                           // 0
+    Calendars.ACCOUNT_NAME,                  // 1
+    Calendars.CALENDAR_DISPLAY_NAME,         // 2
+    Calendars.OWNER_ACCOUNT                  // 3
+};
+  
+// The indices for the projection array above.
+private static final int PROJECTION_ID_INDEX = 0;
+private static final int PROJECTION_ACCOUNT_NAME_INDEX = 1;
+private static final int PROJECTION_DISPLAY_NAME_INDEX = 2;
+private static final int PROJECTION_OWNER_ACCOUNT_INDEX = 3;</pre>
+<h3>Why must you include
+ACCOUNT_TYPE?</h3>
+<p>If you query on a <code><a href="/reference/android/provider/CalendarContract.SyncColumns.html#ACCOUNT_NAME">Calendars.ACCOUNT_NAME</a></code>, you must also include 
+<code><a href="/reference/android/provider/CalendarContract.SyncColumns.html#ACCOUNT_TYPE">Calendars.ACCOUNT_TYPE</a></code>
+in the selection. That is because a given account is
+only considered unique given both its <code>ACCOUNT_NAME</code> and its
+<code>ACCOUNT_TYPE</code>. The <code>ACCOUNT_TYPE</code> is the string corresponding to the
+account authenticator that was used when the account was registered with the
+<code><a href="/reference/android/accounts/AccountManager.html">AccountManager</a></code>. There is also a special type of account called <code><a href="/reference/android/provider/CalendarContract.html#ACCOUNT_TYPE_LOCAL">ACCOUNT_TYPE_LOCAL</a></code> for calendars not
+associated with a device account. <code><a href="/reference/android/provider/CalendarContract.html#ACCOUNT_TYPE_LOCAL">ACCOUNT_TYPE_LOCAL</a></code> accounts do not get
+synced.</p>
+<p> In the next part of the example, you construct your query. The selection
+specifies the criteria for the query. In this example the query is looking for
+calendars that have the <code>ACCOUNT_NAME</code>
+"sampleuser@google.com", the <code>ACCOUNT_TYPE</code>
+"com.google", and the <code>OWNER_ACCOUNT</code>
+"sampleuser@google.com". If you want to see all calendars that a user
+has viewed, not just calendars the user owns, omit the <code>OWNER_ACCOUNT</code>.
+The query returns a <code><a href="/reference/android/database/Cursor.html">Cursor</a></code>
+object that you can use to traverse the result set returned by the database
+query. For more discussion of using queries in content providers, 
+see <a href="/guide/topics/providers/content-providers.html">Content Providers</a>.</p>
+<p>WHATSON? 8d8e382a-bc4c-4a77-8229-f12ce18a0dea</p>
+<pre>// Run query
+Cursor cur = null;
+ContentResolver cr = getContentResolver();
+Uri uri = Calendars.CONTENT_URI;   
+String selection = "((" + Calendars.ACCOUNT_NAME + " = ?) AND (" 
+                        + Calendars.ACCOUNT_TYPE + " = ?) AND ("
+                        + Calendars.OWNER_ACCOUNT + " = ?))";
+String[] selectionArgs = new String[] {"sampleuser@gmail.com", "com.google",
+        "sampleuser@gmail.com"}; 
+// Submit the query and get a Cursor object back. 
+cur = cr.query(uri, EVENT_PROJECTION, selection, selectionArgs, null);</pre>
+<p>This next section uses the cursor to step through the result set. It uses the
+constants that were set up at the beginning of the example to return the values
+for each field.</p>
+<p>WHATSON? e2653124-a996-4eeb-bfc3-47abe999a9ea</p>
+<pre>// Use the cursor to step through the returned records
+while (cur.moveToNext()) {
+    long calID = 0;
+    String displayName = null;
+    String accountName = null;
+    String ownerName = null;
+      
+    // Get the field values
+    calID = cur.getLong(PROJECTION_ID_INDEX);
+    displayName = cur.getString(PROJECTION_DISPLAY_NAME_INDEX);
+    accountName = cur.getString(PROJECTION_ACCOUNT_NAME_INDEX);
+    ownerName = cur.getString(PROJECTION_OWNER_ACCOUNT_INDEX);
+              
+    // Do something with the values...
+
+   ...
+}
+</pre>
+<h3 id="modify-calendar">Modifying a calendar</h3>
+<p>To perform an update of an calendar, you can provide the <code><a href="/reference/android/provider/BaseColumns.html#_ID">_ID</a></code> of the calendar either as an appended ID to
+the Uri 
+
+(<code><a href="/reference/android/content/ContentUris.html#withAppendedId(android.net.Uri,%20long)">withAppendedId()</a></code>) 
+or as the first selection item. The  selection
+should start with <code>"_id=?"</code>, and the first
+<code>selectionArg</code> should be  the <code><a href="/reference/android/provider/BaseColumns.html#_ID">_ID</a></code> of the calendar. 
+You can also do updates by encoding the ID in the URI. This example changes a
+calendar's display name using the 
+(<code><a href="/reference/android/content/ContentUris.html#withAppendedId(android.net.Uri,%20long)">withAppendedId()</a></code>) 
+approach:</p>
+<p>WHATSON? 25dff5bc-1d77-413b-ada0-8ca3aecd9b43</p>
+<pre>private static final String DEBUG_TAG = "MyActivity";
+...
+long calID = 2;
+ContentValues values = new ContentValues();
+// The new display name for the calendar
+values.put(Calendars.CALENDAR_DISPLAY_NAME, "Trevor's Calendar");
+Uri updateUri = ContentUris.withAppendedId(Calendars.CONTENT_URI, calID);
+int rows = getContentResolver().update(updateUri, values, null, null);
+Log.i(DEBUG_TAG, "Rows updated: " + rows);</pre>
+<h3 id="insert-calendar">Inserting a calendar
+
+</h3>
+<p>Calendars are  designed to be primarily managed by a sync adapter, so you
+should only insert new calendars as a sync adapter. For the most part,
+applications can only make superficial changes to calendars, such as changing the display name. If
+an application needs to create a local calendar, it can do this by performing
+the calendar insertion as a sync adapter, using an <code><a href="/reference/android/provider/CalendarContract.SyncColumns.html#ACCOUNT_TYPE">ACCOUNT_TYPE</a></code> of <code><a href="/reference/android/provider/CalendarContract.html#ACCOUNT_TYPE_LOCAL">ACCOUNT_TYPE_LOCAL</a></code>.
+<code><a href="/reference/android/provider/CalendarContract.html#ACCOUNT_TYPE_LOCAL">ACCOUNT_TYPE_LOCAL</a></code> 
+is a special account type for calendars that are not
+associated with a device account. Calendars of this type are not synced to a server. For a
+discussion of sync adapters, see <a href="#sync-adapter">Sync Adapters</a>.</p>
+<h2 id="events">Events Table</h2>
+<p>The <code><a href="/reference/android/provider/CalendarContract.Events.html">CalendarContract.Events</a></code> table contains details
+for individual events. To add, update, or delete  events, an application must
+include the <code><a href="/reference/android/Manifest.permission.html#WRITE_CALENDAR">WRITE_CALENDAR</a></code> permission in its
+<a href="#manifest">manifest file</a>.</p>
+<p>The following Events columns are writable by both an application and a sync
+adapter. For a full list of supported fields, see the <code><a href="/reference/android/provider/CalendarContract.Events.html">CalendarContract.Events</a></code> reference.</p>
+<h3 id="add-event">Adding Events</h3>
+<p>When your application inserts a new event, we recommend that you use an
+<code><a href="/reference/android/content/Intent.html#ACTION_INSERT">INSERT</a></code> Intent, as described in <a href="#intent-insert">Using an intent to insert an event</a>. However, if you
+need to, you can insert events directly. This section describes how to do
+this.</p>
+<p>Here are the rules for inserting a new event: </p>
+<ul>
+
+  <li>You must include  <code><a href="/reference/android/provider/CalendarContract.EventsColumns.html#CALENDAR_ID">CALENDAR_ID</a></code> and <code><a href="/reference/android/provider/CalendarContract.EventsColumns.html#DTSTART">DTSTART</a></code>.</li>
+
+<li>You must include an <code><a href="/reference/android/provider/CalendarContract.EventsColumns.html#EVENT_TIMEZONE">EVENT_TIMEZONE</a></code>. To get a list
+of the system's installed time zone IDs, use <code><a href="/reference/java/util/TimeZone.html#getAvailableIDs()">getAvailableIDs()</a></code>. Note that this rule does not apply if
+you're inserting an event through the <code><a href="/reference/android/content/Intent.html#ACTION_INSERT">INSERT</a></code> Intent, described in <a href="#intent-insert">Using an intent to insert an event</a>—in that
+scenario, a default time zone is supplied.</li>
+  
+  <li>For non-recurring events, you must include <code><a href="/reference/android/provider/CalendarContract.EventsColumns.html#DTEND">DTEND</a></code>. </li>
+  
+  
+  <li>For recurring events, you must include a <code><a href="/reference/android/provider/CalendarContract.EventsColumns.html#DURATION">DURATION</a></code> in addition to  <code><a href="/reference/android/provider/CalendarContract.EventsColumns.html#RRULE">RRULE</a></code> or <code><a href="/reference/android/provider/CalendarContract.EventsColumns.html#RDATE">RDATE</a></code>. Note that this rule does not apply if
+you're inserting an event through the <code><a href="/reference/android/content/Intent.html#ACTION_INSERT">INSERT</a></code> Intent, described in <a href="#intent-insert">Using an intent to insert an event</a>—in that
+scenario, you can use an <code><a href="/reference/android/provider/CalendarContract.EventsColumns.html#RRULE">RRULE</a></code> in conjunction with <code><a href="/reference/android/provider/CalendarContract.EventsColumns.html#DTSTART">DTSTART</a></code> and <code><a href="/reference/android/provider/CalendarContract.EventsColumns.html#DTEND">DTEND</a></code>, and the Calendar application 
+converts it to a duration automatically.</li>
+  
+</ul>
+<p>Here is an example of inserting an event. This is being performed in the UI
+thread for simplicity. In practice, inserts and updates should be done in an
+asynchronous thread to move the action into a background thread. For more
+information, see <code><a href="/reference/android/content/AsyncQueryHandler.html">AsyncQueryHandler</a></code>.</p>
+<p>WHATSON? a0fc0a52-3848-43b7-aca2-34c7c3c31f54</p>
+<pre>
+long calID = 3;
+long startMillis = 0; 
+long endMillis = 0;     
+Calendar beginTime = Calendar.getInstance();
+beginTime.set(2012, 9, 14, 7, 30);
+startMillis = beginTime.getTimeInMillis();
+Calendar endTime = Calendar.getInstance();
+endTime.set(2012, 9, 14, 8, 45);
+endMillis = endTime.getTimeInMillis();
+...
+
+ContentResolver cr = getContentResolver();
+ContentValues values = new ContentValues();
+values.put(Events.DTSTART, startMillis);
+values.put(Events.DTEND, endMillis);
+values.put(Events.TITLE, "Jazzercise");
+values.put(Events.DESCRIPTION, "Group workout");
+values.put(Events.CALENDAR_ID, calID);
+values.put(Events.EVENT_TIMEZONE, "America/Los_Angeles");
+Uri uri = cr.insert(Events.CONTENT_URI, values);
+
+// get the event ID that is the last element in the Uri
+long eventID = Long.parseLong(uri.getLastPathSegment());
+// 
+// ... do something with event ID
+//
+//</pre>
+<p class="note"><strong>Note:</strong> See how this example captures the event
+ID after the event is created. This is the easiest way to get an event ID. You often
+need the event ID to perform other calendar operations—for example, to add
+attendees or reminders to an event.</p>
+<h3 id="update-event">Updating Events</h3>
+<p>When your application wants to allow the user to edit an event, we recommend
+that you use an <code><a href="/reference/android/content/Intent.html#ACTION_EDIT">EDIT</a></code> Intent, as
+described in <a href="#intent-edit">Using an intent to edit an  event</a>.
+However, if you need to, you can edit events directly. To perform an update of
+an Event, you can provide the <code>_ID</code> of the 
+event either as an appended ID to the Uri (<code><a href="/reference/android/content/ContentUris.html#withAppendedId(android.net.Uri,%20long)">withAppendedId()</a></code>) 
+or as the first selection item. 
+The selection should start with <code>"_id=?"</code>, and the first
+<code>selectionArg</code> should be  the <code>_ID</code> of the event. You can
+also do updates using a selection with no ID. Here is an example of updating an
+event. It changes the title of the event using the 
+<code><a href="/reference/android/content/ContentUris.html#withAppendedId(android.net.Uri,%20long)">withAppendedId()</a></code>
+approach:</p>
+<p>WHATSON? 1a1542e4-a30c-48e6-8228-dc89a795803e</p>
+<pre>private static final String DEBUG_TAG = "MyActivity";
+...
+long eventID = 188;
+...
+ContentResolver cr = getContentResolver();
+ContentValues values = new ContentValues();
+Uri updateUri = null;
+// The new title for the event
+values.put(Events.TITLE, "Kickboxing"); 
+updateUri = ContentUris.withAppendedId(Events.CONTENT_URI, eventID);
+int rows = getContentResolver().update(updateUri, values, null, null);
+Log.i(DEBUG_TAG, "Rows updated: " + rows);  </pre>
+<h3 id="delete-event">Deleting Events</h3>
+<p>You can delete an event either by its <code><a href="/reference/android/provider/BaseColumns.html#_ID">_ID</a></code> as an appended  ID on the URI, or by using
+standard selection. If you use an appended ID, you can't also do a selection.
+There are two versions of delete: as an application and as a sync adapter. An
+application delete sets the <em>deleted</em> column to 1. This flag that tells
+the sync adapter that the row was deleted and that this deletion should be
+propagated to the server. A sync adapter delete removes the event from the
+database along with all its associated data. Here is an example of application
+deleting an event through its <code><a href="/reference/android/provider/BaseColumns.html#_ID">_ID</a></code>:</p>
+<p>WHATSON? 12fdf994-aff8-4dc3-902b-a2d98dfd0c6a</p>
+<pre>private static final String DEBUG_TAG = "MyActivity";
+...
+long eventID = 201;
+...
+ContentResolver cr = getContentResolver();
+ContentValues values = new ContentValues();
+Uri deleteUri = null;
+deleteUri = ContentUris.withAppendedId(Events.CONTENT_URI, eventID);
+int rows = getContentResolver().delete(deleteUri, null, null);
+Log.i(DEBUG_TAG, "Rows deleted: " + rows);  
+</pre>
+<h2 id="attendees">Attendees Table</h2>
+<p>Each row of the <code><a href="/reference/android/provider/CalendarContract.Attendees.html">CalendarContract.Attendees</a></code> table
+represents a single attendee or guest of an event. Calling 
+<code><a href="/reference/android/provider/CalendarContract.Reminders.html#query(android.content.ContentResolver,%20long,%20java.lang.String%5B%5D)">query()</a></code> 
+returns a list of attendees for  the
+event with the given <code><a href="/reference/android/provider/CalendarContract.AttendeesColumns.html#EVENT_ID">EVENT_ID</a></code>. 
+This  <code><a href="/reference/android/provider/CalendarContract.AttendeesColumns.html#EVENT_ID">EVENT_ID</a></code> 
+must match the <code><a href="/reference/android/provider/BaseColumns.html#_ID">_ID</a></code> of a particular event.</p>
+<p>The following table lists the
+writable fields. When inserting a new attendee, you must include all of them 
+except <code>ATTENDEE_NAME</code>.
+</p>
+<p>The relationship of the attendee to the event. One of:</p>
+<ul>
+        <li><code><a href="/reference/android/provider/CalendarContract.AttendeesColumns.html#RELATIONSHIP_ATTENDEE">RELATIONSHIP_ATTENDEE</a></code></li>
+        <li><code><a href="/reference/android/provider/CalendarContract.AttendeesColumns.html#RELATIONSHIP_NONE">RELATIONSHIP_NONE</a></code></li>
+        <li><code><a href="/reference/android/provider/CalendarContract.AttendeesColumns.html#RELATIONSHIP_ORGANIZER">RELATIONSHIP_ORGANIZER</a></code></li>
+        <li><code><a href="/reference/android/provider/CalendarContract.AttendeesColumns.html#RELATIONSHIP_PERFORMER">RELATIONSHIP_PERFORMER</a></code></li>
+        <li><code><a href="/reference/android/provider/CalendarContract.AttendeesColumns.html#RELATIONSHIP_SPEAKER">RELATIONSHIP_SPEAKER</a></code></li>
+    </ul>
+<p>The type of attendee. One of: </p>
+<ul>
+        <li><code><a href="/reference/android/provider/CalendarContract.AttendeesColumns.html#TYPE_REQUIRED">TYPE_REQUIRED</a></code></li>
+        <li><code><a href="/reference/android/provider/CalendarContract.AttendeesColumns.html#TYPE_OPTIONAL">TYPE_OPTIONAL</a></code></li>
+    </ul>
+<p>The attendance status of the attendee. One of:</p>
+<ul>
+        <li><code><a href="/reference/android/provider/CalendarContract.AttendeesColumns.html#ATTENDEE_STATUS_ACCEPTED">ATTENDEE_STATUS_ACCEPTED</a></code></li>
+        <li><code><a href="/reference/android/provider/CalendarContract.AttendeesColumns.html#ATTENDEE_STATUS_DECLINED">ATTENDEE_STATUS_DECLINED</a></code></li>
+        <li><code><a href="/reference/android/provider/CalendarContract.AttendeesColumns.html#ATTENDEE_STATUS_INVITED">ATTENDEE_STATUS_INVITED</a></code></li>
+        <li><code><a href="/reference/android/provider/CalendarContract.AttendeesColumns.html#ATTENDEE_STATUS_NONE">ATTENDEE_STATUS_NONE</a></code></li>
+        <li><code><a href="/reference/android/provider/CalendarContract.AttendeesColumns.html#ATTENDEE_STATUS_TENTATIVE">ATTENDEE_STATUS_TENTATIVE</a></code></li>
+    </ul>
+<h3 id="add-attendees">Adding Attendees</h3>
+<p>Here is an example that adds a single attendee to an event. Note that the
+<code><a href="/reference/android/provider/CalendarContract.AttendeesColumns.html#EVENT_ID">EVENT_ID</a></code> 
+is required:</p>
+<p>WHATSON? 8dd2e25e-a766-4ce7-87d8-f76fe83d487e</p>
+<pre>
+long eventID = 202;
+...
+ContentResolver cr = getContentResolver();
+ContentValues values = new ContentValues();
+values.put(Attendees.ATTENDEE_NAME, "Trevor");
+values.put(Attendees.ATTENDEE_EMAIL, "trevor@example.com");
+values.put(Attendees.ATTENDEE_RELATIONSHIP, Attendees.RELATIONSHIP_ATTENDEE);
+values.put(Attendees.ATTENDEE_TYPE, Attendees.TYPE_OPTIONAL);
+values.put(Attendees.ATTENDEE_STATUS, Attendees.ATTENDEE_STATUS_INVITED);
+values.put(Attendees.EVENT_ID, eventID);
+Uri uri = cr.insert(Attendees.CONTENT_URI, values);
+</pre>
+<h2 id="reminders">Reminders Table</h2>
+<p>Each row of the <code><a href="/reference/android/provider/CalendarContract.Reminders.html">CalendarContract.Reminders</a></code> table
+represents a single reminder for an event. Calling 
+<code><a href="/reference/android/provider/CalendarContract.Reminders.html#query(android.content.ContentResolver,%20long,%20java.lang.String%5B%5D)">query()</a></code>  returns a list of reminders for the
+event with the given 
+<code><a href="/reference/android/provider/CalendarContract.AttendeesColumns.html#EVENT_ID">EVENT_ID</a></code>.</p>
+<p>The following table lists the writable fields for reminders. All of them must
+be included when inserting a new reminder. Note that sync adapters specify the
+types of reminders they support in the <code><a href="/reference/android/provider/CalendarContract.Calendars.html">CalendarContract.Calendars</a></code> table. See 
+<code><a href="/reference/android/provider/CalendarContract.CalendarColumns.html#ALLOWED_REMINDERS">ALLOWED_REMINDERS</a></code> 
+for details.</p>
+<p>The alarm method, as set on the server. One of:</p>
+<ul>
+        <li><code><a href="/reference/android/provider/CalendarContract.RemindersColumns.html#METHOD_ALERT">METHOD_ALERT</a></code></li>
+        <li><code><a href="/reference/android/provider/CalendarContract.RemindersColumns.html#METHOD_DEFAULT">METHOD_DEFAULT</a></code></li>
+        <li><code><a href="/reference/android/provider/CalendarContract.RemindersColumns.html#METHOD_EMAIL">METHOD_EMAIL</a></code></li>
+        <li><code><a href="/reference/android/provider/CalendarContract.RemindersColumns.html#METHOD_SMS">METHOD_SMS</a></code></li>
+    </ul>
+<h3 id="add-reminders">Adding Reminders</h3>
+<p>This example adds a reminder to an event. The reminder fires 15
+minutes before the event.</p>
+<p>WHATSON? d70fb744-0595-443b-8798-48566cb4762f</p>
+<pre>
+long eventID = 221;
+...
+ContentResolver cr = getContentResolver();
+ContentValues values = new ContentValues();
+values.put(Reminders.MINUTES, 15);
+values.put(Reminders.EVENT_ID, eventID);
+values.put(Reminders.METHOD, Reminders.METHOD_ALERT);
+Uri uri = cr.insert(Reminders.CONTENT_URI, values);</pre>
+<h2 id="instances">Instances Table</h2>
+<p>The 
+<code><a href="/reference/android/provider/CalendarContract.Instances.html">CalendarContract.Instances</a></code> table holds the
+start and end time for occurrences of an event. Each row in this table
+represents a single event occurrence. The instances table is not writable and only
+provides a  way to query event occurrences. </p>
+<p>The following table lists some of the fields you can query on for an instance. Note 
+that time zone is defined by 
+<code><a href="/reference/android/provider/CalendarContract.CalendarCache.html#KEY_TIMEZONE_TYPE">KEY_TIMEZONE_TYPE</a></code> 
+and 
+<code><a href="/reference/android/provider/CalendarContract.CalendarCache.html#KEY_TIMEZONE_INSTANCES">KEY_TIMEZONE_INSTANCES</a></code>.</p>
+<h3 id="query-instances">Querying the Instances table</h3>
+<p>To query the Instances table, you need to specify a range time for the query
+in the URI. In this example, <code><a href="/reference/android/provider/CalendarContract.Instances.html">CalendarContract.Instances</a></code>
+gets access to the <code><a href="/reference/android/provider/CalendarContract.EventsColumns.html#TITLE">TITLE</a></code> field through its
+implementation of the <code><a href="/reference/android/provider/CalendarContract.EventsColumns.html">CalendarContract.EventsColumns</a></code> interface. 
+In other words, <code><a href="/reference/android/provider/CalendarContract.EventsColumns.html#TITLE">TITLE</a></code> is returned through a
+database view, not through querying the raw <code><a href="/reference/android/provider/CalendarContract.Instances.html">CalendarContract.Instances</a></code> table.</p>
+<p>WHATSON? 9dc41a2e-88bd-483c-9925-97253010ab8d</p>
+<pre>
+private static final String DEBUG_TAG = "MyActivity";
+public static final String[] INSTANCE_PROJECTION = new String[] {
+    Instances.EVENT_ID,      // 0
+    Instances.BEGIN,         // 1
+    Instances.TITLE          // 2
+  };
+  
+// The indices for the projection array above.
+private static final int PROJECTION_ID_INDEX = 0;
+private static final int PROJECTION_BEGIN_INDEX = 1;
+private static final int PROJECTION_TITLE_INDEX = 2;
+...
+
+// Specify the date range you want to search for recurring
+// event instances
+Calendar beginTime = Calendar.getInstance();
+beginTime.set(2011, 9, 23, 8, 0);
+long startMillis = beginTime.getTimeInMillis();
+Calendar endTime = Calendar.getInstance();
+endTime.set(2011, 10, 24, 8, 0);
+long endMillis = endTime.getTimeInMillis();
+  
+Cursor cur = null;
+ContentResolver cr = getContentResolver();
+
+// The ID of the recurring event whose instances you are searching
+// for in the Instances table
+String selection = Instances.EVENT_ID + " = ?";
+String[] selectionArgs = new String[] {"207"};
+
+// Construct the query with the desired date range.
+Uri.Builder builder = Instances.CONTENT_URI.buildUpon();
+ContentUris.appendId(builder, startMillis);
+ContentUris.appendId(builder, endMillis);
+
+// Submit the query
+cur =  cr.query(builder.build(), 
+    INSTANCE_PROJECTION, 
+    selection, 
+    selectionArgs, 
+    null);
+   
+while (cur.moveToNext()) {
+    String title = null;
+    long eventID = 0;
+    long beginVal = 0;    
+    
+    // Get the field values
+    eventID = cur.getLong(PROJECTION_ID_INDEX);
+    beginVal = cur.getLong(PROJECTION_BEGIN_INDEX);
+    title = cur.getString(PROJECTION_TITLE_INDEX);
+              
+    // Do something with the values. 
+    Log.i(DEBUG_TAG, "Event:  " + title); 
+    Calendar calendar = Calendar.getInstance();
+    calendar.setTimeInMillis(beginVal);  
+    DateFormat formatter = new SimpleDateFormat("MM/dd/yyyy");
+    Log.i(DEBUG_TAG, "Date: " + formatter.format(calendar.getTime()));    
+    }
+ }</pre>
+<h2 id="intents">Calendar Intents</h2>
+<p>Your application doesn't need <a href="#manifest">permissions</a> to read and write calendar data. It can instead use intents supported by Android's Calendar application to hand off read and write operations to that application. The following table lists the intents supported by the Calendar Provider:</p>
+<p><code>content://com.android.calendar/time/&lt;ms_since_epoch&gt;</code></p>
+<p><code><a href="/reference/android/content/Intent.html#ACTION_VIEW">VIEW</a></code> </p>
+<p><code>content://com.android.calendar/events/&lt;event_id&gt;</code></p>
+<p><code>content://com.android.calendar/events/&lt;event_id&gt;</code></p>
+<p><code>content://com.android.calendar/events</code></p>
+<p>The following table lists the intent extras supported by the Calendar Provider:
+</p>
+<p>The following sections describe how to use these intents.</p>
+<h3 id="intent-insert">Using an intent to insert an event</h3>
+<p>Using the <code><a href="/reference/android/content/Intent.html#ACTION_INSERT">INSERT</a></code> Intent
+lets your application hand off the event insertion task to the Calendar itself.
+With this approach, your application doesn't even need to have the <code><a href="/reference/android/Manifest.permission.html#WRITE_CALENDAR">WRITE_CALENDAR</a></code> permission included in its <a href="#manifest">manifest file</a>.</p>
+<p>When users run an application that uses this approach, the application sends
+them to the Calendar to finish adding the event. The <code><a href="/reference/android/content/Intent.html#ACTION_INSERT">INSERT</a></code> Intent uses extra fields to
+pre-populate a form with the details of the event in the Calendar. Users can
+then cancel the event, edit the form as needed, or save the event to their
+calendars.</p>
+<p>Here is a code snippet that schedules an event on January 19, 2012, that runs
+from 7:30 a.m. to 8:30 a.m. Note the following about this code snippet:</p>
+<ul>
+  <li>It specifies <code><a href="/reference/android/provider/CalendarContract.Events.html#CONTENT_URI">Events.CONTENT_URI</a></code> 
+  as the Uri.</li>
+  
+  <li>It uses the <code><a href="/reference/android/provider/CalendarContract.html#EXTRA_EVENT_BEGIN_TIME">CalendarContract.EXTRA_EVENT_BEGIN_TIME</a></code> and <code><a href="/reference/android/provider/CalendarContract.html#EXTRA_EVENT_END_TIME">CalendarContract.EXTRA_EVENT_END_TIME</a></code> extra fields to pre-populate the form
+with the time of the event. The values  for these times must be in UTC milliseconds
+from the epoch.</li>
+  
+  <li>It uses the <code><a href="/reference/android/content/Intent.html#EXTRA_EMAIL">Intent.EXTRA_EMAIL</a></code>
+extra field to provide a comma-separated list of invitees, specified by email address.</li>
+  
+</ul>
+<p>WHATSON? 0609a0df-b106-4da5-aedb-efb855b52bff</p>
+<pre>
+Calendar beginTime = Calendar.getInstance();
+beginTime.set(2012, 0, 19, 7, 30);
+Calendar endTime = Calendar.getInstance();
+endTime.set(2012, 0, 19, 8, 30);
+Intent intent = new Intent(Intent.ACTION_INSERT)
+        .setData(Events.CONTENT_URI)
+        .putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, beginTime.getTimeInMillis())
+        .putExtra(CalendarContract.EXTRA_EVENT_END_TIME, endTime.getTimeInMillis())
+        .putExtra(Events.TITLE, "Yoga")
+        .putExtra(Events.DESCRIPTION, "Group class")
+        .putExtra(Events.EVENT_LOCATION, "The gym")
+        .putExtra(Events.AVAILABILITY, Events.AVAILABILITY_BUSY)
+        .putExtra(Intent.EXTRA_EMAIL, "rowan@example.com,trevor@example.com");
+startActivity(intent);
+</pre>
+<h3 id="intent-edit">Using an intent to edit an event</h3>
+<p>You can update an event directly, as described in <a href="#update-event">Updating events</a>. But using the <code><a href="/reference/android/content/Intent.html#ACTION_EDIT">EDIT</a></code> Intent allows an application that
+doesn't have permission to hand off event editing to the Calendar application.
+When users finish editing their event in Calendar, they're returned to the
+original application.</p>
+<p>Here is an example of an intent that sets a new
+title for a specified event and lets users edit the event in the Calendar.</p>
+<p>WHATSON? 2326c30b-96cd-4e26-8743-75d3840b539b</p>
+<pre>long eventID = 208;
+Uri uri = ContentUris.withAppendedId(Events.CONTENT_URI, eventID);
+Intent intent = new Intent(Intent.ACTION_EDIT)
+    .setData(uri)
+    .putExtra(Events.TITLE, "My New Title");
+startActivity(intent);</pre>
+<h3 id="intent-view">Using  intents to view calendar data</h3>
+<p>Calender Provider offers two different ways to use the <code><a href="/reference/android/content/Intent.html#ACTION_VIEW">VIEW</a></code> Intent:</p>
+<ul>
+  <li>To open the Calendar to a particular date.</li>
+  <li>To view an event.</li>
+
+</ul>
+<p>Here is an example that shows how to open the Calendar to a particular date:</p>
+<p>WHATSON? da4ef587-7b10-48f0-8667-e5ea06f2a9f1</p>
+<pre>// A date-time specified in milliseconds since the epoch.
+long startMillis;
+...
+Uri.Builder builder = CalendarContract.CONTENT_URI.buildUpon();
+builder.appendPath("time");
+ContentUris.appendId(builder, startMillis);
+Intent intent = new Intent(Intent.ACTION_VIEW)
+    .setData(builder.build());
+startActivity(intent);</pre>
+<p>Here is an example that shows how to open an event for viewing:</p>
+<p>WHATSON? 8aa38e28-ad11-4c8b-ae98-9cbf0c559c88</p>
+<pre>long eventID = 208;
+...
+Uri uri = ContentUris.withAppendedId(Events.CONTENT_URI, eventID);
+Intent intent = new Intent(Intent.ACTION_VIEW)
+   .setData(uri);
+startActivity(intent);
+</pre>
+<h2 id="sync-adapter">Sync Adapters</h2>
+<p>There are only minor differences in how an application and a sync adapter
+access the Calendar Provider:</p>
+<ul>
+  <li>A sync adapter needs to specify that it's a sync adapter by setting <code><a href="/reference/android/provider/CalendarContract.html#CALLER_IS_SYNCADAPTER">CALLER_IS_SYNCADAPTER</a></code> to <code>true</code>.</li>
+  
+  
+  <li>A sync adapter needs to provide an <code><a href="/reference/android/provider/CalendarContract.SyncColumns.html#ACCOUNT_NAME">ACCOUNT_NAME</a></code> and an <code><a href="/reference/android/provider/CalendarContract.SyncColumns.html#ACCOUNT_TYPE">ACCOUNT_TYPE</a></code> as query parameters in the URI. </li>
+  
+  <li>A sync adapter has write access to more columns than an application or widget.
+  For example, an application can only modify a few characteristics of a calendar, 
+  such as its name, display name, visibility setting, and whether the calendar is
+  synced. By comparison, a sync adapter can access not only those columns, but many others,
+  such as calendar color, time zone, access level, location, and so on.
+However, a sync adapter is restricted to the <code>ACCOUNT_NAME</code> and 
+<code>ACCOUNT_TYPE</code> it specified.</li> </ul>
+<p>Here is a helper method you can use to return a URI for use with a sync adapter:</p>
+<p>WHATSON? 4a633907-56dd-48d9-8158-545d571cade3</p>
+<pre> static Uri asSyncAdapter(Uri uri, String account, String accountType) {
+    return uri.buildUpon()
+        .appendQueryParameter(android.provider.CalendarContract.CALLER_IS_SYNCADAPTER,"true")
+        .appendQueryParameter(Calendars.ACCOUNT_NAME, account)
+        .appendQueryParameter(Calendars.ACCOUNT_TYPE, accountType).build();
+ }
+</pre>
+<p>For a sample implementation of a sync adapter (not specifically related to Calendar), see 
+<a href="/resources/samples/SampleSyncAdapter/index.html">SampleSyncAdapter</a>.
+
+    </p>
+<h1 itemprop="name">Calendar Provider</h1>
+<h2>In this document</h2>
+<ol>
+  <li><a href="#overview">Basics</a></li>
+  <li><a href="#manifest">User Permissions</a></li>
+  <li><a href="#calendar">Calendars table</a>
+<ol>
+      <li><a href="#query">Querying a calendar</a></li>
+      <li><a href="#modify-calendar">Modifying a calendar</a></li>
+      <li><a href="#insert-calendar">Inserting a calendar</a></li>
+    </ol>
+  </li>
+  <li><a href="#events">Events table</a>
+<ol>
+      <li><a href="#add-event">Adding Events</a></li>
+      <li><a href="#update-event">Updating Events</a></li>
+      <li><a href="#delete-event">Deleting Events</a></li>
+    </ol>
+  </li>
+  <li><a href="#attendees">Attendees table</a>
+<ol>
+      <li><a href="#add-attendees">Adding Attendees</a></li>
+    </ol>
+  </li>
+  <li><a href="#reminders">Reminders table</a>
+<ol>
+      <li><a href="#add-reminders">Adding Reminders</a></li>
+    </ol>
+  </li>
+  <li><a href="#instances">Instances table</a>
+  <ol>
+      <li><a href="#query-instances">Querying the Instances table</a></li>
+  </ol></li>
+  <li><a href="#intents">Calendar Intents</a>
+  <ol>
+      <li><a href="#intent-insert">Using an intent to insert an event</a></li>
+      <li><a href="#intent-edit">Using an intent to edit an event</a></li>
+      <li><a href="#intent-view">Using intents to view calendar data</a></li>
+    </ol>
+  </li>
+  
+  <li><a href="#sync-adapter">Sync Adapters</a></li>
+</ol>
+<ol>
+      <li><a href="#query">Querying a calendar</a></li>
+      <li><a href="#modify-calendar">Modifying a calendar</a></li>
+      <li><a href="#insert-calendar">Inserting a calendar</a></li>
+    </ol>
+<ol>
+      <li><a href="#add-event">Adding Events</a></li>
+      <li><a href="#update-event">Updating Events</a></li>
+      <li><a href="#delete-event">Deleting Events</a></li>
+    </ol>
+<ol>
+      <li><a href="#add-attendees">Adding Attendees</a></li>
+    </ol>
+<ol>
+      <li><a href="#add-reminders">Adding Reminders</a></li>
+    </ol>
+<ol>
+      <li><a href="#query-instances">Querying the Instances table</a></li>
+  </ol>
+<ol>
+      <li><a href="#intent-insert">Using an intent to insert an event</a></li>
+      <li><a href="#intent-edit">Using an intent to edit an event</a></li>
+      <li><a href="#intent-view">Using intents to view calendar data</a></li>
+    </ol>
+<h2>Key classes</h2>
+<ol>
+      <li><code><a href="/reference/android/provider/CalendarContract.Calendars.html">CalendarContract.Calendars</a></code></li>
+      <li><code><a href="/reference/android/provider/CalendarContract.Events.html">CalendarContract.Events</a></code></li>
+      <li><code><a href="/reference/android/provider/CalendarContract.Attendees.html">CalendarContract.Attendees</a></code></li>
+      <li><code><a href="/reference/android/provider/CalendarContract.Reminders.html">CalendarContract.Reminders</a></code></li>
+    </ol>
+<p>The Calendar Provider is a repository for a user's calendar events. The
+Calendar Provider API allows you to perform query, insert, update, and delete
+operations on calendars, events, attendees, reminders, and so on.</p>
+<p>The Calender Provider API can be used by applications and sync adapters. The
+rules vary depending on what type of program is making the calls. This document
+focuses primarily on using the Calendar Provider API as an application. For 
+a discussion of how sync adapters are different, see 
+<a href="#sync-adapter">Sync Adapters</a>.</p>
+<p>Normally, to read or write calendar data, an application's manifest must
+include the proper permissions, described in <a href="#manifest">User
+Permissions</a>. To make performing common operations easier, the Calendar
+Provider offers a set of intents, as described in <a href="#intents">Calendar
+Intents</a>. These intents take users to the Calendar application to insert, view,
+and edit events. The user interacts with the Calendar application and then
+returns to the original application. Thus your application doesn't need to request permissions,
+nor does it need to provide a user interface to view or create events.</p>
+<h2 id="overview">Basics</h2>
+<p><a href="/guide/topics/providers/content-providers.html">Content providers</a> store data and make it accessible to 
+applications. The content providers offered by the Android platform (including the Calendar Provider) typically expose data as a set of tables based on a
+relational database model, where each row is a record and each column is data of
+a particular type and meaning. Through the Calendar Provider API, applications
+and sync adapters can get read/write access to the database tables that hold a
+user's calendar data.</p>
+<p>Every content provider exposes a public URI (wrapped as a 
+<code><a href="/reference/android/net/Uri.html">Uri</a></code> 
+object) that uniquely identifies its data set.  A content provider that controls
+ multiple data sets (multiple tables) exposes a separate URI for each one.  All 
+URIs for providers begin with the string "content://".  This
+identifies the data as being controlled by a content provider. The Calendar
+Provider defines constants for the URIs for each of its classes (tables). These
+URIs have the format <code><em>&lt;class&gt;</em>.CONTENT_URI</code>. For
+example, <code><a href="/reference/android/provider/CalendarContract.Events.html#CONTENT_URI">Events.CONTENT_URI</a></code>.</p>
+<p>Figure 1 shows a graphical representation of the Calendar Provider data model. It shows the
+main tables and the fields that link them to each other.</p>
+<p class="img-caption"><strong>Figure 1.</strong> Calendar Provider data model.</p>
+<p>A user can have multiple calendars, and different calendars can be associated with different types of accounts (Google Calendar, Exchange, and so on).</p>
+<p>The <code><a href="/reference/android/provider/CalendarContract.html">CalendarContract</a></code> defines the data model of calendar and event related information. This data is stored in a number of tables, listed below.</p>
+<p><code><a href="/reference/android/provider/CalendarContract.Calendars.html">CalendarContract.Calendars</a></code></p>
+<p>The Calendar Provider API is designed to be flexible and powerful. At the
+same time, it's important to provide a good end user experience and
+protect the integrity of the calendar and its data. To this end, here are
+some things to keep in mind when using the API:</p>
+<ul>
+
+<li><strong>Inserting, updating, and viewing calendar events.</strong> To directly insert, modify, and read events from the Calendar Provider, you need the appropriate <a href="#manifest">permissions</a>. However, if you're not building a full-fledged calendar application or sync adapter, requesting these permissions isn't necessary. You can instead use intents supported by Android's Calendar application to hand off read and write operations to that application. When you use the intents, your application sends users to the Calendar application to perform the desired operation
+in a pre-filled form. After they're done, they're returned to your application.
+By designing your application to perform common operations through the Calendar,
+you provide users with a consistent, robust user interface. This is the
+recommended approach. For more information, see <a href="#intents">Calendar
+Intents</a>.
+
+
+</li><li><strong>Sync adapters.</strong> A sync adapter synchronizes the calendar data
+on a user's device with another server or data source. In the 
+<code><a href="/reference/android/provider/CalendarContract.Calendars.html">CalendarContract.Calendars</a></code> and
+<code><a href="/reference/android/provider/CalendarContract.Events.html">CalendarContract.Events</a></code> tables, 
+there are columns that are reserved for the sync adapters to use.
+The provider and applications should not modify them. In fact, they are not
+visible unless they are accessed as a sync adapter. For more information about
+sync adapters, see <a href="#sync-adapter">Sync Adapters</a>.</li>
+
+</ul>
+<h2 id="manifest">User Permissions</h2>
+<p>To read calendar data, an application must include the <code><a href="/reference/android/Manifest.permission.html#READ_CALENDAR">READ_CALENDAR</a></code> permission in its manifest file. It
+must include the <code><a href="/reference/android/Manifest.permission.html#WRITE_CALENDAR">WRITE_CALENDAR</a></code> permission
+to delete, insert or update calendar data:</p>
+<p>WHATSON? 709b83e4-913f-408d-b724-4359c03fea5c</p>
+<pre>
+&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;manifest xmlns:android="http://schemas.android.com/apk/res/android"...&gt;
+    &lt;uses-sdk android:minSdkVersion="14" /&gt;
+    &lt;uses-permission android:name="android.permission.READ_CALENDAR" /&gt;
+    &lt;uses-permission android:name="android.permission.WRITE_CALENDAR" /&gt;
+    ...
+&lt;/manifest&gt;
+</pre>
+<h2 id="calendar">Calendars Table</h2>
+<p>The <code><a href="/reference/android/provider/CalendarContract.Calendars.html">CalendarContract.Calendars</a></code> table contains details 
+for individual calendars. The following
+Calendars columns are writable by both an application and a <a href="#sync-adapter">sync adapter</a>. 
+For a full list of supported fields, see the
+<code><a href="/reference/android/provider/CalendarContract.Calendars.html">CalendarContract.Calendars</a></code> reference.</p>
+<h3 id="query">Querying a calendar</h3>
+<p>Here is an example that shows how to get the calendars that are owned by a particular
+user. For simplicity's sake, in this example the query operation is shown in the
+user interface thread ("main thread"). In practice, this should be done in an asynchronous
+thread instead of on the main thread. For more discussion, see 
+<a href="/guide/components/loaders.html">Loaders</a>. If you are not just 
+reading data but modifying it, see <code><a href="/reference/android/content/AsyncQueryHandler.html">AsyncQueryHandler</a></code>.
+</p>
+<p>WHATSON? 2dac5f30-d43d-44e5-b5c0-905276f061fc</p>
+<pre>
+// Projection array. Creating indices for this array instead of doing
+// dynamic lookups improves performance.
+public static final String[] EVENT_PROJECTION = new String[] {
+    Calendars._ID,                           // 0
+    Calendars.ACCOUNT_NAME,                  // 1
+    Calendars.CALENDAR_DISPLAY_NAME,         // 2
+    Calendars.OWNER_ACCOUNT                  // 3
+};
+  
+// The indices for the projection array above.
+private static final int PROJECTION_ID_INDEX = 0;
+private static final int PROJECTION_ACCOUNT_NAME_INDEX = 1;
+private static final int PROJECTION_DISPLAY_NAME_INDEX = 2;
+private static final int PROJECTION_OWNER_ACCOUNT_INDEX = 3;</pre>
+<h3>Why must you include
+ACCOUNT_TYPE?</h3>
+<p>If you query on a <code><a href="/reference/android/provider/CalendarContract.SyncColumns.html#ACCOUNT_NAME">Calendars.ACCOUNT_NAME</a></code>, you must also include 
+<code><a href="/reference/android/provider/CalendarContract.SyncColumns.html#ACCOUNT_TYPE">Calendars.ACCOUNT_TYPE</a></code>
+in the selection. That is because a given account is
+only considered unique given both its <code>ACCOUNT_NAME</code> and its
+<code>ACCOUNT_TYPE</code>. The <code>ACCOUNT_TYPE</code> is the string corresponding to the
+account authenticator that was used when the account was registered with the
+<code><a href="/reference/android/accounts/AccountManager.html">AccountManager</a></code>. There is also a special type of account called <code><a href="/reference/android/provider/CalendarContract.html#ACCOUNT_TYPE_LOCAL">ACCOUNT_TYPE_LOCAL</a></code> for calendars not
+associated with a device account. <code><a href="/reference/android/provider/CalendarContract.html#ACCOUNT_TYPE_LOCAL">ACCOUNT_TYPE_LOCAL</a></code> accounts do not get
+synced.</p>
+<p> In the next part of the example, you construct your query. The selection
+specifies the criteria for the query. In this example the query is looking for
+calendars that have the <code>ACCOUNT_NAME</code>
+"sampleuser@google.com", the <code>ACCOUNT_TYPE</code>
+"com.google", and the <code>OWNER_ACCOUNT</code>
+"sampleuser@google.com". If you want to see all calendars that a user
+has viewed, not just calendars the user owns, omit the <code>OWNER_ACCOUNT</code>.
+The query returns a <code><a href="/reference/android/database/Cursor.html">Cursor</a></code>
+object that you can use to traverse the result set returned by the database
+query. For more discussion of using queries in content providers, 
+see <a href="/guide/topics/providers/content-providers.html">Content Providers</a>.</p>
+<p>WHATSON? 4963a237-9dc1-4341-92ad-3875c920d3a2</p>
+<pre>// Run query
+Cursor cur = null;
+ContentResolver cr = getContentResolver();
+Uri uri = Calendars.CONTENT_URI;   
+String selection = "((" + Calendars.ACCOUNT_NAME + " = ?) AND (" 
+                        + Calendars.ACCOUNT_TYPE + " = ?) AND ("
+                        + Calendars.OWNER_ACCOUNT + " = ?))";
+String[] selectionArgs = new String[] {"sampleuser@gmail.com", "com.google",
+        "sampleuser@gmail.com"}; 
+// Submit the query and get a Cursor object back. 
+cur = cr.query(uri, EVENT_PROJECTION, selection, selectionArgs, null);</pre>
+<p>This next section uses the cursor to step through the result set. It uses the
+constants that were set up at the beginning of the example to return the values
+for each field.</p>
+<p>WHATSON? 56a24db0-8045-465c-adba-7eb5743e7a3d</p>
+<pre>// Use the cursor to step through the returned records
+while (cur.moveToNext()) {
+    long calID = 0;
+    String displayName = null;
+    String accountName = null;
+    String ownerName = null;
+      
+    // Get the field values
+    calID = cur.getLong(PROJECTION_ID_INDEX);
+    displayName = cur.getString(PROJECTION_DISPLAY_NAME_INDEX);
+    accountName = cur.getString(PROJECTION_ACCOUNT_NAME_INDEX);
+    ownerName = cur.getString(PROJECTION_OWNER_ACCOUNT_INDEX);
+              
+    // Do something with the values...
+
+   ...
+}
+</pre>
+<h3 id="modify-calendar">Modifying a calendar</h3>
+<p>To perform an update of an calendar, you can provide the <code><a href="/reference/android/provider/BaseColumns.html#_ID">_ID</a></code> of the calendar either as an appended ID to
+the Uri 
+
+(<code><a href="/reference/android/content/ContentUris.html#withAppendedId(android.net.Uri,%20long)">withAppendedId()</a></code>) 
+or as the first selection item. The  selection
+should start with <code>"_id=?"</code>, and the first
+<code>selectionArg</code> should be  the <code><a href="/reference/android/provider/BaseColumns.html#_ID">_ID</a></code> of the calendar. 
+You can also do updates by encoding the ID in the URI. This example changes a
+calendar's display name using the 
+(<code><a href="/reference/android/content/ContentUris.html#withAppendedId(android.net.Uri,%20long)">withAppendedId()</a></code>) 
+approach:</p>
+<p>WHATSON? 70abc864-2654-4038-9469-6109aed6c870</p>
+<pre>private static final String DEBUG_TAG = "MyActivity";
+...
+long calID = 2;
+ContentValues values = new ContentValues();
+// The new display name for the calendar
+values.put(Calendars.CALENDAR_DISPLAY_NAME, "Trevor's Calendar");
+Uri updateUri = ContentUris.withAppendedId(Calendars.CONTENT_URI, calID);
+int rows = getContentResolver().update(updateUri, values, null, null);
+Log.i(DEBUG_TAG, "Rows updated: " + rows);</pre>
+<h3 id="insert-calendar">Inserting a calendar
+
+</h3>
+<p>Calendars are  designed to be primarily managed by a sync adapter, so you
+should only insert new calendars as a sync adapter. For the most part,
+applications can only make superficial changes to calendars, such as changing the display name. If
+an application needs to create a local calendar, it can do this by performing
+the calendar insertion as a sync adapter, using an <code><a href="/reference/android/provider/CalendarContract.SyncColumns.html#ACCOUNT_TYPE">ACCOUNT_TYPE</a></code> of <code><a href="/reference/android/provider/CalendarContract.html#ACCOUNT_TYPE_LOCAL">ACCOUNT_TYPE_LOCAL</a></code>.
+<code><a href="/reference/android/provider/CalendarContract.html#ACCOUNT_TYPE_LOCAL">ACCOUNT_TYPE_LOCAL</a></code> 
+is a special account type for calendars that are not
+associated with a device account. Calendars of this type are not synced to a server. For a
+discussion of sync adapters, see <a href="#sync-adapter">Sync Adapters</a>.</p>
+<h2 id="events">Events Table</h2>
+<p>The <code><a href="/reference/android/provider/CalendarContract.Events.html">CalendarContract.Events</a></code> table contains details
+for individual events. To add, update, or delete  events, an application must
+include the <code><a href="/reference/android/Manifest.permission.html#WRITE_CALENDAR">WRITE_CALENDAR</a></code> permission in its
+<a href="#manifest">manifest file</a>.</p>
+<p>The following Events columns are writable by both an application and a sync
+adapter. For a full list of supported fields, see the <code><a href="/reference/android/provider/CalendarContract.Events.html">CalendarContract.Events</a></code> reference.</p>
+<h3 id="add-event">Adding Events</h3>
+<p>When your application inserts a new event, we recommend that you use an
+<code><a href="/reference/android/content/Intent.html#ACTION_INSERT">INSERT</a></code> Intent, as described in <a href="#intent-insert">Using an intent to insert an event</a>. However, if you
+need to, you can insert events directly. This section describes how to do
+this.</p>
+<p>Here are the rules for inserting a new event: </p>
+<ul>
+
+  <li>You must include  <code><a href="/reference/android/provider/CalendarContract.EventsColumns.html#CALENDAR_ID">CALENDAR_ID</a></code> and <code><a href="/reference/android/provider/CalendarContract.EventsColumns.html#DTSTART">DTSTART</a></code>.</li>
+
+<li>You must include an <code><a href="/reference/android/provider/CalendarContract.EventsColumns.html#EVENT_TIMEZONE">EVENT_TIMEZONE</a></code>. To get a list
+of the system's installed time zone IDs, use <code><a href="/reference/java/util/TimeZone.html#getAvailableIDs()">getAvailableIDs()</a></code>. Note that this rule does not apply if
+you're inserting an event through the <code><a href="/reference/android/content/Intent.html#ACTION_INSERT">INSERT</a></code> Intent, described in <a href="#intent-insert">Using an intent to insert an event</a>—in that
+scenario, a default time zone is supplied.</li>
+  
+  <li>For non-recurring events, you must include <code><a href="/reference/android/provider/CalendarContract.EventsColumns.html#DTEND">DTEND</a></code>. </li>
+  
+  
+  <li>For recurring events, you must include a <code><a href="/reference/android/provider/CalendarContract.EventsColumns.html#DURATION">DURATION</a></code> in addition to  <code><a href="/reference/android/provider/CalendarContract.EventsColumns.html#RRULE">RRULE</a></code> or <code><a href="/reference/android/provider/CalendarContract.EventsColumns.html#RDATE">RDATE</a></code>. Note that this rule does not apply if
+you're inserting an event through the <code><a href="/reference/android/content/Intent.html#ACTION_INSERT">INSERT</a></code> Intent, described in <a href="#intent-insert">Using an intent to insert an event</a>—in that
+scenario, you can use an <code><a href="/reference/android/provider/CalendarContract.EventsColumns.html#RRULE">RRULE</a></code> in conjunction with <code><a href="/reference/android/provider/CalendarContract.EventsColumns.html#DTSTART">DTSTART</a></code> and <code><a href="/reference/android/provider/CalendarContract.EventsColumns.html#DTEND">DTEND</a></code>, and the Calendar application 
+converts it to a duration automatically.</li>
+  
+</ul>
+<p>Here is an example of inserting an event. This is being performed in the UI
+thread for simplicity. In practice, inserts and updates should be done in an
+asynchronous thread to move the action into a background thread. For more
+information, see <code><a href="/reference/android/content/AsyncQueryHandler.html">AsyncQueryHandler</a></code>.</p>
+<p>WHATSON? 54863ed9-5dc2-491f-8e4a-cd636c14175a</p>
+<pre>
+long calID = 3;
+long startMillis = 0; 
+long endMillis = 0;     
+Calendar beginTime = Calendar.getInstance();
+beginTime.set(2012, 9, 14, 7, 30);
+startMillis = beginTime.getTimeInMillis();
+Calendar endTime = Calendar.getInstance();
+endTime.set(2012, 9, 14, 8, 45);
+endMillis = endTime.getTimeInMillis();
+...
+
+ContentResolver cr = getContentResolver();
+ContentValues values = new ContentValues();
+values.put(Events.DTSTART, startMillis);
+values.put(Events.DTEND, endMillis);
+values.put(Events.TITLE, "Jazzercise");
+values.put(Events.DESCRIPTION, "Group workout");
+values.put(Events.CALENDAR_ID, calID);
+values.put(Events.EVENT_TIMEZONE, "America/Los_Angeles");
+Uri uri = cr.insert(Events.CONTENT_URI, values);
+
+// get the event ID that is the last element in the Uri
+long eventID = Long.parseLong(uri.getLastPathSegment());
+// 
+// ... do something with event ID
+//
+//</pre>
+<p class="note"><strong>Note:</strong> See how this example captures the event
+ID after the event is created. This is the easiest way to get an event ID. You often
+need the event ID to perform other calendar operations—for example, to add
+attendees or reminders to an event.</p>
+<h3 id="update-event">Updating Events</h3>
+<p>When your application wants to allow the user to edit an event, we recommend
+that you use an <code><a href="/reference/android/content/Intent.html#ACTION_EDIT">EDIT</a></code> Intent, as
+described in <a href="#intent-edit">Using an intent to edit an  event</a>.
+However, if you need to, you can edit events directly. To perform an update of
+an Event, you can provide the <code>_ID</code> of the 
+event either as an appended ID to the Uri (<code><a href="/reference/android/content/ContentUris.html#withAppendedId(android.net.Uri,%20long)">withAppendedId()</a></code>) 
+or as the first selection item. 
+The selection should start with <code>"_id=?"</code>, and the first
+<code>selectionArg</code> should be  the <code>_ID</code> of the event. You can
+also do updates using a selection with no ID. Here is an example of updating an
+event. It changes the title of the event using the 
+<code><a href="/reference/android/content/ContentUris.html#withAppendedId(android.net.Uri,%20long)">withAppendedId()</a></code>
+approach:</p>
+<p>WHATSON? 87e50c70-a4b4-47a6-b0da-790b68747a31</p>
+<pre>private static final String DEBUG_TAG = "MyActivity";
+...
+long eventID = 188;
+...
+ContentResolver cr = getContentResolver();
+ContentValues values = new ContentValues();
+Uri updateUri = null;
+// The new title for the event
+values.put(Events.TITLE, "Kickboxing"); 
+updateUri = ContentUris.withAppendedId(Events.CONTENT_URI, eventID);
+int rows = getContentResolver().update(updateUri, values, null, null);
+Log.i(DEBUG_TAG, "Rows updated: " + rows);  </pre>
+<h3 id="delete-event">Deleting Events</h3>
+<p>You can delete an event either by its <code><a href="/reference/android/provider/BaseColumns.html#_ID">_ID</a></code> as an appended  ID on the URI, or by using
+standard selection. If you use an appended ID, you can't also do a selection.
+There are two versions of delete: as an application and as a sync adapter. An
+application delete sets the <em>deleted</em> column to 1. This flag that tells
+the sync adapter that the row was deleted and that this deletion should be
+propagated to the server. A sync adapter delete removes the event from the
+database along with all its associated data. Here is an example of application
+deleting an event through its <code><a href="/reference/android/provider/BaseColumns.html#_ID">_ID</a></code>:</p>
+<p>WHATSON? 60a8ce7c-481f-4d2a-b889-9d2472a57105</p>
+<pre>private static final String DEBUG_TAG = "MyActivity";
+...
+long eventID = 201;
+...
+ContentResolver cr = getContentResolver();
+ContentValues values = new ContentValues();
+Uri deleteUri = null;
+deleteUri = ContentUris.withAppendedId(Events.CONTENT_URI, eventID);
+int rows = getContentResolver().delete(deleteUri, null, null);
+Log.i(DEBUG_TAG, "Rows deleted: " + rows);  
+</pre>
+<h2 id="attendees">Attendees Table</h2>
+<p>Each row of the <code><a href="/reference/android/provider/CalendarContract.Attendees.html">CalendarContract.Attendees</a></code> table
+represents a single attendee or guest of an event. Calling 
+<code><a href="/reference/android/provider/CalendarContract.Reminders.html#query(android.content.ContentResolver,%20long,%20java.lang.String%5B%5D)">query()</a></code> 
+returns a list of attendees for  the
+event with the given <code><a href="/reference/android/provider/CalendarContract.AttendeesColumns.html#EVENT_ID">EVENT_ID</a></code>. 
+This  <code><a href="/reference/android/provider/CalendarContract.AttendeesColumns.html#EVENT_ID">EVENT_ID</a></code> 
+must match the <code><a href="/reference/android/provider/BaseColumns.html#_ID">_ID</a></code> of a particular event.</p>
+<p>The following table lists the
+writable fields. When inserting a new attendee, you must include all of them 
+except <code>ATTENDEE_NAME</code>.
+</p>
+<p>The relationship of the attendee to the event. One of:</p>
+<ul>
+        <li><code><a href="/reference/android/provider/CalendarContract.AttendeesColumns.html#RELATIONSHIP_ATTENDEE">RELATIONSHIP_ATTENDEE</a></code></li>
+        <li><code><a href="/reference/android/provider/CalendarContract.AttendeesColumns.html#RELATIONSHIP_NONE">RELATIONSHIP_NONE</a></code></li>
+        <li><code><a href="/reference/android/provider/CalendarContract.AttendeesColumns.html#RELATIONSHIP_ORGANIZER">RELATIONSHIP_ORGANIZER</a></code></li>
+        <li><code><a href="/reference/android/provider/CalendarContract.AttendeesColumns.html#RELATIONSHIP_PERFORMER">RELATIONSHIP_PERFORMER</a></code></li>
+        <li><code><a href="/reference/android/provider/CalendarContract.AttendeesColumns.html#RELATIONSHIP_SPEAKER">RELATIONSHIP_SPEAKER</a></code></li>
+    </ul>
+<p>The type of attendee. One of: </p>
+<ul>
+        <li><code><a href="/reference/android/provider/CalendarContract.AttendeesColumns.html#TYPE_REQUIRED">TYPE_REQUIRED</a></code></li>
+        <li><code><a href="/reference/android/provider/CalendarContract.AttendeesColumns.html#TYPE_OPTIONAL">TYPE_OPTIONAL</a></code></li>
+    </ul>
+<p>The attendance status of the attendee. One of:</p>
+<ul>
+        <li><code><a href="/reference/android/provider/CalendarContract.AttendeesColumns.html#ATTENDEE_STATUS_ACCEPTED">ATTENDEE_STATUS_ACCEPTED</a></code></li>
+        <li><code><a href="/reference/android/provider/CalendarContract.AttendeesColumns.html#ATTENDEE_STATUS_DECLINED">ATTENDEE_STATUS_DECLINED</a></code></li>
+        <li><code><a href="/reference/android/provider/CalendarContract.AttendeesColumns.html#ATTENDEE_STATUS_INVITED">ATTENDEE_STATUS_INVITED</a></code></li>
+        <li><code><a href="/reference/android/provider/CalendarContract.AttendeesColumns.html#ATTENDEE_STATUS_NONE">ATTENDEE_STATUS_NONE</a></code></li>
+        <li><code><a href="/reference/android/provider/CalendarContract.AttendeesColumns.html#ATTENDEE_STATUS_TENTATIVE">ATTENDEE_STATUS_TENTATIVE</a></code></li>
+    </ul>
+<h3 id="add-attendees">Adding Attendees</h3>
+<p>Here is an example that adds a single attendee to an event. Note that the
+<code><a href="/reference/android/provider/CalendarContract.AttendeesColumns.html#EVENT_ID">EVENT_ID</a></code> 
+is required:</p>
+<p>WHATSON? 4e99d3b9-575f-44df-95f1-b15a54970f26</p>
+<pre>
+long eventID = 202;
+...
+ContentResolver cr = getContentResolver();
+ContentValues values = new ContentValues();
+values.put(Attendees.ATTENDEE_NAME, "Trevor");
+values.put(Attendees.ATTENDEE_EMAIL, "trevor@example.com");
+values.put(Attendees.ATTENDEE_RELATIONSHIP, Attendees.RELATIONSHIP_ATTENDEE);
+values.put(Attendees.ATTENDEE_TYPE, Attendees.TYPE_OPTIONAL);
+values.put(Attendees.ATTENDEE_STATUS, Attendees.ATTENDEE_STATUS_INVITED);
+values.put(Attendees.EVENT_ID, eventID);
+Uri uri = cr.insert(Attendees.CONTENT_URI, values);
+</pre>
+<h2 id="reminders">Reminders Table</h2>
+<p>Each row of the <code><a href="/reference/android/provider/CalendarContract.Reminders.html">CalendarContract.Reminders</a></code> table
+represents a single reminder for an event. Calling 
+<code><a href="/reference/android/provider/CalendarContract.Reminders.html#query(android.content.ContentResolver,%20long,%20java.lang.String%5B%5D)">query()</a></code>  returns a list of reminders for the
+event with the given 
+<code><a href="/reference/android/provider/CalendarContract.AttendeesColumns.html#EVENT_ID">EVENT_ID</a></code>.</p>
+<p>The following table lists the writable fields for reminders. All of them must
+be included when inserting a new reminder. Note that sync adapters specify the
+types of reminders they support in the <code><a href="/reference/android/provider/CalendarContract.Calendars.html">CalendarContract.Calendars</a></code> table. See 
+<code><a href="/reference/android/provider/CalendarContract.CalendarColumns.html#ALLOWED_REMINDERS">ALLOWED_REMINDERS</a></code> 
+for details.</p>
+<p>The alarm method, as set on the server. One of:</p>
+<ul>
+        <li><code><a href="/reference/android/provider/CalendarContract.RemindersColumns.html#METHOD_ALERT">METHOD_ALERT</a></code></li>
+        <li><code><a href="/reference/android/provider/CalendarContract.RemindersColumns.html#METHOD_DEFAULT">METHOD_DEFAULT</a></code></li>
+        <li><code><a href="/reference/android/provider/CalendarContract.RemindersColumns.html#METHOD_EMAIL">METHOD_EMAIL</a></code></li>
+        <li><code><a href="/reference/android/provider/CalendarContract.RemindersColumns.html#METHOD_SMS">METHOD_SMS</a></code></li>
+    </ul>
+<h3 id="add-reminders">Adding Reminders</h3>
+<p>This example adds a reminder to an event. The reminder fires 15
+minutes before the event.</p>
+<p>WHATSON? cf8cb988-c0d6-4200-928b-fb72085c7277</p>
+<pre>
+long eventID = 221;
+...
+ContentResolver cr = getContentResolver();
+ContentValues values = new ContentValues();
+values.put(Reminders.MINUTES, 15);
+values.put(Reminders.EVENT_ID, eventID);
+values.put(Reminders.METHOD, Reminders.METHOD_ALERT);
+Uri uri = cr.insert(Reminders.CONTENT_URI, values);</pre>
+<h2 id="instances">Instances Table</h2>
+<p>The 
+<code><a href="/reference/android/provider/CalendarContract.Instances.html">CalendarContract.Instances</a></code> table holds the
+start and end time for occurrences of an event. Each row in this table
+represents a single event occurrence. The instances table is not writable and only
+provides a  way to query event occurrences. </p>
+<p>The following table lists some of the fields you can query on for an instance. Note 
+that time zone is defined by 
+<code><a href="/reference/android/provider/CalendarContract.CalendarCache.html#KEY_TIMEZONE_TYPE">KEY_TIMEZONE_TYPE</a></code> 
+and 
+<code><a href="/reference/android/provider/CalendarContract.CalendarCache.html#KEY_TIMEZONE_INSTANCES">KEY_TIMEZONE_INSTANCES</a></code>.</p>
+<h3 id="query-instances">Querying the Instances table</h3>
+<p>To query the Instances table, you need to specify a range time for the query
+in the URI. In this example, <code><a href="/reference/android/provider/CalendarContract.Instances.html">CalendarContract.Instances</a></code>
+gets access to the <code><a href="/reference/android/provider/CalendarContract.EventsColumns.html#TITLE">TITLE</a></code> field through its
+implementation of the <code><a href="/reference/android/provider/CalendarContract.EventsColumns.html">CalendarContract.EventsColumns</a></code> interface. 
+In other words, <code><a href="/reference/android/provider/CalendarContract.EventsColumns.html#TITLE">TITLE</a></code> is returned through a
+database view, not through querying the raw <code><a href="/reference/android/provider/CalendarContract.Instances.html">CalendarContract.Instances</a></code> table.</p>
+<p>WHATSON? f9887aba-5626-429a-b5d6-49225efef175</p>
+<pre>
+private static final String DEBUG_TAG = "MyActivity";
+public static final String[] INSTANCE_PROJECTION = new String[] {
+    Instances.EVENT_ID,      // 0
+    Instances.BEGIN,         // 1
+    Instances.TITLE          // 2
+  };
+  
+// The indices for the projection array above.
+private static final int PROJECTION_ID_INDEX = 0;
+private static final int PROJECTION_BEGIN_INDEX = 1;
+private static final int PROJECTION_TITLE_INDEX = 2;
+...
+
+// Specify the date range you want to search for recurring
+// event instances
+Calendar beginTime = Calendar.getInstance();
+beginTime.set(2011, 9, 23, 8, 0);
+long startMillis = beginTime.getTimeInMillis();
+Calendar endTime = Calendar.getInstance();
+endTime.set(2011, 10, 24, 8, 0);
+long endMillis = endTime.getTimeInMillis();
+  
+Cursor cur = null;
+ContentResolver cr = getContentResolver();
+
+// The ID of the recurring event whose instances you are searching
+// for in the Instances table
+String selection = Instances.EVENT_ID + " = ?";
+String[] selectionArgs = new String[] {"207"};
+
+// Construct the query with the desired date range.
+Uri.Builder builder = Instances.CONTENT_URI.buildUpon();
+ContentUris.appendId(builder, startMillis);
+ContentUris.appendId(builder, endMillis);
+
+// Submit the query
+cur =  cr.query(builder.build(), 
+    INSTANCE_PROJECTION, 
+    selection, 
+    selectionArgs, 
+    null);
+   
+while (cur.moveToNext()) {
+    String title = null;
+    long eventID = 0;
+    long beginVal = 0;    
+    
+    // Get the field values
+    eventID = cur.getLong(PROJECTION_ID_INDEX);
+    beginVal = cur.getLong(PROJECTION_BEGIN_INDEX);
+    title = cur.getString(PROJECTION_TITLE_INDEX);
+              
+    // Do something with the values. 
+    Log.i(DEBUG_TAG, "Event:  " + title); 
+    Calendar calendar = Calendar.getInstance();
+    calendar.setTimeInMillis(beginVal);  
+    DateFormat formatter = new SimpleDateFormat("MM/dd/yyyy");
+    Log.i(DEBUG_TAG, "Date: " + formatter.format(calendar.getTime()));    
+    }
+ }</pre>
+<h2 id="intents">Calendar Intents</h2>
+<p>Your application doesn't need <a href="#manifest">permissions</a> to read and write calendar data. It can instead use intents supported by Android's Calendar application to hand off read and write operations to that application. The following table lists the intents supported by the Calendar Provider:</p>
+<p><code>content://com.android.calendar/time/&lt;ms_since_epoch&gt;</code></p>
+<p><code><a href="/reference/android/content/Intent.html#ACTION_VIEW">VIEW</a></code> </p>
+<p><code>content://com.android.calendar/events/&lt;event_id&gt;</code></p>
+<p><code>content://com.android.calendar/events/&lt;event_id&gt;</code></p>
+<p><code>content://com.android.calendar/events</code></p>
+<p>The following table lists the intent extras supported by the Calendar Provider:
+</p>
+<p>The following sections describe how to use these intents.</p>
+<h3 id="intent-insert">Using an intent to insert an event</h3>
+<p>Using the <code><a href="/reference/android/content/Intent.html#ACTION_INSERT">INSERT</a></code> Intent
+lets your application hand off the event insertion task to the Calendar itself.
+With this approach, your application doesn't even need to have the <code><a href="/reference/android/Manifest.permission.html#WRITE_CALENDAR">WRITE_CALENDAR</a></code> permission included in its <a href="#manifest">manifest file</a>.</p>
+<p>When users run an application that uses this approach, the application sends
+them to the Calendar to finish adding the event. The <code><a href="/reference/android/content/Intent.html#ACTION_INSERT">INSERT</a></code> Intent uses extra fields to
+pre-populate a form with the details of the event in the Calendar. Users can
+then cancel the event, edit the form as needed, or save the event to their
+calendars.</p>
+<p>Here is a code snippet that schedules an event on January 19, 2012, that runs
+from 7:30 a.m. to 8:30 a.m. Note the following about this code snippet:</p>
+<ul>
+  <li>It specifies <code><a href="/reference/android/provider/CalendarContract.Events.html#CONTENT_URI">Events.CONTENT_URI</a></code> 
+  as the Uri.</li>
+  
+  <li>It uses the <code><a href="/reference/android/provider/CalendarContract.html#EXTRA_EVENT_BEGIN_TIME">CalendarContract.EXTRA_EVENT_BEGIN_TIME</a></code> and <code><a href="/reference/android/provider/CalendarContract.html#EXTRA_EVENT_END_TIME">CalendarContract.EXTRA_EVENT_END_TIME</a></code> extra fields to pre-populate the form
+with the time of the event. The values  for these times must be in UTC milliseconds
+from the epoch.</li>
+  
+  <li>It uses the <code><a href="/reference/android/content/Intent.html#EXTRA_EMAIL">Intent.EXTRA_EMAIL</a></code>
+extra field to provide a comma-separated list of invitees, specified by email address.</li>
+  
+</ul>
+<p>WHATSON? 45ab261a-64f4-4896-b8a4-9a7dad780b0f</p>
+<pre>
+Calendar beginTime = Calendar.getInstance();
+beginTime.set(2012, 0, 19, 7, 30);
+Calendar endTime = Calendar.getInstance();
+endTime.set(2012, 0, 19, 8, 30);
+Intent intent = new Intent(Intent.ACTION_INSERT)
+        .setData(Events.CONTENT_URI)
+        .putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME, beginTime.getTimeInMillis())
+        .putExtra(CalendarContract.EXTRA_EVENT_END_TIME, endTime.getTimeInMillis())
+        .putExtra(Events.TITLE, "Yoga")
+        .putExtra(Events.DESCRIPTION, "Group class")
+        .putExtra(Events.EVENT_LOCATION, "The gym")
+        .putExtra(Events.AVAILABILITY, Events.AVAILABILITY_BUSY)
+        .putExtra(Intent.EXTRA_EMAIL, "rowan@example.com,trevor@example.com");
+startActivity(intent);
+</pre>
+<h3 id="intent-edit">Using an intent to edit an event</h3>
+<p>You can update an event directly, as described in <a href="#update-event">Updating events</a>. But using the <code><a href="/reference/android/content/Intent.html#ACTION_EDIT">EDIT</a></code> Intent allows an application that
+doesn't have permission to hand off event editing to the Calendar application.
+When users finish editing their event in Calendar, they're returned to the
+original application.</p>
+<p>Here is an example of an intent that sets a new
+title for a specified event and lets users edit the event in the Calendar.</p>
+<p>WHATSON? 6efc66ae-82e3-4aea-8757-54a2c3c3be2e</p>
+<pre>long eventID = 208;
+Uri uri = ContentUris.withAppendedId(Events.CONTENT_URI, eventID);
+Intent intent = new Intent(Intent.ACTION_EDIT)
+    .setData(uri)
+    .putExtra(Events.TITLE, "My New Title");
+startActivity(intent);</pre>
+<h3 id="intent-view">Using  intents to view calendar data</h3>
+<p>Calender Provider offers two different ways to use the <code><a href="/reference/android/content/Intent.html#ACTION_VIEW">VIEW</a></code> Intent:</p>
+<ul>
+  <li>To open the Calendar to a particular date.</li>
+  <li>To view an event.</li>
+
+</ul>
+<p>Here is an example that shows how to open the Calendar to a particular date:</p>
+<p>WHATSON? 9ea0b86c-9303-454e-a591-1e5edc9b8edf</p>
+<pre>// A date-time specified in milliseconds since the epoch.
+long startMillis;
+...
+Uri.Builder builder = CalendarContract.CONTENT_URI.buildUpon();
+builder.appendPath("time");
+ContentUris.appendId(builder, startMillis);
+Intent intent = new Intent(Intent.ACTION_VIEW)
+    .setData(builder.build());
+startActivity(intent);</pre>
+<p>Here is an example that shows how to open an event for viewing:</p>
+<p>WHATSON? 9927d06d-8c33-4984-ab89-9b9baff21500</p>
+<pre>long eventID = 208;
+...
+Uri uri = ContentUris.withAppendedId(Events.CONTENT_URI, eventID);
+Intent intent = new Intent(Intent.ACTION_VIEW)
+   .setData(uri);
+startActivity(intent);
+</pre>
+<h2 id="sync-adapter">Sync Adapters</h2>
+<p>There are only minor differences in how an application and a sync adapter
+access the Calendar Provider:</p>
+<ul>
+  <li>A sync adapter needs to specify that it's a sync adapter by setting <code><a href="/reference/android/provider/CalendarContract.html#CALLER_IS_SYNCADAPTER">CALLER_IS_SYNCADAPTER</a></code> to <code>true</code>.</li>
+  
+  
+  <li>A sync adapter needs to provide an <code><a href="/reference/android/provider/CalendarContract.SyncColumns.html#ACCOUNT_NAME">ACCOUNT_NAME</a></code> and an <code><a href="/reference/android/provider/CalendarContract.SyncColumns.html#ACCOUNT_TYPE">ACCOUNT_TYPE</a></code> as query parameters in the URI. </li>
+  
+  <li>A sync adapter has write access to more columns than an application or widget.
+  For example, an application can only modify a few characteristics of a calendar, 
+  such as its name, display name, visibility setting, and whether the calendar is
+  synced. By comparison, a sync adapter can access not only those columns, but many others,
+  such as calendar color, time zone, access level, location, and so on.
+However, a sync adapter is restricted to the <code>ACCOUNT_NAME</code> and 
+<code>ACCOUNT_TYPE</code> it specified.</li> </ul>
+<p>Here is a helper method you can use to return a URI for use with a sync adapter:</p>
+<p>WHATSON? e107183a-8deb-4ea3-b87c-7fba7b46f1e7</p>
+<pre> static Uri asSyncAdapter(Uri uri, String account, String accountType) {
+    return uri.buildUpon()
+        .appendQueryParameter(android.provider.CalendarContract.CALLER_IS_SYNCADAPTER,"true")
+        .appendQueryParameter(Calendars.ACCOUNT_NAME, account)
+        .appendQueryParameter(Calendars.ACCOUNT_TYPE, accountType).build();
+ }
+</pre>
+<p>For a sample implementation of a sync adapter (not specifically related to Calendar), see 
+<a href="/resources/samples/SampleSyncAdapter/index.html">SampleSyncAdapter</a>.
+
+    </p>

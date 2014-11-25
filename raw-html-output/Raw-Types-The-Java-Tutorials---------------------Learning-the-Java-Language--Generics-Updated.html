@@ -1,0 +1,90 @@
+<h1>Raw Types</h1>
+<p>
+A <em>raw type</em> is the name of a generic class or interface without any type arguments. For example, given the generic <tt>Box</tt> class:</p>
+<p>WHATSON? 6ded8827-2b36-467b-84b2-21a104030a6d</p>
+<pre>
+public class Box&lt;T&gt; {
+    public void set(T t) { /* ... */ }
+    // ...
+}
+</pre>
+<p>
+To create a parameterized type of <tt>Box&lt;T&gt;</tt>, you supply an actual type argument for the formal type parameter <tt>T</tt>:</p>
+<p>WHATSON? 2cfeb71e-7fd9-4f8f-b555-df2c47d40540</p>
+<pre>
+Box&lt;Integer&gt; intBox = new Box&lt;&gt;();
+</pre>
+<p>
+If the actual type argument is omitted, you create a raw type of <tt>Box&lt;T&gt;</tt>:</p>
+<p>WHATSON? cc014842-787d-48e6-9b3b-04b1524fec1e</p>
+<pre>
+Box rawBox = new Box();
+</pre>
+<p>
+Therefore, <tt>Box</tt> is the raw type of the generic type <tt>Box&lt;T&gt;</tt>. However, a non-generic class or interface type is <em>not</em> a raw type.</p>
+<p>
+Raw types show up in legacy code because lots of API classes (such as the <tt>Collections</tt> classes) were not generic prior to JDK 5.0. When using raw types, you essentially get pre-generics behavior — a <tt>Box</tt> gives you <tt>Object</tt>s.  For backward compatibility, assigning a parameterized type to its raw type is allowed:</p>
+<p>WHATSON? afde14a7-61b9-4300-ad0d-5aa4399f001f</p>
+<pre>
+Box&lt;String&gt; stringBox = new Box&lt;&gt;();
+Box rawBox = stringBox;               // OK
+</pre>
+<p>
+But if you assign a raw type to a parameterized type, you get a warning:</p>
+<p>WHATSON? 76901c75-b806-408d-bd2a-b798fe4263e1</p>
+<pre>
+Box rawBox = new Box();           // rawBox is a raw type of Box&lt;T&gt;
+Box&lt;Integer&gt; intBox = rawBox;     // warning: unchecked conversion
+</pre>
+<p>
+You also get a warning if you use a raw type to invoke generic methods defined in the corresponding generic type:</p>
+<p>WHATSON? 760f4ee2-4439-413f-959b-85ea115af052</p>
+<pre>
+Box&lt;String&gt; stringBox = new Box&lt;&gt;();
+Box rawBox = stringBox;
+rawBox.set(8);  // warning: unchecked invocation to set(T)
+</pre>
+<p>
+The warning shows that raw types bypass generic type checks, deferring the catch of unsafe code to runtime. Therefore, you should avoid using raw types.</p>
+<p>
+The
+<a class="TutorialLink" target="_top" href="erasure.html">Type Erasure</a> section has more information on how the Java compiler uses raw types.</p>
+<h2>Unchecked Error Messages</h2>
+<p>
+As mentioned previously, when mixing legacy code with generic code, you may encounter warning messages similar to the following:</p>
+<p>WHATSON? e5a8e22a-d990-47d8-9253-63082fefd3e2</p>
+<pre>
+Note: Example.java uses unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.
+</pre>
+<p>
+This can happen when using an older API that operates on raw types, as shown in the following example:</p>
+<p>WHATSON? 396477b4-9aa2-409f-b412-1f45b78710de</p>
+<pre>
+public class WarningDemo {
+    public static void main(String[] args){
+        Box&lt;Integer&gt; bi;
+        bi = createBox();
+    }
+
+    static Box createBox(){
+        return new Box();
+    }
+}
+</pre>
+<p>
+The term "unchecked" means that the compiler does not have enough type information to perform all type checks necessary to ensure type safety. The "unchecked" warning is disabled, by default, though the compiler gives a hint. To see all "unchecked" warnings, recompile with <tt>-Xlint:unchecked</tt>.</p>
+<p>
+Recompiling the previous example with <tt>-Xlint:unchecked</tt> reveals the following additional information:</p>
+<p>WHATSON? f4fd4d9a-5af7-4041-b56d-cfc23bfc70a6</p>
+<pre>
+WarningDemo.java:4: warning: [unchecked] unchecked conversion
+found   : Box
+required: Box&lt;java.lang.Integer&gt;
+        bi = createBox();
+                      ^
+1 warning
+</pre>
+<p>
+To completely disable unchecked warnings, use the <tt>-Xlint:-unchecked</tt> flag. The <tt>@SuppressWarnings("unchecked")</tt> annotation suppresses unchecked warnings.  If you are unfamiliar with the <code>@SuppressWarnings</code> syntax, see
+<a class="TutorialLink" target="_top" href="../../java/annotations/index.html">Annotations</a>.</p>

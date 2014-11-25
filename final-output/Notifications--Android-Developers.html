@@ -1,0 +1,2196 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Notifications--Android-Developers.html</title></head>
+<body>
+<h1>Notifications</h1>
+<h2>In this document</h2>
+<ol>
+  <li>Design Considerations</li>
+  <li>Creating a Notification
+    <ol>
+      <li>Required notification contents</li>
+      <li>Optional notification contents and settings</li>
+      <li>Notification actions</li>
+      <li>Notification priority</li>
+      <li>Creating a simple notification</li>
+      <li>Applying an expanded layout to a notification</li>
+      <li>Handling compatibility</li>
+    </ol>
+  </li>
+  <li>Managing Notifications
+    <ol>
+      <li>Updating notifications</li>
+      <li>Removing notifications</li>
+    </ol>
+  </li>
+  <li>Preserving Navigation when Starting an Activity
+    <ol>
+      <li>Setting up a regular activity PendingIntent</li>
+      <li>Setting up a special activity PendingIntent</li>
+    </ol>
+  </li>
+  <li>Displaying Progress in a Notification
+    <ol>
+      <li>Displaying a fixed-duration progress indicator</li>
+      <li>Displaying a continuing activity indicator</li>
+    </ol>
+  </li>
+  <li>Notification Metadata</li>
+  <li>Heads-up Notifications</li>
+  <li>Lock Screen Notifications</li>
+    <ol>
+      <li>Setting Visibility</li>
+      <li>Controlling Media Playback on the Lock Screen</li>
+    </ol>
+  <li>Custom Notification Layouts</li>
+</ol>
+<ol>
+      <li>Required notification contents</li>
+      <li>Optional notification contents and settings</li>
+      <li>Notification actions</li>
+      <li>Notification priority</li>
+      <li>Creating a simple notification</li>
+      <li>Applying an expanded layout to a notification</li>
+      <li>Handling compatibility</li>
+    </ol>
+<ol>
+      <li>Updating notifications</li>
+      <li>Removing notifications</li>
+    </ol>
+<ol>
+      <li>Setting up a regular activity PendingIntent</li>
+      <li>Setting up a special activity PendingIntent</li>
+    </ol>
+<ol>
+      <li>Displaying a fixed-duration progress indicator</li>
+      <li>Displaying a continuing activity indicator</li>
+    </ol>
+<ol>
+      <li>Setting Visibility</li>
+      <li>Controlling Media Playback on the Lock Screen</li>
+    </ol>
+<h2>Key classes</h2>
+<ol>
+        <li><code>NotificationManager</code></li>
+        <li><code>NotificationCompat</code></li>
+    </ol>
+<h2>Videos</h2>
+<ol>
+        <li>
+            
+            Notifications in 4.1
+        </li>
+    </ol>
+<h2>See also</h2>
+<ol>
+    <li>
+        Android Design: Notifications
+    </li>
+</ol>
+<p>
+    A notification is a message you can display to the user outside of your application's
+    normal UI. When you tell the system to issue a notification, it first appears as an icon in the
+    <strong>notification area</strong>. To see the details of the notification, the user opens the
+    <strong>notification drawer</strong>. Both the notification area and the notification drawer
+    are system-controlled areas that the user can view at any time.
+</p>
+<p>
+    <strong>Figure 1.</strong> Notifications in the notification area.
+</p>
+<p>
+    <strong>Figure 2.</strong> Notifications in the notification drawer.
+</p>
+<p><strong>Note:</strong> Except where noted, this guide refers to the
+<code>NotificationCompat.Builder</code> class
+in the version 4 Support Library.
+The class <code>Notification.Builder</code> was added in Android
+3.0 (API level 11).</p>
+<h2>Design Considerations</h2>
+<p>Notifications, as an important part of the Android user interface, have their own design guidelines.
+The material design changes introduced in Android 5.0 (API level 21) are of particular
+importance, and you should review the Material Design
+training for more information. To learn how to design notifications and their interactions, read the
+Notifications design guide.</p>
+<h2>Creating a Notification</h2>
+<p>You specify the UI information and actions for a notification in a
+<code>NotificationCompat.Builder</code> object.
+To create the notification itself, you call
+<code>NotificationCompat.Builder.build()</code>,
+which returns a <code>Notification</code> object containing your specifications. To issue the
+notification, you pass the <code>Notification</code> object to the system by calling
+<code>NotificationManager.notify()</code>.</p>
+<h3>Required notification contents</h3>
+<p>
+    A <code>Notification</code> object <em>must</em> contain the following:
+</p>
+<ul>
+    <li>
+        A small icon, set by
+        <code>setSmallIcon()</code>
+    </li>
+    <li>
+        A title, set by
+        <code>setContentTitle()</code>
+    </li>
+    <li>
+        Detail text, set by
+        <code>setContentText()</code>
+    </li>
+</ul>
+<h3>Optional notification contents and settings</h3>
+<p>
+    All other notification settings and contents are optional. To learn more about them,
+    see the reference documentation for <code>NotificationCompat.Builder</code>.
+</p>
+<h3>Notification actions</h3>
+<p>
+    Although they're optional, you should add at least one action to your notification.
+    An action allows users to go directly from the notification to an
+    <code>Activity</code> in your application, where they can look at one or more events
+    or do further work.
+</p>
+<p>
+    A notification can provide multiple actions. You should always define the action that's
+    triggered when the user clicks the notification; usually this action opens an
+    <code>Activity</code> in your application. You can also add buttons to the notification
+    that perform additional actions such as snoozing an alarm or responding immediately to a text
+    message; this feature is available as of Android 4.1. If you use additional action buttons, you
+    must also make their functionality available in an <code>Activity</code> in your app; see
+    the section Handling compatibility for more details.
+</p>
+<p>
+    Inside a <code>Notification</code>, the action itself is defined by a
+    <code>PendingIntent</code> containing an
+    <code>Intent</code> that starts
+    an <code>Activity</code> in your application. To associate the
+    <code>PendingIntent</code> with a gesture, call the appropriate method of
+    <code>NotificationCompat.Builder</code>. For example, if you want to start
+    <code>Activity</code> when the user clicks the notification text in
+    the notification drawer, you add the <code>PendingIntent</code> by calling
+    <code>setContentIntent()</code>.
+</p>
+<p>
+    Starting an <code>Activity</code> when the user clicks the notification is the most
+    common action scenario. You can also start an <code>Activity</code> when the user
+    dismisses a notification. In Android 4.1 and later, you can start an
+    <code>Activity</code> from an action button. To learn more, read the reference guide for
+    <code>NotificationCompat.Builder</code>.
+</p>
+<h3>Notification priority</h3>
+<p>
+    If you wish, you can set the priority of a notification. The priority acts
+    as a hint to the device UI about how the notification should be displayed.
+    To set a notification's priority, call <code>NotificationCompat.Builder.setPriority()</code> and pass in one of the <code>NotificationCompat</code> priority constants. There are
+    five priority levels, ranging from <code>PRIORITY_MIN</code> (-2) to <code>PRIORITY_MAX</code> (2); if not set, the
+    priority defaults to <code>PRIORITY_DEFAULT</code> (0).
+</p>
+<p> For information about setting an appropriate priority level, see "Correctly
+    set and manage notification priority" in the Notifications Design
+    guide.
+</p>
+<h3>Creating a simple notification</h3>
+<p>
+    The following snippet illustrates a simple notification that specifies an activity to open when
+    the user clicks the notification. Notice that the code creates a
+    <code>TaskStackBuilder</code> object and uses it to create the
+    <code>PendingIntent</code> for the action. This pattern is explained in more detail
+    in the section 
+    Preserving Navigation when Starting an Activity:
+</p>
+<p>WHATSON? 3f30d0af-5cdc-4601-ae76-ac44f47a0447</p>
+<pre>
+NotificationCompat.Builder mBuilder =
+        new NotificationCompat.Builder(this)
+        .setSmallIcon(R.drawable.notification_icon)
+        .setContentTitle("My notification")
+        .setContentText("Hello World!");
+// Creates an explicit intent for an Activity in your app
+Intent resultIntent = new Intent(this, ResultActivity.class);
+
+// The stack builder object will contain an artificial back stack for the
+// started Activity.
+// This ensures that navigating backward from the Activity leads out of
+// your application to the Home screen.
+TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
+// Adds the back stack for the Intent (but not the Intent itself)
+stackBuilder.addParentStack(ResultActivity.class);
+// Adds the Intent that starts the Activity to the top of the stack
+stackBuilder.addNextIntent(resultIntent);
+PendingIntent resultPendingIntent =
+        stackBuilder.getPendingIntent(
+            0,
+            PendingIntent.FLAG_UPDATE_CURRENT
+        );
+mBuilder.setContentIntent(resultPendingIntent);
+NotificationManager mNotificationManager =
+    (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+// mId allows you to update the notification later on.
+mNotificationManager.notify(mId, mBuilder.build());
+</pre>
+<p>That's it. Your user has now been notified.</p>
+<h3>Applying an expanded layout to a notification</h3>
+<p>
+    To have a notification appear in an expanded view, first create a
+    <code>NotificationCompat.Builder</code> object with the normal view options
+    you want. Next, call <code>Builder.setStyle()</code> with an expanded layout object as its argument.
+</p>
+<p>
+    Remember that expanded notifications are not available on platforms prior to Android 4.1. To
+    learn how to handle notifications for Android 4.1 and for earlier platforms, read the
+    section Handling compatibility.
+</p>
+<p>
+    For example, the following code snippet demonstrates how to alter the notification created
+    in the previous snippet to use the expanded layout:
+</p>
+<p>WHATSON? 91513ffb-e86c-4cc5-a2b8-389f058fcce0</p>
+<pre>
+NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this)
+    .setSmallIcon(R.drawable.notification_icon)
+    .setContentTitle("Event tracker")
+    .setContentText("Events received")
+NotificationCompat.InboxStyle inboxStyle =
+        new NotificationCompat.InboxStyle();
+String[] events = new String[6];
+// Sets a title for the Inbox in expanded layout
+inboxStyle.setBigContentTitle("Event tracker details:");
+...
+// Moves events into the expanded layout
+for (int i=0; i &lt; events.length; i++) {
+
+    inboxStyle.addLine(events[i]);
+}
+// Moves the expanded layout object into the notification object.
+mBuilder.setStyle(inBoxStyle);
+...
+// Issue the notification here.
+</pre>
+<h3>Handling compatibility</h3>
+<p>
+    Not all notification features are available for a particular version, even though
+    the methods to set them are in the support library class
+    <code>NotificationCompat.Builder</code>.
+    For example, action buttons, which depend on expanded notifications, only appear on Android
+    4.1 and higher, because expanded notifications themselves are only available on
+    Android 4.1 and higher.
+</p>
+<p>
+    To ensure the best compatibility, create notifications with
+    <code>NotificationCompat</code> and its subclasses,
+    particularly <code>NotificationCompat.Builder</code>. In addition, follow this process when you implement a notification:
+</p>
+<ol>
+    <li>
+        Provide all of the notification's functionality to all users, regardless of the version
+        they're using. To do this, verify that all of the functionality is available from an
+        <code>Activity</code> in your app. You may want to add a new
+        <code>Activity</code> to do this.
+        <p>
+            For example, if you want to use
+            <code>addAction()</code> to
+            provide a control that stops and starts media playback, first implement this
+            control in an <code>Activity</code> in your app.
+        </p>
+    </li>
+    <li>
+        Ensure that all users can get to the functionality in the <code>Activity</code>,
+        by having it start when users click the notification. To do this,
+        create a <code>PendingIntent</code>
+        for the <code>Activity</code>. Call
+        <code>setContentIntent()</code> to add the <code>PendingIntent</code> to the notification.
+    </li>
+    <li>
+        Now add the expanded notification features you want to use to the notification. Remember
+        that any functionality you add also has to be available in the <code>Activity</code>
+        that starts when users click the notification.
+    </li>
+</ol>
+<p>
+            For example, if you want to use
+            <code>addAction()</code> to
+            provide a control that stops and starts media playback, first implement this
+            control in an <code>Activity</code> in your app.
+        </p>
+<h2>Managing Notifications</h2>
+<p>
+    When you need to issue a notification multiple times for the same type of event, you
+    should avoid making a completely new notification. Instead, you should consider updating a
+    previous notification, either by changing some of its values or by adding to it, or both.
+</p>
+<p>
+    For example, Gmail notifies the user that new emails have arrived by increasing its count of
+    unread messages and by adding a summary of each email to the notification. This is called
+    "stacking" the notification; it's described in more detail in the
+    Notifications Design guide.
+</p>
+<p>
+    <strong>Note:</strong> This Gmail feature requires the "inbox" expanded layout, which is
+    part of the expanded notification feature available starting in Android 4.1.
+</p>
+<p>
+    The following section describes how to update notifications and also how to remove them.
+</p>
+<h3>Updating notifications</h3>
+<p>
+    To set up a notification so it can be updated, issue it with a notification ID by
+    calling <code>NotificationManager.notify()</code>.
+    To update this notification once you've issued
+    it, update or create a <code>NotificationCompat.Builder</code> object,
+    build a <code>Notification</code> object from it, and issue the
+    <code>Notification</code> with the same ID you used previously. If
+    the previous notification is still visible, the system updates it from the contents of
+    the <code>Notification</code> object. If the previous notification has been dismissed, a
+    new notification is created instead.
+</p>
+<p>
+    The following snippet demonstrates a notification that is updated to reflect the
+    number of events that have occurred. It stacks the notification, showing a summary:
+</p>
+<p>WHATSON? fc37f23e-428b-4f2e-9e17-8ebfbdbd4a09</p>
+<pre>
+mNotificationManager =
+        (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+// Sets an ID for the notification, so it can be updated
+int notifyID = 1;
+mNotifyBuilder = new NotificationCompat.Builder(this)
+    .setContentTitle("New Message")
+    .setContentText("You've received new messages.")
+    .setSmallIcon(R.drawable.ic_notify_status)
+numMessages = 0;
+// Start of a loop that processes data and then notifies the user
+...
+    mNotifyBuilder.setContentText(currentText)
+        .setNumber(++numMessages);
+    // Because the ID remains unchanged, the existing notification is
+    // updated.
+    mNotificationManager.notify(
+            notifyID,
+            mNotifyBuilder.build());
+...
+</pre>
+<h3>Removing notifications</h3>
+<p>
+    Notifications remain visible until one of the following happens:
+</p>
+<ul>
+    <li>
+        The user dismisses the notification either individually or by using "Clear All" (if
+        the notification can be cleared).
+    </li>
+    <li>
+        The user clicks the notification, and you called
+        <code>setAutoCancel()</code> when
+        you created the notification.
+    </li>
+    <li>
+        You call <code>cancel()</code> for a specific
+        notification ID. This method also deletes ongoing notifications.
+    </li>
+    <li>
+        You call <code>cancelAll()</code>, which removes
+        all of the notifications you previously issued.
+    </li>
+</ul>
+<h2>Preserving Navigation when Starting an Activity</h2>
+<p>
+    When you start an <code>Activity</code> from a notification, you must preserve the
+    user's expected navigation experience. Clicking <i>Back</i> should take the user back through
+    the application's normal work flow to the Home screen, and clicking <i>Recents</i> should show
+    the <code>Activity</code> as a separate task. To preserve the navigation experience, you
+    should start the <code>Activity</code> in a fresh task. How you set up the
+    <code>PendingIntent</code> to give you a fresh task depends on the nature of the
+    <code>Activity</code> you're starting. There are two general situations:
+</p>
+<p>
+            Notifications from the Gmail app demonstrate this. When you click a notification for
+            a single email message, you see the message itself. Touching <b>Back</b> takes you
+            backwards through Gmail to the Home screen, just as if you had entered Gmail from the
+            Home screen rather than entering it from a notification.
+        </p>
+<p>
+            This happens regardless of the application you were in when you touched the
+            notification. For example, if you're in Gmail composing a message, and you click a
+            notification for a single email, you go immediately to that email. Touching <i>Back</i>
+            takes you to the inbox and then the Home screen, rather than taking you to the
+            message you were composing.
+        </p>
+<h3>Setting up a regular activity PendingIntent</h3>
+<p>
+    To set up a <code>PendingIntent</code> that starts a direct entry
+    <code>Activity</code>, follow these steps:
+</p>
+<ol>
+    <li>
+        Define your application's <code>Activity</code> hierarchy in the manifest.
+        <ol>
+            <li>
+                Add support for Android 4.0.3 and earlier. To do this, specify the parent of the
+                <code>Activity</code> you're starting by adding a
+<code>&lt;meta-data&gt;</code>
+                element as the child of the
+<code>&lt;activity&gt;</code>.
+                <p>
+                    For this element, set
+<code>android:name="android.support.PARENT_ACTIVITY"</code>.
+                    Set
+<code>android:value="&lt;parent_activity_name&gt;"</code>
+                    where <code>&lt;parent_activity_name&gt;</code> is the value of
+<code>android:name</code>
+                    for the parent
+<code>&lt;activity&gt;</code>
+                    element. See the following XML for an example.
+                </p>
+            </li>
+            <li>
+                Also add support for Android 4.1 and later. To do this, add the
+<code>android:parentActivityName</code>
+                attribute to the
+<code>&lt;activity&gt;</code>
+                element of the <code>Activity</code> you're starting.
+            </li>
+        </ol>
+        <p>
+            The final XML should look like this:
+        </p>
+<pre>
+&lt;activity
+    android:name=".MainActivity"
+    android:label="@string/app_name" &gt;
+    &lt;intent-filter&gt;
+        &lt;action android:name="android.intent.action.MAIN" /&gt;
+        &lt;category android:name="android.intent.category.LAUNCHER" /&gt;
+    &lt;/intent-filter&gt;
+&lt;/activity&gt;
+&lt;activity
+    android:name=".ResultActivity"
+    android:parentActivityName=".MainActivity"&gt;
+    &lt;meta-data
+        android:name="android.support.PARENT_ACTIVITY"
+        android:value=".MainActivity"/&gt;
+&lt;/activity&gt;
+</pre>
+    </li>
+    <li>
+        Create a back stack based on the <code>Intent</code> that starts the
+        <code>Activity</code>:
+        <ol>
+            <li>
+                Create the <code>Intent</code> to start the <code>Activity</code>.
+            </li>
+            <li>
+                Create a stack builder by calling <code>TaskStackBuilder.create()</code>.
+            </li>
+            <li>
+                Add the back stack to the stack builder by calling
+                <code>addParentStack()</code>.
+                For each <code>Activity</code> in the hierarchy you've defined in the
+                manifest, the back stack contains an <code>Intent</code> object that
+                starts the <code>Activity</code>. This method also adds flags that start the
+                stack in a fresh task.
+                <p>
+                    <strong>Note:</strong> Although the argument to
+                    <code>addParentStack()</code>
+                    is a reference to the started <code>Activity</code>, the method call
+                    doesn't add the <code>Intent</code> that starts the
+                    <code>Activity</code>. Instead, that's taken care of in the next step.
+                </p>
+            </li>
+            <li>
+                Add the <code>Intent</code> that starts the <code>Activity</code>
+                from the notification, by calling
+                <code>addNextIntent()</code>.
+                Pass the <code>Intent</code> you created in the first step as the
+                argument to
+                <code>addNextIntent()</code>.
+            </li>
+            <li>
+                If you need to, add arguments to <code>Intent</code> objects on the
+                stack by calling <code>TaskStackBuilder.editIntentAt()</code>. This is sometimes necessary to ensure that the
+                target <code>Activity</code> displays meaningful data when the user navigates
+                to it using <i>Back</i>.
+            </li>
+            <li>
+                Get a <code>PendingIntent</code> for this back stack by calling
+                <code>getPendingIntent()</code>.
+                You can then use this <code>PendingIntent</code> as the argument to
+                <code>setContentIntent()</code>.
+            </li>
+        </ol>
+     </li>
+</ol>
+<ol>
+            <li>
+                Add support for Android 4.0.3 and earlier. To do this, specify the parent of the
+                <code>Activity</code> you're starting by adding a
+<code>&lt;meta-data&gt;</code>
+                element as the child of the
+<code>&lt;activity&gt;</code>.
+                <p>
+                    For this element, set
+<code>android:name="android.support.PARENT_ACTIVITY"</code>.
+                    Set
+<code>android:value="&lt;parent_activity_name&gt;"</code>
+                    where <code>&lt;parent_activity_name&gt;</code> is the value of
+<code>android:name</code>
+                    for the parent
+<code>&lt;activity&gt;</code>
+                    element. See the following XML for an example.
+                </p>
+            </li>
+            <li>
+                Also add support for Android 4.1 and later. To do this, add the
+<code>android:parentActivityName</code>
+                attribute to the
+<code>&lt;activity&gt;</code>
+                element of the <code>Activity</code> you're starting.
+            </li>
+        </ol>
+<p>
+                    For this element, set
+<code>android:name="android.support.PARENT_ACTIVITY"</code>.
+                    Set
+<code>android:value="&lt;parent_activity_name&gt;"</code>
+                    where <code>&lt;parent_activity_name&gt;</code> is the value of
+<code>android:name</code>
+                    for the parent
+<code>&lt;activity&gt;</code>
+                    element. See the following XML for an example.
+                </p>
+<p>
+            The final XML should look like this:
+        </p>
+<p>WHATSON? cfb30dec-17b6-4b54-9e6a-b135fe3fd313</p>
+<pre>
+&lt;activity
+    android:name=".MainActivity"
+    android:label="@string/app_name" &gt;
+    &lt;intent-filter&gt;
+        &lt;action android:name="android.intent.action.MAIN" /&gt;
+        &lt;category android:name="android.intent.category.LAUNCHER" /&gt;
+    &lt;/intent-filter&gt;
+&lt;/activity&gt;
+&lt;activity
+    android:name=".ResultActivity"
+    android:parentActivityName=".MainActivity"&gt;
+    &lt;meta-data
+        android:name="android.support.PARENT_ACTIVITY"
+        android:value=".MainActivity"/&gt;
+&lt;/activity&gt;
+</pre>
+<ol>
+            <li>
+                Create the <code>Intent</code> to start the <code>Activity</code>.
+            </li>
+            <li>
+                Create a stack builder by calling <code>TaskStackBuilder.create()</code>.
+            </li>
+            <li>
+                Add the back stack to the stack builder by calling
+                <code>addParentStack()</code>.
+                For each <code>Activity</code> in the hierarchy you've defined in the
+                manifest, the back stack contains an <code>Intent</code> object that
+                starts the <code>Activity</code>. This method also adds flags that start the
+                stack in a fresh task.
+                <p>
+                    <strong>Note:</strong> Although the argument to
+                    <code>addParentStack()</code>
+                    is a reference to the started <code>Activity</code>, the method call
+                    doesn't add the <code>Intent</code> that starts the
+                    <code>Activity</code>. Instead, that's taken care of in the next step.
+                </p>
+            </li>
+            <li>
+                Add the <code>Intent</code> that starts the <code>Activity</code>
+                from the notification, by calling
+                <code>addNextIntent()</code>.
+                Pass the <code>Intent</code> you created in the first step as the
+                argument to
+                <code>addNextIntent()</code>.
+            </li>
+            <li>
+                If you need to, add arguments to <code>Intent</code> objects on the
+                stack by calling <code>TaskStackBuilder.editIntentAt()</code>. This is sometimes necessary to ensure that the
+                target <code>Activity</code> displays meaningful data when the user navigates
+                to it using <i>Back</i>.
+            </li>
+            <li>
+                Get a <code>PendingIntent</code> for this back stack by calling
+                <code>getPendingIntent()</code>.
+                You can then use this <code>PendingIntent</code> as the argument to
+                <code>setContentIntent()</code>.
+            </li>
+        </ol>
+<p>
+                    <strong>Note:</strong> Although the argument to
+                    <code>addParentStack()</code>
+                    is a reference to the started <code>Activity</code>, the method call
+                    doesn't add the <code>Intent</code> that starts the
+                    <code>Activity</code>. Instead, that's taken care of in the next step.
+                </p>
+<p>
+    The following code snippet demonstrates the process:
+</p>
+<p>WHATSON? f9ba4e12-b2e4-4f72-98e4-dc3c8388e333</p>
+<pre>
+...
+Intent resultIntent = new Intent(this, ResultActivity.class);
+TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
+// Adds the back stack
+stackBuilder.addParentStack(ResultActivity.class);
+// Adds the Intent to the top of the stack
+stackBuilder.addNextIntent(resultIntent);
+// Gets a PendingIntent containing the entire back stack
+PendingIntent resultPendingIntent =
+        stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
+...
+NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
+builder.setContentIntent(resultPendingIntent);
+NotificationManager mNotificationManager =
+    (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+mNotificationManager.notify(id, builder.build());
+</pre>
+<h3>Setting up a special activity PendingIntent</h3>
+<p>
+    The following section describes how to set up a special activity
+    <code>PendingIntent</code>.
+</p>
+<p>
+    A special <code>Activity</code> doesn't need a back stack, so you don't have to
+    define its <code>Activity</code> hierarchy in the manifest, and you don't have
+    to call
+    <code>addParentStack()</code> to build a
+    back stack. Instead, use the manifest to set up the <code>Activity</code> task options,
+    and create the <code>PendingIntent</code> by calling
+    <code>getActivity()</code>:
+</p>
+<ol>
+    <li>
+        In your manifest, add the following attributes to the
+<code>&lt;activity&gt;</code>
+        element for the <code>Activity</code>
+        <dl>
+            <dt>
+<code>android:name="<i>activityclass</i>"</code>
+            </dt>
+            <dd>
+                The activity's fully-qualified class name.
+            </dd>
+            <dt>
+<code>android:taskAffinity=""</code>
+            </dt>
+            <dd>
+                Combined with the
+                <code>FLAG_ACTIVITY_NEW_TASK</code> flag
+                that you set in code, this ensures that this <code>Activity</code> doesn't
+                go into the application's default task. Any existing tasks that have the
+                application's default affinity are not affected.
+            </dd>
+            <dt>
+<code>android:excludeFromRecents="true"</code>
+            </dt>
+            <dd>
+                Excludes the new task from <i>Recents</i>, so that the user can't accidentally
+                navigate back to it.
+            </dd>
+        </dl>
+        <p>
+            This snippet shows the element:
+        </p>
+<pre>
+&lt;activity
+    android:name=".ResultActivity"
+...
+    android:launchMode="singleTask"
+    android:taskAffinity=""
+    android:excludeFromRecents="true"&gt;
+&lt;/activity&gt;
+...
+</pre>
+    </li>
+    <li>
+        Build and issue the notification:
+        <ol>
+            <li>
+                Create an <code>Intent</code> that starts the
+                <code>Activity</code>.
+            </li>
+            <li>
+                Set the <code>Activity</code> to start in a new, empty task by calling
+                <code>setFlags()</code> with the flags
+                <code>FLAG_ACTIVITY_NEW_TASK</code>
+                and
+                <code>FLAG_ACTIVITY_CLEAR_TASK</code>.
+            </li>
+            <li>
+                Set any other options you need for the <code>Intent</code>.
+            </li>
+            <li>
+                Create a <code>PendingIntent</code> from the <code>Intent</code>
+                by calling <code>getActivity()</code>.
+                You can then use this <code>PendingIntent</code> as the argument to
+                <code>setContentIntent()</code>.
+            </li>
+        </ol>
+    <p>
+        The following code snippet demonstrates the process:
+    </p>
+<pre>
+// Instantiate a Builder object.
+NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
+// Creates an Intent for the Activity
+Intent notifyIntent =
+        new Intent(new ComponentName(this, ResultActivity.class));
+// Sets the Activity to start in a new, empty task
+notifyIntent.setFlags(FLAG_ACTIVITY_NEW_TASK | FLAG_ACTIVITY_CLEAR_TASK);
+// Creates the PendingIntent
+PendingIntent notifyIntent =
+        PendingIntent.getActivity(
+        this,
+        0,
+        notifyIntent
+        PendingIntent.FLAG_UPDATE_CURRENT
+);
+
+// Puts the PendingIntent into the notification builder
+builder.setContentIntent(notifyIntent);
+// Notifications are issued by sending them to the
+// NotificationManager system service.
+NotificationManager mNotificationManager =
+    (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+// Builds an anonymous Notification object from the builder, and
+// passes it to the NotificationManager
+mNotificationManager.notify(id, builder.build());
+</pre>
+    </li>
+</ol>
+<p>
+            This snippet shows the element:
+        </p>
+<p>WHATSON? 4983946a-e16d-4904-877e-fb837d15d19d</p>
+<pre>
+&lt;activity
+    android:name=".ResultActivity"
+...
+    android:launchMode="singleTask"
+    android:taskAffinity=""
+    android:excludeFromRecents="true"&gt;
+&lt;/activity&gt;
+...
+</pre>
+<ol>
+            <li>
+                Create an <code>Intent</code> that starts the
+                <code>Activity</code>.
+            </li>
+            <li>
+                Set the <code>Activity</code> to start in a new, empty task by calling
+                <code>setFlags()</code> with the flags
+                <code>FLAG_ACTIVITY_NEW_TASK</code>
+                and
+                <code>FLAG_ACTIVITY_CLEAR_TASK</code>.
+            </li>
+            <li>
+                Set any other options you need for the <code>Intent</code>.
+            </li>
+            <li>
+                Create a <code>PendingIntent</code> from the <code>Intent</code>
+                by calling <code>getActivity()</code>.
+                You can then use this <code>PendingIntent</code> as the argument to
+                <code>setContentIntent()</code>.
+            </li>
+        </ol>
+<p>
+        The following code snippet demonstrates the process:
+    </p>
+<p>WHATSON? 8064e2bc-628e-497c-bac3-a248437d8df4</p>
+<pre>
+// Instantiate a Builder object.
+NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
+// Creates an Intent for the Activity
+Intent notifyIntent =
+        new Intent(new ComponentName(this, ResultActivity.class));
+// Sets the Activity to start in a new, empty task
+notifyIntent.setFlags(FLAG_ACTIVITY_NEW_TASK | FLAG_ACTIVITY_CLEAR_TASK);
+// Creates the PendingIntent
+PendingIntent notifyIntent =
+        PendingIntent.getActivity(
+        this,
+        0,
+        notifyIntent
+        PendingIntent.FLAG_UPDATE_CURRENT
+);
+
+// Puts the PendingIntent into the notification builder
+builder.setContentIntent(notifyIntent);
+// Notifications are issued by sending them to the
+// NotificationManager system service.
+NotificationManager mNotificationManager =
+    (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+// Builds an anonymous Notification object from the builder, and
+// passes it to the NotificationManager
+mNotificationManager.notify(id, builder.build());
+</pre>
+<h2>Displaying Progress in a Notification</h2>
+<p>
+    Notifications can include an animated progress indicator that shows users the status
+    of an ongoing operation. If you can estimate how long the operation takes and how much of it
+    is complete at any time, use the "determinate" form of the indicator
+    (a progress bar). If you can't estimate the length of the operation, use the
+    "indeterminate" form of the indicator (an activity indicator).
+</p>
+<p>
+    Progress indicators are displayed with the platform's implementation of the
+    <code>ProgressBar</code> class.
+</p>
+<p>
+    To use a progress indicator on platforms starting with Android 4.0, call
+    <code>setProgress()</code>. For
+    previous versions, you must create your own custom notification layout that
+    includes a <code>ProgressBar</code> view.
+</p>
+<p>
+    The following sections describe how to display progress in a notification using
+    <code>setProgress()</code>.
+</p>
+<h3>Displaying a fixed-duration progress indicator</h3>
+<p>
+    To display a determinate progress bar, add the bar to your notification by calling
+    <code>setProgress()
+    setProgress(max, progress, false)</code> and then issue the notification. As your operation proceeds,
+    increment <code>progress</code>, and update the notification. At the end of the operation,
+    <code>progress</code> should equal <code>max</code>. A common way to call
+    <code>setProgress()</code>
+    is to set <code>max</code> to 100 and then increment <code>progress</code> as a
+    "percent complete" value for the operation.
+</p>
+<p>
+    You can either leave the progress bar showing when the operation is done, or remove it. In
+    either case, remember to update the notification text to show that the operation is complete.
+    To remove the progress bar, call
+    <code>setProgress()
+    setProgress(0, 0, false)</code>. For example:
+</p>
+<p>WHATSON? 52929eef-3a29-4393-b576-0edbfe79e382</p>
+<pre>
+...
+mNotifyManager =
+        (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+mBuilder = new NotificationCompat.Builder(this);
+mBuilder.setContentTitle("Picture Download")
+    .setContentText("Download in progress")
+    .setSmallIcon(R.drawable.ic_notification);
+// Start a lengthy operation in a background thread
+new Thread(
+    new Runnable() {
+        @Override
+        public void run() {
+            int incr;
+            // Do the "lengthy" operation 20 times
+            for (incr = 0; incr &lt;= 100; incr+=5) {
+                    // Sets the progress indicator to a max value, the
+                    // current completion percentage, and "determinate"
+                    // state
+                    mBuilder.setProgress(100, incr, false);
+                    // Displays the progress bar for the first time.
+                    mNotifyManager.notify(0, mBuilder.build());
+                        // Sleeps the thread, simulating an operation
+                        // that takes time
+                        try {
+                            // Sleep for 5 seconds
+                            Thread.sleep(5*1000);
+                        } catch (InterruptedException e) {
+                            Log.d(TAG, "sleep failure");
+                        }
+            }
+            // When the loop is finished, updates the notification
+            mBuilder.setContentText("Download complete")
+            // Removes the progress bar
+                    .setProgress(0,0,false);
+            mNotifyManager.notify(ID, mBuilder.build());
+        }
+    }
+// Starts the thread by calling the run() method in its Runnable
+).start();
+</pre>
+<h3>Displaying a continuing activity indicator</h3>
+<p>
+    To display an indeterminate activity indicator, add it to your notification with
+    <code>setProgress(0, 0, true)</code>
+    (the first two arguments are ignored), and issue the notification. The result is an indicator
+    that has the same style as a progress bar, except that its animation is ongoing.
+</p>
+<p>
+    Issue the notification at the beginning of the operation. The animation will run until you
+    modify your notification. When the operation is done, call
+    <code>setProgress()
+    setProgress(0, 0, false)</code> and then update the notification to remove the activity indicator.
+    Always do this; otherwise, the animation will run even when the operation is complete. Also
+    remember to change the notification text to indicate that the operation is complete.
+</p>
+<p>
+    To see how activity indicators work, refer to the preceding snippet. Locate the following lines:
+</p>
+<p>WHATSON? a26c7720-64a6-4166-a8b7-f206e2300da2</p>
+<pre>
+// Sets the progress indicator to a max value, the current completion
+// percentage, and "determinate" state
+mBuilder.setProgress(100, incr, false);
+// Issues the notification
+mNotifyManager.notify(0, mBuilder.build());
+</pre>
+<p>
+    Replace the lines you've found with the following lines:
+</p>
+<p>WHATSON? 463e3ede-000b-47a4-a3c1-aabd5ced9166</p>
+<pre>
+ // Sets an activity indicator for an operation of indeterminate length
+mBuilder.setProgress(0, 0, true);
+// Issues the notification
+mNotifyManager.notify(0, mBuilder.build());
+</pre>
+<h2>Notification Metadata</h2>
+<p>Notifications may be sorted according to metadata that you assign with the
+following <code>NotificationCompat.Builder</code> methods:</p>
+<ul>
+    <li><code>setCategory()</code>
+    tells the system how to handle your app notifications when the device is in Priority mode
+    (for example, if your notification represents an incoming call, instant message, or alarm).</li>
+    <li><code>setPriority()</code> causes
+    notifications with the priority field set to <code>PRIORITY_MAX</code> or <code>PRIORITY_HIGH</code> to
+    appear in a small floating window if the notification also has sound or vibration.</li>
+    <li><code>addPerson()</code>
+    allows you to add a list of people to a notification. Your app can use this to signal to the
+    system that it should group together notifications from the specified people, or rank notifications
+    from these people as being more important.</li>
+</ul>
+<p>
+    <strong>Figure 3.</strong> Fullscreen activity showing a heads-up notification
+  </p>
+<h2>Heads-up Notifications</h2>
+<p>With Android 5.0 (API level 21), notifications can appear in a small floating window
+(also called a <em>heads-up notification</em>) when the device is active
+(that is, the device is unlocked and its screen is on). These notifications
+appear similar to the compact form of your notification, except that the
+heads-up notification also shows action buttons. Users can act on, or dismiss,
+a heads-up notification without leaving the current app.</p>
+<p>Examples of conditions that may trigger heads-up notifications include:</p>
+<ul>
+  <li>The user's activity is in fullscreen mode (the app uses
+<code>fullScreenIntent</code>), or</li>
+  <li>The notification has high priority and uses ringtones or
+    vibrations</li>
+</ul>
+<h2>Lock Screen Notifications</h2>
+<p>With the release of Android 5.0 (API level 21), notifications may now appear on the lock
+screen. Your app can use this functionality to provide media playback controls and other common
+actions. Users can choose via Settings whether to display notifications on the lock screen, and
+you can designate whether a notification from your app is visible on the lock screen.</p>
+<h3>Setting Visibility</h3>
+<p>Your app can control the level of detail visible in notifications displayed on a secure
+lock screen. You call <code>setVisibility()</code>
+and specify one of the following values:</p>
+<ul>
+    <li><code>VISIBILITY_PUBLIC</code> shows the notification's
+    full content.</li>
+    <li><code>VISIBILITY_SECRET</code> doesn't show any part of
+    this notification on the lock screen.</li>
+    <li><code>VISIBILITY_PRIVATE</code> shows basic information,
+    such as the notification's icon and the content title, but hides the notification's full content.</li>
+</ul>
+<p>When <code>VISIBILITY_PRIVATE</code> is set, you can also
+provide an alternate version of the notification content which hides certain details. For example,
+an SMS app might display a notification that shows <em>You have 3 new text messages</em>, but hides the
+message contents and senders. To provide this alternative notification, first create the replacement
+notification using <code>NotificationCompat.Builder</code>. When you create the
+private notification object, attach the replacement notification to it through the
+<code>setPublicVersion()</code>
+method.</p>
+<h3>Controlling Media Playback on the Lock Screen</h3>
+<p>In Android 5.0 (API level 21) the lock screen no longer displays media controls
+based on the <code>RemoteControlClient</code>, which is now deprecated. Instead, use the
+<code>Notification.MediaStyle</code> template with the
+<code>addAction()</code>
+method, which converts actions into clickable icons.</p>
+<p><strong>Note:</strong> The template and the <code>addAction()</code>
+method are not included in the support library, so these features run in Android 5.0 and higher
+only.</p>
+<p>To display media playback controls on the lock screen in Android 5.0, set the visibility
+to <code>VISIBILITY_PUBLIC</code>, as described above. Then add
+the actions and set the <code>Notification.MediaStyle</code> template, as described in the
+following sample code:</p>
+<p>WHATSON? 6740a72e-a98c-4fc0-8045-1a1d0c05ba1b</p>
+<pre>
+Notification notification = new Notification.Builder(context)
+    // Show controls on lock screen even when user hides sensitive content.
+    .setVisibility(Notification.VISIBILITY_PUBLIC)
+    .setSmallIcon(R.drawable.ic_stat_player)
+    // Add media control buttons that invoke intents in your media service
+    .addAction(R.drawable.ic_prev, "Previous", prevPendingIntent) // #0
+    .addAction(R.drawable.ic_pause, "Pause", pausePendingIntent)  // #1
+    .addAction(R.drawable.ic_next, "Next", nextPendingIntent)     // #2
+    // Apply the media style template
+    .setStyle(new Notification.MediaStyle()
+    .setShowActionsInCompactView(1 /* #1: pause button */)
+    .setMediaSession(mMediaSession.getSessionToken())
+    .setContentTitle("Wonderful music")
+    .setContentText("My Awesome Band")
+    .setLargeIcon(albumArtBitmap)
+    .build();
+</pre>
+<p><strong>Note:</strong> The deprecation of <code>RemoteControlClient</code>
+has further implications for controlling media. See
+Media Playback Control
+for more information about the new APIs for managing the media session and controlling playback.</p>
+<h2>Custom Notification Layouts</h2>
+<p>
+    The notifications framework allows you to define a custom notification layout, which
+    defines the notification's appearance in a <code>RemoteViews</code> object.
+    Custom layout notifications are similar to normal notifications, but they're based on a
+    <code>RemoteViews</code> defined in a XML layout file.
+</p>
+<p>
+    The height available for a custom notification layout depends on the notification view. Normal
+    view layouts are limited to 64 dp, and expanded view layouts are limited to 256 dp.
+</p>
+<p>
+    To define a custom notification layout, start by instantiating a
+    <code>RemoteViews</code> object that inflates an XML layout file. Then,
+    instead of calling methods such as
+    <code>setContentTitle()</code>,
+    call <code>setContent()</code>. To set
+    content details in the custom notification, use the methods in
+    <code>RemoteViews</code> to set the values of the view's children:
+</p>
+<ol>
+    <li>
+        Create an XML layout for the notification in a separate file. You can use any file name
+        you wish, but you must use the extension <code>.xml</code>
+    </li>
+    <li>
+        In your app, use <code>RemoteViews</code> methods to define your notification's
+        icons and text. Put this <code>RemoteViews</code> object into your
+        <code>NotificationCompat.Builder</code> by calling
+        <code>setContent()</code>. Avoid
+        setting a background <code>Drawable</code> on your
+        <code>RemoteViews</code> object, because your text color may become unreadable.
+    </li>
+</ol>
+<p>
+    The <code>RemoteViews</code> class also includes methods that you can use to easily
+    add a <code>Chronometer</code> or <code>ProgressBar</code>
+    to your notification's layout. For more information about creating custom layouts for your
+    notification, refer to the <code>RemoteViews</code> reference documentation.
+</p>
+<p>
+    <strong>Caution:</strong> When you use a custom notification layout, take special care to
+    ensure that your custom layout works with different device orientations and resolutions. While
+    this advice applies to all View layouts, it's especially important for notifications because
+    the space in the notification drawer is very restricted. Don't make your custom layout too
+    complex, and be sure to test it in various configurations.
+</p>
+<h4>Using style resources for custom notification text</h4>
+<p>
+    Always use style resources for the text of a custom notification. The background color of the
+    notification can vary across different devices and versions, and using style resources
+    helps you account for this. Starting in Android 2.3, the system defined a style for the
+    standard notification layout text. If you use the same style in applications that target Android
+    2.3 or higher, you'll ensure that your text is visible against the display background.
+</p>
+<h1>Notifications</h1>
+<h2>In this document</h2>
+<ol>
+  <li>Design Considerations</li>
+  <li>Creating a Notification
+    <ol>
+      <li>Required notification contents</li>
+      <li>Optional notification contents and settings</li>
+      <li>Notification actions</li>
+      <li>Notification priority</li>
+      <li>Creating a simple notification</li>
+      <li>Applying an expanded layout to a notification</li>
+      <li>Handling compatibility</li>
+    </ol>
+  </li>
+  <li>Managing Notifications
+    <ol>
+      <li>Updating notifications</li>
+      <li>Removing notifications</li>
+    </ol>
+  </li>
+  <li>Preserving Navigation when Starting an Activity
+    <ol>
+      <li>Setting up a regular activity PendingIntent</li>
+      <li>Setting up a special activity PendingIntent</li>
+    </ol>
+  </li>
+  <li>Displaying Progress in a Notification
+    <ol>
+      <li>Displaying a fixed-duration progress indicator</li>
+      <li>Displaying a continuing activity indicator</li>
+    </ol>
+  </li>
+  <li>Notification Metadata</li>
+  <li>Heads-up Notifications</li>
+  <li>Lock Screen Notifications</li>
+    <ol>
+      <li>Setting Visibility</li>
+      <li>Controlling Media Playback on the Lock Screen</li>
+    </ol>
+  <li>Custom Notification Layouts</li>
+</ol>
+<ol>
+      <li>Required notification contents</li>
+      <li>Optional notification contents and settings</li>
+      <li>Notification actions</li>
+      <li>Notification priority</li>
+      <li>Creating a simple notification</li>
+      <li>Applying an expanded layout to a notification</li>
+      <li>Handling compatibility</li>
+    </ol>
+<ol>
+      <li>Updating notifications</li>
+      <li>Removing notifications</li>
+    </ol>
+<ol>
+      <li>Setting up a regular activity PendingIntent</li>
+      <li>Setting up a special activity PendingIntent</li>
+    </ol>
+<ol>
+      <li>Displaying a fixed-duration progress indicator</li>
+      <li>Displaying a continuing activity indicator</li>
+    </ol>
+<ol>
+      <li>Setting Visibility</li>
+      <li>Controlling Media Playback on the Lock Screen</li>
+    </ol>
+<h2>Key classes</h2>
+<ol>
+        <li><code>NotificationManager</code></li>
+        <li><code>NotificationCompat</code></li>
+    </ol>
+<h2>Videos</h2>
+<ol>
+        <li>
+            
+            Notifications in 4.1
+        </li>
+    </ol>
+<h2>See also</h2>
+<ol>
+    <li>
+        Android Design: Notifications
+    </li>
+</ol>
+<p>
+    A notification is a message you can display to the user outside of your application's
+    normal UI. When you tell the system to issue a notification, it first appears as an icon in the
+    <strong>notification area</strong>. To see the details of the notification, the user opens the
+    <strong>notification drawer</strong>. Both the notification area and the notification drawer
+    are system-controlled areas that the user can view at any time.
+</p>
+<p>
+    <strong>Figure 1.</strong> Notifications in the notification area.
+</p>
+<p>
+    <strong>Figure 2.</strong> Notifications in the notification drawer.
+</p>
+<p><strong>Note:</strong> Except where noted, this guide refers to the
+<code>NotificationCompat.Builder</code> class
+in the version 4 Support Library.
+The class <code>Notification.Builder</code> was added in Android
+3.0 (API level 11).</p>
+<h2>Design Considerations</h2>
+<p>Notifications, as an important part of the Android user interface, have their own design guidelines.
+The material design changes introduced in Android 5.0 (API level 21) are of particular
+importance, and you should review the Material Design
+training for more information. To learn how to design notifications and their interactions, read the
+Notifications design guide.</p>
+<h2>Creating a Notification</h2>
+<p>You specify the UI information and actions for a notification in a
+<code>NotificationCompat.Builder</code> object.
+To create the notification itself, you call
+<code>NotificationCompat.Builder.build()</code>,
+which returns a <code>Notification</code> object containing your specifications. To issue the
+notification, you pass the <code>Notification</code> object to the system by calling
+<code>NotificationManager.notify()</code>.</p>
+<h3>Required notification contents</h3>
+<p>
+    A <code>Notification</code> object <em>must</em> contain the following:
+</p>
+<ul>
+    <li>
+        A small icon, set by
+        <code>setSmallIcon()</code>
+    </li>
+    <li>
+        A title, set by
+        <code>setContentTitle()</code>
+    </li>
+    <li>
+        Detail text, set by
+        <code>setContentText()</code>
+    </li>
+</ul>
+<h3>Optional notification contents and settings</h3>
+<p>
+    All other notification settings and contents are optional. To learn more about them,
+    see the reference documentation for <code>NotificationCompat.Builder</code>.
+</p>
+<h3>Notification actions</h3>
+<p>
+    Although they're optional, you should add at least one action to your notification.
+    An action allows users to go directly from the notification to an
+    <code>Activity</code> in your application, where they can look at one or more events
+    or do further work.
+</p>
+<p>
+    A notification can provide multiple actions. You should always define the action that's
+    triggered when the user clicks the notification; usually this action opens an
+    <code>Activity</code> in your application. You can also add buttons to the notification
+    that perform additional actions such as snoozing an alarm or responding immediately to a text
+    message; this feature is available as of Android 4.1. If you use additional action buttons, you
+    must also make their functionality available in an <code>Activity</code> in your app; see
+    the section Handling compatibility for more details.
+</p>
+<p>
+    Inside a <code>Notification</code>, the action itself is defined by a
+    <code>PendingIntent</code> containing an
+    <code>Intent</code> that starts
+    an <code>Activity</code> in your application. To associate the
+    <code>PendingIntent</code> with a gesture, call the appropriate method of
+    <code>NotificationCompat.Builder</code>. For example, if you want to start
+    <code>Activity</code> when the user clicks the notification text in
+    the notification drawer, you add the <code>PendingIntent</code> by calling
+    <code>setContentIntent()</code>.
+</p>
+<p>
+    Starting an <code>Activity</code> when the user clicks the notification is the most
+    common action scenario. You can also start an <code>Activity</code> when the user
+    dismisses a notification. In Android 4.1 and later, you can start an
+    <code>Activity</code> from an action button. To learn more, read the reference guide for
+    <code>NotificationCompat.Builder</code>.
+</p>
+<h3>Notification priority</h3>
+<p>
+    If you wish, you can set the priority of a notification. The priority acts
+    as a hint to the device UI about how the notification should be displayed.
+    To set a notification's priority, call <code>NotificationCompat.Builder.setPriority()</code> and pass in one of the <code>NotificationCompat</code> priority constants. There are
+    five priority levels, ranging from <code>PRIORITY_MIN</code> (-2) to <code>PRIORITY_MAX</code> (2); if not set, the
+    priority defaults to <code>PRIORITY_DEFAULT</code> (0).
+</p>
+<p> For information about setting an appropriate priority level, see "Correctly
+    set and manage notification priority" in the Notifications Design
+    guide.
+</p>
+<h3>Creating a simple notification</h3>
+<p>
+    The following snippet illustrates a simple notification that specifies an activity to open when
+    the user clicks the notification. Notice that the code creates a
+    <code>TaskStackBuilder</code> object and uses it to create the
+    <code>PendingIntent</code> for the action. This pattern is explained in more detail
+    in the section 
+    Preserving Navigation when Starting an Activity:
+</p>
+<p>WHATSON? c71d72cb-e400-41d1-8cb2-2e70c271be78</p>
+<pre>
+NotificationCompat.Builder mBuilder =
+        new NotificationCompat.Builder(this)
+        .setSmallIcon(R.drawable.notification_icon)
+        .setContentTitle("My notification")
+        .setContentText("Hello World!");
+// Creates an explicit intent for an Activity in your app
+Intent resultIntent = new Intent(this, ResultActivity.class);
+
+// The stack builder object will contain an artificial back stack for the
+// started Activity.
+// This ensures that navigating backward from the Activity leads out of
+// your application to the Home screen.
+TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
+// Adds the back stack for the Intent (but not the Intent itself)
+stackBuilder.addParentStack(ResultActivity.class);
+// Adds the Intent that starts the Activity to the top of the stack
+stackBuilder.addNextIntent(resultIntent);
+PendingIntent resultPendingIntent =
+        stackBuilder.getPendingIntent(
+            0,
+            PendingIntent.FLAG_UPDATE_CURRENT
+        );
+mBuilder.setContentIntent(resultPendingIntent);
+NotificationManager mNotificationManager =
+    (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+// mId allows you to update the notification later on.
+mNotificationManager.notify(mId, mBuilder.build());
+</pre>
+<p>That's it. Your user has now been notified.</p>
+<h3>Applying an expanded layout to a notification</h3>
+<p>
+    To have a notification appear in an expanded view, first create a
+    <code>NotificationCompat.Builder</code> object with the normal view options
+    you want. Next, call <code>Builder.setStyle()</code> with an expanded layout object as its argument.
+</p>
+<p>
+    Remember that expanded notifications are not available on platforms prior to Android 4.1. To
+    learn how to handle notifications for Android 4.1 and for earlier platforms, read the
+    section Handling compatibility.
+</p>
+<p>
+    For example, the following code snippet demonstrates how to alter the notification created
+    in the previous snippet to use the expanded layout:
+</p>
+<p>WHATSON? 78857064-a1cf-435f-92d4-ae7ea65389d2</p>
+<pre>
+NotificationCompat.Builder mBuilder = new NotificationCompat.Builder(this)
+    .setSmallIcon(R.drawable.notification_icon)
+    .setContentTitle("Event tracker")
+    .setContentText("Events received")
+NotificationCompat.InboxStyle inboxStyle =
+        new NotificationCompat.InboxStyle();
+String[] events = new String[6];
+// Sets a title for the Inbox in expanded layout
+inboxStyle.setBigContentTitle("Event tracker details:");
+...
+// Moves events into the expanded layout
+for (int i=0; i &lt; events.length; i++) {
+
+    inboxStyle.addLine(events[i]);
+}
+// Moves the expanded layout object into the notification object.
+mBuilder.setStyle(inBoxStyle);
+...
+// Issue the notification here.
+</pre>
+<h3>Handling compatibility</h3>
+<p>
+    Not all notification features are available for a particular version, even though
+    the methods to set them are in the support library class
+    <code>NotificationCompat.Builder</code>.
+    For example, action buttons, which depend on expanded notifications, only appear on Android
+    4.1 and higher, because expanded notifications themselves are only available on
+    Android 4.1 and higher.
+</p>
+<p>
+    To ensure the best compatibility, create notifications with
+    <code>NotificationCompat</code> and its subclasses,
+    particularly <code>NotificationCompat.Builder</code>. In addition, follow this process when you implement a notification:
+</p>
+<ol>
+    <li>
+        Provide all of the notification's functionality to all users, regardless of the version
+        they're using. To do this, verify that all of the functionality is available from an
+        <code>Activity</code> in your app. You may want to add a new
+        <code>Activity</code> to do this.
+        <p>
+            For example, if you want to use
+            <code>addAction()</code> to
+            provide a control that stops and starts media playback, first implement this
+            control in an <code>Activity</code> in your app.
+        </p>
+    </li>
+    <li>
+        Ensure that all users can get to the functionality in the <code>Activity</code>,
+        by having it start when users click the notification. To do this,
+        create a <code>PendingIntent</code>
+        for the <code>Activity</code>. Call
+        <code>setContentIntent()</code> to add the <code>PendingIntent</code> to the notification.
+    </li>
+    <li>
+        Now add the expanded notification features you want to use to the notification. Remember
+        that any functionality you add also has to be available in the <code>Activity</code>
+        that starts when users click the notification.
+    </li>
+</ol>
+<p>
+            For example, if you want to use
+            <code>addAction()</code> to
+            provide a control that stops and starts media playback, first implement this
+            control in an <code>Activity</code> in your app.
+        </p>
+<h2>Managing Notifications</h2>
+<p>
+    When you need to issue a notification multiple times for the same type of event, you
+    should avoid making a completely new notification. Instead, you should consider updating a
+    previous notification, either by changing some of its values or by adding to it, or both.
+</p>
+<p>
+    For example, Gmail notifies the user that new emails have arrived by increasing its count of
+    unread messages and by adding a summary of each email to the notification. This is called
+    "stacking" the notification; it's described in more detail in the
+    Notifications Design guide.
+</p>
+<p>
+    <strong>Note:</strong> This Gmail feature requires the "inbox" expanded layout, which is
+    part of the expanded notification feature available starting in Android 4.1.
+</p>
+<p>
+    The following section describes how to update notifications and also how to remove them.
+</p>
+<h3>Updating notifications</h3>
+<p>
+    To set up a notification so it can be updated, issue it with a notification ID by
+    calling <code>NotificationManager.notify()</code>.
+    To update this notification once you've issued
+    it, update or create a <code>NotificationCompat.Builder</code> object,
+    build a <code>Notification</code> object from it, and issue the
+    <code>Notification</code> with the same ID you used previously. If
+    the previous notification is still visible, the system updates it from the contents of
+    the <code>Notification</code> object. If the previous notification has been dismissed, a
+    new notification is created instead.
+</p>
+<p>
+    The following snippet demonstrates a notification that is updated to reflect the
+    number of events that have occurred. It stacks the notification, showing a summary:
+</p>
+<p>WHATSON? 063ca9ea-34cf-468d-95a6-2c2e25e13d7b</p>
+<pre>
+mNotificationManager =
+        (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+// Sets an ID for the notification, so it can be updated
+int notifyID = 1;
+mNotifyBuilder = new NotificationCompat.Builder(this)
+    .setContentTitle("New Message")
+    .setContentText("You've received new messages.")
+    .setSmallIcon(R.drawable.ic_notify_status)
+numMessages = 0;
+// Start of a loop that processes data and then notifies the user
+...
+    mNotifyBuilder.setContentText(currentText)
+        .setNumber(++numMessages);
+    // Because the ID remains unchanged, the existing notification is
+    // updated.
+    mNotificationManager.notify(
+            notifyID,
+            mNotifyBuilder.build());
+...
+</pre>
+<h3>Removing notifications</h3>
+<p>
+    Notifications remain visible until one of the following happens:
+</p>
+<ul>
+    <li>
+        The user dismisses the notification either individually or by using "Clear All" (if
+        the notification can be cleared).
+    </li>
+    <li>
+        The user clicks the notification, and you called
+        <code>setAutoCancel()</code> when
+        you created the notification.
+    </li>
+    <li>
+        You call <code>cancel()</code> for a specific
+        notification ID. This method also deletes ongoing notifications.
+    </li>
+    <li>
+        You call <code>cancelAll()</code>, which removes
+        all of the notifications you previously issued.
+    </li>
+</ul>
+<h2>Preserving Navigation when Starting an Activity</h2>
+<p>
+    When you start an <code>Activity</code> from a notification, you must preserve the
+    user's expected navigation experience. Clicking <i>Back</i> should take the user back through
+    the application's normal work flow to the Home screen, and clicking <i>Recents</i> should show
+    the <code>Activity</code> as a separate task. To preserve the navigation experience, you
+    should start the <code>Activity</code> in a fresh task. How you set up the
+    <code>PendingIntent</code> to give you a fresh task depends on the nature of the
+    <code>Activity</code> you're starting. There are two general situations:
+</p>
+<p>
+            Notifications from the Gmail app demonstrate this. When you click a notification for
+            a single email message, you see the message itself. Touching <b>Back</b> takes you
+            backwards through Gmail to the Home screen, just as if you had entered Gmail from the
+            Home screen rather than entering it from a notification.
+        </p>
+<p>
+            This happens regardless of the application you were in when you touched the
+            notification. For example, if you're in Gmail composing a message, and you click a
+            notification for a single email, you go immediately to that email. Touching <i>Back</i>
+            takes you to the inbox and then the Home screen, rather than taking you to the
+            message you were composing.
+        </p>
+<h3>Setting up a regular activity PendingIntent</h3>
+<p>
+    To set up a <code>PendingIntent</code> that starts a direct entry
+    <code>Activity</code>, follow these steps:
+</p>
+<ol>
+    <li>
+        Define your application's <code>Activity</code> hierarchy in the manifest.
+        <ol>
+            <li>
+                Add support for Android 4.0.3 and earlier. To do this, specify the parent of the
+                <code>Activity</code> you're starting by adding a
+<code>&lt;meta-data&gt;</code>
+                element as the child of the
+<code>&lt;activity&gt;</code>.
+                <p>
+                    For this element, set
+<code>android:name="android.support.PARENT_ACTIVITY"</code>.
+                    Set
+<code>android:value="&lt;parent_activity_name&gt;"</code>
+                    where <code>&lt;parent_activity_name&gt;</code> is the value of
+<code>android:name</code>
+                    for the parent
+<code>&lt;activity&gt;</code>
+                    element. See the following XML for an example.
+                </p>
+            </li>
+            <li>
+                Also add support for Android 4.1 and later. To do this, add the
+<code>android:parentActivityName</code>
+                attribute to the
+<code>&lt;activity&gt;</code>
+                element of the <code>Activity</code> you're starting.
+            </li>
+        </ol>
+        <p>
+            The final XML should look like this:
+        </p>
+<pre>
+&lt;activity
+    android:name=".MainActivity"
+    android:label="@string/app_name" &gt;
+    &lt;intent-filter&gt;
+        &lt;action android:name="android.intent.action.MAIN" /&gt;
+        &lt;category android:name="android.intent.category.LAUNCHER" /&gt;
+    &lt;/intent-filter&gt;
+&lt;/activity&gt;
+&lt;activity
+    android:name=".ResultActivity"
+    android:parentActivityName=".MainActivity"&gt;
+    &lt;meta-data
+        android:name="android.support.PARENT_ACTIVITY"
+        android:value=".MainActivity"/&gt;
+&lt;/activity&gt;
+</pre>
+    </li>
+    <li>
+        Create a back stack based on the <code>Intent</code> that starts the
+        <code>Activity</code>:
+        <ol>
+            <li>
+                Create the <code>Intent</code> to start the <code>Activity</code>.
+            </li>
+            <li>
+                Create a stack builder by calling <code>TaskStackBuilder.create()</code>.
+            </li>
+            <li>
+                Add the back stack to the stack builder by calling
+                <code>addParentStack()</code>.
+                For each <code>Activity</code> in the hierarchy you've defined in the
+                manifest, the back stack contains an <code>Intent</code> object that
+                starts the <code>Activity</code>. This method also adds flags that start the
+                stack in a fresh task.
+                <p>
+                    <strong>Note:</strong> Although the argument to
+                    <code>addParentStack()</code>
+                    is a reference to the started <code>Activity</code>, the method call
+                    doesn't add the <code>Intent</code> that starts the
+                    <code>Activity</code>. Instead, that's taken care of in the next step.
+                </p>
+            </li>
+            <li>
+                Add the <code>Intent</code> that starts the <code>Activity</code>
+                from the notification, by calling
+                <code>addNextIntent()</code>.
+                Pass the <code>Intent</code> you created in the first step as the
+                argument to
+                <code>addNextIntent()</code>.
+            </li>
+            <li>
+                If you need to, add arguments to <code>Intent</code> objects on the
+                stack by calling <code>TaskStackBuilder.editIntentAt()</code>. This is sometimes necessary to ensure that the
+                target <code>Activity</code> displays meaningful data when the user navigates
+                to it using <i>Back</i>.
+            </li>
+            <li>
+                Get a <code>PendingIntent</code> for this back stack by calling
+                <code>getPendingIntent()</code>.
+                You can then use this <code>PendingIntent</code> as the argument to
+                <code>setContentIntent()</code>.
+            </li>
+        </ol>
+     </li>
+</ol>
+<ol>
+            <li>
+                Add support for Android 4.0.3 and earlier. To do this, specify the parent of the
+                <code>Activity</code> you're starting by adding a
+<code>&lt;meta-data&gt;</code>
+                element as the child of the
+<code>&lt;activity&gt;</code>.
+                <p>
+                    For this element, set
+<code>android:name="android.support.PARENT_ACTIVITY"</code>.
+                    Set
+<code>android:value="&lt;parent_activity_name&gt;"</code>
+                    where <code>&lt;parent_activity_name&gt;</code> is the value of
+<code>android:name</code>
+                    for the parent
+<code>&lt;activity&gt;</code>
+                    element. See the following XML for an example.
+                </p>
+            </li>
+            <li>
+                Also add support for Android 4.1 and later. To do this, add the
+<code>android:parentActivityName</code>
+                attribute to the
+<code>&lt;activity&gt;</code>
+                element of the <code>Activity</code> you're starting.
+            </li>
+        </ol>
+<p>
+                    For this element, set
+<code>android:name="android.support.PARENT_ACTIVITY"</code>.
+                    Set
+<code>android:value="&lt;parent_activity_name&gt;"</code>
+                    where <code>&lt;parent_activity_name&gt;</code> is the value of
+<code>android:name</code>
+                    for the parent
+<code>&lt;activity&gt;</code>
+                    element. See the following XML for an example.
+                </p>
+<p>
+            The final XML should look like this:
+        </p>
+<p>WHATSON? 81e2c96a-50fc-4e18-b646-9bc09b862cb1</p>
+<pre>
+&lt;activity
+    android:name=".MainActivity"
+    android:label="@string/app_name" &gt;
+    &lt;intent-filter&gt;
+        &lt;action android:name="android.intent.action.MAIN" /&gt;
+        &lt;category android:name="android.intent.category.LAUNCHER" /&gt;
+    &lt;/intent-filter&gt;
+&lt;/activity&gt;
+&lt;activity
+    android:name=".ResultActivity"
+    android:parentActivityName=".MainActivity"&gt;
+    &lt;meta-data
+        android:name="android.support.PARENT_ACTIVITY"
+        android:value=".MainActivity"/&gt;
+&lt;/activity&gt;
+</pre>
+<ol>
+            <li>
+                Create the <code>Intent</code> to start the <code>Activity</code>.
+            </li>
+            <li>
+                Create a stack builder by calling <code>TaskStackBuilder.create()</code>.
+            </li>
+            <li>
+                Add the back stack to the stack builder by calling
+                <code>addParentStack()</code>.
+                For each <code>Activity</code> in the hierarchy you've defined in the
+                manifest, the back stack contains an <code>Intent</code> object that
+                starts the <code>Activity</code>. This method also adds flags that start the
+                stack in a fresh task.
+                <p>
+                    <strong>Note:</strong> Although the argument to
+                    <code>addParentStack()</code>
+                    is a reference to the started <code>Activity</code>, the method call
+                    doesn't add the <code>Intent</code> that starts the
+                    <code>Activity</code>. Instead, that's taken care of in the next step.
+                </p>
+            </li>
+            <li>
+                Add the <code>Intent</code> that starts the <code>Activity</code>
+                from the notification, by calling
+                <code>addNextIntent()</code>.
+                Pass the <code>Intent</code> you created in the first step as the
+                argument to
+                <code>addNextIntent()</code>.
+            </li>
+            <li>
+                If you need to, add arguments to <code>Intent</code> objects on the
+                stack by calling <code>TaskStackBuilder.editIntentAt()</code>. This is sometimes necessary to ensure that the
+                target <code>Activity</code> displays meaningful data when the user navigates
+                to it using <i>Back</i>.
+            </li>
+            <li>
+                Get a <code>PendingIntent</code> for this back stack by calling
+                <code>getPendingIntent()</code>.
+                You can then use this <code>PendingIntent</code> as the argument to
+                <code>setContentIntent()</code>.
+            </li>
+        </ol>
+<p>
+                    <strong>Note:</strong> Although the argument to
+                    <code>addParentStack()</code>
+                    is a reference to the started <code>Activity</code>, the method call
+                    doesn't add the <code>Intent</code> that starts the
+                    <code>Activity</code>. Instead, that's taken care of in the next step.
+                </p>
+<p>
+    The following code snippet demonstrates the process:
+</p>
+<p>WHATSON? 821d302f-6a8a-48dc-a873-4bede5516d2f</p>
+<pre>
+...
+Intent resultIntent = new Intent(this, ResultActivity.class);
+TaskStackBuilder stackBuilder = TaskStackBuilder.create(this);
+// Adds the back stack
+stackBuilder.addParentStack(ResultActivity.class);
+// Adds the Intent to the top of the stack
+stackBuilder.addNextIntent(resultIntent);
+// Gets a PendingIntent containing the entire back stack
+PendingIntent resultPendingIntent =
+        stackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
+...
+NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
+builder.setContentIntent(resultPendingIntent);
+NotificationManager mNotificationManager =
+    (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+mNotificationManager.notify(id, builder.build());
+</pre>
+<h3>Setting up a special activity PendingIntent</h3>
+<p>
+    The following section describes how to set up a special activity
+    <code>PendingIntent</code>.
+</p>
+<p>
+    A special <code>Activity</code> doesn't need a back stack, so you don't have to
+    define its <code>Activity</code> hierarchy in the manifest, and you don't have
+    to call
+    <code>addParentStack()</code> to build a
+    back stack. Instead, use the manifest to set up the <code>Activity</code> task options,
+    and create the <code>PendingIntent</code> by calling
+    <code>getActivity()</code>:
+</p>
+<ol>
+    <li>
+        In your manifest, add the following attributes to the
+<code>&lt;activity&gt;</code>
+        element for the <code>Activity</code>
+        <dl>
+            <dt>
+<code>android:name="<i>activityclass</i>"</code>
+            </dt>
+            <dd>
+                The activity's fully-qualified class name.
+            </dd>
+            <dt>
+<code>android:taskAffinity=""</code>
+            </dt>
+            <dd>
+                Combined with the
+                <code>FLAG_ACTIVITY_NEW_TASK</code> flag
+                that you set in code, this ensures that this <code>Activity</code> doesn't
+                go into the application's default task. Any existing tasks that have the
+                application's default affinity are not affected.
+            </dd>
+            <dt>
+<code>android:excludeFromRecents="true"</code>
+            </dt>
+            <dd>
+                Excludes the new task from <i>Recents</i>, so that the user can't accidentally
+                navigate back to it.
+            </dd>
+        </dl>
+        <p>
+            This snippet shows the element:
+        </p>
+<pre>
+&lt;activity
+    android:name=".ResultActivity"
+...
+    android:launchMode="singleTask"
+    android:taskAffinity=""
+    android:excludeFromRecents="true"&gt;
+&lt;/activity&gt;
+...
+</pre>
+    </li>
+    <li>
+        Build and issue the notification:
+        <ol>
+            <li>
+                Create an <code>Intent</code> that starts the
+                <code>Activity</code>.
+            </li>
+            <li>
+                Set the <code>Activity</code> to start in a new, empty task by calling
+                <code>setFlags()</code> with the flags
+                <code>FLAG_ACTIVITY_NEW_TASK</code>
+                and
+                <code>FLAG_ACTIVITY_CLEAR_TASK</code>.
+            </li>
+            <li>
+                Set any other options you need for the <code>Intent</code>.
+            </li>
+            <li>
+                Create a <code>PendingIntent</code> from the <code>Intent</code>
+                by calling <code>getActivity()</code>.
+                You can then use this <code>PendingIntent</code> as the argument to
+                <code>setContentIntent()</code>.
+            </li>
+        </ol>
+    <p>
+        The following code snippet demonstrates the process:
+    </p>
+<pre>
+// Instantiate a Builder object.
+NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
+// Creates an Intent for the Activity
+Intent notifyIntent =
+        new Intent(new ComponentName(this, ResultActivity.class));
+// Sets the Activity to start in a new, empty task
+notifyIntent.setFlags(FLAG_ACTIVITY_NEW_TASK | FLAG_ACTIVITY_CLEAR_TASK);
+// Creates the PendingIntent
+PendingIntent notifyIntent =
+        PendingIntent.getActivity(
+        this,
+        0,
+        notifyIntent
+        PendingIntent.FLAG_UPDATE_CURRENT
+);
+
+// Puts the PendingIntent into the notification builder
+builder.setContentIntent(notifyIntent);
+// Notifications are issued by sending them to the
+// NotificationManager system service.
+NotificationManager mNotificationManager =
+    (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+// Builds an anonymous Notification object from the builder, and
+// passes it to the NotificationManager
+mNotificationManager.notify(id, builder.build());
+</pre>
+    </li>
+</ol>
+<p>
+            This snippet shows the element:
+        </p>
+<p>WHATSON? 935cd81a-e527-4d42-a9e3-0ed68ba148ff</p>
+<pre>
+&lt;activity
+    android:name=".ResultActivity"
+...
+    android:launchMode="singleTask"
+    android:taskAffinity=""
+    android:excludeFromRecents="true"&gt;
+&lt;/activity&gt;
+...
+</pre>
+<ol>
+            <li>
+                Create an <code>Intent</code> that starts the
+                <code>Activity</code>.
+            </li>
+            <li>
+                Set the <code>Activity</code> to start in a new, empty task by calling
+                <code>setFlags()</code> with the flags
+                <code>FLAG_ACTIVITY_NEW_TASK</code>
+                and
+                <code>FLAG_ACTIVITY_CLEAR_TASK</code>.
+            </li>
+            <li>
+                Set any other options you need for the <code>Intent</code>.
+            </li>
+            <li>
+                Create a <code>PendingIntent</code> from the <code>Intent</code>
+                by calling <code>getActivity()</code>.
+                You can then use this <code>PendingIntent</code> as the argument to
+                <code>setContentIntent()</code>.
+            </li>
+        </ol>
+<p>
+        The following code snippet demonstrates the process:
+    </p>
+<p>WHATSON? 0672583f-ba76-44d3-a5aa-323f15e2e446</p>
+<pre>
+// Instantiate a Builder object.
+NotificationCompat.Builder builder = new NotificationCompat.Builder(this);
+// Creates an Intent for the Activity
+Intent notifyIntent =
+        new Intent(new ComponentName(this, ResultActivity.class));
+// Sets the Activity to start in a new, empty task
+notifyIntent.setFlags(FLAG_ACTIVITY_NEW_TASK | FLAG_ACTIVITY_CLEAR_TASK);
+// Creates the PendingIntent
+PendingIntent notifyIntent =
+        PendingIntent.getActivity(
+        this,
+        0,
+        notifyIntent
+        PendingIntent.FLAG_UPDATE_CURRENT
+);
+
+// Puts the PendingIntent into the notification builder
+builder.setContentIntent(notifyIntent);
+// Notifications are issued by sending them to the
+// NotificationManager system service.
+NotificationManager mNotificationManager =
+    (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+// Builds an anonymous Notification object from the builder, and
+// passes it to the NotificationManager
+mNotificationManager.notify(id, builder.build());
+</pre>
+<h2>Displaying Progress in a Notification</h2>
+<p>
+    Notifications can include an animated progress indicator that shows users the status
+    of an ongoing operation. If you can estimate how long the operation takes and how much of it
+    is complete at any time, use the "determinate" form of the indicator
+    (a progress bar). If you can't estimate the length of the operation, use the
+    "indeterminate" form of the indicator (an activity indicator).
+</p>
+<p>
+    Progress indicators are displayed with the platform's implementation of the
+    <code>ProgressBar</code> class.
+</p>
+<p>
+    To use a progress indicator on platforms starting with Android 4.0, call
+    <code>setProgress()</code>. For
+    previous versions, you must create your own custom notification layout that
+    includes a <code>ProgressBar</code> view.
+</p>
+<p>
+    The following sections describe how to display progress in a notification using
+    <code>setProgress()</code>.
+</p>
+<h3>Displaying a fixed-duration progress indicator</h3>
+<p>
+    To display a determinate progress bar, add the bar to your notification by calling
+    <code>setProgress()
+    setProgress(max, progress, false)</code> and then issue the notification. As your operation proceeds,
+    increment <code>progress</code>, and update the notification. At the end of the operation,
+    <code>progress</code> should equal <code>max</code>. A common way to call
+    <code>setProgress()</code>
+    is to set <code>max</code> to 100 and then increment <code>progress</code> as a
+    "percent complete" value for the operation.
+</p>
+<p>
+    You can either leave the progress bar showing when the operation is done, or remove it. In
+    either case, remember to update the notification text to show that the operation is complete.
+    To remove the progress bar, call
+    <code>setProgress()
+    setProgress(0, 0, false)</code>. For example:
+</p>
+<p>WHATSON? 3f750a10-4e30-4f6e-a48f-04a38a40575e</p>
+<pre>
+...
+mNotifyManager =
+        (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+mBuilder = new NotificationCompat.Builder(this);
+mBuilder.setContentTitle("Picture Download")
+    .setContentText("Download in progress")
+    .setSmallIcon(R.drawable.ic_notification);
+// Start a lengthy operation in a background thread
+new Thread(
+    new Runnable() {
+        @Override
+        public void run() {
+            int incr;
+            // Do the "lengthy" operation 20 times
+            for (incr = 0; incr &lt;= 100; incr+=5) {
+                    // Sets the progress indicator to a max value, the
+                    // current completion percentage, and "determinate"
+                    // state
+                    mBuilder.setProgress(100, incr, false);
+                    // Displays the progress bar for the first time.
+                    mNotifyManager.notify(0, mBuilder.build());
+                        // Sleeps the thread, simulating an operation
+                        // that takes time
+                        try {
+                            // Sleep for 5 seconds
+                            Thread.sleep(5*1000);
+                        } catch (InterruptedException e) {
+                            Log.d(TAG, "sleep failure");
+                        }
+            }
+            // When the loop is finished, updates the notification
+            mBuilder.setContentText("Download complete")
+            // Removes the progress bar
+                    .setProgress(0,0,false);
+            mNotifyManager.notify(ID, mBuilder.build());
+        }
+    }
+// Starts the thread by calling the run() method in its Runnable
+).start();
+</pre>
+<h3>Displaying a continuing activity indicator</h3>
+<p>
+    To display an indeterminate activity indicator, add it to your notification with
+    <code>setProgress(0, 0, true)</code>
+    (the first two arguments are ignored), and issue the notification. The result is an indicator
+    that has the same style as a progress bar, except that its animation is ongoing.
+</p>
+<p>
+    Issue the notification at the beginning of the operation. The animation will run until you
+    modify your notification. When the operation is done, call
+    <code>setProgress()
+    setProgress(0, 0, false)</code> and then update the notification to remove the activity indicator.
+    Always do this; otherwise, the animation will run even when the operation is complete. Also
+    remember to change the notification text to indicate that the operation is complete.
+</p>
+<p>
+    To see how activity indicators work, refer to the preceding snippet. Locate the following lines:
+</p>
+<p>WHATSON? 52c41c04-076d-48d1-a83b-553a7c4d5932</p>
+<pre>
+// Sets the progress indicator to a max value, the current completion
+// percentage, and "determinate" state
+mBuilder.setProgress(100, incr, false);
+// Issues the notification
+mNotifyManager.notify(0, mBuilder.build());
+</pre>
+<p>
+    Replace the lines you've found with the following lines:
+</p>
+<p>WHATSON? b93a2ef8-1fc2-467c-a270-a5aa7761db67</p>
+<pre>
+ // Sets an activity indicator for an operation of indeterminate length
+mBuilder.setProgress(0, 0, true);
+// Issues the notification
+mNotifyManager.notify(0, mBuilder.build());
+</pre>
+<h2>Notification Metadata</h2>
+<p>Notifications may be sorted according to metadata that you assign with the
+following <code>NotificationCompat.Builder</code> methods:</p>
+<ul>
+    <li><code>setCategory()</code>
+    tells the system how to handle your app notifications when the device is in Priority mode
+    (for example, if your notification represents an incoming call, instant message, or alarm).</li>
+    <li><code>setPriority()</code> causes
+    notifications with the priority field set to <code>PRIORITY_MAX</code> or <code>PRIORITY_HIGH</code> to
+    appear in a small floating window if the notification also has sound or vibration.</li>
+    <li><code>addPerson()</code>
+    allows you to add a list of people to a notification. Your app can use this to signal to the
+    system that it should group together notifications from the specified people, or rank notifications
+    from these people as being more important.</li>
+</ul>
+<p>
+    <strong>Figure 3.</strong> Fullscreen activity showing a heads-up notification
+  </p>
+<h2>Heads-up Notifications</h2>
+<p>With Android 5.0 (API level 21), notifications can appear in a small floating window
+(also called a <em>heads-up notification</em>) when the device is active
+(that is, the device is unlocked and its screen is on). These notifications
+appear similar to the compact form of your notification, except that the
+heads-up notification also shows action buttons. Users can act on, or dismiss,
+a heads-up notification without leaving the current app.</p>
+<p>Examples of conditions that may trigger heads-up notifications include:</p>
+<ul>
+  <li>The user's activity is in fullscreen mode (the app uses
+<code>fullScreenIntent</code>), or</li>
+  <li>The notification has high priority and uses ringtones or
+    vibrations</li>
+</ul>
+<h2>Lock Screen Notifications</h2>
+<p>With the release of Android 5.0 (API level 21), notifications may now appear on the lock
+screen. Your app can use this functionality to provide media playback controls and other common
+actions. Users can choose via Settings whether to display notifications on the lock screen, and
+you can designate whether a notification from your app is visible on the lock screen.</p>
+<h3>Setting Visibility</h3>
+<p>Your app can control the level of detail visible in notifications displayed on a secure
+lock screen. You call <code>setVisibility()</code>
+and specify one of the following values:</p>
+<ul>
+    <li><code>VISIBILITY_PUBLIC</code> shows the notification's
+    full content.</li>
+    <li><code>VISIBILITY_SECRET</code> doesn't show any part of
+    this notification on the lock screen.</li>
+    <li><code>VISIBILITY_PRIVATE</code> shows basic information,
+    such as the notification's icon and the content title, but hides the notification's full content.</li>
+</ul>
+<p>When <code>VISIBILITY_PRIVATE</code> is set, you can also
+provide an alternate version of the notification content which hides certain details. For example,
+an SMS app might display a notification that shows <em>You have 3 new text messages</em>, but hides the
+message contents and senders. To provide this alternative notification, first create the replacement
+notification using <code>NotificationCompat.Builder</code>. When you create the
+private notification object, attach the replacement notification to it through the
+<code>setPublicVersion()</code>
+method.</p>
+<h3>Controlling Media Playback on the Lock Screen</h3>
+<p>In Android 5.0 (API level 21) the lock screen no longer displays media controls
+based on the <code>RemoteControlClient</code>, which is now deprecated. Instead, use the
+<code>Notification.MediaStyle</code> template with the
+<code>addAction()</code>
+method, which converts actions into clickable icons.</p>
+<p><strong>Note:</strong> The template and the <code>addAction()</code>
+method are not included in the support library, so these features run in Android 5.0 and higher
+only.</p>
+<p>To display media playback controls on the lock screen in Android 5.0, set the visibility
+to <code>VISIBILITY_PUBLIC</code>, as described above. Then add
+the actions and set the <code>Notification.MediaStyle</code> template, as described in the
+following sample code:</p>
+<p>WHATSON? 23d43d97-d49a-4958-82ec-8a4c57e951a4</p>
+<pre>
+Notification notification = new Notification.Builder(context)
+    // Show controls on lock screen even when user hides sensitive content.
+    .setVisibility(Notification.VISIBILITY_PUBLIC)
+    .setSmallIcon(R.drawable.ic_stat_player)
+    // Add media control buttons that invoke intents in your media service
+    .addAction(R.drawable.ic_prev, "Previous", prevPendingIntent) // #0
+    .addAction(R.drawable.ic_pause, "Pause", pausePendingIntent)  // #1
+    .addAction(R.drawable.ic_next, "Next", nextPendingIntent)     // #2
+    // Apply the media style template
+    .setStyle(new Notification.MediaStyle()
+    .setShowActionsInCompactView(1 /* #1: pause button */)
+    .setMediaSession(mMediaSession.getSessionToken())
+    .setContentTitle("Wonderful music")
+    .setContentText("My Awesome Band")
+    .setLargeIcon(albumArtBitmap)
+    .build();
+</pre>
+<p><strong>Note:</strong> The deprecation of <code>RemoteControlClient</code>
+has further implications for controlling media. See
+Media Playback Control
+for more information about the new APIs for managing the media session and controlling playback.</p>
+<h2>Custom Notification Layouts</h2>
+<p>
+    The notifications framework allows you to define a custom notification layout, which
+    defines the notification's appearance in a <code>RemoteViews</code> object.
+    Custom layout notifications are similar to normal notifications, but they're based on a
+    <code>RemoteViews</code> defined in a XML layout file.
+</p>
+<p>
+    The height available for a custom notification layout depends on the notification view. Normal
+    view layouts are limited to 64 dp, and expanded view layouts are limited to 256 dp.
+</p>
+<p>
+    To define a custom notification layout, start by instantiating a
+    <code>RemoteViews</code> object that inflates an XML layout file. Then,
+    instead of calling methods such as
+    <code>setContentTitle()</code>,
+    call <code>setContent()</code>. To set
+    content details in the custom notification, use the methods in
+    <code>RemoteViews</code> to set the values of the view's children:
+</p>
+<ol>
+    <li>
+        Create an XML layout for the notification in a separate file. You can use any file name
+        you wish, but you must use the extension <code>.xml</code>
+    </li>
+    <li>
+        In your app, use <code>RemoteViews</code> methods to define your notification's
+        icons and text. Put this <code>RemoteViews</code> object into your
+        <code>NotificationCompat.Builder</code> by calling
+        <code>setContent()</code>. Avoid
+        setting a background <code>Drawable</code> on your
+        <code>RemoteViews</code> object, because your text color may become unreadable.
+    </li>
+</ol>
+<p>
+    The <code>RemoteViews</code> class also includes methods that you can use to easily
+    add a <code>Chronometer</code> or <code>ProgressBar</code>
+    to your notification's layout. For more information about creating custom layouts for your
+    notification, refer to the <code>RemoteViews</code> reference documentation.
+</p>
+<p>
+    <strong>Caution:</strong> When you use a custom notification layout, take special care to
+    ensure that your custom layout works with different device orientations and resolutions. While
+    this advice applies to all View layouts, it's especially important for notifications because
+    the space in the notification drawer is very restricted. Don't make your custom layout too
+    complex, and be sure to test it in various configurations.
+</p>
+<h4>Using style resources for custom notification text</h4>
+<p>
+    Always use style resources for the text of a custom notification. The background color of the
+    notification can vary across different devices and versions, and using style resources
+    helps you account for this. Starting in Android 2.3, the system defined a style for the
+    standard notification layout text. If you use the same style in applications that target Android
+    2.3 or higher, you'll ensure that your text is visible against the display background.
+</p>
+</body>
+</html>

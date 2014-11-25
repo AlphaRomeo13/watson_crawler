@@ -1,0 +1,13 @@
+<h1>Canceling Background Tasks</h1>
+<p>To cancel a running background task, invoke 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/javax/swing/SwingWorker.html#cancel-boolean-"><code>SwingWorker.cancel</code></a> The task must cooperate with its own cancellation. There are two ways it can do this:</p>
+<ul>
+<li>By terminating when it receives an interrupt. This procedures is described in 
+<a class="TutorialLink" target="_top" href="../../essential/concurrency/interrupt.html">Interrupts</a> in 
+<a class="TutorialLink" target="_top" href="../../essential/concurrency/index.html">Concurrency</a>.</li>
+<li>By invoking 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/javax/swing/SwingWorker.html#isCancelled--"><code>SwingWorker.isCancelled</code></a> at short intervals. This method returns <code>true</code> if <code>cancel</code> has been invoked for this <code>SwingWorker</code>.</li>
+</ul>
+<p>The <code>cancel</code> method takes a single <code>boolean</code> argument. If the argument is <code>true</code>, <code>cancel</code> sends the background task an interrupt. Whether the argument is <code>true</code> or <code>false</code>, invoking <code>cancel</code> changes the cancellation status of the object to <code>true</code>. This is the value returned by <code>isCancelled</code>. Once changed, the cancellation status cannot be changed back.</p>
+<p>The <code>Flipper</code> example from the previous section uses the status-only idiom. The main loop in <code>doInBackground</code> exits when <code>isCancelled</code> returns <code>true</code>. This will occur when the user clicks the "Cancel" button, triggering code that invokes <code>cancel</code> with an argument of <code>false</code>.</p>
+<p>The status-only approach makes sense for <code>Flipper</code> because its implementation of <code>SwingWorker.doInBackground</code> does not include any code that might throw <code>InterruptedException</code>. To respond to an interrupt, the background task would have to invoke <code>Thread.isInterrupted</code> at short intervals. It's just as easy to use <code>SwingWorker.isCancelled</code> for the same purpose</p>

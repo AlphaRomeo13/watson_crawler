@@ -1,0 +1,148 @@
+<h1>How to Use Root Panes</h1>
+<p>In general, you don't directly create a 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/javax/swing/JRootPane.html"><code>JRootPane</code></a> object. Instead, you get a <code>JRootPane</code> (whether you want it or not!) when you instantiate <a href="internalframe.html"><code>JInternalFrame</code></a> or one of the top-level Swing containers, such as <a href="applet.html"><code>JApplet</code></a>, <a href="dialog.html"><code>JDialog</code></a>, and <a href="frame.html"><code>JFrame</code></a>.</p>
+<p><a href="toplevel.html">Using Top-Level Containers</a> tells you the basics of using root panes  getting the content pane, setting its layout manager, and adding Swing components to it. This section tells you more about root panes, including the components that make up a root pane and how you can use them.</p>
+<p>As the preceding figure shows, a root pane has four parts:</p>
+<h2><a name="glasspane" id="glasspane">The Glass Pane</a></h2>
+<p>The glass pane is useful when you want to be able to catch events or paint over an area that already contains one or more components. For example, you can deactivate mouse events for a multi-component region by having the glass pane intercept the events. Or you can display an image over multiple components using the glass pane.</p>
+<p>Here's a picture of an application that demonstrates glass pane features. It contains a check box that lets you set whether the glass pane is "visible"  whether it can get events and paint itself onscreen. When the glass pane is visible, it blocks all input events from reaching the components in the content pane. It also paints a red dot in the place where it last detected a mouse-pressed event.</p>
+<ol>
+<li>Click the Launch button to run GlassPaneDemo using 
+<a class="OutsideLink" target="_blank" href="http://www.oracle.com/technetwork/java/javase/javawebstart/index.html">Java™ Web Start</a> (<a href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">download JDK 7 or later</a>). Alternatively, to compile and run the example yourself, consult the <a href="../examples/components/index.html#GlassPaneDemo">example index</a>.<a href="http://docs.oracle.com/javase/tutorialJWS/samples/uiswing/GlassPaneDemoProject/GlassPaneDemo.jnlp"><img src="../../images/jws-launch-button.png" width="88" height="23" align="bottom" alt="Launches the GlassPaneDemo example"></a><br></li>
+<li>Click Button 1.<br>
+The button's appearance changes to show that it's been clicked.</li>
+<li>Click the check box so that the glass pane becomes "visible," and then click Button 1 again.<br>
+The button does not act clicked because the glass pane intercepts all the mouse events. The glass pane paints a red circle where you release the mouse.</li>
+<li>Click the check box again so that the glass pane is hidden.<br>
+When the glass pane detects an event over the check box, it forwards it to the check box. Otherwise, the check box would not respond to clicks.</li>
+</ol>
+<p>The following code from 
+<a class="SourceLink" target="_blank" href="../examples/components/GlassPaneDemoProject/src/components/GlassPaneDemo.java" onclick="showCode('../../displayCode.html', '../examples/components/GlassPaneDemoProject/src/components/GlassPaneDemo.java'); return false;"><code>GlassPaneDemo.java</code></a> shows and hides the glass pane. This program happens to create its own glass pane. However, if a glass pane doesn't do any painting, the program might simply attach listeners to the default glass pane, as returned by <code>getGlassPane</code>.</p>
+<p>WHATSON? 36713de8-5572-4a06-b95b-851d587252ad</p>
+<pre>
+myGlassPane = new MyGlassPane(...);
+changeButton.addItemListener(myGlassPane);
+frame.setGlassPane(myGlassPane);
+...
+class MyGlassPane extends JComponent
+                  implements ItemListener {
+    ...
+    //React to change button clicks.
+    public void itemStateChanged(ItemEvent e) {
+        <b>setVisible(e.getStateChange() == ItemEvent.SELECTED);</b>
+    }
+...
+}
+</pre>
+<p>The next code snippet implements the mouse-event handling for the glass pane. If a mouse event occurs over the check box, then the glass pane redispatches the event so that the check box receives it.</p>
+<p>WHATSON? 9f1d8c37-3f54-48a8-bd82-89dd75e90302</p>
+<pre>
+<em>...//In the implementation of the glass pane's mouse listener:</em>
+public void mouseMoved(MouseEvent e) {
+    redispatchMouseEvent(e, false);
+}
+
+<em>.../* The mouseDragged, mouseClicked, mouseEntered,
+    * mouseExited, and mousePressed methods have the same
+    * implementation as mouseMoved. */...</em>
+
+public void mouseReleased(MouseEvent e) {
+    redispatchMouseEvent(e, true);
+}
+
+private void redispatchMouseEvent(MouseEvent e,
+                                  boolean repaint) {
+    Point glassPanePoint = e.getPoint();
+    Container container = contentPane;
+    Point containerPoint = SwingUtilities.convertPoint(
+                                    glassPane,
+                                    glassPanePoint,
+                                    contentPane);
+
+    if (containerPoint.y &lt; 0) { //we're not in the content pane
+        <em>//Could have special code to handle mouse events over
+        //the menu bar or non-system window decorations, such as
+        //the ones provided by the Java look and feel.</em>
+    } else {
+        //The mouse event is probably over the content pane.
+        //Find out exactly which component it's over.
+        Component component =
+            SwingUtilities.getDeepestComponentAt(
+                                    container,
+                                    containerPoint.x,
+                                    containerPoint.y);
+
+        if ((component != null)
+            &amp;&amp; (component.equals(liveButton))) {
+            //Forward events over the check box.
+            Point componentPoint = SwingUtilities.convertPoint(
+                                        glassPane,
+                                        glassPanePoint,
+                                        component);
+            component.dispatchEvent(new MouseEvent(component,
+                                                 e.getID(),
+                                                 e.getWhen(),
+                                                 e.getModifiers(),
+                                                 componentPoint.x,
+                                                 componentPoint.y,
+                                                 e.getClickCount(),
+                                                 e.isPopupTrigger()));
+        }
+    }
+
+    //Update the glass pane if requested.
+    if (repaint) {
+        glassPane.setPoint(glassPanePoint);
+        glassPane.repaint();
+    }
+}
+</pre>
+<p>Here is the code in <code>MyGlassPane</code> that implements the painting.</p>
+<p>WHATSON? 3aeedd6e-72e8-4f39-9e98-120dea621544</p>
+<pre>
+protected void paintComponent(Graphics g) {
+    if (point != null) {
+        g.setColor(Color.red);
+        g.fillOval(point.x - 10, point.y - 10, 20, 20);
+    }
+}
+</pre>
+<h2><a name="layeredpane" id="layeredpane">The Layered Pane</a></h2>
+<p>A layered pane is a container with depth such that overlapping components can appear one on top of the other. General information about layered panes is in 
+<a class="TutorialLink" target="_top" href="layeredpane.html">How to Use Layered Panes</a>. This section discusses the particulars of how root panes use layered panes.</p>
+<p>Each root pane places its menu bar and content pane in an instance of <code>JLayeredPane</code>. The Z ordering that the layered pane provides enables behavior such as displaying popup menus above other components.</p>
+<p>You can choose to put components in the root pane's layered pane. If you do, then you should be aware that certain depths are defined to be used for specific functions, and you should use the depths as intended. Otherwise, your components might not play well with the others. Here's a diagram that shows the functional layers and their relationship:</p>
+<p>The table below describes the intended use for each layer and lists the <code>JLayeredPane</code> constant that corresponds to each layer:</p>
+<p><a name="examplemods" id="examplemods">Here is a picture of RootLayeredPaneDemo, which is a version of</a> <a href="../examples/components/index.html#LayeredPaneDemo">LayeredPaneDemo</a> that uses the root pane's layered pane, rather than creating a new layered pane.</p>
+<ol>
+<li>Click the Launch button to run RootLayeredPaneDemo using 
+<a class="OutsideLink" target="_blank" href="http://www.oracle.com/technetwork/java/javase/javawebstart/index.html">Java™ Web Start</a> (<a href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">download JDK 7 or later</a>). Alternatively, to compile and run the example yourself, consult the <a href="../examples/components/index.html#RootLayeredPaneDemo">example index</a>.<a href="http://docs.oracle.com/javase/tutorialJWS/samples/uiswing/RootLayeredPaneDemoProject/RootLayeredPaneDemo.jnlp"><img src="../../images/jws-launch-button.png" width="88" height="23" align="bottom" alt="Launches the RootLayeredPaneDemo"></a><br></li>
+<li>Move the cursor around in the window, so that Duke moves on top of other components.<br>
+Note that when the cursor is on top of non-label components  whether it's in the content pane or in the Java-look-and-feel provided title bar  Duke's movement is temporarily stopped. This is because mouse-motion events go to the component that's deepest in the containment hierarchy and is interested in mouse events. The mouse-motion listener that moves Duke is registered on the layered pane, and most of the components in that pane (with the exception of the labels) happen to have mouse-motion listeners. When the mouse moves over an interested component in the layered pane, the layered pane doesn't get the event and the interested component does.</li>
+<li>Making sure the Top Position in Layer check box is selected, change Duke's layer to Yellow (-30000).<br>
+As before, he appears on top of other components, except for the Magenta (0) and Cyan (301) rectangles.</li>
+<li>Keeping Duke in the Yellow layer, click the check box to send Duke to the back of layer -30000.<br>
+Duke disappears because the content pane and all the components in it are now above him.</li>
+<li>Change Duke's layer to Cyan (301), move Duke down a bit so he's standing on the top edge of the Yellow rectangle, and then press Space to bring up the combo box's drop-down list.<br>
+If the look and feel implements the drop-down list as a lightweight popup, Duke appears on top of the drop-down list.</li>
+</ol>
+<h2><a name="api" id="api">The Root Pane API</a></h2>
+<p>The tables that follow list the API for using root panes, glass panes, and content panes. For more information on using content panes, go to <a href="toplevel.html">Using Top-Level Containers</a>. Here are the tables in this section:</p>
+<ul>
+<li><a href="#rootpaneapi">Using a Root Pane</a></li>
+<li><a href="#contentapi">Setting or Getting the Root Pane's Contents</a></li>
+</ul>
+<p>The API for using other parts of the root pane is described elsewhere:</p>
+<ul>
+<li><a href="layeredpane.html#api">The Layered Pane API</a></li>
+<li><a href="menu.html#api">The Menu API</a></li>
+</ul>
+<p>
+</p>
+<h2><a name="eg" id="eg">Examples that Use Root Panes</a></h2>
+<p>Every Swing program has a root pane, but few reference it directly. The examples in the following list illustrate how to use features of <code>JRootPane</code> or the glass pane. Also see these lists:</p>
+<ul>
+<li><a href="layeredpane.html#eg">Examples that Use Layered Panes</a></li>
+<li><a href="menu.html#eg">Examples that Use Menus</a></li>
+<li><a href="frame.html#eg">Examples that Use Frames</a> (for examples of using content panes)</li>
+</ul>

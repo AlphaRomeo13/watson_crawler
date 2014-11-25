@@ -1,0 +1,71 @@
+<h1>Atomic Variables</h1>
+<p>The 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/util/concurrent/atomic/package-summary.html"><code>java.util.concurrent.atomic</code></a> package defines classes that support atomic operations on single variables. All classes have <code>get</code> and <code>set</code> methods that work like reads and writes on <code>volatile</code> variables. That is, a <code>set</code> has a happens-before relationship with any subsequent <code>get</code> on the same variable. The atomic <code>compareAndSet</code> method also has these memory consistency features, as do the simple atomic arithmetic methods that apply to integer atomic variables.</p>
+<p>To see how this package might be used, let's return to the 
+<a class="SourceLink" target="_blank" href="examples/Counter.java" onclick="showCode('../../displayCode.html', 'examples/Counter.java'); return false;"><code><code>Counter</code></code></a> class we originally used to demonstrate thread interference:</p>
+<p>WHATSON? 7efa33d1-9e02-4074-af10-3d41ab788561</p>
+<pre>
+
+class Counter {
+    private int c = 0;
+
+    public void increment() {
+        c++;
+    }
+
+    public void decrement() {
+        c--;
+    }
+
+    public int value() {
+        return c;
+    }
+
+}
+</pre>
+<p>One way to make <code>Counter</code> safe from thread interference is to make its methods synchronized, as in 
+<a class="SourceLink" target="_blank" href="examples/SynchronizedCounter.java" onclick="showCode('../../displayCode.html', 'examples/SynchronizedCounter.java'); return false;"><code><code>SynchronizedCounter</code></code></a>:</p>
+<p>WHATSON? 8c0ad187-c6ec-4c5a-a377-61712f4b04f6</p>
+<pre>
+
+class SynchronizedCounter {
+    private int c = 0;
+
+    public synchronized void increment() {
+        c++;
+    }
+
+    public synchronized void decrement() {
+        c--;
+    }
+
+    public synchronized int value() {
+        return c;
+    }
+
+}
+</pre>
+<p>For this simple class, synchronization is an acceptable solution. But for a more complicated class, we might want to avoid the liveness impact of unnecessary synchronization. Replacing the <code>int</code> field with an <code>AtomicInteger</code> allows us to prevent thread interference without resorting to synchronization, as in 
+<a class="SourceLink" target="_blank" href="examples/AtomicCounter.java" onclick="showCode('../../displayCode.html', 'examples/AtomicCounter.java'); return false;"><code><code>AtomicCounter</code></code></a>:</p>
+<p>WHATSON? 71a8211f-dfda-4445-9d92-e792c041d8ab</p>
+<pre>
+
+import java.util.concurrent.atomic.AtomicInteger;
+
+class AtomicCounter {
+    private AtomicInteger c = new AtomicInteger(0);
+
+    public void increment() {
+        c.incrementAndGet();
+    }
+
+    public void decrement() {
+        c.decrementAndGet();
+    }
+
+    public int value() {
+        return c.get();
+    }
+
+}
+</pre>

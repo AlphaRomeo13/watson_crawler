@@ -1,0 +1,1260 @@
+<h1 itemprop="name">Dialogs</h1>
+<h2>In this document</h2>
+<ol>
+  <li><a href="#DialogFragment">Creating a Dialog Fragment</a></li>
+  <li><a href="#AlertDialog">Building an Alert Dialog</a>
+    <ol>
+      <li><a href="#AddingButtons">Adding buttons</a></li>
+      <li><a href="#AddingAList">Adding a list</a></li>
+      <li><a href="#CustomLayout">Creating a Custom Layout</a></li>
+    </ol>
+  </li>
+  <li><a href="#PassingEvents">Passing Events Back to the Dialog's Host</a></li>
+  <li><a href="#ShowingADialog">Showing a Dialog</a></li>
+  <li><a href="#FullscreenDialog">Showing a Dialog Fullscreen or as an Embedded Fragment</a>
+    <ol>
+      <li><a href="#ActivityAsDialog">Showing an activity as a dialog on large screens</a></li>
+    </ol>
+  </li>
+  <li><a href="#DismissingADialog">Dismissing a Dialog</a></li>
+</ol>
+<ol>
+      <li><a href="#AddingButtons">Adding buttons</a></li>
+      <li><a href="#AddingAList">Adding a list</a></li>
+      <li><a href="#CustomLayout">Creating a Custom Layout</a></li>
+    </ol>
+<ol>
+      <li><a href="#ActivityAsDialog">Showing an activity as a dialog on large screens</a></li>
+    </ol>
+<h2>Key classes</h2>
+<ol>
+      <li><code><a href="/reference/android/app/DialogFragment.html">DialogFragment</a></code></li>
+      <li><code><a href="/reference/android/app/AlertDialog.html">AlertDialog</a></code></li>
+    </ol>
+<h2>See also</h2>
+<ol>
+      <li><a href="/design/building-blocks/dialogs.html">Dialogs design guide</a></li>
+      <li><a href="/guide/topics/ui/controls/pickers.html">Pickers</a> (Date/Time dialogs)</li>
+    </ol>
+<p>A dialog is a small window that prompts the user to
+make a decision or enter additional information. A dialog does not fill the screen and is
+normally used for modal events that require users to take an action before they can proceed.</p>
+<p><strong>Dialog Design</strong></p>
+<p>For information about how to design your dialogs, including recommendations
+  for language, read the <a href="/design/building-blocks/dialogs.html">Dialogs</a> design guide.</p>
+<p>The <code><a href="/reference/android/app/Dialog.html">Dialog</a></code> class is the base class for dialogs, but you
+should avoid instantiating <code><a href="/reference/android/app/Dialog.html">Dialog</a></code> directly.
+Instead, use one of the following subclasses:</p>
+<h2>Avoid ProgressDialog</h2>
+<p>Android includes another dialog class called
+<code><a href="/reference/android/app/ProgressDialog.html">ProgressDialog</a></code> that shows a dialog with a progress bar. However, if you
+need to indicate loading or indeterminate progress, you should instead follow the design
+guidelines for <a href="/design/building-blocks/progress.html">Progress &amp;
+Activity</a> and use a <code><a href="/reference/android/widget/ProgressBar.html">ProgressBar</a></code> in your layout.</p>
+<p>These classes define the style and structure for your dialog, but you should
+use a <code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code> as a container for your dialog.
+The <code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code> class provides all the controls you
+need to create your dialog and manage its appearance, instead of calling methods
+on the <code><a href="/reference/android/app/Dialog.html">Dialog</a></code> object.</p>
+<p>Using <code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code> to manage the dialog
+ensures that it correctly handles lifecycle events
+such as when the user presses the <em>Back</em> button or rotates the screen. The <code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code> class also allows you to reuse the dialog's UI as an
+embeddable component in a larger UI, just like a traditional <code><a href="/reference/android/support/v4/app/Fragment.html">Fragment</a></code> (such as when you want the dialog UI to appear differently
+on large and small screens).</p>
+<p>The following sections in this guide describe how to use a <code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code> in combination with an <code><a href="/reference/android/app/AlertDialog.html">AlertDialog</a></code>
+object. If you'd like to create a date or time picker, you should instead read the
+<a href="/guide/topics/ui/controls/pickers.html">Pickers</a> guide.</p>
+<p class="note"><strong>Note:</strong>
+Because the <code><a href="/reference/android/app/DialogFragment.html">DialogFragment</a></code> class was originally added with
+Android 3.0 (API level 11), this document describes how to use the <code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code> class that's provided with the <a href="/tools/support-library/index.html">Support Library</a>. By adding this library
+to your app, you can use <code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code> and a variety of other
+APIs on devices running Android 1.6 or higher. If the minimum version your app supports
+is API level 11 or higher, then you can use the framework version of <code><a href="/reference/android/app/DialogFragment.html">DialogFragment</a></code>, but be aware that the links in this document are for the support
+library APIs. When using the support library,
+be sure that you import <code>android.support.v4.app.DialogFragment</code>
+class and <em>not</em> <code>android.app.DialogFragment</code>.</p>
+<h2 id="DialogFragment">Creating a Dialog Fragment</h2>
+<p>You can accomplish a wide variety of dialog designs—including
+custom layouts and those described in the <a href="/design/building-blocks/dialogs.html">Dialogs</a>
+design guide—by extending
+<code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code> and creating a <code><a href="/reference/android/app/AlertDialog.html">AlertDialog</a></code>
+in the <code><a href="/reference/android/support/v4/app/DialogFragment.html#onCreateDialog(android.os.Bundle)">onCreateDialog()</a></code> callback method.</p>
+<p>For example, here's a basic <code><a href="/reference/android/app/AlertDialog.html">AlertDialog</a></code> that's managed within
+a <code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code>:</p>
+<p>WHATSON? ff634ca5-03b8-4190-8965-985b95d95da2</p>
+<pre>
+public class FireMissilesDialogFragment extends DialogFragment {
+    @Override
+    public Dialog onCreateDialog(Bundle savedInstanceState) {
+        // Use the Builder class for convenient dialog construction
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        builder.setMessage(R.string.dialog_fire_missiles)
+               .setPositiveButton(R.string.fire, new DialogInterface.OnClickListener() {
+                   public void onClick(DialogInterface dialog, int id) {
+                       // FIRE ZE MISSILES!
+                   }
+               })
+               .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                   public void onClick(DialogInterface dialog, int id) {
+                       // User cancelled the dialog
+                   }
+               });
+        // Create the AlertDialog object and return it
+        return builder.create();
+    }
+}
+</pre>
+<p class="img-caption"><strong>Figure 1.</strong>
+A dialog with a message and two action buttons.</p>
+<p>Now, when you create an instance of this class and call <code><a href="/reference/android/support/v4/app/DialogFragment.html#show(android.support.v4.app.FragmentManager,%20java.lang.String)">show()</a></code> on that object, the dialog appears as
+shown in figure 1.</p>
+<p>The next section describes more about using the <code><a href="/reference/android/app/AlertDialog.Builder.html">AlertDialog.Builder</a></code>
+APIs to create the dialog.</p>
+<p>Depending on how complex your dialog is, you can implement a variety of other callback
+methods in the <code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code>, including all the basic
+<a href="/guide/components/fragments.html#Lifecycle">fragment lifecycle methods</a>.
+
+
+
+
+
+</p>
+<h2 id="AlertDialog">Building an Alert Dialog</h2>
+<p>The <code><a href="/reference/android/app/AlertDialog.html">AlertDialog</a></code> class allows you to build a variety of dialog designs and
+is often the only dialog class you'll need.
+As shown in figure 2, there are three regions of an alert dialog:</p>
+<p class="img-caption"><strong>Figure 2.</strong> The layout of a dialog.</p>
+<ol>
+<li><b>Title</b>
+  <p>This is optional and should be used only when the content area
+  is occupied by a detailed message, a list, or custom layout. If you need to state
+  a simple message or question (such as the dialog in figure 1), you don't need a title.</p></li>
+<li><b>Content area</b>
+  <p>This can display a message, a list, or other custom layout.</p></li>
+<li><b>Action buttons</b>
+  <p>There should be no more than three action buttons in a dialog.</p></li>
+</ol>
+<p>This is optional and should be used only when the content area
+  is occupied by a detailed message, a list, or custom layout. If you need to state
+  a simple message or question (such as the dialog in figure 1), you don't need a title.</p>
+<p>This can display a message, a list, or other custom layout.</p>
+<p>There should be no more than three action buttons in a dialog.</p>
+<p>The <code><a href="/reference/android/app/AlertDialog.Builder.html">AlertDialog.Builder</a></code>
+class provides APIs that allow you to create an <code><a href="/reference/android/app/AlertDialog.html">AlertDialog</a></code>
+with these kinds of content, including a custom layout.</p>
+<p>To build an <code><a href="/reference/android/app/AlertDialog.html">AlertDialog</a></code>:</p>
+<p>WHATSON? bfb939aa-c2c6-42e8-808e-5c24d9b53a36</p>
+<pre>
+<b>// 1. Instantiate an <code><a href="/reference/android/app/AlertDialog.Builder.html">AlertDialog.Builder</a></code> with its constructor</b>
+AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+
+<b>// 2. Chain together various setter methods to set the dialog characteristics</b>
+builder.setMessage(R.string.dialog_message)
+       .setTitle(R.string.dialog_title);
+
+<b>// 3. Get the <code><a href="/reference/android/app/AlertDialog.html">AlertDialog</a></code> from <code><a href="/reference/android/app/AlertDialog.Builder.html#create()">create()</a></code></b>
+AlertDialog dialog = builder.create();
+</pre>
+<p>The following topics show how to define various dialog attributes using the
+<code><a href="/reference/android/app/AlertDialog.Builder.html">AlertDialog.Builder</a></code> class.</p>
+<h3 id="AddingButtons">Adding buttons</h3>
+<p>To add action buttons like those in figure 2,
+call the <code><a href="/reference/android/app/AlertDialog.Builder.html#setPositiveButton(int,%20android.content.DialogInterface.OnClickListener)">setPositiveButton()</a></code> and
+<code><a href="/reference/android/app/AlertDialog.Builder.html#setNegativeButton(int,%20android.content.DialogInterface.OnClickListener)">setNegativeButton()</a></code> methods:</p>
+<p>WHATSON? ae50e13c-bc09-4512-b2ad-a6bbf710ec82</p>
+<pre style="clear:right">
+AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+// Add the buttons
+builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+           public void onClick(DialogInterface dialog, int id) {
+               // User clicked OK button
+           }
+       });
+builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+           public void onClick(DialogInterface dialog, int id) {
+               // User cancelled the dialog
+           }
+       });
+// Set other dialog properties
+...
+
+// Create the AlertDialog
+AlertDialog dialog = builder.create();
+</pre>
+<p>The <code>set...Button()</code> methods require a title for the button (supplied
+by a <a href="/guide/topics/resources/string-resource.html">string resource</a>) and a 
+<code><a href="/reference/android/content/DialogInterface.OnClickListener.html">DialogInterface.OnClickListener</a></code> that defines the action to take 
+when the user presses the button.</p>
+<p>There are three different action buttons you can add:</p>
+<p>You can add only one of each button type to an <code><a href="/reference/android/app/AlertDialog.html">AlertDialog</a></code>. That is, you cannot have more than one "positive" button.</p>
+<p class="img-caption"><strong>Figure 3.</strong>
+A dialog with a title and list.</p>
+<h3 id="AddingAList">Adding a list</h3>
+<p>There are three kinds of lists available with the <code><a href="/reference/android/app/AlertDialog.html">AlertDialog</a></code> APIs:</p>
+<ul>
+<li>A traditional single-choice list</li>
+<li>A persistent single-choice list (radio buttons)</li>
+<li>A persistent multiple-choice list (checkboxes)</li>
+</ul>
+<p>To create a single-choice list like the one in figure 3, 
+use the <code><a href="/reference/android/app/AlertDialog.Builder.html#setItems(int,%20android.content.DialogInterface.OnClickListener)">setItems()</a></code> method:</p>
+<p>WHATSON? 55183b56-8fb4-4e3a-813c-a560ff347139</p>
+<pre style="clear:right">
+@Override
+public Dialog onCreateDialog(Bundle savedInstanceState) {
+    AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+    builder.setTitle(R.string.pick_color)
+           .setItems(R.array.colors_array, new DialogInterface.OnClickListener() {
+               public void onClick(DialogInterface dialog, int which) {
+               // The 'which' argument contains the index position
+               // of the selected item
+           }
+    });
+    return builder.create();
+}
+</pre>
+<p>Because the list appears in the dialog's content area,
+the dialog cannot show both a message and a list and you should set a title for the
+dialog with <code><a href="/reference/android/app/AlertDialog.Builder.html#setTitle(int)">setTitle()</a></code>. 
+To specify the items for the list, call <code><a href="/reference/android/app/AlertDialog.Builder.html#setItems(int,%20android.content.DialogInterface.OnClickListener)">setItems()</a></code>, passing an array.
+Alternatively, you can specify a list using <code><a href="/reference/android/app/AlertDialog.Builder.html#setAdapter(android.widget.ListAdapter,%20android.content.DialogInterface.OnClickListener)">setAdapter()</a></code>. This allows you to back the list
+with dynamic data (such as from a database) using a <code><a href="/reference/android/widget/ListAdapter.html">ListAdapter</a></code>.</p>
+<p>If you choose to back your list with a <code><a href="/reference/android/widget/ListAdapter.html">ListAdapter</a></code>,
+always use a <code><a href="/reference/android/support/v4/content/Loader.html">Loader</a></code> so that the content loads
+asynchronously. This is described further in
+<a href="/guide/topics/ui/declaring-layout.html#AdapterViews">Building Layouts
+with an Adapter</a> and the <a href="/guide/components/loaders.html">Loaders</a>
+guide.</p>
+<p class="note"><strong>Note:</strong> By default, touching a list item dismisses the dialog,
+unless you're using one of the following persistent choice lists.</p>
+<p class="img-caption"><strong>Figure 4.</strong>
+A list of multiple-choice items.</p>
+<h4 id="Checkboxes">Adding a persistent multiple-choice or single-choice list</h4>
+<p>To add a list of multiple-choice items (checkboxes) or 
+single-choice items (radio buttons), use the
+<code><a href="/reference/android/app/AlertDialog.Builder.html#setMultiChoiceItems(android.database.Cursor,%20java.lang.String,%20java.lang.String,%20android.content.DialogInterface.OnMultiChoiceClickListener)">setMultiChoiceItems()</a></code> or 
+<code><a href="/reference/android/app/AlertDialog.Builder.html#setSingleChoiceItems(int,%20int,%20android.content.DialogInterface.OnClickListener)">setSingleChoiceItems()</a></code> methods, respectively.</p>
+<p>For example, here's how you can create a multiple-choice list like the
+one shown in figure 4 that saves the selected
+items in an <code><a href="/reference/java/util/ArrayList.html">ArrayList</a></code>:</p>
+<p>WHATSON? 6230029c-9bb9-41b7-862c-e0ec3ad1261d</p>
+<pre style="clear:right">
+@Override
+public Dialog onCreateDialog(Bundle savedInstanceState) {
+    mSelectedItems = new ArrayList();  // Where we track the selected items
+    AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+    // Set the dialog title
+    builder.setTitle(R.string.pick_toppings)
+    // Specify the list array, the items to be selected by default (null for none),
+    // and the listener through which to receive callbacks when items are selected
+           .setMultiChoiceItems(R.array.toppings, null,
+                      new DialogInterface.OnMultiChoiceClickListener() {
+               @Override
+               public void onClick(DialogInterface dialog, int which,
+                       boolean isChecked) {
+                   if (isChecked) {
+                       // If the user checked the item, add it to the selected items
+                       mSelectedItems.add(which);
+                   } else if (mSelectedItems.contains(which)) {
+                       // Else, if the item is already in the array, remove it 
+                       mSelectedItems.remove(Integer.valueOf(which));
+                   }
+               }
+           })
+    // Set the action buttons
+           .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+               @Override
+               public void onClick(DialogInterface dialog, int id) {
+                   // User clicked OK, so save the mSelectedItems results somewhere
+                   // or return them to the component that opened the dialog
+                   ...
+               }
+           })
+           .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+               @Override
+               public void onClick(DialogInterface dialog, int id) {
+                   ...
+               }
+           });
+
+    return builder.create();
+}
+</pre>
+<p>Although both a traditional list and a list with radio buttons
+provide a "single choice" action, you should use <code><a href="/reference/android/app/AlertDialog.Builder.html#setSingleChoiceItems(int,%20int,%20android.content.DialogInterface.OnClickListener)">setSingleChoiceItems()</a></code> if you want to persist the user's choice.
+That is, if opening the dialog again later should indicate what the user's current choice is,
+then you create a list with radio buttons.</p>
+<h3 id="CustomLayout">Creating a Custom Layout</h3>
+<p class="img-caption"><strong>Figure 5.</strong> A custom dialog layout.</p>
+<p>If you want a custom layout in a dialog, create a layout and add it to an
+<code><a href="/reference/android/app/AlertDialog.html">AlertDialog</a></code> by calling <code><a href="/reference/android/app/AlertDialog.Builder.html#setView(android.view.View)">setView()</a></code> on your <code><a href="/reference/android/app/AlertDialog.Builder.html">AlertDialog.Builder</a></code> object.</p>
+<p>By default, the custom layout fills the dialog window, but you can still
+use <code><a href="/reference/android/app/AlertDialog.Builder.html">AlertDialog.Builder</a></code> methods to add buttons and a title.</p>
+<p>For example, here's the layout file for the dialog in Figure 5:</p>
+<p style="clear:right" class="code-caption">res/layout/dialog_signin.xml</p>
+<p>WHATSON? 232bd3ef-3a58-44ea-ba4c-c399c0539b80</p>
+<pre>
+&lt;LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"&gt;
+    &lt;ImageView
+        android:src="@drawable/header_logo"
+        android:layout_width="match_parent"
+        android:layout_height="64dp"
+        android:scaleType="center"
+        android:background="#FFFFBB33"
+        android:contentDescription="@string/app_name" /&gt;
+    &lt;EditText
+        android:id="@+id/username"
+        android:inputType="textEmailAddress"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_marginLeft="4dp"
+        android:layout_marginRight="4dp"
+        android:layout_marginBottom="4dp"
+        android:hint="@string/username" /&gt;
+    &lt;EditText
+        android:id="@+id/password"
+        android:inputType="textPassword"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:layout_marginLeft="4dp"
+        android:layout_marginRight="4dp"
+        android:layout_marginBottom="16dp"
+        android:fontFamily="sans-serif"
+        android:hint="@string/password"/&gt;
+&lt;/LinearLayout&gt;
+</pre>
+<p class="note"><strong>Tip:</strong> By default, when you set an <code><a href="/reference/android/widget/EditText.html">EditText</a></code>
+element to use the <code>"textPassword"</code> input type, the font family is set to monospace, so
+you should change its font family to <code>"sans-serif"</code> so that both text fields use
+a matching font style.</p>
+<p>To inflate the layout in your <code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code>,
+get a <code><a href="/reference/android/view/LayoutInflater.html">LayoutInflater</a></code> with 
+<code><a href="/reference/android/app/Activity.html#getLayoutInflater()">getLayoutInflater()</a></code> and call
+<code><a href="/reference/android/view/LayoutInflater.html#inflate(int,%20android.view.ViewGroup)">inflate()</a></code>, where the first parameter
+is the layout resource ID and the second parameter is a parent view for the layout.
+You can then call <code><a href="/reference/android/app/AlertDialog.html#setView(android.view.View)">setView()</a></code>
+to place the layout in the dialog.</p>
+<p>WHATSON? 79a7de66-d172-432a-9dd1-2ca478199925</p>
+<pre>
+@Override
+public Dialog onCreateDialog(Bundle savedInstanceState) {
+    AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+    // Get the layout inflater
+    LayoutInflater inflater = getActivity().getLayoutInflater();
+
+    // Inflate and set the layout for the dialog
+    // Pass null as the parent view because its going in the dialog layout
+    builder.setView(inflater.inflate(R.layout.dialog_signin, null))
+    // Add action buttons
+           .setPositiveButton(R.string.signin, new DialogInterface.OnClickListener() {
+               @Override
+               public void onClick(DialogInterface dialog, int id) {
+                   // sign in the user ...
+               }
+           })
+           .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+               public void onClick(DialogInterface dialog, int id) {
+                   LoginDialogFragment.this.getDialog().cancel();
+               }
+           });      
+    return builder.create();
+}
+</pre>
+<p><strong>Tip:</strong> If you want a custom dialog,
+you can instead display an <code><a href="/reference/android/app/Activity.html">Activity</a></code> as a dialog
+instead of using the <code><a href="/reference/android/app/Dialog.html">Dialog</a></code> APIs. Simply create an activity and set its theme to
+<code><a href="/reference/android/R.style.html#Theme_Holo_Dialog">Theme.Holo.Dialog</a></code>
+in the <a href="/guide/topics/manifest/activity-element.html"><code>&lt;activity&gt;</code></a> manifest element:</p>
+<p>WHATSON? 36a9ddac-6b81-4fc5-a570-d57257b88694</p>
+<pre>
+&lt;activity android:theme="@android:style/Theme.Holo.Dialog" &gt;
+</pre>
+<p>That's it. The activity now displays in a dialog window instead of fullscreen.</p>
+<h2 id="PassingEvents">Passing Events Back to the Dialog's Host</h2>
+<p>When the user touches one of the dialog's action buttons or selects an item from its list,
+your <code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code> might perform the necessary
+action itself, but often you'll want to deliver the event to the activity or fragment that
+opened the dialog. To do this, define an interface with a method for each type of click event.
+Then implement that interface in the host component that will
+receive the action events from the dialog.</p>
+<p>For example, here's a <code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code> that defines an
+interface through which it delivers the events back to the host activity:</p>
+<p>WHATSON? 6a52fc52-52dd-48b0-8faa-d261f51dddd8</p>
+<pre>
+public class NoticeDialogFragment extends DialogFragment {
+    
+    /* The activity that creates an instance of this dialog fragment must
+     * implement this interface in order to receive event callbacks.
+     * Each method passes the DialogFragment in case the host needs to query it. */
+    public interface NoticeDialogListener {
+        public void onDialogPositiveClick(DialogFragment dialog);
+        public void onDialogNegativeClick(DialogFragment dialog);
+    }
+    
+    // Use this instance of the interface to deliver action events
+    NoticeDialogListener mListener;
+    
+    // Override the Fragment.onAttach() method to instantiate the NoticeDialogListener
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        // Verify that the host activity implements the callback interface
+        try {
+            // Instantiate the NoticeDialogListener so we can send events to the host
+            mListener = (NoticeDialogListener) activity;
+        } catch (ClassCastException e) {
+            // The activity doesn't implement the interface, throw exception
+            throw new ClassCastException(activity.toString()
+                    + " must implement NoticeDialogListener");
+        }
+    }
+    ...
+}
+</pre>
+<p>The activity hosting the dialog creates an instance of the dialog
+with the dialog fragment's constructor and receives the dialog's
+events through an implementation of the <code>NoticeDialogListener</code> interface:</p>
+<p>WHATSON? f22e2d0f-4c78-4f3b-8e50-b99d0bd7303b</p>
+<pre>
+public class MainActivity extends FragmentActivity
+                          implements NoticeDialogFragment.NoticeDialogListener{
+    ...
+    
+    public void showNoticeDialog() {
+        // Create an instance of the dialog fragment and show it
+        DialogFragment dialog = new NoticeDialogFragment();
+        dialog.show(getSupportFragmentManager(), "NoticeDialogFragment");
+    }
+
+    // The dialog fragment receives a reference to this Activity through the
+    // Fragment.onAttach() callback, which it uses to call the following methods
+    // defined by the NoticeDialogFragment.NoticeDialogListener interface
+    @Override
+    public void onDialogPositiveClick(DialogFragment dialog) {
+        // User touched the dialog's positive button
+        ...
+    }
+
+    @Override
+    public void onDialogNegativeClick(DialogFragment dialog) {
+        // User touched the dialog's negative button
+        ...
+    }
+}
+</pre>
+<p>Because the host activity implements the <code>NoticeDialogListener</code>—which is
+enforced by the <code><a href="/reference/android/support/v4/app/Fragment.html#onAttach(android.app.Activity)">onAttach()</a></code>
+callback method shown above—the dialog fragment can use the
+interface callback methods to deliver click events to the activity:</p>
+<p>WHATSON? 0dfaa7b2-9142-47f8-b3fb-a4de37cb069a</p>
+<pre>
+public class NoticeDialogFragment extends DialogFragment {
+    ...
+
+    @Override
+    public Dialog onCreateDialog(Bundle savedInstanceState) {
+        // Build the dialog and set up the button click handlers
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        builder.setMessage(R.string.dialog_fire_missiles)
+               .setPositiveButton(R.string.fire, new DialogInterface.OnClickListener() {
+                   public void onClick(DialogInterface dialog, int id) {
+                       // Send the positive button event back to the host activity
+                       mListener.onDialogPositiveClick(NoticeDialogFragment.this);
+                   }
+               })
+               .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                   public void onClick(DialogInterface dialog, int id) {
+                       // Send the negative button event back to the host activity
+                       mListener.onDialogNegativeClick(NoticeDialogFragment.this);
+                   }
+               });
+        return builder.create();
+    }
+}
+</pre>
+<h2 id="ShowingADialog">Showing a Dialog</h2>
+<p>When you want to show your dialog, create an instance of your <code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code> and call <code><a href="/reference/android/support/v4/app/DialogFragment.html#show(android.support.v4.app.FragmentManager,%20java.lang.String)">show()</a></code>, passing the <code><a href="/reference/android/support/v4/app/FragmentManager.html">FragmentManager</a></code> and a tag name
+for the dialog fragment.</p>
+<p>You can get the <code><a href="/reference/android/support/v4/app/FragmentManager.html">FragmentManager</a></code> by calling
+<code><a href="/reference/android/support/v4/app/FragmentActivity.html#getSupportFragmentManager()">getSupportFragmentManager()</a></code> from
+the <code><a href="/reference/android/support/v4/app/FragmentActivity.html">FragmentActivity</a></code> or <code><a href="/reference/android/support/v4/app/Fragment.html#getFragmentManager()">getFragmentManager()</a></code> from a <code><a href="/reference/android/support/v4/app/Fragment.html">Fragment</a></code>. For example:</p>
+<p>WHATSON? c4faba7f-e37b-47c9-8b61-6467f111c896</p>
+<pre>
+public void confirmFireMissiles() {
+    DialogFragment newFragment = new FireMissilesDialogFragment();
+    newFragment.show(getSupportFragmentManager(), "missiles");
+}
+</pre>
+<p>The second argument, <code>"missiles"</code>, is a unique tag name that the system uses to save
+and restore the fragment state when necessary. The tag also allows you to get a handle to
+the fragment by calling <code><a href="/reference/android/support/v4/app/FragmentManager.html#findFragmentByTag(java.lang.String)">findFragmentByTag()</a></code>.</p>
+<h2 id="FullscreenDialog">Showing a Dialog Fullscreen or as an Embedded Fragment</h2>
+<p>You might have a UI design in which you want a piece of the UI to appear as a dialog in some
+situations, but as a full screen or embedded fragment in others (perhaps depending on whether
+the device is a large screen or small screen). The <code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code>
+class offers you this flexibility because it can still behave as an embeddable <code><a href="/reference/android/support/v4/app/Fragment.html">Fragment</a></code>.</p>
+<p>However, you cannot use <code><a href="/reference/android/app/AlertDialog.Builder.html">AlertDialog.Builder</a></code>
+or other <code><a href="/reference/android/app/Dialog.html">Dialog</a></code> objects to build the dialog in this case. If
+you want the <code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code> to be
+embeddable, you must define the dialog's UI in a layout, then load the layout in the
+<code><a href="/reference/android/support/v4/app/Fragment.html#onCreateView(android.view.LayoutInflater,%20android.view.ViewGroup,%20android.os.Bundle)">onCreateView()</a></code> callback.</p>
+<p>Here's an example <code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code> that can appear as either a
+dialog or an embeddable fragment (using a layout named <code>purchase_items.xml</code>):</p>
+<p>WHATSON? 6e199411-7a78-4aaf-9c3e-6079fe6be376</p>
+<pre>
+public class CustomDialogFragment extends DialogFragment {
+    /** The system calls this to get the DialogFragment's layout, regardless
+        of whether it's being displayed as a dialog or an embedded fragment. */
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+            Bundle savedInstanceState) {
+        // Inflate the layout to use as dialog or embedded fragment
+        return inflater.inflate(R.layout.purchase_items, container, false);
+    }
+  
+    /** The system calls this only when creating the layout in a dialog. */
+    @Override
+    public Dialog onCreateDialog(Bundle savedInstanceState) {
+        // The only reason you might override this method when using onCreateView() is
+        // to modify any dialog characteristics. For example, the dialog includes a
+        // title by default, but your custom layout might not need it. So here you can
+        // remove the dialog title, but you must call the superclass to get the Dialog.
+        Dialog dialog = super.onCreateDialog(savedInstanceState);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        return dialog;
+    }
+}
+</pre>
+<p>And here's some code that decides whether to show the fragment as a dialog
+or a fullscreen UI, based on the screen size:</p>
+<p>WHATSON? b1cc66cf-8b98-4153-9fa4-80460590cd6e</p>
+<pre>
+public void showDialog() {
+    FragmentManager fragmentManager = getSupportFragmentManager();
+    CustomDialogFragment newFragment = new CustomDialogFragment();
+    
+    if (mIsLargeLayout) {
+        // The device is using a large layout, so show the fragment as a dialog
+        newFragment.show(fragmentManager, "dialog");
+    } else {
+        // The device is smaller, so show the fragment fullscreen
+        FragmentTransaction transaction = fragmentManager.beginTransaction();
+        // For a little polish, specify a transition animation
+        transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
+        // To make it fullscreen, use the 'content' root view as the container
+        // for the fragment, which is always the root view for the activity
+        transaction.add(android.R.id.content, newFragment)
+                   .addToBackStack(null).commit();
+    }
+}
+</pre>
+<p>For more information about performing fragment transactions, see the
+<a href="/guide/components/fragments.html">Fragments</a> guide.</p>
+<p>In this example, the <code>mIsLargeLayout</code> boolean specifies whether the current device
+should use the app's large layout design (and thus show this fragment as a dialog, rather
+than fullscreen). The best way to set this kind of boolean is to declare a
+<a href="/guide/topics/resources/more-resources.html#Bool">bool resource value</a>
+with an <a href="/guide/topics/resources/providing-resources.html#AlternativeResources">alternative resource</a> value for different screen sizes. For example, here are two
+versions of the bool resource for different screen sizes:</p>
+<p class="code-caption">res/values/bools.xml</p>
+<p>WHATSON? 62945083-acf6-4450-ac88-3412be45712e</p>
+<pre>
+&lt;!-- Default boolean values --&gt;
+&lt;resources&gt;
+    &lt;bool name="large_layout"&gt;false&lt;/bool&gt;
+&lt;/resources&gt;
+</pre>
+<p class="code-caption">res/values-large/bools.xml</p>
+<p>WHATSON? 8c96142d-859f-4878-bd2f-49af96cac54a</p>
+<pre>
+&lt;!-- Large screen boolean values --&gt;
+&lt;resources&gt;
+    &lt;bool name="large_layout"&gt;true&lt;/bool&gt;
+&lt;/resources&gt;
+</pre>
+<p>Then you can initialize the <code>mIsLargeLayout</code> value during the activity's
+<code><a href="/reference/android/app/Activity.html#onCreate(android.os.Bundle)">onCreate()</a></code> method:</p>
+<p>WHATSON? 64444db9-5a8c-4f0a-b122-dba6bd9154e8</p>
+<pre>
+boolean mIsLargeLayout;
+
+@Override
+public void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    setContentView(R.layout.activity_main);
+
+    mIsLargeLayout = getResources().getBoolean(R.bool.large_layout);
+}
+</pre>
+<h3 id="ActivityAsDialog">Showing an activity as a dialog on large screens</h3>
+<p>Instead of showing a dialog as a fullscreen UI when on small screens, you can accomplish
+the same result by showing an <code><a href="/reference/android/app/Activity.html">Activity</a></code> as a dialog when on
+large screens. Which approach you choose depends on your app design, but
+showing an activity as a dialog is often useful when your app is already designed for small
+screens and you'd like to improve the experience on tablets by showing a short-lived activity
+as a dialog.</p>
+<p>To show an activity as a dialog only when on large screens,
+apply the <code><a href="/reference/android/R.style.html#Theme_Holo_DialogWhenLarge">Theme.Holo.DialogWhenLarge</a></code>
+theme to the <a href="/guide/topics/manifest/activity-element.html"><code>&lt;activity&gt;</code></a> manifest element:</p>
+<p>WHATSON? 5d575249-1683-49f6-a34f-d038b5097f7f</p>
+<pre>
+&lt;activity android:theme="@android:style/Theme.Holo.DialogWhenLarge" &gt;
+</pre>
+<p>For more information about styling your activities with themes, see the <a href="/guide/topics/ui/themes.html">Styles and Themes</a> guide.</p>
+<h2 id="DismissingADialog">Dismissing a Dialog</h2>
+<p>When the user touches any of the action buttons created with an
+<code><a href="/reference/android/app/AlertDialog.Builder.html">AlertDialog.Builder</a></code>, the system dismisses the dialog for you.</p>
+<p>The system also dismisses the dialog when the user touches an item in a dialog list, except
+when the list uses radio buttons or checkboxes. Otherwise, you can manually dismiss your dialog
+by calling <code><a href="/reference/android/support/v4/app/DialogFragment.html#dismiss()">dismiss()</a></code> on your <code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code>.</p>
+<p>In case you need to perform certain
+actions when the dialog goes away, you can implement the <code><a href="/reference/android/support/v4/app/DialogFragment.html#onDismiss(android.content.DialogInterface)">onDismiss()</a></code> method in your <code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code>.</p>
+<p>You can also <em>cancel</em> a dialog. This is a special event that indicates the user
+explicitly left the dialog without completing the task. This occurs if the user presses the 
+<em>Back</em> button, touches the screen outside the dialog area,
+or if you explicitly call <code><a href="/reference/android/app/Dialog.html#cancel()">cancel()</a></code> on the <code><a href="/reference/android/app/Dialog.html">Dialog</a></code> (such as in response to a "Cancel" button in the dialog).</p>
+<p>As shown in the example above, you can respond to the cancel event by implementing
+<code><a href="/reference/android/support/v4/app/DialogFragment.html#onCancel(android.content.DialogInterface)">onCancel()</a></code> in your <code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code> class.</p>
+<p class="note"><strong>Note:</strong> The system calls
+<code><a href="/reference/android/support/v4/app/DialogFragment.html#onDismiss(android.content.DialogInterface)">onDismiss()</a></code> upon each event that
+invokes the <code><a href="/reference/android/support/v4/app/DialogFragment.html#onCancel(android.content.DialogInterface)">onCancel()</a></code> callback. However,
+if you call <code><a href="/reference/android/app/Dialog.html#dismiss()">Dialog.dismiss()</a></code> or <code><a href="/reference/android/support/v4/app/DialogFragment.html#dismiss()">DialogFragment.dismiss()</a></code>,
+the system calls <code><a href="/reference/android/support/v4/app/DialogFragment.html#onDismiss(android.content.DialogInterface)">onDismiss()</a></code> <em>but
+not</em> <code><a href="/reference/android/support/v4/app/DialogFragment.html#onCancel(android.content.DialogInterface)">onCancel()</a></code>. So you should generally
+call <code><a href="/reference/android/support/v4/app/DialogFragment.html#dismiss()">dismiss()</a></code> when the user presses the
+<em>positive</em> button in your dialog in order to remove the dialog from view.</p>
+<h1 itemprop="name">Dialogs</h1>
+<h2>In this document</h2>
+<ol>
+  <li><a href="#DialogFragment">Creating a Dialog Fragment</a></li>
+  <li><a href="#AlertDialog">Building an Alert Dialog</a>
+    <ol>
+      <li><a href="#AddingButtons">Adding buttons</a></li>
+      <li><a href="#AddingAList">Adding a list</a></li>
+      <li><a href="#CustomLayout">Creating a Custom Layout</a></li>
+    </ol>
+  </li>
+  <li><a href="#PassingEvents">Passing Events Back to the Dialog's Host</a></li>
+  <li><a href="#ShowingADialog">Showing a Dialog</a></li>
+  <li><a href="#FullscreenDialog">Showing a Dialog Fullscreen or as an Embedded Fragment</a>
+    <ol>
+      <li><a href="#ActivityAsDialog">Showing an activity as a dialog on large screens</a></li>
+    </ol>
+  </li>
+  <li><a href="#DismissingADialog">Dismissing a Dialog</a></li>
+</ol>
+<ol>
+      <li><a href="#AddingButtons">Adding buttons</a></li>
+      <li><a href="#AddingAList">Adding a list</a></li>
+      <li><a href="#CustomLayout">Creating a Custom Layout</a></li>
+    </ol>
+<ol>
+      <li><a href="#ActivityAsDialog">Showing an activity as a dialog on large screens</a></li>
+    </ol>
+<h2>Key classes</h2>
+<ol>
+      <li><code><a href="/reference/android/app/DialogFragment.html">DialogFragment</a></code></li>
+      <li><code><a href="/reference/android/app/AlertDialog.html">AlertDialog</a></code></li>
+    </ol>
+<h2>See also</h2>
+<ol>
+      <li><a href="/design/building-blocks/dialogs.html">Dialogs design guide</a></li>
+      <li><a href="/guide/topics/ui/controls/pickers.html">Pickers</a> (Date/Time dialogs)</li>
+    </ol>
+<p>A dialog is a small window that prompts the user to
+make a decision or enter additional information. A dialog does not fill the screen and is
+normally used for modal events that require users to take an action before they can proceed.</p>
+<p><strong>Dialog Design</strong></p>
+<p>For information about how to design your dialogs, including recommendations
+  for language, read the <a href="/design/building-blocks/dialogs.html">Dialogs</a> design guide.</p>
+<p>The <code><a href="/reference/android/app/Dialog.html">Dialog</a></code> class is the base class for dialogs, but you
+should avoid instantiating <code><a href="/reference/android/app/Dialog.html">Dialog</a></code> directly.
+Instead, use one of the following subclasses:</p>
+<h2>Avoid ProgressDialog</h2>
+<p>Android includes another dialog class called
+<code><a href="/reference/android/app/ProgressDialog.html">ProgressDialog</a></code> that shows a dialog with a progress bar. However, if you
+need to indicate loading or indeterminate progress, you should instead follow the design
+guidelines for <a href="/design/building-blocks/progress.html">Progress &amp;
+Activity</a> and use a <code><a href="/reference/android/widget/ProgressBar.html">ProgressBar</a></code> in your layout.</p>
+<p>These classes define the style and structure for your dialog, but you should
+use a <code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code> as a container for your dialog.
+The <code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code> class provides all the controls you
+need to create your dialog and manage its appearance, instead of calling methods
+on the <code><a href="/reference/android/app/Dialog.html">Dialog</a></code> object.</p>
+<p>Using <code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code> to manage the dialog
+ensures that it correctly handles lifecycle events
+such as when the user presses the <em>Back</em> button or rotates the screen. The <code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code> class also allows you to reuse the dialog's UI as an
+embeddable component in a larger UI, just like a traditional <code><a href="/reference/android/support/v4/app/Fragment.html">Fragment</a></code> (such as when you want the dialog UI to appear differently
+on large and small screens).</p>
+<p>The following sections in this guide describe how to use a <code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code> in combination with an <code><a href="/reference/android/app/AlertDialog.html">AlertDialog</a></code>
+object. If you'd like to create a date or time picker, you should instead read the
+<a href="/guide/topics/ui/controls/pickers.html">Pickers</a> guide.</p>
+<p class="note"><strong>Note:</strong>
+Because the <code><a href="/reference/android/app/DialogFragment.html">DialogFragment</a></code> class was originally added with
+Android 3.0 (API level 11), this document describes how to use the <code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code> class that's provided with the <a href="/tools/support-library/index.html">Support Library</a>. By adding this library
+to your app, you can use <code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code> and a variety of other
+APIs on devices running Android 1.6 or higher. If the minimum version your app supports
+is API level 11 or higher, then you can use the framework version of <code><a href="/reference/android/app/DialogFragment.html">DialogFragment</a></code>, but be aware that the links in this document are for the support
+library APIs. When using the support library,
+be sure that you import <code>android.support.v4.app.DialogFragment</code>
+class and <em>not</em> <code>android.app.DialogFragment</code>.</p>
+<h2 id="DialogFragment">Creating a Dialog Fragment</h2>
+<p>You can accomplish a wide variety of dialog designs—including
+custom layouts and those described in the <a href="/design/building-blocks/dialogs.html">Dialogs</a>
+design guide—by extending
+<code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code> and creating a <code><a href="/reference/android/app/AlertDialog.html">AlertDialog</a></code>
+in the <code><a href="/reference/android/support/v4/app/DialogFragment.html#onCreateDialog(android.os.Bundle)">onCreateDialog()</a></code> callback method.</p>
+<p>For example, here's a basic <code><a href="/reference/android/app/AlertDialog.html">AlertDialog</a></code> that's managed within
+a <code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code>:</p>
+<p>WHATSON? fcb74d83-043a-4c2c-bdf5-d412ff0b9664</p>
+<pre>
+public class FireMissilesDialogFragment extends DialogFragment {
+    @Override
+    public Dialog onCreateDialog(Bundle savedInstanceState) {
+        // Use the Builder class for convenient dialog construction
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        builder.setMessage(R.string.dialog_fire_missiles)
+               .setPositiveButton(R.string.fire, new DialogInterface.OnClickListener() {
+                   public void onClick(DialogInterface dialog, int id) {
+                       // FIRE ZE MISSILES!
+                   }
+               })
+               .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                   public void onClick(DialogInterface dialog, int id) {
+                       // User cancelled the dialog
+                   }
+               });
+        // Create the AlertDialog object and return it
+        return builder.create();
+    }
+}
+</pre>
+<p class="img-caption"><strong>Figure 1.</strong>
+A dialog with a message and two action buttons.</p>
+<p>Now, when you create an instance of this class and call <code><a href="/reference/android/support/v4/app/DialogFragment.html#show(android.support.v4.app.FragmentManager,%20java.lang.String)">show()</a></code> on that object, the dialog appears as
+shown in figure 1.</p>
+<p>The next section describes more about using the <code><a href="/reference/android/app/AlertDialog.Builder.html">AlertDialog.Builder</a></code>
+APIs to create the dialog.</p>
+<p>Depending on how complex your dialog is, you can implement a variety of other callback
+methods in the <code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code>, including all the basic
+<a href="/guide/components/fragments.html#Lifecycle">fragment lifecycle methods</a>.
+
+
+
+
+
+</p>
+<h2 id="AlertDialog">Building an Alert Dialog</h2>
+<p>The <code><a href="/reference/android/app/AlertDialog.html">AlertDialog</a></code> class allows you to build a variety of dialog designs and
+is often the only dialog class you'll need.
+As shown in figure 2, there are three regions of an alert dialog:</p>
+<p class="img-caption"><strong>Figure 2.</strong> The layout of a dialog.</p>
+<ol>
+<li><b>Title</b>
+  <p>This is optional and should be used only when the content area
+  is occupied by a detailed message, a list, or custom layout. If you need to state
+  a simple message or question (such as the dialog in figure 1), you don't need a title.</p></li>
+<li><b>Content area</b>
+  <p>This can display a message, a list, or other custom layout.</p></li>
+<li><b>Action buttons</b>
+  <p>There should be no more than three action buttons in a dialog.</p></li>
+</ol>
+<p>This is optional and should be used only when the content area
+  is occupied by a detailed message, a list, or custom layout. If you need to state
+  a simple message or question (such as the dialog in figure 1), you don't need a title.</p>
+<p>This can display a message, a list, or other custom layout.</p>
+<p>There should be no more than three action buttons in a dialog.</p>
+<p>The <code><a href="/reference/android/app/AlertDialog.Builder.html">AlertDialog.Builder</a></code>
+class provides APIs that allow you to create an <code><a href="/reference/android/app/AlertDialog.html">AlertDialog</a></code>
+with these kinds of content, including a custom layout.</p>
+<p>To build an <code><a href="/reference/android/app/AlertDialog.html">AlertDialog</a></code>:</p>
+<p>WHATSON? 36773e53-03df-4fbf-8821-abf0bfbb6dfd</p>
+<pre>
+<b>// 1. Instantiate an <code><a href="/reference/android/app/AlertDialog.Builder.html">AlertDialog.Builder</a></code> with its constructor</b>
+AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+
+<b>// 2. Chain together various setter methods to set the dialog characteristics</b>
+builder.setMessage(R.string.dialog_message)
+       .setTitle(R.string.dialog_title);
+
+<b>// 3. Get the <code><a href="/reference/android/app/AlertDialog.html">AlertDialog</a></code> from <code><a href="/reference/android/app/AlertDialog.Builder.html#create()">create()</a></code></b>
+AlertDialog dialog = builder.create();
+</pre>
+<p>The following topics show how to define various dialog attributes using the
+<code><a href="/reference/android/app/AlertDialog.Builder.html">AlertDialog.Builder</a></code> class.</p>
+<h3 id="AddingButtons">Adding buttons</h3>
+<p>To add action buttons like those in figure 2,
+call the <code><a href="/reference/android/app/AlertDialog.Builder.html#setPositiveButton(int,%20android.content.DialogInterface.OnClickListener)">setPositiveButton()</a></code> and
+<code><a href="/reference/android/app/AlertDialog.Builder.html#setNegativeButton(int,%20android.content.DialogInterface.OnClickListener)">setNegativeButton()</a></code> methods:</p>
+<p>WHATSON? b5cfa460-9125-4dbf-9786-bee837ba2426</p>
+<pre style="clear:right">
+AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+// Add the buttons
+builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+           public void onClick(DialogInterface dialog, int id) {
+               // User clicked OK button
+           }
+       });
+builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+           public void onClick(DialogInterface dialog, int id) {
+               // User cancelled the dialog
+           }
+       });
+// Set other dialog properties
+...
+
+// Create the AlertDialog
+AlertDialog dialog = builder.create();
+</pre>
+<p>The <code>set...Button()</code> methods require a title for the button (supplied
+by a <a href="/guide/topics/resources/string-resource.html">string resource</a>) and a 
+<code><a href="/reference/android/content/DialogInterface.OnClickListener.html">DialogInterface.OnClickListener</a></code> that defines the action to take 
+when the user presses the button.</p>
+<p>There are three different action buttons you can add:</p>
+<p>You can add only one of each button type to an <code><a href="/reference/android/app/AlertDialog.html">AlertDialog</a></code>. That is, you cannot have more than one "positive" button.</p>
+<p class="img-caption"><strong>Figure 3.</strong>
+A dialog with a title and list.</p>
+<h3 id="AddingAList">Adding a list</h3>
+<p>There are three kinds of lists available with the <code><a href="/reference/android/app/AlertDialog.html">AlertDialog</a></code> APIs:</p>
+<ul>
+<li>A traditional single-choice list</li>
+<li>A persistent single-choice list (radio buttons)</li>
+<li>A persistent multiple-choice list (checkboxes)</li>
+</ul>
+<p>To create a single-choice list like the one in figure 3, 
+use the <code><a href="/reference/android/app/AlertDialog.Builder.html#setItems(int,%20android.content.DialogInterface.OnClickListener)">setItems()</a></code> method:</p>
+<p>WHATSON? 6ba5e853-8c6a-40b1-88ea-4a03e3fae133</p>
+<pre style="clear:right">
+@Override
+public Dialog onCreateDialog(Bundle savedInstanceState) {
+    AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+    builder.setTitle(R.string.pick_color)
+           .setItems(R.array.colors_array, new DialogInterface.OnClickListener() {
+               public void onClick(DialogInterface dialog, int which) {
+               // The 'which' argument contains the index position
+               // of the selected item
+           }
+    });
+    return builder.create();
+}
+</pre>
+<p>Because the list appears in the dialog's content area,
+the dialog cannot show both a message and a list and you should set a title for the
+dialog with <code><a href="/reference/android/app/AlertDialog.Builder.html#setTitle(int)">setTitle()</a></code>. 
+To specify the items for the list, call <code><a href="/reference/android/app/AlertDialog.Builder.html#setItems(int,%20android.content.DialogInterface.OnClickListener)">setItems()</a></code>, passing an array.
+Alternatively, you can specify a list using <code><a href="/reference/android/app/AlertDialog.Builder.html#setAdapter(android.widget.ListAdapter,%20android.content.DialogInterface.OnClickListener)">setAdapter()</a></code>. This allows you to back the list
+with dynamic data (such as from a database) using a <code><a href="/reference/android/widget/ListAdapter.html">ListAdapter</a></code>.</p>
+<p>If you choose to back your list with a <code><a href="/reference/android/widget/ListAdapter.html">ListAdapter</a></code>,
+always use a <code><a href="/reference/android/support/v4/content/Loader.html">Loader</a></code> so that the content loads
+asynchronously. This is described further in
+<a href="/guide/topics/ui/declaring-layout.html#AdapterViews">Building Layouts
+with an Adapter</a> and the <a href="/guide/components/loaders.html">Loaders</a>
+guide.</p>
+<p class="note"><strong>Note:</strong> By default, touching a list item dismisses the dialog,
+unless you're using one of the following persistent choice lists.</p>
+<p class="img-caption"><strong>Figure 4.</strong>
+A list of multiple-choice items.</p>
+<h4 id="Checkboxes">Adding a persistent multiple-choice or single-choice list</h4>
+<p>To add a list of multiple-choice items (checkboxes) or 
+single-choice items (radio buttons), use the
+<code><a href="/reference/android/app/AlertDialog.Builder.html#setMultiChoiceItems(android.database.Cursor,%20java.lang.String,%20java.lang.String,%20android.content.DialogInterface.OnMultiChoiceClickListener)">setMultiChoiceItems()</a></code> or 
+<code><a href="/reference/android/app/AlertDialog.Builder.html#setSingleChoiceItems(int,%20int,%20android.content.DialogInterface.OnClickListener)">setSingleChoiceItems()</a></code> methods, respectively.</p>
+<p>For example, here's how you can create a multiple-choice list like the
+one shown in figure 4 that saves the selected
+items in an <code><a href="/reference/java/util/ArrayList.html">ArrayList</a></code>:</p>
+<p>WHATSON? 8cc905a0-caa2-4a62-8d1d-c89a7cff4fb8</p>
+<pre style="clear:right">
+@Override
+public Dialog onCreateDialog(Bundle savedInstanceState) {
+    mSelectedItems = new ArrayList();  // Where we track the selected items
+    AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+    // Set the dialog title
+    builder.setTitle(R.string.pick_toppings)
+    // Specify the list array, the items to be selected by default (null for none),
+    // and the listener through which to receive callbacks when items are selected
+           .setMultiChoiceItems(R.array.toppings, null,
+                      new DialogInterface.OnMultiChoiceClickListener() {
+               @Override
+               public void onClick(DialogInterface dialog, int which,
+                       boolean isChecked) {
+                   if (isChecked) {
+                       // If the user checked the item, add it to the selected items
+                       mSelectedItems.add(which);
+                   } else if (mSelectedItems.contains(which)) {
+                       // Else, if the item is already in the array, remove it 
+                       mSelectedItems.remove(Integer.valueOf(which));
+                   }
+               }
+           })
+    // Set the action buttons
+           .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+               @Override
+               public void onClick(DialogInterface dialog, int id) {
+                   // User clicked OK, so save the mSelectedItems results somewhere
+                   // or return them to the component that opened the dialog
+                   ...
+               }
+           })
+           .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+               @Override
+               public void onClick(DialogInterface dialog, int id) {
+                   ...
+               }
+           });
+
+    return builder.create();
+}
+</pre>
+<p>Although both a traditional list and a list with radio buttons
+provide a "single choice" action, you should use <code><a href="/reference/android/app/AlertDialog.Builder.html#setSingleChoiceItems(int,%20int,%20android.content.DialogInterface.OnClickListener)">setSingleChoiceItems()</a></code> if you want to persist the user's choice.
+That is, if opening the dialog again later should indicate what the user's current choice is,
+then you create a list with radio buttons.</p>
+<h3 id="CustomLayout">Creating a Custom Layout</h3>
+<p class="img-caption"><strong>Figure 5.</strong> A custom dialog layout.</p>
+<p>If you want a custom layout in a dialog, create a layout and add it to an
+<code><a href="/reference/android/app/AlertDialog.html">AlertDialog</a></code> by calling <code><a href="/reference/android/app/AlertDialog.Builder.html#setView(android.view.View)">setView()</a></code> on your <code><a href="/reference/android/app/AlertDialog.Builder.html">AlertDialog.Builder</a></code> object.</p>
+<p>By default, the custom layout fills the dialog window, but you can still
+use <code><a href="/reference/android/app/AlertDialog.Builder.html">AlertDialog.Builder</a></code> methods to add buttons and a title.</p>
+<p>For example, here's the layout file for the dialog in Figure 5:</p>
+<p style="clear:right" class="code-caption">res/layout/dialog_signin.xml</p>
+<p>WHATSON? 833f9d4c-ee97-471d-bf8d-9a46e8e320e9</p>
+<pre>
+&lt;LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"&gt;
+    &lt;ImageView
+        android:src="@drawable/header_logo"
+        android:layout_width="match_parent"
+        android:layout_height="64dp"
+        android:scaleType="center"
+        android:background="#FFFFBB33"
+        android:contentDescription="@string/app_name" /&gt;
+    &lt;EditText
+        android:id="@+id/username"
+        android:inputType="textEmailAddress"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_marginLeft="4dp"
+        android:layout_marginRight="4dp"
+        android:layout_marginBottom="4dp"
+        android:hint="@string/username" /&gt;
+    &lt;EditText
+        android:id="@+id/password"
+        android:inputType="textPassword"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:layout_marginLeft="4dp"
+        android:layout_marginRight="4dp"
+        android:layout_marginBottom="16dp"
+        android:fontFamily="sans-serif"
+        android:hint="@string/password"/&gt;
+&lt;/LinearLayout&gt;
+</pre>
+<p class="note"><strong>Tip:</strong> By default, when you set an <code><a href="/reference/android/widget/EditText.html">EditText</a></code>
+element to use the <code>"textPassword"</code> input type, the font family is set to monospace, so
+you should change its font family to <code>"sans-serif"</code> so that both text fields use
+a matching font style.</p>
+<p>To inflate the layout in your <code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code>,
+get a <code><a href="/reference/android/view/LayoutInflater.html">LayoutInflater</a></code> with 
+<code><a href="/reference/android/app/Activity.html#getLayoutInflater()">getLayoutInflater()</a></code> and call
+<code><a href="/reference/android/view/LayoutInflater.html#inflate(int,%20android.view.ViewGroup)">inflate()</a></code>, where the first parameter
+is the layout resource ID and the second parameter is a parent view for the layout.
+You can then call <code><a href="/reference/android/app/AlertDialog.html#setView(android.view.View)">setView()</a></code>
+to place the layout in the dialog.</p>
+<p>WHATSON? 1c9b088a-c279-4d5b-827c-ab9b3f5bd3fa</p>
+<pre>
+@Override
+public Dialog onCreateDialog(Bundle savedInstanceState) {
+    AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+    // Get the layout inflater
+    LayoutInflater inflater = getActivity().getLayoutInflater();
+
+    // Inflate and set the layout for the dialog
+    // Pass null as the parent view because its going in the dialog layout
+    builder.setView(inflater.inflate(R.layout.dialog_signin, null))
+    // Add action buttons
+           .setPositiveButton(R.string.signin, new DialogInterface.OnClickListener() {
+               @Override
+               public void onClick(DialogInterface dialog, int id) {
+                   // sign in the user ...
+               }
+           })
+           .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+               public void onClick(DialogInterface dialog, int id) {
+                   LoginDialogFragment.this.getDialog().cancel();
+               }
+           });      
+    return builder.create();
+}
+</pre>
+<p><strong>Tip:</strong> If you want a custom dialog,
+you can instead display an <code><a href="/reference/android/app/Activity.html">Activity</a></code> as a dialog
+instead of using the <code><a href="/reference/android/app/Dialog.html">Dialog</a></code> APIs. Simply create an activity and set its theme to
+<code><a href="/reference/android/R.style.html#Theme_Holo_Dialog">Theme.Holo.Dialog</a></code>
+in the <a href="/guide/topics/manifest/activity-element.html"><code>&lt;activity&gt;</code></a> manifest element:</p>
+<p>WHATSON? 874f6e0d-f66b-4094-a698-910fc1dc1270</p>
+<pre>
+&lt;activity android:theme="@android:style/Theme.Holo.Dialog" &gt;
+</pre>
+<p>That's it. The activity now displays in a dialog window instead of fullscreen.</p>
+<h2 id="PassingEvents">Passing Events Back to the Dialog's Host</h2>
+<p>When the user touches one of the dialog's action buttons or selects an item from its list,
+your <code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code> might perform the necessary
+action itself, but often you'll want to deliver the event to the activity or fragment that
+opened the dialog. To do this, define an interface with a method for each type of click event.
+Then implement that interface in the host component that will
+receive the action events from the dialog.</p>
+<p>For example, here's a <code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code> that defines an
+interface through which it delivers the events back to the host activity:</p>
+<p>WHATSON? c90b7a05-d4a5-473c-baec-9c9dcd6eb313</p>
+<pre>
+public class NoticeDialogFragment extends DialogFragment {
+    
+    /* The activity that creates an instance of this dialog fragment must
+     * implement this interface in order to receive event callbacks.
+     * Each method passes the DialogFragment in case the host needs to query it. */
+    public interface NoticeDialogListener {
+        public void onDialogPositiveClick(DialogFragment dialog);
+        public void onDialogNegativeClick(DialogFragment dialog);
+    }
+    
+    // Use this instance of the interface to deliver action events
+    NoticeDialogListener mListener;
+    
+    // Override the Fragment.onAttach() method to instantiate the NoticeDialogListener
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        // Verify that the host activity implements the callback interface
+        try {
+            // Instantiate the NoticeDialogListener so we can send events to the host
+            mListener = (NoticeDialogListener) activity;
+        } catch (ClassCastException e) {
+            // The activity doesn't implement the interface, throw exception
+            throw new ClassCastException(activity.toString()
+                    + " must implement NoticeDialogListener");
+        }
+    }
+    ...
+}
+</pre>
+<p>The activity hosting the dialog creates an instance of the dialog
+with the dialog fragment's constructor and receives the dialog's
+events through an implementation of the <code>NoticeDialogListener</code> interface:</p>
+<p>WHATSON? e977298e-68bf-4531-ac06-b6959b8d0b41</p>
+<pre>
+public class MainActivity extends FragmentActivity
+                          implements NoticeDialogFragment.NoticeDialogListener{
+    ...
+    
+    public void showNoticeDialog() {
+        // Create an instance of the dialog fragment and show it
+        DialogFragment dialog = new NoticeDialogFragment();
+        dialog.show(getSupportFragmentManager(), "NoticeDialogFragment");
+    }
+
+    // The dialog fragment receives a reference to this Activity through the
+    // Fragment.onAttach() callback, which it uses to call the following methods
+    // defined by the NoticeDialogFragment.NoticeDialogListener interface
+    @Override
+    public void onDialogPositiveClick(DialogFragment dialog) {
+        // User touched the dialog's positive button
+        ...
+    }
+
+    @Override
+    public void onDialogNegativeClick(DialogFragment dialog) {
+        // User touched the dialog's negative button
+        ...
+    }
+}
+</pre>
+<p>Because the host activity implements the <code>NoticeDialogListener</code>—which is
+enforced by the <code><a href="/reference/android/support/v4/app/Fragment.html#onAttach(android.app.Activity)">onAttach()</a></code>
+callback method shown above—the dialog fragment can use the
+interface callback methods to deliver click events to the activity:</p>
+<p>WHATSON? 1802b360-bae4-4920-b7b9-7c5159e91d83</p>
+<pre>
+public class NoticeDialogFragment extends DialogFragment {
+    ...
+
+    @Override
+    public Dialog onCreateDialog(Bundle savedInstanceState) {
+        // Build the dialog and set up the button click handlers
+        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
+        builder.setMessage(R.string.dialog_fire_missiles)
+               .setPositiveButton(R.string.fire, new DialogInterface.OnClickListener() {
+                   public void onClick(DialogInterface dialog, int id) {
+                       // Send the positive button event back to the host activity
+                       mListener.onDialogPositiveClick(NoticeDialogFragment.this);
+                   }
+               })
+               .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+                   public void onClick(DialogInterface dialog, int id) {
+                       // Send the negative button event back to the host activity
+                       mListener.onDialogNegativeClick(NoticeDialogFragment.this);
+                   }
+               });
+        return builder.create();
+    }
+}
+</pre>
+<h2 id="ShowingADialog">Showing a Dialog</h2>
+<p>When you want to show your dialog, create an instance of your <code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code> and call <code><a href="/reference/android/support/v4/app/DialogFragment.html#show(android.support.v4.app.FragmentManager,%20java.lang.String)">show()</a></code>, passing the <code><a href="/reference/android/support/v4/app/FragmentManager.html">FragmentManager</a></code> and a tag name
+for the dialog fragment.</p>
+<p>You can get the <code><a href="/reference/android/support/v4/app/FragmentManager.html">FragmentManager</a></code> by calling
+<code><a href="/reference/android/support/v4/app/FragmentActivity.html#getSupportFragmentManager()">getSupportFragmentManager()</a></code> from
+the <code><a href="/reference/android/support/v4/app/FragmentActivity.html">FragmentActivity</a></code> or <code><a href="/reference/android/support/v4/app/Fragment.html#getFragmentManager()">getFragmentManager()</a></code> from a <code><a href="/reference/android/support/v4/app/Fragment.html">Fragment</a></code>. For example:</p>
+<p>WHATSON? 0bb5ee0f-3894-4e1a-9824-1d99be4c0b0c</p>
+<pre>
+public void confirmFireMissiles() {
+    DialogFragment newFragment = new FireMissilesDialogFragment();
+    newFragment.show(getSupportFragmentManager(), "missiles");
+}
+</pre>
+<p>The second argument, <code>"missiles"</code>, is a unique tag name that the system uses to save
+and restore the fragment state when necessary. The tag also allows you to get a handle to
+the fragment by calling <code><a href="/reference/android/support/v4/app/FragmentManager.html#findFragmentByTag(java.lang.String)">findFragmentByTag()</a></code>.</p>
+<h2 id="FullscreenDialog">Showing a Dialog Fullscreen or as an Embedded Fragment</h2>
+<p>You might have a UI design in which you want a piece of the UI to appear as a dialog in some
+situations, but as a full screen or embedded fragment in others (perhaps depending on whether
+the device is a large screen or small screen). The <code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code>
+class offers you this flexibility because it can still behave as an embeddable <code><a href="/reference/android/support/v4/app/Fragment.html">Fragment</a></code>.</p>
+<p>However, you cannot use <code><a href="/reference/android/app/AlertDialog.Builder.html">AlertDialog.Builder</a></code>
+or other <code><a href="/reference/android/app/Dialog.html">Dialog</a></code> objects to build the dialog in this case. If
+you want the <code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code> to be
+embeddable, you must define the dialog's UI in a layout, then load the layout in the
+<code><a href="/reference/android/support/v4/app/Fragment.html#onCreateView(android.view.LayoutInflater,%20android.view.ViewGroup,%20android.os.Bundle)">onCreateView()</a></code> callback.</p>
+<p>Here's an example <code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code> that can appear as either a
+dialog or an embeddable fragment (using a layout named <code>purchase_items.xml</code>):</p>
+<p>WHATSON? 6a1dd9eb-7b5e-4a63-bb8c-3316b7d25c09</p>
+<pre>
+public class CustomDialogFragment extends DialogFragment {
+    /** The system calls this to get the DialogFragment's layout, regardless
+        of whether it's being displayed as a dialog or an embedded fragment. */
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+            Bundle savedInstanceState) {
+        // Inflate the layout to use as dialog or embedded fragment
+        return inflater.inflate(R.layout.purchase_items, container, false);
+    }
+  
+    /** The system calls this only when creating the layout in a dialog. */
+    @Override
+    public Dialog onCreateDialog(Bundle savedInstanceState) {
+        // The only reason you might override this method when using onCreateView() is
+        // to modify any dialog characteristics. For example, the dialog includes a
+        // title by default, but your custom layout might not need it. So here you can
+        // remove the dialog title, but you must call the superclass to get the Dialog.
+        Dialog dialog = super.onCreateDialog(savedInstanceState);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        return dialog;
+    }
+}
+</pre>
+<p>And here's some code that decides whether to show the fragment as a dialog
+or a fullscreen UI, based on the screen size:</p>
+<p>WHATSON? 0ca29a88-1153-4999-bdd4-4fee975a167a</p>
+<pre>
+public void showDialog() {
+    FragmentManager fragmentManager = getSupportFragmentManager();
+    CustomDialogFragment newFragment = new CustomDialogFragment();
+    
+    if (mIsLargeLayout) {
+        // The device is using a large layout, so show the fragment as a dialog
+        newFragment.show(fragmentManager, "dialog");
+    } else {
+        // The device is smaller, so show the fragment fullscreen
+        FragmentTransaction transaction = fragmentManager.beginTransaction();
+        // For a little polish, specify a transition animation
+        transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_OPEN);
+        // To make it fullscreen, use the 'content' root view as the container
+        // for the fragment, which is always the root view for the activity
+        transaction.add(android.R.id.content, newFragment)
+                   .addToBackStack(null).commit();
+    }
+}
+</pre>
+<p>For more information about performing fragment transactions, see the
+<a href="/guide/components/fragments.html">Fragments</a> guide.</p>
+<p>In this example, the <code>mIsLargeLayout</code> boolean specifies whether the current device
+should use the app's large layout design (and thus show this fragment as a dialog, rather
+than fullscreen). The best way to set this kind of boolean is to declare a
+<a href="/guide/topics/resources/more-resources.html#Bool">bool resource value</a>
+with an <a href="/guide/topics/resources/providing-resources.html#AlternativeResources">alternative resource</a> value for different screen sizes. For example, here are two
+versions of the bool resource for different screen sizes:</p>
+<p class="code-caption">res/values/bools.xml</p>
+<p>WHATSON? a6f045d2-3c5d-40d3-b261-7de6ff6fd592</p>
+<pre>
+&lt;!-- Default boolean values --&gt;
+&lt;resources&gt;
+    &lt;bool name="large_layout"&gt;false&lt;/bool&gt;
+&lt;/resources&gt;
+</pre>
+<p class="code-caption">res/values-large/bools.xml</p>
+<p>WHATSON? 42dba1ec-45bb-4ed8-8c6d-2a98b93b42c0</p>
+<pre>
+&lt;!-- Large screen boolean values --&gt;
+&lt;resources&gt;
+    &lt;bool name="large_layout"&gt;true&lt;/bool&gt;
+&lt;/resources&gt;
+</pre>
+<p>Then you can initialize the <code>mIsLargeLayout</code> value during the activity's
+<code><a href="/reference/android/app/Activity.html#onCreate(android.os.Bundle)">onCreate()</a></code> method:</p>
+<p>WHATSON? 77c966cd-592e-4356-8f28-5ef432e71835</p>
+<pre>
+boolean mIsLargeLayout;
+
+@Override
+public void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    setContentView(R.layout.activity_main);
+
+    mIsLargeLayout = getResources().getBoolean(R.bool.large_layout);
+}
+</pre>
+<h3 id="ActivityAsDialog">Showing an activity as a dialog on large screens</h3>
+<p>Instead of showing a dialog as a fullscreen UI when on small screens, you can accomplish
+the same result by showing an <code><a href="/reference/android/app/Activity.html">Activity</a></code> as a dialog when on
+large screens. Which approach you choose depends on your app design, but
+showing an activity as a dialog is often useful when your app is already designed for small
+screens and you'd like to improve the experience on tablets by showing a short-lived activity
+as a dialog.</p>
+<p>To show an activity as a dialog only when on large screens,
+apply the <code><a href="/reference/android/R.style.html#Theme_Holo_DialogWhenLarge">Theme.Holo.DialogWhenLarge</a></code>
+theme to the <a href="/guide/topics/manifest/activity-element.html"><code>&lt;activity&gt;</code></a> manifest element:</p>
+<p>WHATSON? 6bcc0677-84e6-47bc-9fa6-42802aab69c9</p>
+<pre>
+&lt;activity android:theme="@android:style/Theme.Holo.DialogWhenLarge" &gt;
+</pre>
+<p>For more information about styling your activities with themes, see the <a href="/guide/topics/ui/themes.html">Styles and Themes</a> guide.</p>
+<h2 id="DismissingADialog">Dismissing a Dialog</h2>
+<p>When the user touches any of the action buttons created with an
+<code><a href="/reference/android/app/AlertDialog.Builder.html">AlertDialog.Builder</a></code>, the system dismisses the dialog for you.</p>
+<p>The system also dismisses the dialog when the user touches an item in a dialog list, except
+when the list uses radio buttons or checkboxes. Otherwise, you can manually dismiss your dialog
+by calling <code><a href="/reference/android/support/v4/app/DialogFragment.html#dismiss()">dismiss()</a></code> on your <code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code>.</p>
+<p>In case you need to perform certain
+actions when the dialog goes away, you can implement the <code><a href="/reference/android/support/v4/app/DialogFragment.html#onDismiss(android.content.DialogInterface)">onDismiss()</a></code> method in your <code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code>.</p>
+<p>You can also <em>cancel</em> a dialog. This is a special event that indicates the user
+explicitly left the dialog without completing the task. This occurs if the user presses the 
+<em>Back</em> button, touches the screen outside the dialog area,
+or if you explicitly call <code><a href="/reference/android/app/Dialog.html#cancel()">cancel()</a></code> on the <code><a href="/reference/android/app/Dialog.html">Dialog</a></code> (such as in response to a "Cancel" button in the dialog).</p>
+<p>As shown in the example above, you can respond to the cancel event by implementing
+<code><a href="/reference/android/support/v4/app/DialogFragment.html#onCancel(android.content.DialogInterface)">onCancel()</a></code> in your <code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code> class.</p>
+<p class="note"><strong>Note:</strong> The system calls
+<code><a href="/reference/android/support/v4/app/DialogFragment.html#onDismiss(android.content.DialogInterface)">onDismiss()</a></code> upon each event that
+invokes the <code><a href="/reference/android/support/v4/app/DialogFragment.html#onCancel(android.content.DialogInterface)">onCancel()</a></code> callback. However,
+if you call <code><a href="/reference/android/app/Dialog.html#dismiss()">Dialog.dismiss()</a></code> or <code><a href="/reference/android/support/v4/app/DialogFragment.html#dismiss()">DialogFragment.dismiss()</a></code>,
+the system calls <code><a href="/reference/android/support/v4/app/DialogFragment.html#onDismiss(android.content.DialogInterface)">onDismiss()</a></code> <em>but
+not</em> <code><a href="/reference/android/support/v4/app/DialogFragment.html#onCancel(android.content.DialogInterface)">onCancel()</a></code>. So you should generally
+call <code><a href="/reference/android/support/v4/app/DialogFragment.html#dismiss()">dismiss()</a></code> when the user presses the
+<em>positive</em> button in your dialog in order to remove the dialog from view.</p>

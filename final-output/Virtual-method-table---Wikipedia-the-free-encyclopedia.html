@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Virtual-method-table---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Virtual method table</h1>
+<p>A <b>virtual method table</b>, <b>virtual function table</b>, <b>virtual call table</b>, dispatch table, or <b>vtable</b>, is a mechanism used in a programming language to support dynamic dispatch (or run-time method binding).</p>
+<p>Whenever a class defines a virtual function (or method), most compilers add a hidden member variable to the class which points to a so-called virtual method table (VMT or Vtable). This VMT is basically an array of pointers to (virtual) functions. At runtime these pointers will be set to point to the right function, because at compile time, it is not yet known if the base function is to be called or a derived one implemented by a class that inherits from the base class.</p>
+<p>Suppose a program contains several classes in an inheritance hierarchy: a superclass, <code>Cat</code>, and two subclasses, <code>HouseCat</code> and <code>Lion</code>. Class <code>Cat</code> defines a virtual function named <code>speak</code>, so its subclasses may provide an appropriate implementation (e.g. either <code>meow</code> or <code>roar</code>).</p>
+<p>When the program calls the <code>speak</code> method on a <code>Cat</code> pointer (which can point to a <code>Cat</code> class, or any subclass of <code>Cat</code>), the calling code must be able to determine which implementation to call, depending on the actual type of object that is pointed to. Because the type of object pointed to by the <code>Cat</code> pointer is not determined at compile-time, the decision as to which branch to take cannot be decided at compile-time.</p>
+<p>There are a variety of different ways to implement such dynamic dispatch, but the vtable (virtual table) solution is especially common among C++ and related languages (such as D and C#). Languages which separate the programmatic interface of objects from the implementation, like Visual Basic and Delphi, also tend to use the vtable approach, because it allows objects to use a different implementation simply by using a different set of method pointers.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Implementation</li>
+<li>2 Example</li>
+<li>3 Multiple inheritance and thunks</li>
+<li>4 Invocation</li>
+<li>5 Efficiency</li>
+<li>6 Comparison with alternatives</li>
+<li>7 See also</li>
+<li>8 Notes</li>
+<li>9 References</li>
+</ul>
+<p></p>
+<h2>Implementation</h2>
+<p>An object's dispatch table will contain the addresses of the object's dynamically bound methods. Method calls are performed by fetching the method's address from the object's dispatch table. The dispatch table is the same for all objects belonging to the same class, and is therefore typically shared between them. Objects belonging to type-compatible classes (for example siblings in an inheritance hierarchy) will have dispatch tables with the same layout: the address of a given method will appear at the same offset for all type-compatible classes. Thus, fetching the method's address from a given dispatch table offset will get the method corresponding to the object's actual class.</p>
+<p>The C++ standards do not mandate exactly how dynamic dispatch must be implemented, but compilers generally use minor variations on the same basic model.</p>
+<p>Typically, the compiler creates a separate vtable for each class. When an object is created, a pointer to this vtable, called the <b>virtual table pointer</b>, <b>vpointer</b> or <b>VPTR</b>, is added as a hidden member of this object (becoming its first member unless it's made the last). The compiler also generates "hidden" code in the constructor of each class to initialize the vpointers of its objects to the address of the corresponding vtable. Note that the location of the vpointer in the object instance is not standard among all compilers, and relying on the position may result in unportable code. For example, g++ previously placed the vpointer at the end of the object.</p>
+<h2>Example</h2>
+<p>Consider the following class declarations in C++ syntax:</p>
+<p>WHATSON? f38aa324-2a1f-4a5f-9026-59b208131c3b</p>
+<pre>
+class B1 {
+public:
+  void f0() {}
+  virtual void f1() {}
+  int int_in_b1;
+};
+ 
+class B2 {
+public:
+  virtual void f2() {}
+  int int_in_b2;
+};
+</pre>
+<p>used to derive the following class:</p>
+<p>WHATSON? 8c543a86-88f3-49b4-86bf-a06136d03b70</p>
+<pre>
+class D : public B1, public B2 {
+public:
+  void d() {}
+  void f2() {}  // override B2::f2()
+  int int_in_d;
+};
+</pre>
+<p>and the following piece of C++ code:</p>
+<p>WHATSON? bbd28ae9-8987-4f93-98fb-f2712e5fd500</p>
+<pre>
+B2 *b2 = new B2();
+D  *d  = new D();
+</pre>
+<p>g++ 3.4.6 from GCC produces the following 32-bit memory layout for the object <code>b2</code>:</p>
+<p>WHATSON? 8e84e860-cc3c-4f17-b48f-f7f1efd3aef9</p>
+<pre>
+b2:
+  +0: pointer to virtual method table of B2
+  +4: value of int_in_b2
+
+virtual method table of B2:
+  +0: B2::f2()   
+</pre>
+<p>and the following memory layout for the object <code>d</code>:</p>
+<p>WHATSON? 81714a64-7b36-4277-969e-db7f63921920</p>
+<pre>
+d:
+  +0: pointer to virtual method table of D (for B1)
+  +4: value of int_in_b1
+  +8: pointer to virtual method table of D (for B2)
+ +12: value of int_in_b2
+ +16: value of int_in_d
+
+Total size: 20 Bytes.
+
+virtual method table of D (for B1):
+  +0: B1::f1()  // B1::f1() is not overridden
+
+virtual method table of D (for B2):
+  +8: D::f2()   // B2::f2() is overridden by D::f2()
+</pre>
+<p>Note that those functions not carrying the keyword <code>virtual</code> in their declaration (such as <code>f0()</code> and <code>d()</code>) do not generally appear in the vtable. There are exceptions for special cases as posed by the default constructor.</p>
+<p>Overriding of the method <code>f2()</code> in class <code>D</code> is implemented by duplicating the virtual method table of <code>B2</code> and replacing the pointer to <code>B2::f2()</code> with a pointer to <code>D::f2()</code>.</p>
+<h2>Multiple inheritance and thunks</h2>
+<p>The g++ compiler implements the multiple inheritance of the classes <code>B1</code> and <code>B2</code> in class <code>D</code> using two virtual method tables, one for each base class. (There are other ways to implement multiple inheritance, but this is the most common.) This leads to the necessity for "pointer fixups", also called thunks, when casting.</p>
+<p>Consider the following C++ code:</p>
+<p>WHATSON? 4cdd42f1-217d-425d-a2ae-c6a0039f9581</p>
+<pre>
+D  *d  = new D();
+B1 *b1 = static_cast&lt;B1*&gt;(d);
+B2 *b2 = static_cast&lt;B2*&gt;(d);
+</pre>
+<p>While <code>d</code> and <code>b1</code> will point to the same memory location after execution of this code, <code>b2</code> will point to the location <code>d+8</code> (eight bytes beyond the memory location of <code>d</code>). Thus, <code>b2</code> points to the region within <code>d</code> which "looks like" an instance of <code>B2</code>, i.e., has the same memory layout as an instance of <code>B2</code>.</p>
+<h2>Invocation</h2>
+<p>A call to <code>d-&gt;f1()</code> is handled by dereferencing <code>d</code>'s <code>D::B1</code> vpointer, looking up the <code>f1</code> entry in the vtable, and then dereferencing that pointer to call the code.</p>
+<p>In the case of single inheritance (or in a language with only single inheritance), if the vpointer is always the first element in <code>d</code> (as it is with many compilers), this reduces to the following pseudo-C++:</p>
+<p>WHATSON? e02766f0-f786-46fd-be0b-7b02e6bd44a8</p>
+<pre>
+(*((*d)[0]))(d)
+</pre>
+<p>Where *d refers to the virtual method table of D and [0] refers to the first method in the vtable. The parameter d becomes the "this" pointer to the object.</p>
+<h1>Virtual method table</h1>
+<p>A <b>virtual method table</b>, <b>virtual function table</b>, <b>virtual call table</b>, dispatch table, or <b>vtable</b>, is a mechanism used in a programming language to support dynamic dispatch (or run-time method binding).</p>
+<p>Whenever a class defines a virtual function (or method), most compilers add a hidden member variable to the class which points to a so-called virtual method table (VMT or Vtable). This VMT is basically an array of pointers to (virtual) functions. At runtime these pointers will be set to point to the right function, because at compile time, it is not yet known if the base function is to be called or a derived one implemented by a class that inherits from the base class.</p>
+<p>In the more general case, calling <code>B1::f1()</code> or <code>D::f2()</code> is more complicated:</p>
+<p>WHATSON? e3943654-fd34-4b7d-b6b5-96ede29b177a</p>
+<pre>
+(*(*(d[+0]/*pointer to virtual method table of D (for B1)*/)[0]))(d)   /* Call d-&gt;f1() */
+(*(*(d[+8]/*pointer to virtual method table of D (for B2)*/)[0]))(d+8) /* Call d-&gt;f2() */
+</pre>
+<p>The call to d-&gt;f1() passes a B1 pointer as a parameter. The call to d-&gt;f2() passes a B2 pointer as a parameter. This second call requires a fixup to produce the correct pointer. It is impossible to call B2::f2 since it has been overridden in D's implementation. The location of B2::f2 is not in the vtable for D.</p>
+<p>By comparison, a call to <code>d-&gt;f0()</code> is much simpler:</p>
+<p>WHATSON? 0a200aee-491f-40ce-a1c6-cbc2199f24e7</p>
+<pre>
+(*B1::f0)(d)
+</pre>
+<h2>Efficiency</h2>
+<p>A virtual call requires at least an extra indexed dereference, and sometimes a "fixup" addition, compared to a non-virtual call, which is simply a jump to a compiled-in pointer. Therefore, calling virtual functions is inherently slower than calling non-virtual functions. An experiment done in 1996 indicates that approximately 6–13% of execution time is spent simply dispatching to the correct function, though the overhead can be as high as 50%. The cost of virtual functions may not be so high on modern CPU</abbr> architectures due to much larger caches and better branch prediction.</p>
+<p>Furthermore, in environments where JIT compilation is not in use, virtual function calls usually cannot be inlined. In certain cases it may be possible for the compiler to perform a process known as <i>devirtualization</i> in which, for instance, the lookup and indirect call are replaced with a conditional execution of each inlined body, but such optimizations are not common.</p>
+<p>To avoid this overhead, compilers usually avoid using vtables whenever the call can be resolved at compile time.</p>
+<p>Thus, the call to <code>f1</code> above may not require a vtable lookup because the compiler may be able to tell that <code>d</code> can only hold a <code>D</code> at this point, and <code>D</code> does not override <code>f1</code>. Or the compiler (or optimizer) may be able to detect that there are no subclasses of <code>B1</code> anywhere in the program that override <code>f1</code>. The call to <code>B1::f1</code> or <code>B2::f2</code> will probably not require a vtable lookup because the implementation is specified explicitly (although it does still require the 'this'-pointer fixup).</p>
+<h2>Comparison with alternatives</h2>
+<p>The vtable is generally a good performance trade-off to achieve dynamic dispatch, but there are alternatives, such as binary tree dispatch, with higher performance but different costs.</p>
+<p>However, vtables only allow for single dispatch on the special "this" parameter, in contrast to multiple dispatch (as in CLOS or Dylan), where the types of all parameters can be taken into account in dispatching.</p>
+<p>Suppose a program contains several classes in an inheritance hierarchy: a superclass, <code>Cat</code>, and two subclasses, <code>HouseCat</code> and <code>Lion</code>. Class <code>Cat</code> defines a virtual function named <code>speak</code>, so its subclasses may provide an appropriate implementation (e.g. either <code>meow</code> or <code>roar</code>).</p>
+<p>When the program calls the <code>speak</code> method on a <code>Cat</code> pointer (which can point to a <code>Cat</code> class, or any subclass of <code>Cat</code>), the calling code must be able to determine which implementation to call, depending on the actual type of object that is pointed to. Because the type of object pointed to by the <code>Cat</code> pointer is not determined at compile-time, the decision as to which branch to take cannot be decided at compile-time.</p>
+<p>There are a variety of different ways to implement such dynamic dispatch, but the vtable (virtual table) solution is especially common among C++ and related languages (such as D and C#). Languages which separate the programmatic interface of objects from the implementation, like Visual Basic and Delphi, also tend to use the vtable approach, because it allows objects to use a different implementation simply by using a different set of method pointers.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Implementation</li>
+<li>2 Example</li>
+<li>3 Multiple inheritance and thunks</li>
+<li>4 Invocation</li>
+<li>5 Efficiency</li>
+<li>6 Comparison with alternatives</li>
+<li>7 See also</li>
+<li>8 Notes</li>
+<li>9 References</li>
+</ul>
+<p></p>
+<h2>Implementation</h2>
+<p>An object's dispatch table will contain the addresses of the object's dynamically bound methods. Method calls are performed by fetching the method's address from the object's dispatch table. The dispatch table is the same for all objects belonging to the same class, and is therefore typically shared between them. Objects belonging to type-compatible classes (for example siblings in an inheritance hierarchy) will have dispatch tables with the same layout: the address of a given method will appear at the same offset for all type-compatible classes. Thus, fetching the method's address from a given dispatch table offset will get the method corresponding to the object's actual class.</p>
+<p>Vtables also only work if dispatching is constrained to a known set of methods, so they can be placed in a simple array built at compile time, in contrast to duck typing languages (such as Smalltalk, Python or JavaScript).</p>
+<p>Languages that provide either or both of these features often dispatch by looking up a string in a hash table, or some other equivalent method. There are a variety of techniques to make this faster (e.g., interning/tokenizing method names, caching lookups, just-in-time compilation).</p>
+<h2>See also</h2>
+<ul>
+<li>Virtual function</li>
+<li>Virtual inheritance</li>
+<li>Branch table</li>
+</ul>
+<h2>Notes</h2>
+<ol>
+<li><b>^</b> G++'s <code>-fdump-class-hierarchy</code> argument can be used to dump virtual method tables for manual inspection. For AIX VisualAge XlC compiler, use <code>-qdump_class_hierarchy</code> to dump class hierarchy and virtual function table layout.</li>
+</ol>
+</body>
+</html>

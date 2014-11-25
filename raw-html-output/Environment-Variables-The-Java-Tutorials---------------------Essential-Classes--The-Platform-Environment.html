@@ -1,0 +1,50 @@
+<h1>Environment Variables</h1>
+<p>Many operating systems use <i>environment variables</i> to pass configuration information to applications. Like properties in the Java platform, environment variables are key/value pairs, where both the key and the value are strings. The conventions for setting and using environment variables vary between operating systems, and also between command line interpreters. To learn how to pass environment variables to applications on your system, refer to your system documentation.</p>
+<h2>Querying Environment Variables</h2>
+<p>On the Java platform, an application uses
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/lang/System.html#getenv--"><code>System.getenv</code></a> to retrieve environment variable values. Without an argument, <code>getenv</code> returns a read-only instance of <code>java.util.Map</code>, where the map keys are the environment variable names, and the map values are the environment variable values. This is demonstrated in the 
+<a class="SourceLink" target="_blank" href="examples/EnvMap.java" onclick="showCode('../../displayCode.html', 'examples/EnvMap.java'); return false;"><code><code>EnvMap</code></code></a> example:</p>
+<p>WHATSON? 1a4d7d6f-6718-4d7d-875d-f02570187250</p>
+<pre>
+
+import java.util.Map;
+
+public class EnvMap {
+    public static void main (String[] args) {
+        Map&lt;String, String&gt; env = System.getenv();
+        for (String envName : env.keySet()) {
+            System.out.format("%s=%s%n",
+                              envName,
+                              env.get(envName));
+        }
+    }
+}
+
+</pre>
+<p>With a <code>String</code> argument, <code>getenv</code> returns the value of the specified variable. If the variable is not defined, <code>getenv</code> returns <code>null</code>. The 
+<a class="SourceLink" target="_blank" href="examples/Env.java" onclick="showCode('../../displayCode.html', 'examples/Env.java'); return false;"><code><code>Env</code></code></a> example uses <code>getenv</code> this way to query specific environment variables, specified on the command line:</p>
+<p>WHATSON? 3c8b53f1-9b18-41cb-b841-720c40676228</p>
+<pre>
+
+public class Env {
+    public static void main (String[] args) {
+        for (String env: args) {
+            String value = System.getenv(env);
+            if (value != null) {
+                System.out.format("%s=%s%n",
+                                  env, value);
+            } else {
+                System.out.format("%s is"
+                    + " not assigned.%n", env);
+            }
+        }
+    }
+}
+
+</pre>
+<h2>Passing Environment Variables to New Processes</h2>
+<p>When a Java application uses a 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/lang/ProcessBuilder.html"><code>ProcessBuilder</code></a> object to create a new process, the default set of environment variables passed to the new process is the same set provided to the application's virtual machine process. The application can change this set using <code>ProcessBuilder.environment</code>.</p>
+<h2>Platform Dependency Issues</h2>
+<p>There are many subtle differences between the way environment variables are implemented on different systems. For example, Windows ignores case in environment variable names, while UNIX does not. The way environment variables are used also varies. For example, Windows provides the user name in an environment variable called <code>USERNAME</code>, while UNIX implementations might provide the user name in <code>USER</code>, <code>LOGNAME</code>, or both.</p>
+<p>To maximize portability, never refer to an environment variable when the same value is available in a system property. For example, if the operating system provides a user name, it will always be available in the system property <code>user.name</code>.</p>

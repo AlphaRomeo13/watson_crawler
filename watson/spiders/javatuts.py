@@ -12,21 +12,32 @@ from watson.items import NuggetItem
 class JavatutsSpider(CrawlSpider):
     name = "javatuts"
     allowed_domains = ["docs.oracle.com"]
-    start_urls = ["http://docs.oracle.com/javase/tutorial/deployment/index.html"]
+    start_urls = [
+                    "https://docs.oracle.com/javase/tutorial/getStarted/index.html",
+                    "https://docs.oracle.com/javase/tutorial/java/index.html",
+                    "https://docs.oracle.com/javase/tutorial/essential/index.html",
+                    "https://docs.oracle.com/javase/tutorial/collections/index.html",
+                    "https://docs.oracle.com/javase/tutorial/datetime/index.html",
+                    "https://docs.oracle.com/javase/tutorial/deployment/index.html",
+                    "https://docs.oracle.com/javase/tutorial/extra/certification/index.html",
+                    "https://docs.oracle.com/javase/tutorial/uiswing/index.html",
+    ]
 
     rules = (
         Rule(LinkExtractor(allow=(), restrict_xpaths=('//a[contains(.,"Next")]')), callback='parse_item', follow=True),
     )
 
     def parse_item(self, response):
-        for sel in response.xpath('//h1 | //h2 | //p | //pre | //ul | //ol'):
+        scope = response.xpath('//*[@id="MainFlow"]')
+        for sel in scope.xpath('//h1 | .//h2 | .//h3 | .//h4 | .//p | .//ol | .//ul | .//pre'):
             item = NuggetItem()
             item['content'] = sel.extract()
             item['title'] = response.xpath('//title/text()').extract()
             yield item
 
     def parse_start_url(self, response):
-        for sel in response.xpath('//h1 | //h2 | //p | //pre | //ul | //ol'):
+        scope = response.xpath('//*[@id="MainFlow"]')
+        for sel in scope.xpath('//h1 | .//h2 | .//h3 | .//h4 | .//p | .//ol | .//ul | .//pre'):
                 item = NuggetItem()
                 item['content'] = sel.extract()
                 item['title'] = response.xpath('//title/text()').extract()

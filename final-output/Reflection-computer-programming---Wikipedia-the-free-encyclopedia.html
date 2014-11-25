@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Reflection-computer-programming---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Reflection (computer programming)</h1>
+<p>In computer science, <b>reflection</b> is the ability of a computer program to examine (see type introspection) and modify the structure and behavior (specifically the values, meta-data, properties and functions) of the program at runtime.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Historical background</li>
+<li>2 Uses</li>
+<li>3 Implementation</li>
+<li>4 Examples
+<ul>
+<li>4.1 ECMAScript</li>
+<li>4.2 PHP</li>
+<li>4.3 Objective-C</li>
+<li>4.4 R</li>
+<li>4.5 Ruby</li>
+<li>4.6 Python</li>
+<li>4.7 Perl</li>
+<li>4.8 Java</li>
+</ul>
+</li>
+<li>5 See also</li>
+<li>6 References</li>
+<li>7 Further reading</li>
+<li>8 External links</li>
+</ul>
+<ul>
+<li>4.1 ECMAScript</li>
+<li>4.2 PHP</li>
+<li>4.3 Objective-C</li>
+<li>4.4 R</li>
+<li>4.5 Ruby</li>
+<li>4.6 Python</li>
+<li>4.7 Perl</li>
+<li>4.8 Java</li>
+</ul>
+<p></p>
+<h2>Historical background</h2>
+<p>The earliest computers were programmed in their native assembly language, which were inherently reflective as these original architectures could be programmed by defining instructions as data and using self-modifying code. As programming moved to higher level languages such as C, this reflective ability disappeared (outside of malware) until programming languages with reflection built into their type systems appeared.</p>
+<p>Brian Cantwell Smith's 1982 doctoral dissertation introduced the notion of computational reflection in programming languages, and the notion of the meta-circular interpreter as a component of 3-Lisp.</p>
+<h2>Uses</h2>
+<p>Reflection can be used for observing and/or modifying program execution at runtime. A reflection-oriented program component can monitor the execution of an enclosure of code and can modify itself according to a desired goal related to that enclosure. This is typically accomplished by dynamically assigning program code at runtime.</p>
+<p>In object oriented programming languages such as Java, reflection allows <i>inspection</i> of classes, interfaces, fields and methods at runtime without knowing the names of the interfaces, fields, methods at compile time. It also allows <i>instantiation</i> of new objects and <i>invocation</i> of methods.</p>
+<p>Reflection can also be used to adapt a given program to different situations dynamically. For example, consider an application that uses two different classes <code>X</code> and <code>Y</code> interchangeably to perform similar operations. Without reflection-oriented programming, the application might be hard-coded to call method names of class <code>X</code> and class <code>Y</code>. However, using the reflection-oriented programming paradigm, the application could be designed and written to utilize reflection in order to invoke methods in classes <code>X</code> and <code>Y</code> without hard-coding method names. Reflection-oriented programming almost always requires additional knowledge, framework, relational mapping, and object relevance in order to take advantage of more generic code execution. Hard-coding can be avoided to the extent that reflection-oriented programming is used.</p>
+<p>Reflection is often used as part of software testing, such as for the runtime creation/instantiation of mock objects.</p>
+<p>Reflection is also a key strategy for metaprogramming.</p>
+<p>In some object-oriented programming languages, such as C# and Java, reflection can be used to override member accessibility rules. For example, reflection makes it possible to change the value of a field marked "private" in a third-party library's class.</p>
+<h2>Implementation</h2>
+<p>A language supporting reflection provides a number of features available at runtime that would otherwise be very obscure to accomplish in a lower-level language. Some of these features are the abilities to:</p>
+<ul>
+<li>Discover and modify source code constructions (such as code blocks, classes, methods, protocols, etc.) as a first-class object at runtime.</li>
+<li>Convert a string matching the symbolic name of a class or function into a reference to or invocation of that class or function.</li>
+<li>Evaluate a string as if it were a source code statement at runtime.</li>
+<li>Create a new interpreter for the language's bytecode to give a new meaning or purpose for a programming construct.</li>
+</ul>
+<p>These features can be implemented in different ways. In MOO, reflection forms a natural part of everyday programming idiom. When verbs (methods) are called, various variables such as <i>verb</i> (the name of the verb being called) and <i>this</i> (the object on which the verb is called) are populated to give the context of the call. Security is typically managed by accessing the caller stack programmatically: Since <i>callers()</i> is a list of the methods by which the current verb was eventually called, performing tests on callers()[1] (the command invoked by the original user) allows the verb to protect itself against unauthorised use.</p>
+<p>Compiled languages rely on their runtime system to provide information about the source code. A compiled Objective-C executable, for example, records the names of all methods in a block of the executable, providing a table to correspond these with the underlying methods (or selectors for these methods) compiled into the program. In a compiled language that supports runtime creation of functions, such as Common Lisp, the runtime environment must include a compiler or an interpreter.</p>
+<p>Reflection can be implemented for languages not having built-in reflection facilities by using a program transformation system to define automated source code changes.</p>
+<h2>Examples</h2>
+<p>The following code snippets create an instance <code>foo</code> of class <code>Foo</code>, and invoke its method <code>hello</code>. For each programming language, normal and reflection-based call sequences are shown.</p>
+<h3>ECMAScript</h3>
+<p>The following is an example in ECMAScript, and therefore also applies to JavaScript and ActionScript:</p>
+<p>WHATSON? 048e4e7f-8469-49bb-b642-2f82b82f9ae6</p>
+<pre>
+// Without reflection
+new Foo().hello()
+ 
+// With reflection
+ 
+// assuming that Foo resides in this
+new this['Foo']()['hello']()
+ 
+// or without assumption
+new (eval('Foo'))()['hello']()
+ 
+// or simply
+eval('new Foo().hello()')
+</pre>
+<h3>PHP</h3>
+<p>The following is an example in PHP:</p>
+<p>WHATSON? 89016d88-b64d-45d4-a988-e7ea415c5559</p>
+<pre>
+// without reflection
+$foo = new Foo();
+$foo-&gt;hello();
+ 
+// with reflection
+$reflector = new ReflectionClass('Foo');
+$foo = $reflector-&gt;newInstance();
+$hello = $reflector-&gt;getMethod('hello');
+$hello-&gt;invoke($foo);
+ 
+// using callback
+$foo = new Foo();
+call_user_func(array($foo, 'hello'));
+ 
+// using variable variables syntax
+$className = 'Foo';
+$foo = new $className();
+$method = 'hello';
+$foo-&gt;$method();
+</pre>
+<h3>Objective-C</h3>
+<p>The following is an example in Objective-C—implying either the OpenStep or Foundation Kit framework is used:</p>
+<p>WHATSON? 36c51ec2-5ac5-4161-bd3b-3f23e75356a2</p>
+<pre>
+// Foo class.
+@interface Foo : NSObject
+- (void)hello;
+@end
+ 
+// Sending "hello" to a Foo instance without reflection.
+Foo *obj = [[Foo alloc] init];
+[obj hello];
+ 
+// Sending "hello" to a Foo instance with reflection.
+id obj = [[NSClassFromString(@"Foo") alloc] init];
+[obj performSelector: @selector(hello)];
+</pre>
+<h3>R</h3>
+<p>The following is an example in R:</p>
+<p>WHATSON? 82494088-2f80-4a42-8306-d06bdaa5ab9c</p>
+<pre>
+# Without reflection, assuming foo() returns an S3-type object that has method "hello"
+obj &lt;- foo()
+hello(obj)
+ 
+# With reflection
+the.class &lt;- "foo"
+the.method &lt;- "hello"
+obj &lt;- do.call(the.class, list())
+do.call(the.method, alist(obj))
+</pre>
+<h3>Ruby</h3>
+<p>The following is an example in Ruby:</p>
+<p>WHATSON? d1401249-c591-4ec5-8644-f4e3596ccab1</p>
+<pre>
+# without reflection
+obj = Foo.new
+obj.hello
+ 
+# with reflection
+class_name = "Foo"
+method = :hello
+obj = Kernel.const_get(class_name).new
+obj.send method
+ 
+# with eval
+eval "Foo.new.hello"
+</pre>
+<h3>Python</h3>
+<p>The following is an example in Python:</p>
+<p>WHATSON? fb880000-cb41-4620-93f4-05a6ad086890</p>
+<pre>
+# without reflection
+obj = Foo()
+obj.hello()
+ 
+# with reflection
+class_name = "Foo"
+method = "hello"
+obj = globals()[class_name]()
+getattr(obj, method)()
+ 
+# with eval
+eval("Foo().hello()")
+</pre>
+<h3>Perl</h3>
+<p>The following is an example in Perl:</p>
+<p>WHATSON? 87c02003-70b4-4b96-9faf-1371a84dbcd0</p>
+<pre>
+# without reflection
+my $foo = Foo-&gt;new;
+$foo-&gt;hello;
+ 
+# or
+Foo-&gt;new-&gt;hello;
+ 
+# with reflection
+my $class = "Foo"
+my $constructor = "new";
+my $method = "hello";
+ 
+my $f = $class-&gt;$constructor;
+$f-&gt;$method;
+ 
+# or
+$class-&gt;$constructor-&gt;$method;
+ 
+# with eval
+eval "new Foo-&gt;hello;";
+</pre>
+<h3>Java</h3>
+<p>The following is an example in Java:</p>
+<p>WHATSON? 4e2ce2c9-1c7d-4530-8d98-028a2ed7bba3</p>
+<pre>
+// without reflection
+Foo foo = new Foo();
+foo.hello();
+ 
+// with reflection
+Object foo = Class.forName("complete.classpath.and.Foo").newInstance();
+// Alternatively: Object foo = Foo.class.newInstance();
+Method m = foo.getClass().getDeclaredMethod("hello", new Class&lt;?&gt;[0]);
+m.invoke(foo);
+</pre>
+<h2>See also</h2>
+<ul>
+<li>Type introspection</li>
+<li>Self-modifying code</li>
+<li>Self-hosting</li>
+<li>Programming paradigms</li>
+<li>List of reflective programming languages and platforms</li>
+<li>Mirror (programming)</li>
+</ul>
+</body>
+</html>

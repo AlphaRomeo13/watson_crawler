@@ -1,0 +1,155 @@
+<h1 id="firstHeading" class="firstHeading" lang="en"><span dir="auto">Schedule (computer science)</span></h1>
+<p>In the fields of <a href="/wiki/Database" title="Database">databases</a> and <a href="/wiki/Transaction_processing" title="Transaction processing">transaction processing</a> (transaction management), a <b>schedule</b> (or <b>history</b>) of a system is an abstract model to describe execution of transactions running in the system. Often it is a <i>list</i> of operations (actions) ordered by time, performed by a set of <a href="/wiki/Database_transaction" title="Database transaction">transactions</a> that are executed together in the system. If order in time between certain operations is not determined by the system, then a <i><a href="/wiki/Partial_order" title="Partial order" class="mw-redirect">partial order</a></i> is used. Examples of such operations are requesting a read operation, reading, writing, aborting, committing, requesting lock, locking, etc. Not all transaction operation types should be included in a schedule, and typically only selected operation types (e.g., data access operations) are included, as needed to reason about and describe certain phenomena. Schedules and schedule properties are fundamental concepts in database <a href="/wiki/Concurrency_control" title="Concurrency control">concurrency control</a> theory.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Formal_description"><span class="tocnumber">1</span> <span class="toctext">Formal description</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Types_of_schedule"><span class="tocnumber">2</span> <span class="toctext">Types of schedule</span></a>
+<ul>
+<li class="toclevel-2 tocsection-3"><a href="#Serial"><span class="tocnumber">2.1</span> <span class="toctext">Serial</span></a></li>
+<li class="toclevel-2 tocsection-4"><a href="#Serializable"><span class="tocnumber">2.2</span> <span class="toctext">Serializable</span></a>
+<ul>
+<li class="toclevel-3 tocsection-5"><a href="#Conflicting_actions"><span class="tocnumber">2.2.1</span> <span class="toctext">Conflicting actions</span></a></li>
+<li class="toclevel-3 tocsection-6"><a href="#Conflict_equivalence"><span class="tocnumber">2.2.2</span> <span class="toctext">Conflict equivalence</span></a></li>
+<li class="toclevel-3 tocsection-7"><a href="#Conflict-serializable"><span class="tocnumber">2.2.3</span> <span class="toctext">Conflict-serializable</span></a></li>
+<li class="toclevel-3 tocsection-8"><a href="#Commitment-ordered"><span class="tocnumber">2.2.4</span> <span class="toctext">Commitment-ordered</span></a></li>
+<li class="toclevel-3 tocsection-9"><a href="#View_equivalence"><span class="tocnumber">2.2.5</span> <span class="toctext">View equivalence</span></a></li>
+<li class="toclevel-3 tocsection-10"><a href="#View-serializable"><span class="tocnumber">2.2.6</span> <span class="toctext">View-serializable</span></a></li>
+</ul>
+</li>
+<li class="toclevel-2 tocsection-11"><a href="#Recoverable"><span class="tocnumber">2.3</span> <span class="toctext">Recoverable</span></a>
+<ul>
+<li class="toclevel-3 tocsection-12"><a href="#Unrecoverable"><span class="tocnumber">2.3.1</span> <span class="toctext">Unrecoverable</span></a></li>
+<li class="toclevel-3 tocsection-13"><a href="#Avoids_cascading_aborts_.28rollbacks.29"><span class="tocnumber">2.3.2</span> <span class="toctext">Avoids cascading aborts (rollbacks)</span></a></li>
+<li class="toclevel-3 tocsection-14"><a href="#Strict"><span class="tocnumber">2.3.3</span> <span class="toctext">Strict</span></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-15"><a href="#Hierarchical_relationship_between_serializability_classes"><span class="tocnumber">3</span> <span class="toctext">Hierarchical relationship between serializability classes</span></a></li>
+<li class="toclevel-1 tocsection-16"><a href="#Practical_implementations"><span class="tocnumber">4</span> <span class="toctext">Practical implementations</span></a></li>
+<li class="toclevel-1 tocsection-17"><a href="#See_also"><span class="tocnumber">5</span> <span class="toctext">See also</span></a></li>
+<li class="toclevel-1 tocsection-18"><a href="#References"><span class="tocnumber">6</span> <span class="toctext">References</span></a></li>
+</ul>
+<ul>
+<li class="toclevel-2 tocsection-3"><a href="#Serial"><span class="tocnumber">2.1</span> <span class="toctext">Serial</span></a></li>
+<li class="toclevel-2 tocsection-4"><a href="#Serializable"><span class="tocnumber">2.2</span> <span class="toctext">Serializable</span></a>
+<ul>
+<li class="toclevel-3 tocsection-5"><a href="#Conflicting_actions"><span class="tocnumber">2.2.1</span> <span class="toctext">Conflicting actions</span></a></li>
+<li class="toclevel-3 tocsection-6"><a href="#Conflict_equivalence"><span class="tocnumber">2.2.2</span> <span class="toctext">Conflict equivalence</span></a></li>
+<li class="toclevel-3 tocsection-7"><a href="#Conflict-serializable"><span class="tocnumber">2.2.3</span> <span class="toctext">Conflict-serializable</span></a></li>
+<li class="toclevel-3 tocsection-8"><a href="#Commitment-ordered"><span class="tocnumber">2.2.4</span> <span class="toctext">Commitment-ordered</span></a></li>
+<li class="toclevel-3 tocsection-9"><a href="#View_equivalence"><span class="tocnumber">2.2.5</span> <span class="toctext">View equivalence</span></a></li>
+<li class="toclevel-3 tocsection-10"><a href="#View-serializable"><span class="tocnumber">2.2.6</span> <span class="toctext">View-serializable</span></a></li>
+</ul>
+</li>
+<li class="toclevel-2 tocsection-11"><a href="#Recoverable"><span class="tocnumber">2.3</span> <span class="toctext">Recoverable</span></a>
+<ul>
+<li class="toclevel-3 tocsection-12"><a href="#Unrecoverable"><span class="tocnumber">2.3.1</span> <span class="toctext">Unrecoverable</span></a></li>
+<li class="toclevel-3 tocsection-13"><a href="#Avoids_cascading_aborts_.28rollbacks.29"><span class="tocnumber">2.3.2</span> <span class="toctext">Avoids cascading aborts (rollbacks)</span></a></li>
+<li class="toclevel-3 tocsection-14"><a href="#Strict"><span class="tocnumber">2.3.3</span> <span class="toctext">Strict</span></a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toclevel-3 tocsection-5"><a href="#Conflicting_actions"><span class="tocnumber">2.2.1</span> <span class="toctext">Conflicting actions</span></a></li>
+<li class="toclevel-3 tocsection-6"><a href="#Conflict_equivalence"><span class="tocnumber">2.2.2</span> <span class="toctext">Conflict equivalence</span></a></li>
+<li class="toclevel-3 tocsection-7"><a href="#Conflict-serializable"><span class="tocnumber">2.2.3</span> <span class="toctext">Conflict-serializable</span></a></li>
+<li class="toclevel-3 tocsection-8"><a href="#Commitment-ordered"><span class="tocnumber">2.2.4</span> <span class="toctext">Commitment-ordered</span></a></li>
+<li class="toclevel-3 tocsection-9"><a href="#View_equivalence"><span class="tocnumber">2.2.5</span> <span class="toctext">View equivalence</span></a></li>
+<li class="toclevel-3 tocsection-10"><a href="#View-serializable"><span class="tocnumber">2.2.6</span> <span class="toctext">View-serializable</span></a></li>
+</ul>
+<ul>
+<li class="toclevel-3 tocsection-12"><a href="#Unrecoverable"><span class="tocnumber">2.3.1</span> <span class="toctext">Unrecoverable</span></a></li>
+<li class="toclevel-3 tocsection-13"><a href="#Avoids_cascading_aborts_.28rollbacks.29"><span class="tocnumber">2.3.2</span> <span class="toctext">Avoids cascading aborts (rollbacks)</span></a></li>
+<li class="toclevel-3 tocsection-14"><a href="#Strict"><span class="tocnumber">2.3.3</span> <span class="toctext">Strict</span></a></li>
+</ul>
+<p></p>
+<h2><span class="mw-headline" id="Formal_description">Formal description</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Schedule_(computer_science)&amp;action=edit&amp;section=1" title="Edit section: Formal description">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>The following is an example of a schedule:</p>
+<p>In this example, the horizontal axis represents the different transactions in the schedule D. The vertical axis represents time order of operations. Schedule D consists of three transactions T1, T2, T3. The schedule describes the actions of the transactions as seen by the <a href="/wiki/DBMS" title="DBMS" class="mw-redirect">DBMS</a>. First T1 Reads and Writes to object X, and then Commits. Then T2 Reads and Writes to object Y and Commits, and finally T3 Reads and Writes to object Z and Commits. This is an example of a <i>serial</i> schedule, i.e., sequential with no overlap in time, because the actions of in all three transactions are sequential, and the transactions are not interleaved in time.</p>
+<p>Representing the schedule D above by a table (rather than a list) is just for the convenience of identifying each transaction's operations in a glance. This notation is used throughout the article below. A more common way in the technical literature for representing such schedule is by a list:</p>
+<p>Usually, for the purpose of reasoning about concurrency control in databases, an operation is modeled as <i><a href="/wiki/Atomic_operation" title="Atomic operation" class="mw-redirect">atomic</a></i>, occurring at a point in time, without duration. When this is not satisfactory start and end time-points and possibly other point events are specified (rarely). Real executed operations always have some duration and specified respective times of occurrence of events within them (e.g., "exact" times of beginning and completion), but for concurrency control reasoning usually only the precedence in time of the whole operations (without looking into the quite complex details of each operation) matters, i.e., which operation is before, or after another operation. Furthermore, in many cases the before/after relationships between two specific operations do not matter and should not be specified, while being specified for other pairs of operations.</p>
+<p>In general operations of transactions in a schedule can interleave (i.e., transactions can be executed concurrently), while time orders between operations in each transaction remain unchanged as implied by the transaction's program. Since not always time orders between all operations of all transactions matter and need to be specified, a schedule is, in general, a <i><a href="/wiki/Partial_order" title="Partial order" class="mw-redirect">partial order</a></i> between operations rather than a <i><a href="/wiki/Total_order" title="Total order">total order</a></i> (where order for each pair is determined, as in a list of operations). Also in the general case each transaction may consist of several processes, and itself be properly represented by a partial order of operations, rather than a total order. Thus in general a schedule is a partial order of operations, containing (<a href="/wiki/Embedding" title="Embedding">embedding</a>) the partial orders of all its transactions.</p>
+<p>Time-order between two operations can be represented by an <i><a href="/wiki/Ordered_pair" title="Ordered pair">ordered pair</a></i> of these operations (e.g., the existence of a pair (OP1,OP2) means that OP1 is always before OP2), and a schedule in the general case is a <a href="/wiki/Set_(mathematics)" title="Set (mathematics)">set</a> of such ordered pairs. Such a set, a schedule, is a <a href="/wiki/Partial_order" title="Partial order" class="mw-redirect">partial order</a> which can be represented by an <i><a href="/wiki/Acyclic_directed_graph" title="Acyclic directed graph" class="mw-redirect">acyclic directed graph</a></i> (or <i>directed acyclic graph</i>, DAG) with operations as nodes and time-order as a <a href="/wiki/Directed_edge" title="Directed edge" class="mw-redirect">directed edge</a> (no cycles are allowed since a cycle means that a first (any) operation on a cycle can be both before and after (any) another second operation on the cycle, which contradicts our perception of <a href="/wiki/Time" title="Time">Time</a>). In many cases a graphical representation of such graph is used to demonstrate a schedule.</p>
+<p><b>Comment:</b> Since a list of operations (and the table notation used in this article) always represents a total order between operations, schedules that are not a total order cannot be represented by a list (but always can be represented by a DAG).</p>
+<h2><span class="mw-headline" id="Types_of_schedule">Types of schedule</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Schedule_(computer_science)&amp;action=edit&amp;section=2" title="Edit section: Types of schedule">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<h3><span class="mw-headline" id="Serial">Serial</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Schedule_(computer_science)&amp;action=edit&amp;section=3" title="Edit section: Serial">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>The transactions are executed non-interleaved (see example above) i.e., a serial schedule is one in which no transaction starts until a running transaction has ended.</p>
+<h3><span class="mw-headline" id="Serializable">Serializable</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Schedule_(computer_science)&amp;action=edit&amp;section=4" title="Edit section: Serializable">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>A schedule that is equivalent (in its outcome) to a serial schedule has the <a href="/wiki/Serializability" title="Serializability">serializability</a> property.</p>
+<p>In schedule E, the order in which the actions of the transactions are executed is not the same as in D, but in the end, E gives the same result as D.</p>
+<h4><span class="mw-headline" id="Conflicting_actions">Conflicting actions</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Schedule_(computer_science)&amp;action=edit&amp;section=5" title="Edit section: Conflicting actions">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<p>Two actions are said to be in conflict (conflicting pair) if:</p>
+<ol>
+<li>The actions belong to different transactions.</li>
+<li>At least one of the actions is a write operation.</li>
+<li>The actions access the same object (read or write).</li>
+</ol>
+<p>The following set of actions is conflicting:</p>
+<ul>
+<li>R1(X), W2(X), W3(X) (3 conflicting pairs)</li>
+</ul>
+<p>While the following sets of actions are not:</p>
+<ul>
+<li>R1(X), R2(X), R3(X)</li>
+<li>R1(X), W2(Y), R3(X)</li>
+</ul>
+<h4><span class="mw-headline" id="Conflict_equivalence">Conflict equivalence</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Schedule_(computer_science)&amp;action=edit&amp;section=6" title="Edit section: Conflict equivalence">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<p>The schedules S1 and S2 are said to be conflict-equivalent if following two conditions are satisfied:</p>
+<ol>
+<li>Both schedules S1 and S2 involve the same set of transactions (including ordering of actions within each transaction).</li>
+<li>Both schedules have same set of conflicting operations.</li>
+</ol>
+<h4><span class="mw-headline" id="Conflict-serializable">Conflict-serializable</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Schedule_(computer_science)&amp;action=edit&amp;section=7" title="Edit section: Conflict-serializable">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<p>A schedule is said to be conflict-serializable when the schedule is conflict-equivalent to one or more serial schedules.</p>
+<p>Another definition for conflict-serializability is that a schedule is conflict-serializable if and only if its <a href="/wiki/Precedence_graph" title="Precedence graph">precedence graph</a>/serializability graph, when only committed transactions are considered, is acyclic (if the graph is defined to include also uncommitted transactions, then cycles involving uncommitted transactions may occur without conflict serializability violation).</p>
+<p>Which is conflict-equivalent to the serial schedule &lt;T1,T2&gt;, but not &lt;T2,T1&gt;.</p>
+<h4><span class="mw-headline" id="Commitment-ordered">Commitment-ordered</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Schedule_(computer_science)&amp;action=edit&amp;section=8" title="Edit section: Commitment-ordered">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<p>A schedule is said to be commitment-ordered (commit-ordered), or commitment-order-serializable, if it obeys the <a href="/wiki/Commitment_ordering" title="Commitment ordering">Commitment ordering</a> (CO; also commit-ordering or commit-order-serializability) schedule property. This means that the order in time of transactions' commitment events is compatible with the precedence (partial) order of the respective transactions, as induced by their schedule's acyclic precedence graph (serializability graph, conflict graph). This implies that it is also conflict-serializable. The CO property is especially effective for achieving <a href="/wiki/Global_serializability" title="Global serializability">Global serializability</a> in distributed systems.</p>
+<p><b>Comment:</b> <a href="/wiki/Commitment_ordering" title="Commitment ordering">Commitment ordering</a>, which was discovered in 1990, is obviously not mentioned in (<a href="#Bern1987">Bernstein et al. 1987</a>). Its correct definition appears in (<a href="#Weikum2001">Weikum and Vossen 2001</a>), however the description there of its related techniques and theory is partial, inaccurate, and misleading.<sup class="noprint Inline-Template" style="white-space:nowrap;">[<i><a href="/wiki/Wikipedia:Avoid_weasel_words" title="Wikipedia:Avoid weasel words" class="mw-redirect"><span title="The material near this tag may use weasel words or too-vague attribution. (December 2011)">according to whom?</span></a></i>]</sup> For an extensive coverage of commitment ordering and its sources see <i><a href="/wiki/Commitment_ordering" title="Commitment ordering">Commitment ordering</a></i> and <i><a href="/w/index.php?title=The_History_of_Commitment_Ordering&amp;action=edit&amp;redlink=1" class="new" title="The History of Commitment Ordering (page does not exist)">The History of Commitment Ordering</a></i>.</p>
+<h4><span class="mw-headline" id="View_equivalence">View equivalence</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Schedule_(computer_science)&amp;action=edit&amp;section=9" title="Edit section: View equivalence">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<p>Two schedules S1 and S2 are said to be view-equivalent when the following conditions are satisfied:</p>
+<ol>
+<li>If the transaction <img class="mwe-math-fallback-image-inline tex" alt="T_i" src="//upload.wikimedia.org/math/4/6/0/460629745266ac5e663303008259f8b9.png"> in S1 reads an initial value for object X, so does the transaction <img class="mwe-math-fallback-image-inline tex" alt="T_i" src="//upload.wikimedia.org/math/4/6/0/460629745266ac5e663303008259f8b9.png"> in S2.</li>
+<li>If the transaction <img class="mwe-math-fallback-image-inline tex" alt="T_i" src="//upload.wikimedia.org/math/4/6/0/460629745266ac5e663303008259f8b9.png"> in S1 reads the value written by transaction <img class="mwe-math-fallback-image-inline tex" alt="T_j" src="//upload.wikimedia.org/math/6/3/6/6361fc85c03558be3587efd764461a01.png"> in S1 for object X, so does the transaction <img class="mwe-math-fallback-image-inline tex" alt="T_i" src="//upload.wikimedia.org/math/4/6/0/460629745266ac5e663303008259f8b9.png"> in S2.</li>
+<li>If the transaction <img class="mwe-math-fallback-image-inline tex" alt="T_i" src="//upload.wikimedia.org/math/4/6/0/460629745266ac5e663303008259f8b9.png"> in S1 is the final transaction to write the value for an object X, so is the transaction <img class="mwe-math-fallback-image-inline tex" alt="T_i" src="//upload.wikimedia.org/math/4/6/0/460629745266ac5e663303008259f8b9.png"> in S2.</li>
+</ol>
+<h4><span class="mw-headline" id="View-serializable">View-serializable</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Schedule_(computer_science)&amp;action=edit&amp;section=10" title="Edit section: View-serializable">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<p>A schedule is said to be view-serializable if it is view-equivalent to some serial schedule. Note that by definition, all conflict-serializable schedules are view-serializable.</p>
+<p>Notice that the above example (which is the same as the example in the discussion of conflict-serializable) is both view-serializable and conflict-serializable at the same time.) There are however view-serializable schedules that are not conflict-serializable: those schedules with a transaction performing a <a href="/wiki/Blind_write" title="Blind write">blind write</a>:</p>
+<p>The above example is not conflict-serializable, but it is view-serializable since it has a view-equivalent serial schedule &lt;T1, T2, T3&gt;.</p>
+<p>Since determining whether a schedule is view-serializable is <a href="/wiki/NP-complete" title="NP-complete">NP-complete</a>, view-serializability has little practical interest.</p>
+<h3><span class="mw-headline" id="Recoverable">Recoverable</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Schedule_(computer_science)&amp;action=edit&amp;section=11" title="Edit section: Recoverable">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Transactions commit only after all transactions whose changes they read, commit.</p>
+<p>These schedules are recoverable. F is recoverable because T1 commits before T2, that makes the value read by T2 correct. Then T2 can commit itself. In F2, if T1 aborted, T2 has to abort because the value of A it read is incorrect. In both cases, the database is left in a consistent state.</p>
+<h4><span class="mw-headline" id="Unrecoverable">Unrecoverable</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Schedule_(computer_science)&amp;action=edit&amp;section=12" title="Edit section: Unrecoverable">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<p>If a transaction T1 aborts, and a transaction T2 commits, but T2 relied on T1, we have an unrecoverable schedule.</p>
+<p>In this example, G is unrecoverable, because T2 read the value of A written by T1, and committed. T1 later aborted, therefore the value read by T2 is wrong, but since T2 committed, this schedule is unrecoverable.</p>
+<h4><span class="mw-headline" id="Avoids_cascading_aborts_.28rollbacks.29">Avoids cascading aborts (rollbacks)</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Schedule_(computer_science)&amp;action=edit&amp;section=13" title="Edit section: Avoids cascading aborts (rollbacks)">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<p>Also named cascadeless. A single transaction abort leads to a series of transaction rollback. Strategy to prevent cascading aborts is to disallow a transaction from reading uncommitted changes from another transaction in the same schedule.</p>
+<p>The following examples are the same as the one from the discussion on recoverable:</p>
+<p>In this example, although F2 is recoverable, it does not avoid cascading aborts. It can be seen that if T1 aborts, T2 will have to be aborted too in order to maintain the correctness of the schedule as T2 has already read the uncommitted value written by T1.</p>
+<p>The following is a recoverable schedule which avoids cascading abort. Note, however, that the update of A by T1 is always lost (since T1 is aborted).</p>
+<p>Cascading aborts avoidance is sufficient but not necessary for a schedule to be recoverable.</p>
+<h4><span class="mw-headline" id="Strict">Strict</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Schedule_(computer_science)&amp;action=edit&amp;section=14" title="Edit section: Strict">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<p>A schedule is strict - has the strictness property - if for any two transactions T1, T2, if a write operation of T1 precedes a <i>conflicting</i> operation of T2 (either read or write), then the commit event of T1 also precedes that conflicting operation of T2.</p>
+<p>Any strict schedule is cascadeless, but not the converse. Strictness allows efficient recovery of databases from failure.</p>
+<h2><span class="mw-headline" id="Hierarchical_relationship_between_serializability_classes">Hierarchical relationship between serializability classes</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Schedule_(computer_science)&amp;action=edit&amp;section=15" title="Edit section: Hierarchical relationship between serializability classes">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>The following expressions illustrate the hierarachical (containment) relationships between <a href="/wiki/Serializability" title="Serializability">serializability</a> and <a href="/wiki/Serializability#Correctness_-_recoverability" title="Serializability">recoverability</a> classes:</p>
+<ul>
+<li>Serial ⊂ commitment-ordered ⊂ conflict-serializable ⊂ view-serializable ⊂ all schedules</li>
+<li>Serial ⊂ strict ⊂ avoids cascading aborts ⊂ recoverable ⊂ all schedules</li>
+</ul>
+<p>The <a href="/wiki/Venn_diagram" title="Venn diagram">Venn diagram</a> (below) illustrates the above clauses graphically.</p>
+<h2><span class="mw-headline" id="Practical_implementations">Practical implementations</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Schedule_(computer_science)&amp;action=edit&amp;section=16" title="Edit section: Practical implementations">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>In practice, most general purpose database systems employ conflict-serializable and recoverable (primarily strict) schedules.</p>
+<h2><span class="mw-headline" id="See_also">See also</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Schedule_(computer_science)&amp;action=edit&amp;section=17" title="Edit section: See also">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul>
+<li><a href="/wiki/Schedule_(project_management)" title="Schedule (project management)">schedule (project management)</a></li>
+</ul>
+<h2><span class="mw-headline" id="References">References</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Schedule_(computer_science)&amp;action=edit&amp;section=18" title="Edit section: References">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul>
+<li><cite id="Bern1987"><a href="/wiki/Phil_Bernstein" title="Phil Bernstein">Philip A. Bernstein</a>, Vassos Hadzilacos, Nathan Goodman: <a rel="nofollow" class="external text" href="http://research.microsoft.com/en-us/people/philbe/ccontrol.aspx"><i>Concurrency Control and Recovery in Database Systems</i></a>, Addison Wesley Publishing Company, 1987, <a href="/wiki/Special:BookSources/0201107155" class="internal mw-magiclink-isbn">ISBN 0-201-10715-5</a></cite></li>
+<li><cite id="Weikum2001"><a href="/wiki/Gerhard_Weikum" title="Gerhard Weikum">Gerhard Weikum</a>, Gottfried Vossen: <a rel="nofollow" class="external text" href="http://www.elsevier.com/wps/find/bookdescription.cws_home/677937/description#description"><i>Transactional Information Systems</i></a>, Elsevier, 2001, <a href="/wiki/Special:BookSources/1558605088" class="internal mw-magiclink-isbn">ISBN 1-55860-508-8</a></cite></li>
+</ul>

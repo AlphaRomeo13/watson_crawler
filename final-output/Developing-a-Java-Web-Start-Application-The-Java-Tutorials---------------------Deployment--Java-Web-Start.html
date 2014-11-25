@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Developing-a-Java-Web-Start-Application-The-Java-Tutorials---------------------Deployment--Java-Web-Start.html</title></head>
+<body>
+<h1>Developing a Java Web Start Application</h1>
+<p>Software designed by using 
+component-based architecture can easily be developed and deployed as a Java Web Start application. Consider the example of a Java Web Start application with a Swing-based graphical user interface (GUI). With component-based design, the GUI can be built with smaller building blocks or components. The following general steps are used to create an application's GUI:</p>
+<ul>
+<li>Create a <code>MyTopJPanel</code> class that is a subclass of <code>JPanel</code>. Lay out your application's GUI components in the constructor of the <code>MyTopJPanel</code> class.</li>
+<li>Create a class called <code>MyApplication</code> that is a subclass of the <code>JFrame</code> class.</li>
+<li>In the <code>main</code> method of the <code>MyApplication</code> class, instantiate the <code>MyTopJPanel</code> class and set it as the content pane of the <code>JFrame</code>.</li>
+</ul>
+<p>The following sections explore these steps in greater detail by using the Dynamic Tree Demo application. If you are not familiar with Swing, see 
+Creating a GUI with Swing to learn more about using Swing GUI components.</p>
+<p>Click the following Launch button to launch the Dynamic Tree Demo application.</p>
+<h2>Creating the Top <code>JPanel</code> Class</h2>
+<p>Create a class that is a subclass of <code>JPanel</code>. This top <code>JPanel</code> acts as a container for all your other UI components. In the following example, the <code>DynamicTreePanel</code> class is the topmost <code>JPanel</code>. The constructor of the <code>DynamicTreePanel</code> class invokes other methods to create and lay out the UI controls properly.</p>
+<p>WHATSON? 68a3c5ff-ddb1-499d-89fe-98543f77de7a</p>
+<pre>
+public class DynamicTreePanel extends JPanel implements ActionListener {
+    private int newNodeSuffix = 1;
+    private static String ADD_COMMAND = "add";
+    private static String REMOVE_COMMAND = "remove";
+    private static String CLEAR_COMMAND = "clear";
+    
+    private DynamicTree treePanel;
+
+    public DynamicTreePanel() {
+        super(new BorderLayout());
+        
+        //Create the components.
+        treePanel = new DynamicTree();
+        populateTree(treePanel);
+
+        JButton addButton = new JButton("Add");
+        addButton.setActionCommand(ADD_COMMAND);
+        addButton.addActionListener(this);
+        
+        JButton removeButton = new JButton("Remove");
+        ....
+        
+        JButton clearButton = new JButton("Clear");
+        ...
+        
+        //Lay everything out.
+        treePanel.setPreferredSize(
+            new Dimension(300, 150));
+        add(treePanel, BorderLayout.CENTER);
+
+        JPanel panel = new JPanel(new GridLayout(0,3));
+        panel.add(addButton);
+        panel.add(removeButton); 
+        panel.add(clearButton);
+        add(panel, BorderLayout.SOUTH);
+    }
+    // ...
+}
+</pre>
+<h2>Creating the Application</h2>
+<p>For an application that has a Swing-based GUI, create a class that is a subclass of <code>javax.swing.JFrame</code>.</p>
+<p>Instantiate your top <code>JPanel</code> class and set it as the content pane of the <code>JFrame</code> in the application's <code>main</code> method. The <code>main</code> method of the <code>DynamicTreeApplication</code> class invokes the <code>createGUI</code> method in the AWT Event Dispatcher thread.</p>
+<p>WHATSON? 6720ab82-dc25-4ffd-a748-40156e8558bd</p>
+<pre>
+package webstartComponentArch;
+
+import javax.swing.JFrame;
+
+public class DynamicTreeApplication extends JFrame {
+    public static void main(String [] args) {
+        DynamicTreeApplication app = new DynamicTreeApplication();
+        app.createGUI();
+    }
+
+    private void createGUI() {
+        //Create and set up the content pane.
+        DynamicTreePanel newContentPane = new DynamicTreePanel();
+        newContentPane.setOpaque(true); 
+        setContentPane(newContentPane);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        pack();
+        setVisible(true);
+    }    
+}
+</pre>
+<h2>Benefits of Separating Core Functionality From the Final Deployment Mechanism</h2>
+<p>Another way to create an application is to just remove the layer of abstraction (separate top <code>JPanel</code>) and lay out all the controls in the application's <code>main</code> method itself. The downside to creating the GUI directly in the application's <code>main</code> method is that it will be more difficult to deploy your functionality as an applet, if you choose to do so later.</p>
+<p>In the Dynamic Tree Demo example, the core functionality is separated into the <code>DynamicTreePanel</code> class. It is now trivial to drop the <code>DynamicTreePanel</code> class into a <code>JApplet</code> and deploy it as an applet.</p>
+<p>Hence, to preserve portability and keep deployment options open, follow component-based design as described in this topic.</p>
+<p>
+Download source code for the <em>Dynamic Tree Demo</em> example to experiment further.</p>
+</body>
+</html>

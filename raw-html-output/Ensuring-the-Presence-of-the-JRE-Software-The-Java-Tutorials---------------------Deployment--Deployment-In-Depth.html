@@ -1,0 +1,54 @@
+<h1>Ensuring the Presence of the JRE Software</h1>
+<p>Rich Internet applications (RIAs) usually need a minimum version of the Java Runtime Environment (JRE) software to be present on the client machine. When deploying a RIA, you need to ensure that client machines have the required version of the JRE software so that your RIA can function well. With the Deployment Toolkit script, you have at least two ways to handle this requirement.</p>
+<ul>
+<li>You can check the version of client JRE software as soon as users access your web site and install the latest version if necessary.</li>
+<li>You can let users navigate the web site, and check and install the latest JRE only when they attempt to use your RIA.</li>
+</ul>
+<h2><a name="correctJREAtOutset" id="correctJREAtOutset"></a>Checking and Installing the Latest JRE Software When the User Accesses Your Web Site</h2>
+<p>The following example checks if a user has at least version 1.6.0_13 of the JRE software installed. If not, the code installs the latest JRE software . See inline comments in the code.</p>
+<p>WHATSON? df8904c7-d8a3-48d8-8e77-591bae8147ec</p>
+<pre>
+&lt;script src="https://www.java.com/js/deployJava.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+    
+    // check if current JRE version is greater than 1.6.0 
+    alert("versioncheck " + deployJava.versionCheck('1.6.0_10+'));
+    if (deployJava.versionCheck('1.6.0_10+') == false) {                   
+        userInput = confirm(
+            "You need the latest Java(TM) Runtime Environment. " +
+            "Would you like to update now?");        
+        if (userInput == true) {  
+    
+            // Set deployJava.returnPage to make sure user comes back to 
+            // your web site after installing the JRE
+            deployJava.returnPage = location.href;
+            
+            // Install latest JRE or redirect user to another page to get JRE
+            deployJava.installLatestJRE(); 
+        }
+    }
+&lt;/script&gt;
+</pre>
+<h2><a name="correctJREOnUse" id="correctJREOnUse"></a>Installing the Correct JRE Software Only When the User Attempts to Use Your RIA</h2>
+<p>When you specify the minimum version of the JRE software in the <code>runApplet</code> or <code>createWebStartLaunchButton</code> function, the Deployment Toolkit script makes sure that the required version of the JRE software exists on the client before running your RIA.</p>
+<p>Use the <code>runApplet</code> function to deploy an applet, as shown in the following example. The last parameter of the <code>runApplet</code> function is the minimum version that is required to the run your applet (version 1.6).</p>
+<p>WHATSON? 7ff0aaf7-b4dd-4417-9411-1e2f83f6d619</p>
+<pre>    
+&lt;script src="https://www.java.com/js/deployJava.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+    var attributes = { code:'components.DynamicTreeApplet',
+        width:300, height:300};
+    var parameters = {jnlp_href: 'dynamictree_applet.jnlp'};
+    deployJava.runApplet(attributes, parameters, '1.6');
+&lt;/script&gt;
+</pre>
+<p>To deploy a Java Web Start application, use the <code>createWebStartLaunchButton</code> function with the correct minimum version parameter (version 1.6).</p>
+<p>WHATSON? 36590991-fe03-40ce-a156-f03b2e026662</p>
+<pre>
+&lt;script src="https://www.java.com/js/deployJava.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+    var url = "dynamictree_applet.jnlp";
+    deployJava.createWebStartLaunchButton(url, '1.6.0');
+&lt;/script&gt;
+</pre>
+<p>The <code>runApplet</code> and <code>createWebStartLaunchButton</code> functions check the client's version of the JRE software. If the minimum version is not installed, the funtions install the latest version of the JRE software.</p>

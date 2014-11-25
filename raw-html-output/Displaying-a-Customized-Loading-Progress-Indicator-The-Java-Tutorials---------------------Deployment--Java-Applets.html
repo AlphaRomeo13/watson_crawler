@@ -1,0 +1,221 @@
+<h1>Displaying a Customized Loading Progress Indicator</h1>
+<p>A Java applet can display a customized loading progress indicator that shows the progress of download of the applet's resources as well as other applet specific data..</p>
+<p>Consider the Weather applet and the <code>CustomProgress</code> class to understand how to implement a customized loading progress indicator for a Java applet. For the purpose of demonstrating a large and prolonged download, this applet's JAR file has been artifically inflated and the <code>customprogress_applet.jnlp</code> file specifies additional JAR files as resources.</p>
+<h2>Developing a Customized Loading Progress Indicator</h2>
+<p>To develop a customized loading progress indicator for your applet, create a class that implements the 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/jre/api/javaws/jnlp/javax/jnlp/DownloadServiceListener.html"><code>DownloadServiceListener</code></a> interface.</p>
+<p>The constructor of the loading progress indicator class will vary depending on how the UI should be displayed and the capabilities needed by the class. The following guidelines should be applied:</p>
+<ul>
+<li>To display the loading progress indicator in a separate top level window, create a constructor that does not have any parameters.</li>
+<li>To display the loading progress indicator for an applet in the applet's container, create a constructor that takes an <code>Object</code> as a parameter. The <code>Object</code> argument can be typecast to an instance of the 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/awt/Container.html"><code>java.awt.Container</code></a> class.</li>
+<li>If the loading progress indicator class needs to access the applet's parameters, create two constructors as follows:
+<ul>
+<li>Create a constructor that takes an <code>Object</code> as a parameter as described previously.</li>
+<li>Create a constructor that takes two parameters of type <code>Object</code>. The first argument can be typecast to an instance of the 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/awt/Container.html"><code>java.awt.Container</code></a> class and the second argument can be typecast to an instance of the 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/applet/AppletStub.html"><code>java.applet.AppletStub</code></a> class.</li>
+</ul>
+<p>The Java Plug-in software will invoke the appropriate constructor depending on the capabilities of the JRE software on the client machine.</p>
+</li>
+</ul>
+<ul>
+<li>Create a constructor that takes an <code>Object</code> as a parameter as described previously.</li>
+<li>Create a constructor that takes two parameters of type <code>Object</code>. The first argument can be typecast to an instance of the 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/awt/Container.html"><code>java.awt.Container</code></a> class and the second argument can be typecast to an instance of the 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/applet/AppletStub.html"><code>java.applet.AppletStub</code></a> class.</li>
+</ul>
+<p>The Java Plug-in software will invoke the appropriate constructor depending on the capabilities of the JRE software on the client machine.</p>
+<p>WHATSON? 91c488eb-78d3-40a3-a6a9-c9115953c476</p>
+<pre>
+import javax.jnlp.DownloadServiceListener;
+import java.awt.Container;
+import java.applet.AppletStub;
+import netscape.javascript.*;
+
+// ...
+
+public class <b>CustomProgress implements DownloadServiceListener</b> {   
+    Container surfaceContainer = null;
+    AppletStub appletStub = null;
+    JProgressBar progressBar = null;
+    JLabel statusLabel = null;
+    boolean uiCreated = false;
+
+    <b>public CustomProgress(Object surface)</b> {
+       init(surface, null);
+    }
+
+    <b>public CustomProgress(Object surface, Object stub)</b> {
+        init(surface, stub);
+    }
+
+    public void init(Object surface, Object stub) {
+        try {
+            <b>surfaceContainer = (Container) surface;
+            appletStub = (AppletStub) stub;</b>
+        } catch (ClassCastException cce) {
+            // ...
+        }
+    }
+// ...
+}    
+</pre>
+<p>The following code snippet shows how to build the UI for the loading progress indicator. Use the instance of the 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/applet/AppletStub.html"><code>java.applet.AppletStub</code></a> class to retrieve the applet's parameters. Invoke the <code>JSObject.getWindow(null)</code> method to obtain a reference to the applet's parent web page and invoke JavaScript code on that page.</p>
+<p>WHATSON? 1d89158a-f2e5-4b65-abbe-2b4952ef54a4</p>
+<pre>
+private void create() {
+    JPanel top = createComponents();
+    if (surfaceContainer != null) {
+        // lay out loading progress UI in the given
+        // Container
+        surfaceContainer.add(top, BorderLayout.NORTH);
+        surfaceContainer.invalidate();
+        surfaceContainer.validate();
+    }     
+}
+private JPanel createComponents() {
+    JPanel top = new JPanel();
+    // ...
+    // get applet parameter using an instance of the
+    // AppletStub class "tagLine" parameter specified
+    // in applet's JNLP file
+    String tagLine = "";
+    if (appletStub != null) {
+        <b>tagLine = appletStub.getParameter("tagLine");</b>
+    }
+    String lblText = "&lt;html&gt;&lt;font color=red size=+2&gt;JDK
+        Documentation&lt;/font&gt;&lt;br/&gt;" +
+        tagLine + " &lt;br/&gt;&lt;/html&gt;";
+    JLabel lbl = new JLabel(lblText);
+    top.add(lbl, BorderLayout.NORTH);
+
+    // use JSObject.getWindow(null) method to retrieve
+    // a reference to the web page and make JavaScript
+    // calls. Duke logo displayed if displayLogo variable
+    // set to "true" in the web page
+    String displayLogo = "false";    
+    <b>JSObject window = JSObject.getWindow(null);        
+    if (window != null) {
+        displayLogo = (String)window.getMember("displayLogo");
+    }</b>
+    if (displayLogo.equals("true")) {
+        lbl = new JLabel();
+        ImageIcon logo = createImageIcon("images/DukeWave.gif", "logo");
+        lbl.setIcon(logo);
+        top.add(lbl, BorderLayout.EAST);
+    }
+
+    statusLabel = new JLabel(
+        "html&gt;&lt;font color=green size=-2&gt;" +
+        "Loading applet...&lt;/font&gt;&lt;/html&gt;");
+    top.add(statusLabel, BorderLayout.CENTER);
+
+    // progress bar displays progress
+    <b>progressBar = new JProgressBar(0, 100);</b>
+    progressBar.setValue(0);
+    progressBar.setStringPainted(true);
+    top.add(progressBar, BorderLayout.SOUTH);
+
+    return top;
+}
+</pre>
+<p>Create and update the progress indicator in the following methods based on the <code>overallPercent</code> argument. These methods are invoked regularly by the Java Plug-in software to communicate progress of the applet's download. Java Plug-in software will always send a message when download and validation of resources is 100% complete.</p>
+<p>WHATSON? 86438fea-dbfd-4791-b140-e1827b750e24</p>
+<pre>
+public void <b>progress</b>(URL url, String version,
+                     long readSoFar, long total,
+                     int overallPercent) {        
+    // check progress of download and update display
+    updateProgressUI(overallPercent);
+}
+
+public void <b>upgradingArchive</b>(java.net.URL url,
+                  java.lang.String version,
+                  int patchPercent,
+                  int overallPercent) {
+    updateProgressUI(overallPercent);
+}
+
+public void <b>validating</b>(java.net.URL url,
+            java.lang.String version,
+            long entry,
+            long total,
+            int overallPercent) {
+    updateProgressUI(overallPercent);
+}
+
+private void <b>updateProgressUI</b>(int overallPercent) {
+    if (!uiCreated &amp;&amp; overallPercent &gt; 0
+        &amp;&amp; overallPercent &lt; 100) {
+        // create custom progress indicator's
+        // UI only if there is more work to do,
+        // meaning overallPercent &gt; 0 and
+        // &lt; 100 this prevents flashing when
+        // RIA is loaded from cache
+        create(); 
+        uiCreated = true;            
+    }
+    if (uiCreated) {
+        progressBar.setValue(overallPercent);
+    }
+}
+</pre>
+<p>Compile the loading progress indicator class and build a JAR file with all the resources needed to display the loading progress indicator. Include the following JAR files in your <code>classpath</code> to enable compilation:</p>
+<ul>
+<li><code>&lt;your JRE directory&gt;/lib/javaws.jar</code></li>
+<li><code>&lt;your JRE directory&gt;/lib/plugin.jar</code> – This JAR file is required only if your loading progress indicator class uses the <code>JSObject.getWindow</code> method to invoke JavaScript code in the applet's parent web page.</li>
+</ul>
+<p>The loading progress indicator class is now ready for use. The next step is to specify this loading progress indicator JAR file as your applet's loading progress indicator.</p>
+<h2>Specifying a Loading Progress Indicator for an Applet</h2>
+<p>To specify a customized loading progress indicator for an applet, include the following information in the applet's JNLP file:</p>
+<ul>
+<li><code>jar</code> tag with the <code>download="progress"</code> attribute</li>
+<li><code>progress-class</code> attribute with the fully qualified name of the loading progress class.</li>
+</ul>
+<p>The following code snippet from the 
+<a class="SourceLink" target="_blank" href="examples/applet_AppletWithCustomProgressIndicator/src/customprogress_applet.jnlp" onclick="showCode('../../displayCode.html', 'examples/applet_AppletWithCustomProgressIndicator/src/customprogress_applet.jnlp'); return false;"><code>customprogress_applet.jnlp</code></a> file displays the usage of the <code>download="progress"</code> and <code>progress-class</code> attributes.</p>
+<p>WHATSON? 92bcb411-0a0b-40e9-a74f-076973263ebb</p>
+<pre>
+&lt;jnlp spec="1.0+"
+  codebase="http://docs.oracle.com/javase/tutorial/deployment"
+  href=""&gt;
+  &lt;!-- ... --&gt;
+  &lt;resources&gt;
+    &lt;!-- ... --&gt;
+    &lt;jar
+      href="applet/examples/dist/applet_AppletWithCustomProgressIndicator"
+      main="true" /&gt;    
+    &lt;jar
+      href="applet/examples/dist/applet_CustomProgressIndicator/applet_CustomProgressIndicator.jar" 
+     <b>download="progress"</b> /&gt;
+  &lt;/resources&gt;
+  &lt;applet-desc
+     name="customprogressindicatordemo.WeatherApplet"
+     main-class="customprogressindicatordemo.WeatherApplet"
+     <b>progress-class</b>="customprogressindicator.CustomProgress"
+     width="600"
+     height="200"&gt;
+     &lt;param
+       name="tagLine"
+       value="Information straight from the horse's mouth!"/&gt;
+  &lt;/applet-desc&gt;
+&lt;!-- ... --&gt;
+&lt;/jnlp&gt;
+</pre>
+<p>Deploy the applet in a web page. Open 
+<a class="SourceLink" target="_blank" href="examples/dist/applet_AppletWithCustomProgressIndicator/AppletPage.html" onclick="showCode('../../displayCode.html', 'examples/dist/applet_AppletWithCustomProgressIndicator/AppletPage.html'); return false;"><code>AppletPage.html</code></a> in a web browser to view the loading progress indicator for the Weather applet.</p>
+<h2><a id="integratedpi" name="integratedpi"></a>Integrating the Loading Progress Indicator With Applet UI</h2>
+<p>You can also integrate the loading progress indicator into the applet's UI. Open 
+<a class="SourceLink" target="_blank" href="examples/dist/applet_AppletWithIntegratedProgressIndicator/AppletPage.html" onclick="showCode('../../displayCode.html', 'examples/dist/applet_AppletWithIntegratedProgressIndicator/AppletPage.html'); return false;"><code>AppletPage.html</code></a> in a web browser to view the loading progress indicator integrated into the Weather applet's UI. View the 
+<a class="SourceLink" target="_blank" href="examples/applet_AppletWithIntegratedProgressIndicator/src/integratedprogressdemo/IntegratedProgressIndicator.java" onclick="showCode('../../displayCode.html', 'examples/applet_AppletWithIntegratedProgressIndicator/src/integratedprogressdemo/IntegratedProgressIndicator.java'); return false;"><code>IntegratedProgressIndicator.java</code></a> class and the inline comments for more information.</p>
+<p>Download source code for the following examples to experiment further:</p>
+<ul>
+<li>
+<a class="TutorialLink" target="_top" href="examplesIndex.html#AppletWithCustomProgressIndicator"><em>Applet With Customized Loading Progress Indicator</em></a></li>
+<li>
+<a class="TutorialLink" target="_top" href="examplesIndex.html#AppletWithIntegratedProgressIndicator"><em>Applet With Integrated Progress Indicator</em></a></li>
+</ul>
+<p>See the 
+<a class="TutorialLink" target="_top" href="../doingMoreWithRIA/customizeRIALoadingExperience.html">Customizing the Loading Experience</a> topic for more information about customizing the rich Internet application (RIA) loading experience.</p>

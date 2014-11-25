@@ -1,0 +1,84 @@
+<h1>How to Write a Mouse-Wheel Listener</h1>
+<p>Mouse-wheel events notify when the wheel on the mouse rotates. For information on listening to other mouse events, such as clicks, see <a href="mouselistener.html">How to Write a Mouse Listener</a>. For information on listening to mouse-dragged events, see <a href="mousemotionlistener.html">How to Write a Mouse-Motion Listener</a>. Not all mice have wheels and, in that case, mouse-wheel events are never generated. There is no way to programmatically detect whether the mouse is equipped with a mouse wheel.</p>
+<p>Alternatively, use the corresponding 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/awt/event/MouseAdapter.html"><code>MouseAdapter</code></a> AWT class, which implements the <code>MouseWheelListener</code> interface, to create a <code>MouseWheelEvent</code> and override the methods for the specific events.</p>
+<p>Usually it is not necessary to implement a mouse-wheel listener because the mouse wheel is used primarily for scrolling. Scroll panes automatically register mouse-wheel listeners that react to the mouse wheel appropriately.</p>
+<p>However, to create a custom component to be used inside a scroll pane you may need to customize its scrolling behavior ??? specifically you might need to set the unit and block increments. For a text area, for example, scrolling one unit means scrolling by one line of text. A block increment typically scrolls an entire "page", or the size of the viewport. For more information, see 
+<a class="TutorialLink" target="_top" href="../components/scrollpane.html#scrollable">Implementing a Scrolling-Savvy Client</a> in the 
+<a class="TutorialLink" target="_top" href="../components/scrollpane.html">How to Use Scroll Panes</a> page.</p>
+<p>To generate mouse-wheel events, the cursor must be <em>over</em> the component registered to listen for mouse-wheel events. The type of scrolling that occurs, either <code>WHEEL_UNIT_SCROLL</code> or <code>WHEEL_BLOCK_SCROLL</code>, is platform dependent. The amount that the mouse wheel scrolls is also platform dependent. Both the type and amount of scrolling can be set via the mouse control panel for the platform.</p>
+<p>The following example demonstrates mouse-wheel events.</p>
+<ol>
+<li>Click the Launch button to run MouseWheelEventDemo using 
+<a class="OutsideLink" target="_blank" href="http://www.oracle.com/technetwork/java/javase/javawebstart/index.html">Java™ Web Start</a> (<a href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">download JDK 7 or later</a>). Alternatively, to compile and run the example yourself, consult the <a href="../examples/events/index.html#MouseWheelEventDemo">example index</a>.<a href="http://docs.oracle.com/javase/tutorialJWS/samples/uiswing/MouseWheelEventDemoProject/MouseWheelEventDemo.jnlp"><img src="../../images/jws-launch-button.png" width="88" align="bottom" alt="Launches the MouseWheelEventDemo application"></a><br></li>
+<li>Move the cursor over the text area.</li>
+<li>Rotate the mouse wheel away from you. You will see one or more mouse-wheel events in the <em>up</em> direction.</li>
+<li>Rotate the mouse wheel in the opposite direction. You will see mouse-wheel events in the <em>down</em> direction.</li>
+<li>Try changing your mouse wheel's scrolling behavior your system's mouse control panel to see how the output changes. You should not need to restart the demo to see the changes take effect.</li>
+</ol>
+<p>The output from MouseWheelEventDemo for a system that uses unit increments for its mouse wheel might look as follows:</p>
+<p>WHATSON? 035079e4-6d9f-4f28-9fb3-22325c6d2519</p>
+<pre>
+javax.swing.JTextArea: Mouse wheel moved UP 1 notch(es)
+    Scroll type: WHEEL_UNIT_SCROLL
+    Scroll amount: 3 unit increments per notch
+    Units to scroll: -3 unit increments
+    Vertical unit increment: 16 pixels
+</pre>
+<p>The scroll amount, returned by the <code>getScrollAmount</code> method, indicates how many units will be scrolled and always presents a positive number. The units to scroll, returned by the <code>getUnitsToScroll</code> method, are positive when scrolling down and negative when scrolling up. The number of pixels for the vertical unit is obtained from the vertical scroll bar using the <code>getUnitIncrement</code> method. In the preceding example, rolling the mouse wheel one notch upward should result in the text area scrolling upward 48 pixels (3x16).</p>
+<p>For a system that uses block increments for mouse-wheel scrolling, for the same movement of the mouse wheel the output might look as follows:</p>
+<p>WHATSON? 34dc2e5b-473b-44f2-8f94-5c52eb7a8371</p>
+<pre>
+javax.swing.JTextArea: Mouse wheel moved UP 1 notch(es)
+    Scroll type: WHEEL_BLOCK_SCROLL
+    Vertical block increment: 307 pixels
+</pre>
+<p>The vertical block increment is obtained from the vertical scroll bar using the <code>getBlockIncrement</code> method. In this case, rolling the mouse wheel upward one notch means that the text area should scroll upward 307 pixels.</p>
+<p>Find the demo's code in the 
+<a class="SourceLink" target="_blank" href="../examples/events/MouseWheelEventDemoProject/src/events/MouseWheelEventDemo.java" onclick="showCode('../../displayCode.html', '../examples/events/MouseWheelEventDemoProject/src/events/MouseWheelEventDemo.java'); return false;"><code>MouseWheelEventDemo.java</code></a> file. The following code snippet is related to the mouse-wheel event handling:</p>
+<p>WHATSON? e66054bf-0774-41a4-b127-6fe73fd710e6</p>
+<pre>
+public class MouseWheelEventDemo ... implements MouseWheelListener ... {
+    public MouseWheelEventDemo() {
+        <em>//where initialization occurs:</em>
+        //Register for mouse-wheel events on the text area.
+        textArea.addMouseWheelListener(this);
+        ...
+    }
+
+    public void mouseWheelMoved(MouseWheelEvent e) {
+       String message;
+       int notches = e.getWheelRotation();
+       if (notches &lt; 0) {
+           message = "Mouse wheel moved UP "
+                        + -notches + " notch(es)" + newline;
+       } else {
+           message = "Mouse wheel moved DOWN "
+                        + notches + " notch(es)" + newline;
+       }
+       if (e.getScrollType() == MouseWheelEvent.WHEEL_UNIT_SCROLL) {
+           message += "    Scroll type: WHEEL_UNIT_SCROLL" + newline;
+           message += "    Scroll amount: " + e.getScrollAmount()
+                   + " unit increments per notch" + newline;
+           message += "    Units to scroll: " + e.getUnitsToScroll()
+                   + " unit increments" + newline;
+           message += "    Vertical unit increment: "
+               + scrollPane.getVerticalScrollBar().getUnitIncrement(1)
+               + " pixels" + newline;
+       } else { //scroll type == MouseWheelEvent.WHEEL_BLOCK_SCROLL
+           message += "    Scroll type: WHEEL_BLOCK_SCROLL" + newline;
+           message += "    Vertical block increment: "
+               + scrollPane.getVerticalScrollBar().getBlockIncrement(1)
+               + " pixels" + newline;
+       }
+       saySomething(message, e);
+    }
+    ...
+}
+</pre>
+<h2><a name="api" id="api">The Mouse Wheel Listener API</a></h2>
+<p style="text-align: center"><a name="mousewheellistener" id="mousewheellistener">The MouseWheelListener Interface</a></p>
+<p><em>Although <code>MouseWheelListener</code> has only one method, it has the corresponding adapter class — <code>MouseAdapter</code>. This capability enables an application to have only one adapter class instance for the component to manage all types of events from the mouse pointer.</em></p>
+<p style="text-align: center"><a name="mousewheelevent" id="mousewheelevent">The MouseWheelEvent Class</a></p>
+<h2><a name="eg" id="eg">Examples That Use Mouse Wheel Listeners</a></h2>
+<p>The following table lists the examples that use mouse-wheel listeners.</p>

@@ -1,0 +1,296 @@
+<h1>How to Use Buttons, Check Boxes, and Radio Buttons</h1>
+<p>To create a button, you can instantiate one of the many classes that descend from the 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/javax/swing/AbstractButton.html"><code>AbstractButton</code></a> class. The following table shows the Swing-defined <code>AbstractButton</code> subclasses that you might want to use:</p>
+<p>First, this section explains the basic button API that <code>AbstractButton</code> defines  and thus all Swing buttons have in common. Next, it describes the small amount of API that <code>JButton</code> adds to <code>AbstractButton</code>. After that, this section shows you how to use specialized API to implement check boxes and radio buttons.</p>
+<h2><a name="abstractbutton" id="abstractbutton">How to Use the Common Button API</a></h2>
+<p>Here is a picture of an application that displays three buttons:</p>
+<ol><!-- *******  boilerplate stuff ******* -->
+<li>Click the Launch button to run the Button Demo using 
+<a class="OutsideLink" target="_blank" href="http://www.oracle.com/technetwork/java/javase/javawebstart/index.html">Java™ Web Start</a> (<a href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">download JDK 7 or later</a>). Alternatively, to compile and run the example yourself, consult the <a href="../examples/components/index.html#ButtonDemo">example index</a>.<a href="http://docs.oracle.com/javase/tutorialJWS/samples/uiswing/ButtonDemoProject/ButtonDemo.jnlp"><img src="../../images/jws-launch-button.png" width="88" height="23" align="bottom" alt="Launches the ButtonDemo example"></a><br>
+<p><!--  ******* end boilerplate stuff  *******  -->
+ <!-- 
+
+<li> <a href="http://docs.oracle.com/javase/tutorialJWS/samples/uiswing/ButtonDemoProject/ButtonDemo.jnlp">Run ButtonDemo</a> (
+<a class="OutsideLink" target="_blank" href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">download JDK 7 or later</a>).    Or, to compile and run the example yourself,
+     consult the 
+     <a href="../examples/components/index.html#ButtonDemo">example index</a>.
+        
+--></p>
+</li>
+<li>Click the left button.<br>
+It disables the middle button (and itself, since it is no longer useful) and enables the right button.</li>
+<li>Click the right button.<br>
+It enables the middle button and the left button, and disables itself.</li>
+</ol>
+<p><!--  ******* end boilerplate stuff  *******  -->
+ <!-- 
+
+<li> <a href="http://docs.oracle.com/javase/tutorialJWS/samples/uiswing/ButtonDemoProject/ButtonDemo.jnlp">Run ButtonDemo</a> (
+<a class="OutsideLink" target="_blank" href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">download JDK 7 or later</a>).    Or, to compile and run the example yourself,
+     consult the 
+     <a href="../examples/components/index.html#ButtonDemo">example index</a>.
+        
+--></p>
+<p>As the <code>ButtonDemo</code> example shows, a Swing button can display both text and an image. In <code>ButtonDemo</code>, each button has its text in a different place, relative to its image. The underlined letter in each button's text shows the <em>mnemonic</em>  the keyboard alternative  for each button. In most look and feels, the user can click a button by pressing the Alt key and the mnemonic. For example, Alt-M would click the Middle button in ButtonDemo.</p>
+<p>When a button is disabled, the look and feel automatically generates the button's disabled appearance. However, you could provide an image to be substituted for the normal image. For example, you could provide gray versions of the images used in the left and right buttons.</p>
+<p>How you implement event handling depends on the type of button you use and how you use it. Generally, you implement an 
+<a class="TutorialLink" target="_top" href="../events/actionlistener.html">action listener</a>, which is notified every time the user clicks the button. For <a href="#checkbox">check boxes</a> you usually use an 
+<a class="TutorialLink" target="_top" href="../events/itemlistener.html">item listener</a>, which is notified when the check box is selected or deselected.</p>
+<p>Below is the code from 
+<a class="SourceLink" target="_blank" href="../examples/components/ButtonDemoProject/src/components/ButtonDemo.java" onclick="showCode('../../displayCode.html', '../examples/components/ButtonDemoProject/src/components/ButtonDemo.java'); return false;"><code>ButtonDemo.java</code></a> that creates the buttons in the previous example and reacts to button clicks. The bold code is the code that would remain if the buttons had no images.</p>
+<p>WHATSON? 3199d30e-1c02-4616-8bab-b8dbc18f7f02</p>
+<pre>
+<em>//In initialization code:</em>
+    ImageIcon leftButtonIcon = createImageIcon("images/right.gif");
+    ImageIcon middleButtonIcon = createImageIcon("images/middle.gif");
+    ImageIcon rightButtonIcon = createImageIcon("images/left.gif");
+
+    <b>b1 = new JButton("Disable middle button"</b>, leftButtonIcon<b>);</b>
+    b1.setVerticalTextPosition(AbstractButton.CENTER);
+    b1.setHorizontalTextPosition(AbstractButton.LEADING); //aka LEFT, for left-to-right locales
+    <b>b1.setMnemonic(KeyEvent.VK_D);</b>
+    <b>b1.setActionCommand("disable");</b>
+
+    <b>b2 = new JButton("Middle button"</b>, middleButtonIcon<b>);</b>
+    b2.setVerticalTextPosition(AbstractButton.BOTTOM);
+    b2.setHorizontalTextPosition(AbstractButton.CENTER);
+    <b>b2.setMnemonic(KeyEvent.VK_M);</b>
+
+    <b>b3 = new JButton("Enable middle button"</b>, rightButtonIcon<b>);</b>
+    //Use the default text position of CENTER, TRAILING (RIGHT).
+    <b>b3.setMnemonic(KeyEvent.VK_E);
+    b3.setActionCommand("enable");
+    b3.setEnabled(false);</b>
+
+    //Listen for actions on buttons 1 and 3.
+    <b>b1.addActionListener(this);
+    b3.addActionListener(this);
+
+    b1.setToolTipText("Click this button to disable "
+                      + "the middle button.");
+    b2.setToolTipText("This middle button does nothing "
+                      + "when you click it.");
+    b3.setToolTipText("Click this button to enable the "
+                      + "middle button.");</b>
+    ...
+}
+
+<b>public void actionPerformed(ActionEvent e) {
+    if ("disable".equals(e.getActionCommand())) {
+        b2.setEnabled(false);
+        b1.setEnabled(false);
+        b3.setEnabled(true);
+    } else {
+        b2.setEnabled(true);
+        b1.setEnabled(true);
+        b3.setEnabled(false);
+    }
+} </b>
+
+protected static ImageIcon createImageIcon(String path) {
+    java.net.URL imgURL = ButtonDemo.class.getResource(path);
+    <em>...//error handling omitted for clarity...</em>
+    return new ImageIcon(imgURL);
+}
+</pre>
+<h2><a name="jbutton" id="jbutton">How to Use JButton Features</a></h2>
+<p>Ordinary buttons  <code>JButton</code> objects  have just a bit more functionality than the <code>AbstractButton</code> class provides: You can make a <code>JButton</code> be the default button.</p>
+<p>At most one button in a top-level container can be the default button. The default button typically has a highlighted appearance and acts clicked whenever the top-level container has the keyboard focus and the user presses the Return or Enter key. Here is a picture of a dialog, implemented in the <a href="../examples/components/index.html#ListDialog">ListDialog</a> example, in which the <b>Set</b> button is the default button:</p>
+<p>You set the default button by invoking the <code>setDefaultButton</code> method on a top-level container's root pane. Here is the code that sets up the default button for the <code>ListDialog</code> example:</p>
+<p>WHATSON? 71a88253-6065-4bd1-b6e5-df2c95bed2a3</p>
+<pre>
+<em>//In the constructor for a JDialog subclass:</em>
+getRootPane().setDefaultButton(setButton);
+</pre>
+<p>The exact implementation of the default button feature depends on the look and feel. For example, in the Windows look and feel, the default button changes to whichever button has the focus, so that pressing Enter clicks the focused button. When no button has the focus, the button you originally specified as the default button becomes the default button again.</p>
+<h2><a name="checkbox" id="checkbox">How to Use Check Boxes</a></h2>
+<p>The 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/javax/swing/JCheckBox.html"><code>JCheckBox</code></a> class provides support for check box buttons. You can also put check boxes in <a href="menu.html">menus</a>, using the 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/javax/swing/JCheckBoxMenuItem.html"><code>JCheckBoxMenuItem</code></a> class. Because <code>JCheckBox</code> and <code>JCheckBoxMenuItem</code> inherit from <code>AbstractButton</code>, Swing check boxes have all the usual button characteristics, as discussed earlier in this section. For example, you can specify images to be used in check boxes.</p>
+<p>Check boxes are similar to <a href="#radiobutton">radio buttons</a> but their selection model is different, by convention. Any number of check boxes in a group  none, some, or all  can be selected. A group of radio buttons, on the other hand, can have only one button selected.</p>
+<p>Here is a picture of an application that uses four check boxes to customize a cartoon:</p>
+<ol>
+<li>Click the Launch button to run the CheckBox Demo using 
+<a class="OutsideLink" target="_blank" href="http://www.oracle.com/technetwork/java/javase/javawebstart/index.html">Java™ Web Start</a> (<a href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">download JDK 7 or later</a>). Alternatively, to compile and run the example yourself, consult the <a href="../examples/components/index.html#CheckBoxDemo">example index</a>.<a href="http://docs.oracle.com/javase/tutorialJWS/samples/uiswing/CheckBoxDemoProject/CheckBoxDemo.jnlp"><img src="../../images/jws-launch-button.png" width="88" height="23" align="bottom" alt="Launches the ButtonDemo example"></a><br>
+<p><!--  ******* end boilerplate stuff  *******  -->
+ <!-- 
+
+<li> <a href="http://docs.oracle.com/javase/tutorialJWS/samples/uiswing/CheckBoxDemoProject/CheckBoxDemo.jnlp">Run CheckBoxDemo</a> (
+<a class="OutsideLink" target="_blank" href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">download JDK 7 or later</a>).
+     Or, to compile and run the example yourself,
+     consult the 
+     <a href="../examples/components/index.html#CheckBoxDemo">example index</a>.
+--></p>
+</li>
+<li>Click the <b>Chin</b> button or press Alt-c.<br>
+The <b>Chin</b> check box becomes unselected, and the chin disappears from the picture. The other check boxes remain selected. This application has one item listener that listens to all the check boxes. Each time the item listener receives an event, the application loads a new picture that reflects the current state of the check boxes.</li>
+</ol>
+<p><!--  ******* end boilerplate stuff  *******  -->
+ <!-- 
+
+<li> <a href="http://docs.oracle.com/javase/tutorialJWS/samples/uiswing/CheckBoxDemoProject/CheckBoxDemo.jnlp">Run CheckBoxDemo</a> (
+<a class="OutsideLink" target="_blank" href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">download JDK 7 or later</a>).
+     Or, to compile and run the example yourself,
+     consult the 
+     <a href="../examples/components/index.html#CheckBoxDemo">example index</a>.
+--></p>
+<p>A check box generates one item event and one action event per click. Usually, you listen only for item events, since they let you determine whether the click selected or deselected the check box. Below is the code from 
+<a class="SourceLink" target="_blank" href="../examples/components/CheckBoxDemoProject/src/components/CheckBoxDemo.java" onclick="showCode('../../displayCode.html', '../examples/components/CheckBoxDemoProject/src/components/CheckBoxDemo.java'); return false;"><code>CheckBoxDemo.java</code></a> that creates the check boxes in the previous example and reacts to clicks.</p>
+<p>WHATSON? e93add9b-1035-4e8c-bfa8-33dc6ea457af</p>
+<pre>
+<em>//In initialization code:</em>
+    chinButton = new JCheckBox("Chin");
+    chinButton.setMnemonic(KeyEvent.VK_C); 
+    chinButton.setSelected(true);
+
+    glassesButton = new JCheckBox("Glasses");
+    glassesButton.setMnemonic(KeyEvent.VK_G); 
+    glassesButton.setSelected(true);
+
+    hairButton = new JCheckBox("Hair");
+    hairButton.setMnemonic(KeyEvent.VK_H); 
+    hairButton.setSelected(true);
+
+    teethButton = new JCheckBox("Teeth");
+    teethButton.setMnemonic(KeyEvent.VK_T); 
+    teethButton.setSelected(true);
+
+    //Register a listener for the check boxes.
+    chinButton.addItemListener(this);
+    glassesButton.addItemListener(this);
+    hairButton.addItemListener(this);
+    teethButton.addItemListener(this);
+...
+public void itemStateChanged(ItemEvent e) {
+    ...
+    Object source = e.getItemSelectable();
+
+    if (source == chinButton) {
+        <em>//...make a note of it...</em>
+    } else if (source == glassesButton) {
+        <em>//...make a note of it...</em>
+    } else if (source == hairButton) {
+        <em>//...make a note of it...</em>
+    } else if (source == teethButton) {
+        <em>//...make a note of it...</em>
+    }
+
+    if (e.getStateChange() == ItemEvent.DESELECTED)
+        <em>//...make a note of it...</em>
+    ...
+    updatePicture();
+}
+</pre>
+<h2><a name="radiobutton" id="radiobutton">How to Use Radio Buttons</a></h2>
+<p>Radio buttons are groups of buttons in which, by convention, only one button at a time can be selected. The Swing release supports radio buttons with the 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/javax/swing/JRadioButton.html"><code>JRadioButton</code></a> and 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/javax/swing/ButtonGroup.html"><code>ButtonGroup</code></a> classes. To put a radio button in a <a href="menu.html">menu</a>, use the 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/javax/swing/JRadioButtonMenuItem.html"><code>JRadioButtonMenuItem</code></a> class. Other ways of displaying one-of-many choices are <a href="combobox.html">combo boxes</a> and <a href="list.html">lists</a>. Radio buttons look similar to <a href="#checkbox">check boxes</a>, but, by convention, check boxes place no limits on how many items can be selected at a time.</p>
+<p>Because <code>JRadioButton</code> inherits from <code>AbstractButton</code>, Swing radio buttons have all the usual button characteristics, as discussed earlier in this section. For example, you can specify the image displayed in a radio button.</p>
+<p>Here is a picture of an application that uses five radio buttons to let you choose which kind of pet is displayed:</p>
+<ol><!-- *******  boilerplate stuff ******* -->
+<li>Click the Launch button to run the RadioButton Demo using 
+<a class="OutsideLink" target="_blank" href="http://www.oracle.com/technetwork/java/javase/javawebstart/index.html">Java™ Web Start</a> (<a href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">download JDK 7 or later</a>). Alternatively, to compile and run the example yourself, consult the <a href="../examples/components/index.html#RadioButtonDemo">example index</a>.<a href="http://docs.oracle.com/javase/tutorialJWS/samples/uiswing/RadioButtonDemoProject/RadioButtonDemo.jnlp"><img src="../../images/jws-launch-button.png" width="88" height="23" align="bottom" alt="Launches the ButtonDemo example"></a><br>
+<p><!--  ******* end boilerplate stuff  *******  -->
+ <!-- 
+
+<li> <a href="http://docs.oracle.com/javase/tutorialJWS/samples/uiswing/RadioButtonDemoProject/RadioButtonDemo.jnlp">Run RadioButtonDemo</a> (
+<a class="OutsideLink" target="_blank" href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">download JDK 7 or later</a>).
+     Or, to compile and run the example yourself,
+     consult the 
+     <a href="../examples/components/index.html#RadioButtonDemo">example index</a>.
+        
+--></p>
+</li>
+<li>Click the <b>Dog</b> button or press Alt-d.<br>
+The <b>Dog</b> button becomes selected, which makes the <b>Bird</b> button become unselected. The picture switches from a bird to a dog. This application has one action listener that listens to all the radio buttons. Each time the action listener receives an event, the application displays the picture for the radio button that was just clicked.</li>
+</ol>
+<p><!--  ******* end boilerplate stuff  *******  -->
+ <!-- 
+
+<li> <a href="http://docs.oracle.com/javase/tutorialJWS/samples/uiswing/RadioButtonDemoProject/RadioButtonDemo.jnlp">Run RadioButtonDemo</a> (
+<a class="OutsideLink" target="_blank" href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">download JDK 7 or later</a>).
+     Or, to compile and run the example yourself,
+     consult the 
+     <a href="../examples/components/index.html#RadioButtonDemo">example index</a>.
+        
+--></p>
+<p>Each time the user clicks a radio button (even if it was already selected), the button fires an 
+<a class="TutorialLink" target="_top" href="../events/actionlistener.html">action event</a>. One or two 
+<a class="TutorialLink" target="_top" href="../events/itemlistener.html">item events</a> also occur  one from the button that was just selected, and another from the button that lost the selection (if any). Usually, you handle radio button clicks using an action listener.</p>
+<p>Below is the code from 
+<a class="SourceLink" target="_blank" href="../examples/components/RadioButtonDemoProject/src/components/RadioButtonDemo.java" onclick="showCode('../../displayCode.html', '../examples/components/RadioButtonDemoProject/src/components/RadioButtonDemo.java'); return false;"><code>RadioButtonDemo.java</code></a> that creates the radio buttons in the previous example and reacts to clicks.</p>
+<p>WHATSON? 9f4998eb-7d70-4997-bac0-f8d6d3b5a89b</p>
+<pre>
+<em>//In initialization code:</em>
+    //Create the radio buttons.
+    JRadioButton birdButton = new JRadioButton(birdString);
+    birdButton.setMnemonic(KeyEvent.VK_B);
+    birdButton.setActionCommand(birdString);
+    birdButton.setSelected(true);
+
+    JRadioButton catButton = new JRadioButton(catString);
+    catButton.setMnemonic(KeyEvent.VK_C);
+    catButton.setActionCommand(catString);
+
+    JRadioButton dogButton = new JRadioButton(dogString);
+    dogButton.setMnemonic(KeyEvent.VK_D);
+    dogButton.setActionCommand(dogString);
+
+    JRadioButton rabbitButton = new JRadioButton(rabbitString);
+    rabbitButton.setMnemonic(KeyEvent.VK_R);
+    rabbitButton.setActionCommand(rabbitString);
+
+    JRadioButton pigButton = new JRadioButton(pigString);
+    pigButton.setMnemonic(KeyEvent.VK_P);
+    pigButton.setActionCommand(pigString);
+
+    //Group the radio buttons.
+    ButtonGroup group = new ButtonGroup();
+    group.add(birdButton);
+    group.add(catButton);
+    group.add(dogButton);
+    group.add(rabbitButton);
+    group.add(pigButton);
+
+    //Register a listener for the radio buttons.
+    birdButton.addActionListener(this);
+    catButton.addActionListener(this);
+    dogButton.addActionListener(this);
+    rabbitButton.addActionListener(this);
+    pigButton.addActionListener(this);
+...
+public void actionPerformed(ActionEvent e) {
+    picture.setIcon(new ImageIcon("images/" 
+                                  + e.getActionCommand() 
+                                  + ".gif"));
+}
+</pre>
+<p>For each group of radio buttons, you need to create a <code>ButtonGroup</code> instance and add each radio button to it. The <code>ButtonGroup</code> takes care of unselecting the previously selected button when the user selects another button in the group.</p>
+<p>You should generally initialize a group of radio buttons so that one is selected. However, the API doesn't enforce this rule  a group of radio buttons can have no initial selection. Once the user has made a selection, exactly one button is selected from then on.</p>
+<h2><a name="api" id="api">The Button API</a></h2>
+<p>The following tables list the commonly used button-related API. Other methods you might call, such as <code>setFont</code> and <code>setForeground</code>, are listed in the API tables in <a href="jcomponent.html#api">The JComponent Class</a>.</p>
+<p>The API for using buttons falls into these categories:</p>
+<ul>
+<li><a href="#contents">Setting or Getting the Button's Contents</a></li>
+<li><a href="#looks">Fine Tuning the Button's Appearance</a></li>
+<li><a href="#acts">Implementing the Button's Functionality</a></li>
+<li><a href="#checkboxapi">Check Box Constructors</a></li>
+<li><a href="#radiobuttonapi">Radio Button Constructors</a></li>
+<li><a href="#togglebuttonapi">Toggle Button Constructors</a></li>
+<li><a href="#buttongroup">Commonly Used Button Group Constructors/Methods</a></li>
+</ul>
+<h2><a name="eg" id="eg">Examples that Use Various Kinds of Buttons</a></h2>
+<p>The following examples use buttons. Also see <a href="toolbar.html#eg">Examples that Use Tool Bars</a>, which lists programs that add <code>JButton</code> objects to <code>JToolBar</code>s.</p>
+<p>
+You can learn more about JavaFX button components from the following documents:</p>
+<ul>
+<li>
+<a class="OutsideLink" target="_blank" href="http://docs.oracle.com/javase/8/javafx/user-interface-tutorial/button.htm">Using JavaFX UI Controls: Button</a></li>
+<li>
+<a class="OutsideLink" target="_blank" href="http://docs.oracle.com/javase/8/javafx/user-interface-tutorial/radio-button.htm">Using JavaFX UI Controls: Radio Button</a></li>
+<li>
+<a class="OutsideLink" target="_blank" href="http://docs.oracle.com/javase/8/javafx/user-interface-tutorial/toggle-button.htm">Using JavaFX UI Controls: Toggle Button</a></li>
+<li>
+<a class="OutsideLink" target="_blank" href="http://docs.oracle.com/javase/8/javafx/user-interface-tutorial/checkbox.htm">Using JavaFX UI Controls: Checkbox</a></li>
+</ul>

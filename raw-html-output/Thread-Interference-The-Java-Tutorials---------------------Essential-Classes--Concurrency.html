@@ -1,0 +1,42 @@
+<h1>Thread Interference</h1>
+<p>Consider a simple class called 
+<a class="SourceLink" target="_blank" href="examples/Counter.java" onclick="showCode('../../displayCode.html', 'examples/Counter.java'); return false;"><code><code>Counter</code></code></a></p>
+<p>WHATSON? 7043c95e-7e8d-4d8c-9483-700814cc6a41</p>
+<pre>
+
+class Counter {
+    private int c = 0;
+
+    public void increment() {
+        c++;
+    }
+
+    public void decrement() {
+        c--;
+    }
+
+    public int value() {
+        return c;
+    }
+
+}
+</pre>
+<p><code>Counter</code> is designed so that each invocation of <code>increment</code> will add 1 to <code>c</code>, and each invocation of <code>decrement</code> will subtract 1 from <code>c</code>. However, if a <code>Counter</code> object is referenced from multiple threads, interference between threads may prevent this from happening as expected.</p>
+<p>Interference happens when two operations, running in different threads, but acting on the same data, <i>interleave</i>. This means that the two operations consist of multiple steps, and the sequences of steps overlap.</p>
+<p>It might not seem possible for operations on instances of <code>Counter</code> to interleave, since both operations on <code>c</code> are single, simple statements. However, even simple statements can translate to multiple steps by the virtual machine. We won't examine the specific steps the virtual machine takes  it is enough to know that the single expression <code>c++</code> can be decomposed into three steps:</p>
+<ol>
+<li>Retrieve the current value of <code>c</code>.</li>
+<li>Increment the retrieved value by 1.</li>
+<li>Store the incremented value back in <code>c</code>.</li>
+</ol>
+<p>The expression <code>c--</code> can be decomposed the same way, except that the second step decrements instead of increments.</p>
+<p>Suppose Thread A invokes <code>increment</code> at about the same time Thread B invokes <code>decrement</code>. If the initial value of <code>c</code> is <code>0</code>, their interleaved actions might follow this sequence:</p>
+<ol>
+<li>Thread A: Retrieve c.</li>
+<li>Thread B: Retrieve c.</li>
+<li>Thread A: Increment retrieved value; result is 1.</li>
+<li>Thread B: Decrement retrieved value; result is -1.</li>
+<li>Thread A: Store result in c; c is now 1.</li>
+<li>Thread B: Store result in c; c is now -1.</li>
+</ol>
+<p>Thread A's result is lost, overwritten by Thread B. This particular interleaving is only one possibility. Under different circumstances it might be Thread B's result that gets lost, or there could be no error at all. Because they are unpredictable, thread interference bugs can be difficult to detect and fix.</p>

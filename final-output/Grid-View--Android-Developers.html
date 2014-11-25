@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Grid-View--Android-Developers.html</title></head>
+<body>
+<h1>Grid View</h1>
+<h2>In this document</h2>
+<ol>
+    <li>Example</li>
+  </ol>
+<h2>Key classes</h2>
+<ol>
+	<li><code>GridView</code></li>
+	<li><code>ImageView</code></li>
+	<li><code>BaseAdapter</code></li>
+  	<li><code>AdapterView.OnItemClickListener</code></li>
+  </ol>
+<p><code>GridView</code> is a <code>ViewGroup</code> that displays items in a
+two-dimensional,
+scrollable grid. The grid items are automatically inserted to the layout using a <code>ListAdapter</code>.</p>
+<p>For an introduction to how you can dynamically insert views using an adapter, read
+Building Layouts with
+  an Adapter.</p>
+<h2>Example</h2>
+<p>In this tutorial, you'll create a grid of image thumbnails. When an item is selected, a
+toast message will display the position of the image.</p>
+<ol>
+  <li>Start a new project named <em>HelloGridView</em>.</li>
+  <li>Find some photos you'd like to use, or download these sample images. Save the image files
+into the project's
+<code>res/drawable/</code> directory.</li>
+  <li>Open the <code>res/layout/main.xml</code> file and insert the following:
+<pre>
+&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;GridView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/gridview"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:columnWidth="90dp"
+    android:numColumns="auto_fit"
+    android:verticalSpacing="10dp"
+    android:horizontalSpacing="10dp"
+    android:stretchMode="columnWidth"
+    android:gravity="center"
+/&gt;
+</pre>
+  <p>This <code>GridView</code> will fill the entire screen. The attributes are rather
+self explanatory. For more information about valid attributes, see the <code>GridView</code> reference.</p>
+</li>
+  <li>Open <code>HelloGridView.java</code> and insert the following code for the
+<code>onCreate()</code> method:
+<pre>
+public void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    setContentView(R.layout.main);
+
+    GridView gridview = (GridView) findViewById(R.id.gridview);
+    gridview.setAdapter(new ImageAdapter(this));
+
+    gridview.setOnItemClickListener(new OnItemClickListener() {
+        public void onItemClick(AdapterView&lt;?&gt; parent, View v, int position, long id) {
+            Toast.makeText(HelloGridView.this, "" + position, Toast.LENGTH_SHORT).show();
+        }
+    });
+}
+</pre>
+  <p>After the <code>main.xml</code> layout is set for the content view, the
+<code>GridView</code> is captured from the layout with <code>findViewById(int)</code>. The <code>setAdapter()</code> method then sets a custom adapter (<code>ImageAdapter</code>) as the source for all items to be displayed in the grid. The <code>ImageAdapter</code> is
+created in the next step.</p>
+<p>To do something when an item in the grid is clicked, the <code>setOnItemClickListener()</code>
+method is passed a new <code>AdapterView.OnItemClickListener</code>. This anonymous
+instance defines the <code>onItemClick()</code> callback method to show a <code>Toast</code> that displays the index
+position (zero-based) of the selected item (in a real world scenario, the position could be used to
+get the full sized
+image for some other task).</p>
+
+</li>
+<li>Create a new class called <code>ImageAdapter</code> that extends <code>BaseAdapter</code>:
+<pre>
+public class ImageAdapter extends BaseAdapter {
+    private Context mContext;
+
+    public ImageAdapter(Context c) {
+        mContext = c;
+    }
+
+    public int getCount() {
+        return mThumbIds.length;
+    }
+
+    public Object getItem(int position) {
+        return null;
+    }
+
+    public long getItemId(int position) {
+        return 0;
+    }
+
+    // create a new ImageView for each item referenced by the Adapter
+    public View getView(int position, View convertView, ViewGroup parent) {
+        ImageView imageView;
+        if (convertView == null) {  // if it's not recycled, initialize some attributes
+            imageView = new ImageView(mContext);
+            imageView.setLayoutParams(new GridView.LayoutParams(85, 85));
+            imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            imageView.setPadding(8, 8, 8, 8);
+        } else {
+            imageView = (ImageView) convertView;
+        }
+
+        imageView.setImageResource(mThumbIds[position]);
+        return imageView;
+    }
+
+    // references to our images
+    private Integer[] mThumbIds = {
+            R.drawable.sample_2, R.drawable.sample_3,
+            R.drawable.sample_4, R.drawable.sample_5,
+            R.drawable.sample_6, R.drawable.sample_7,
+            R.drawable.sample_0, R.drawable.sample_1,
+            R.drawable.sample_2, R.drawable.sample_3,
+            R.drawable.sample_4, R.drawable.sample_5,
+            R.drawable.sample_6, R.drawable.sample_7,
+            R.drawable.sample_0, R.drawable.sample_1,
+            R.drawable.sample_2, R.drawable.sample_3,
+            R.drawable.sample_4, R.drawable.sample_5,
+            R.drawable.sample_6, R.drawable.sample_7
+    };
+}
+</pre>
+<p>First, this implements some required methods inherited from <code>BaseAdapter</code>. The constructor and <code>getCount()</code> are self-explanatory. Normally, <code>getItem(int)</code> should return the actual object at the specified position in
+the adapter, but it's ignored for this example. Likewise, <code>getItemId(int)</code> should return the row id of the item, but it's not
+needed here.</p>
+
+<p>The first method necessary is <code>getView()</code>. This method creates a new <code>View</code> for each image added to the <code>ImageAdapter</code>. When this is called, a <code>View</code> is passed in, which is normally a
+recycled object (at least after this has been called once), so there's a check to see if the
+object is null. If it <em>is</em> null, an <code>ImageView</code> is instantiated and
+configured with desired properties for the image presentation:</p>
+<ul>
+  <li><code>setLayoutParams(ViewGroup.LayoutParams)</code> sets
+the height and width for the View—this ensures that, no matter the size of the drawable, each
+image is resized and cropped to fit in these dimensions, as appropriate.</li>
+  <li><code>setScaleType(ImageView.ScaleType)</code> declares that images should
+be cropped toward the center (if necessary).</li>
+  <li><code>setPadding(int, int, int, int)</code> defines the padding for all
+sides. (Note that, if the images have different aspect-ratios, then less
+padding will cause more cropping of the image if it does not match
+the dimensions given to the ImageView.)</li>
+</ul>
+
+<p>If the <code>View</code> passed to <code>getView()</code> is <em>not</em> null, then the local
+<code>ImageView</code> is initialized with the recycled <code>View</code>
+object.</p>
+
+<p>At the end of the <code>getView()</code> method,
+the <code>position</code> integer passed into the method is used to select an image from the <code>mThumbIds</code>
+array, which is set as the image resource for the <code>ImageView</code>.</p>
+<p>All that's left is to define the <code>mThumbIds</code> array of drawable resources.</p>
+</li>
+<li>Run the application.</li>
+</ol>
+<p>WHATSON? 304990d0-07db-40e6-b1f4-533985fc3e64</p>
+<pre>
+&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;GridView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/gridview"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:columnWidth="90dp"
+    android:numColumns="auto_fit"
+    android:verticalSpacing="10dp"
+    android:horizontalSpacing="10dp"
+    android:stretchMode="columnWidth"
+    android:gravity="center"
+/&gt;
+</pre>
+<p>This <code>GridView</code> will fill the entire screen. The attributes are rather
+self explanatory. For more information about valid attributes, see the <code>GridView</code> reference.</p>
+<p>WHATSON? 2e9a0472-06a9-4907-a8f3-207e073f0f68</p>
+<pre>
+public void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    setContentView(R.layout.main);
+
+    GridView gridview = (GridView) findViewById(R.id.gridview);
+    gridview.setAdapter(new ImageAdapter(this));
+
+    gridview.setOnItemClickListener(new OnItemClickListener() {
+        public void onItemClick(AdapterView&lt;?&gt; parent, View v, int position, long id) {
+            Toast.makeText(HelloGridView.this, "" + position, Toast.LENGTH_SHORT).show();
+        }
+    });
+}
+</pre>
+<p>After the <code>main.xml</code> layout is set for the content view, the
+<code>GridView</code> is captured from the layout with <code>findViewById(int)</code>. The <code>setAdapter()</code> method then sets a custom adapter (<code>ImageAdapter</code>) as the source for all items to be displayed in the grid. The <code>ImageAdapter</code> is
+created in the next step.</p>
+<p>To do something when an item in the grid is clicked, the <code>setOnItemClickListener()</code>
+method is passed a new <code>AdapterView.OnItemClickListener</code>. This anonymous
+instance defines the <code>onItemClick()</code> callback method to show a <code>Toast</code> that displays the index
+position (zero-based) of the selected item (in a real world scenario, the position could be used to
+get the full sized
+image for some other task).</p>
+<p>WHATSON? 407d7ef2-c429-421a-9b44-8f03f90eb21a</p>
+<pre>
+public class ImageAdapter extends BaseAdapter {
+    private Context mContext;
+
+    public ImageAdapter(Context c) {
+        mContext = c;
+    }
+
+    public int getCount() {
+        return mThumbIds.length;
+    }
+
+    public Object getItem(int position) {
+        return null;
+    }
+
+    public long getItemId(int position) {
+        return 0;
+    }
+
+    // create a new ImageView for each item referenced by the Adapter
+    public View getView(int position, View convertView, ViewGroup parent) {
+        ImageView imageView;
+        if (convertView == null) {  // if it's not recycled, initialize some attributes
+            imageView = new ImageView(mContext);
+            imageView.setLayoutParams(new GridView.LayoutParams(85, 85));
+            imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            imageView.setPadding(8, 8, 8, 8);
+        } else {
+            imageView = (ImageView) convertView;
+        }
+
+        imageView.setImageResource(mThumbIds[position]);
+        return imageView;
+    }
+
+    // references to our images
+    private Integer[] mThumbIds = {
+            R.drawable.sample_2, R.drawable.sample_3,
+            R.drawable.sample_4, R.drawable.sample_5,
+            R.drawable.sample_6, R.drawable.sample_7,
+            R.drawable.sample_0, R.drawable.sample_1,
+            R.drawable.sample_2, R.drawable.sample_3,
+            R.drawable.sample_4, R.drawable.sample_5,
+            R.drawable.sample_6, R.drawable.sample_7,
+            R.drawable.sample_0, R.drawable.sample_1,
+            R.drawable.sample_2, R.drawable.sample_3,
+            R.drawable.sample_4, R.drawable.sample_5,
+            R.drawable.sample_6, R.drawable.sample_7
+    };
+}
+</pre>
+<p>First, this implements some required methods inherited from <code>BaseAdapter</code>. The constructor and <code>getCount()</code> are self-explanatory. Normally, <code>getItem(int)</code> should return the actual object at the specified position in
+the adapter, but it's ignored for this example. Likewise, <code>getItemId(int)</code> should return the row id of the item, but it's not
+needed here.</p>
+<p>The first method necessary is <code>getView()</code>. This method creates a new <code>View</code> for each image added to the <code>ImageAdapter</code>. When this is called, a <code>View</code> is passed in, which is normally a
+recycled object (at least after this has been called once), so there's a check to see if the
+object is null. If it <em>is</em> null, an <code>ImageView</code> is instantiated and
+configured with desired properties for the image presentation:</p>
+<ul>
+  <li><code>setLayoutParams(ViewGroup.LayoutParams)</code> sets
+the height and width for the View—this ensures that, no matter the size of the drawable, each
+image is resized and cropped to fit in these dimensions, as appropriate.</li>
+  <li><code>setScaleType(ImageView.ScaleType)</code> declares that images should
+be cropped toward the center (if necessary).</li>
+  <li><code>setPadding(int, int, int, int)</code> defines the padding for all
+sides. (Note that, if the images have different aspect-ratios, then less
+padding will cause more cropping of the image if it does not match
+the dimensions given to the ImageView.)</li>
+</ul>
+<p>If the <code>View</code> passed to <code>getView()</code> is <em>not</em> null, then the local
+<code>ImageView</code> is initialized with the recycled <code>View</code>
+object.</p>
+<p>At the end of the <code>getView()</code> method,
+the <code>position</code> integer passed into the method is used to select an image from the <code>mThumbIds</code>
+array, which is set as the image resource for the <code>ImageView</code>.</p>
+<p>All that's left is to define the <code>mThumbIds</code> array of drawable resources.</p>
+<p>Try experimenting with the behaviors of the <code>GridView</code> and <code>ImageView</code> elements by adjusting their properties. For example, instead of using
+<code>setLayoutParams(ViewGroup.LayoutParams)</code>, try using
+<code>setAdjustViewBounds(boolean)</code>. </p>
+<h1>Grid View</h1>
+<h2>In this document</h2>
+<ol>
+    <li>Example</li>
+  </ol>
+<h2>Key classes</h2>
+<ol>
+	<li><code>GridView</code></li>
+	<li><code>ImageView</code></li>
+	<li><code>BaseAdapter</code></li>
+  	<li><code>AdapterView.OnItemClickListener</code></li>
+  </ol>
+<p><code>GridView</code> is a <code>ViewGroup</code> that displays items in a
+two-dimensional,
+scrollable grid. The grid items are automatically inserted to the layout using a <code>ListAdapter</code>.</p>
+<p>For an introduction to how you can dynamically insert views using an adapter, read
+Building Layouts with
+  an Adapter.</p>
+<h2>Example</h2>
+<p>In this tutorial, you'll create a grid of image thumbnails. When an item is selected, a
+toast message will display the position of the image.</p>
+<ol>
+  <li>Start a new project named <em>HelloGridView</em>.</li>
+  <li>Find some photos you'd like to use, or download these sample images. Save the image files
+into the project's
+<code>res/drawable/</code> directory.</li>
+  <li>Open the <code>res/layout/main.xml</code> file and insert the following:
+<pre>
+&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;GridView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/gridview"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:columnWidth="90dp"
+    android:numColumns="auto_fit"
+    android:verticalSpacing="10dp"
+    android:horizontalSpacing="10dp"
+    android:stretchMode="columnWidth"
+    android:gravity="center"
+/&gt;
+</pre>
+  <p>This <code>GridView</code> will fill the entire screen. The attributes are rather
+self explanatory. For more information about valid attributes, see the <code>GridView</code> reference.</p>
+</li>
+  <li>Open <code>HelloGridView.java</code> and insert the following code for the
+<code>onCreate()</code> method:
+<pre>
+public void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    setContentView(R.layout.main);
+
+    GridView gridview = (GridView) findViewById(R.id.gridview);
+    gridview.setAdapter(new ImageAdapter(this));
+
+    gridview.setOnItemClickListener(new OnItemClickListener() {
+        public void onItemClick(AdapterView&lt;?&gt; parent, View v, int position, long id) {
+            Toast.makeText(HelloGridView.this, "" + position, Toast.LENGTH_SHORT).show();
+        }
+    });
+}
+</pre>
+  <p>After the <code>main.xml</code> layout is set for the content view, the
+<code>GridView</code> is captured from the layout with <code>findViewById(int)</code>. The <code>setAdapter()</code> method then sets a custom adapter (<code>ImageAdapter</code>) as the source for all items to be displayed in the grid. The <code>ImageAdapter</code> is
+created in the next step.</p>
+<p>To do something when an item in the grid is clicked, the <code>setOnItemClickListener()</code>
+method is passed a new <code>AdapterView.OnItemClickListener</code>. This anonymous
+instance defines the <code>onItemClick()</code> callback method to show a <code>Toast</code> that displays the index
+position (zero-based) of the selected item (in a real world scenario, the position could be used to
+get the full sized
+image for some other task).</p>
+
+</li>
+<li>Create a new class called <code>ImageAdapter</code> that extends <code>BaseAdapter</code>:
+<pre>
+public class ImageAdapter extends BaseAdapter {
+    private Context mContext;
+
+    public ImageAdapter(Context c) {
+        mContext = c;
+    }
+
+    public int getCount() {
+        return mThumbIds.length;
+    }
+
+    public Object getItem(int position) {
+        return null;
+    }
+
+    public long getItemId(int position) {
+        return 0;
+    }
+
+    // create a new ImageView for each item referenced by the Adapter
+    public View getView(int position, View convertView, ViewGroup parent) {
+        ImageView imageView;
+        if (convertView == null) {  // if it's not recycled, initialize some attributes
+            imageView = new ImageView(mContext);
+            imageView.setLayoutParams(new GridView.LayoutParams(85, 85));
+            imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            imageView.setPadding(8, 8, 8, 8);
+        } else {
+            imageView = (ImageView) convertView;
+        }
+
+        imageView.setImageResource(mThumbIds[position]);
+        return imageView;
+    }
+
+    // references to our images
+    private Integer[] mThumbIds = {
+            R.drawable.sample_2, R.drawable.sample_3,
+            R.drawable.sample_4, R.drawable.sample_5,
+            R.drawable.sample_6, R.drawable.sample_7,
+            R.drawable.sample_0, R.drawable.sample_1,
+            R.drawable.sample_2, R.drawable.sample_3,
+            R.drawable.sample_4, R.drawable.sample_5,
+            R.drawable.sample_6, R.drawable.sample_7,
+            R.drawable.sample_0, R.drawable.sample_1,
+            R.drawable.sample_2, R.drawable.sample_3,
+            R.drawable.sample_4, R.drawable.sample_5,
+            R.drawable.sample_6, R.drawable.sample_7
+    };
+}
+</pre>
+<p>First, this implements some required methods inherited from <code>BaseAdapter</code>. The constructor and <code>getCount()</code> are self-explanatory. Normally, <code>getItem(int)</code> should return the actual object at the specified position in
+the adapter, but it's ignored for this example. Likewise, <code>getItemId(int)</code> should return the row id of the item, but it's not
+needed here.</p>
+
+<p>The first method necessary is <code>getView()</code>. This method creates a new <code>View</code> for each image added to the <code>ImageAdapter</code>. When this is called, a <code>View</code> is passed in, which is normally a
+recycled object (at least after this has been called once), so there's a check to see if the
+object is null. If it <em>is</em> null, an <code>ImageView</code> is instantiated and
+configured with desired properties for the image presentation:</p>
+<ul>
+  <li><code>setLayoutParams(ViewGroup.LayoutParams)</code> sets
+the height and width for the View—this ensures that, no matter the size of the drawable, each
+image is resized and cropped to fit in these dimensions, as appropriate.</li>
+  <li><code>setScaleType(ImageView.ScaleType)</code> declares that images should
+be cropped toward the center (if necessary).</li>
+  <li><code>setPadding(int, int, int, int)</code> defines the padding for all
+sides. (Note that, if the images have different aspect-ratios, then less
+padding will cause more cropping of the image if it does not match
+the dimensions given to the ImageView.)</li>
+</ul>
+
+<p>If the <code>View</code> passed to <code>getView()</code> is <em>not</em> null, then the local
+<code>ImageView</code> is initialized with the recycled <code>View</code>
+object.</p>
+
+<p>At the end of the <code>getView()</code> method,
+the <code>position</code> integer passed into the method is used to select an image from the <code>mThumbIds</code>
+array, which is set as the image resource for the <code>ImageView</code>.</p>
+<p>All that's left is to define the <code>mThumbIds</code> array of drawable resources.</p>
+</li>
+<li>Run the application.</li>
+</ol>
+<p>WHATSON? 3d14c3a4-296f-483a-bcc9-5228c628be53</p>
+<pre>
+&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;GridView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/gridview"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:columnWidth="90dp"
+    android:numColumns="auto_fit"
+    android:verticalSpacing="10dp"
+    android:horizontalSpacing="10dp"
+    android:stretchMode="columnWidth"
+    android:gravity="center"
+/&gt;
+</pre>
+<p>This <code>GridView</code> will fill the entire screen. The attributes are rather
+self explanatory. For more information about valid attributes, see the <code>GridView</code> reference.</p>
+<p>WHATSON? f7079d28-ddfe-451f-95d2-6282a89e0988</p>
+<pre>
+public void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    setContentView(R.layout.main);
+
+    GridView gridview = (GridView) findViewById(R.id.gridview);
+    gridview.setAdapter(new ImageAdapter(this));
+
+    gridview.setOnItemClickListener(new OnItemClickListener() {
+        public void onItemClick(AdapterView&lt;?&gt; parent, View v, int position, long id) {
+            Toast.makeText(HelloGridView.this, "" + position, Toast.LENGTH_SHORT).show();
+        }
+    });
+}
+</pre>
+<p>After the <code>main.xml</code> layout is set for the content view, the
+<code>GridView</code> is captured from the layout with <code>findViewById(int)</code>. The <code>setAdapter()</code> method then sets a custom adapter (<code>ImageAdapter</code>) as the source for all items to be displayed in the grid. The <code>ImageAdapter</code> is
+created in the next step.</p>
+<p>To do something when an item in the grid is clicked, the <code>setOnItemClickListener()</code>
+method is passed a new <code>AdapterView.OnItemClickListener</code>. This anonymous
+instance defines the <code>onItemClick()</code> callback method to show a <code>Toast</code> that displays the index
+position (zero-based) of the selected item (in a real world scenario, the position could be used to
+get the full sized
+image for some other task).</p>
+<p>WHATSON? 4d47759b-e2b3-4a47-ab22-5a69ebd4e18c</p>
+<pre>
+public class ImageAdapter extends BaseAdapter {
+    private Context mContext;
+
+    public ImageAdapter(Context c) {
+        mContext = c;
+    }
+
+    public int getCount() {
+        return mThumbIds.length;
+    }
+
+    public Object getItem(int position) {
+        return null;
+    }
+
+    public long getItemId(int position) {
+        return 0;
+    }
+
+    // create a new ImageView for each item referenced by the Adapter
+    public View getView(int position, View convertView, ViewGroup parent) {
+        ImageView imageView;
+        if (convertView == null) {  // if it's not recycled, initialize some attributes
+            imageView = new ImageView(mContext);
+            imageView.setLayoutParams(new GridView.LayoutParams(85, 85));
+            imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
+            imageView.setPadding(8, 8, 8, 8);
+        } else {
+            imageView = (ImageView) convertView;
+        }
+
+        imageView.setImageResource(mThumbIds[position]);
+        return imageView;
+    }
+
+    // references to our images
+    private Integer[] mThumbIds = {
+            R.drawable.sample_2, R.drawable.sample_3,
+            R.drawable.sample_4, R.drawable.sample_5,
+            R.drawable.sample_6, R.drawable.sample_7,
+            R.drawable.sample_0, R.drawable.sample_1,
+            R.drawable.sample_2, R.drawable.sample_3,
+            R.drawable.sample_4, R.drawable.sample_5,
+            R.drawable.sample_6, R.drawable.sample_7,
+            R.drawable.sample_0, R.drawable.sample_1,
+            R.drawable.sample_2, R.drawable.sample_3,
+            R.drawable.sample_4, R.drawable.sample_5,
+            R.drawable.sample_6, R.drawable.sample_7
+    };
+}
+</pre>
+<p>First, this implements some required methods inherited from <code>BaseAdapter</code>. The constructor and <code>getCount()</code> are self-explanatory. Normally, <code>getItem(int)</code> should return the actual object at the specified position in
+the adapter, but it's ignored for this example. Likewise, <code>getItemId(int)</code> should return the row id of the item, but it's not
+needed here.</p>
+<p>The first method necessary is <code>getView()</code>. This method creates a new <code>View</code> for each image added to the <code>ImageAdapter</code>. When this is called, a <code>View</code> is passed in, which is normally a
+recycled object (at least after this has been called once), so there's a check to see if the
+object is null. If it <em>is</em> null, an <code>ImageView</code> is instantiated and
+configured with desired properties for the image presentation:</p>
+<ul>
+  <li><code>setLayoutParams(ViewGroup.LayoutParams)</code> sets
+the height and width for the View—this ensures that, no matter the size of the drawable, each
+image is resized and cropped to fit in these dimensions, as appropriate.</li>
+  <li><code>setScaleType(ImageView.ScaleType)</code> declares that images should
+be cropped toward the center (if necessary).</li>
+  <li><code>setPadding(int, int, int, int)</code> defines the padding for all
+sides. (Note that, if the images have different aspect-ratios, then less
+padding will cause more cropping of the image if it does not match
+the dimensions given to the ImageView.)</li>
+</ul>
+<p>If the <code>View</code> passed to <code>getView()</code> is <em>not</em> null, then the local
+<code>ImageView</code> is initialized with the recycled <code>View</code>
+object.</p>
+<p>At the end of the <code>getView()</code> method,
+the <code>position</code> integer passed into the method is used to select an image from the <code>mThumbIds</code>
+array, which is set as the image resource for the <code>ImageView</code>.</p>
+<p>All that's left is to define the <code>mThumbIds</code> array of drawable resources.</p>
+<p>Try experimenting with the behaviors of the <code>GridView</code> and <code>ImageView</code> elements by adjusting their properties. For example, instead of using
+<code>setLayoutParams(ViewGroup.LayoutParams)</code>, try using
+<code>setAdjustViewBounds(boolean)</code>. </p>
+</body>
+</html>

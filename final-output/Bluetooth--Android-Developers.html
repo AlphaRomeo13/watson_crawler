@@ -1,0 +1,1724 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Bluetooth--Android-Developers.html</title></head>
+<body>
+<h1>Bluetooth</h1>
+<h2>In this document</h2>
+<ol> 
+    <li>The Basics</li>
+    <li>Bluetooth Permissions</li>
+    <li>Setting Up Bluetooth</li> 
+    <li>Finding Devices 
+      <ol> 
+        <li>Querying paired devices</li> 
+        <li>Discovering devices</li> 
+      </ol></li> 
+    <li>Connecting Devices 
+      <ol> 
+        <li>Connecting as a server</li> 
+        <li>Connecting as a client</li> 
+      </ol></li> 
+    <li>Managing a Connection</li>
+    <li>Working with Profiles 
+      <ol>
+        <li>Vendor-specific AT commands
+        </li><li>Health Device Profile
+      </li></ol></li>
+  </ol>
+<ol> 
+        <li>Querying paired devices</li> 
+        <li>Discovering devices</li> 
+      </ol>
+<ol> 
+        <li>Connecting as a server</li> 
+        <li>Connecting as a client</li> 
+      </ol>
+<ol>
+        <li>Vendor-specific AT commands
+        </li><li>Health Device Profile
+      </li></ol>
+<h2>Key classes</h2>
+<ol> 
+    <li><code>BluetoothAdapter</code></li> 
+    <li><code>BluetoothDevice</code></li> 
+    <li><code>BluetoothSocket</code></li> 
+    <li><code>BluetoothServerSocket</code></li> 
+  </ol>
+<h2>Related samples</h2>
+<ol> 
+    <li>Bluetooth Chat</li> 
+    <li>Bluetooth HDP (Health Device Profile)</li>
+  </ol>
+<p>The Android platform includes support for the Bluetooth network stack,
+which allows a device to wirelessly exchange data with other Bluetooth devices.
+The application framework provides access to the Bluetooth functionality through
+the Android Bluetooth APIs. These APIs let applications wirelessly
+connect to other Bluetooth devices, enabling point-to-point and multipoint
+wireless features.</p>
+<p>Using the Bluetooth APIs, an Android application can perform the
+following:</p>
+<ul>
+  <li>Scan for other Bluetooth devices</li>
+  <li>Query the local Bluetooth adapter for paired Bluetooth devices</li>
+  <li>Establish RFCOMM channels</li>
+  <li>Connect to other devices through service discovery</li>
+  <li>Transfer data to and from other devices</li>
+  <li>Manage multiple connections</li>
+</ul>
+<p>This document describes how to use <em>Classic Bluetooth</em>. Classic
+Bluetooth is the right choice for more battery-intensive operations such as streaming
+and communicating between Android devices. For Bluetooth devices with low power requirements,
+Android 4.3 (API Level 18) introduces API support for Bluetooth Low Energy. To learn more,
+see Bluetooth Low Energy.</p>
+<h2>The Basics</h2>
+<p>This document describes how to use the Android Bluetooth APIs to accomplish
+the four major tasks necessary to communicate using Bluetooth: setting up
+Bluetooth, finding devices that are either paired or available in the local
+area, connecting devices, and transferring data between devices.</p>
+<p>All of the Bluetooth APIs are available in the <code>android.bluetooth</code>
+package. Here's a summary of the classes and interfaces you will need to create Bluetooth
+connections:</p>
+<h2>Bluetooth Permissions</h2>
+<p>In order to use Bluetooth features in your application, you must declare
+the Bluetooth permission <code>BLUETOOTH</code>.
+You need this permission to perform any Bluetooth communication,
+such as requesting a connection, accepting a connection, and transferring data.</p>
+<p>If you want your app to initiate device discovery or manipulate Bluetooth
+settings, you must also declare the <code>BLUETOOTH_ADMIN</code>
+permission. Most applications need this permission solely for the
+ability to discover local Bluetooth devices. The other abilities granted by this
+permission should not be used, unless the application is a "power manager" that
+will modify Bluetooth settings upon user request. <strong>Note:</strong> If you
+use <code>BLUETOOTH_ADMIN</code> permission, then you must
+also have the <code>BLUETOOTH</code> permission.</p>
+<p>Declare the Bluetooth permission(s) in your application manifest file. For
+example:</p>
+<p>WHATSON? 92cad479-f73c-4dc9-85c9-3cc5e2b0f4a3</p>
+<pre> 
+&lt;manifest ... &gt;
+  &lt;uses-permission android:name="android.permission.BLUETOOTH" /&gt;
+  ...
+&lt;/manifest&gt;
+</pre>
+<p>See the &lt;uses-permission&gt; 
+reference for more information about declaring application permissions.</p>
+<h2>Setting Up Bluetooth</h2>
+<p>Before your application can communicate over Bluetooth, you need to verify
+that Bluetooth is supported on the device, and if so, ensure that it is enabled.</p>
+<p>If Bluetooth is not supported, then you should gracefully disable any
+Bluetooth features. If Bluetooth is supported, but disabled, then you can request that the
+user enable Bluetooth without leaving your application. This setup is
+accomplished in two steps, using the <code>BluetoothAdapter</code>.</p>
+<ol> 
+<li>Get the <code>BluetoothAdapter</code>
+<p>The <code>BluetoothAdapter</code> is required for any and all Bluetooth
+activity. To get the <code>BluetoothAdapter</code>, call the static <code>getDefaultAdapter()</code> method. This returns a
+<code>BluetoothAdapter</code> that represents the device's own
+Bluetooth adapter (the Bluetooth radio). There's one Bluetooth adapter for the
+entire system, and your application can interact with it using this object. If
+<code>getDefaultAdapter()</code> returns null,
+then the device does not support Bluetooth and your story ends here. For example:</p> 
+<pre> 
+BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+if (mBluetoothAdapter == null) {
+    // Device does not support Bluetooth
+}
+</pre> 
+</li> 
+ 
+<li>Enable Bluetooth
+<p>Next, you need to ensure that Bluetooth is enabled. Call <code>isEnabled()</code> to check whether Bluetooth is
+currently enable. If this method returns false, then Bluetooth is disabled. To
+request that Bluetooth be enabled, call <code>startActivityForResult()</code>
+with the <code>ACTION_REQUEST_ENABLE</code> action Intent.
+This will issue a request to enable Bluetooth through the system settings (without
+stopping your application). For example:</p> 
+<pre> 
+if (!mBluetoothAdapter.isEnabled()) {
+    Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+    startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+}
+</pre> 
+ 
+<p>A dialog will appear requesting user permission to enable Bluetooth, as shown
+in Figure 1. If the user responds "Yes," the system will begin to enable Bluetooth
+and focus will return to your application once the process completes (or fails).</p> 
+
+<p>The <code>REQUEST_ENABLE_BT</code> constant passed to <code>startActivityForResult()</code> is a locally
+defined integer (which must be greater than 0), that the system passes back to you in your
+<code>onActivityResult()</code> implementation as the
+<code>requestCode</code> parameter.</p>
+
+<p>If enabling Bluetooth succeeds, your activity receives the <code>RESULT_OK</code> result code in the <code>onActivityResult()</code>
+callback. If Bluetooth was not enabled
+due to an error (or the user responded "No") then the result code is <code>RESULT_CANCELED</code>.</p>
+</li> 
+</ol>
+<p>The <code>BluetoothAdapter</code> is required for any and all Bluetooth
+activity. To get the <code>BluetoothAdapter</code>, call the static <code>getDefaultAdapter()</code> method. This returns a
+<code>BluetoothAdapter</code> that represents the device's own
+Bluetooth adapter (the Bluetooth radio). There's one Bluetooth adapter for the
+entire system, and your application can interact with it using this object. If
+<code>getDefaultAdapter()</code> returns null,
+then the device does not support Bluetooth and your story ends here. For example:</p>
+<p>WHATSON? ee815b03-127a-45cc-a009-18ea5472ceb7</p>
+<pre> 
+BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+if (mBluetoothAdapter == null) {
+    // Device does not support Bluetooth
+}
+</pre>
+<p>Next, you need to ensure that Bluetooth is enabled. Call <code>isEnabled()</code> to check whether Bluetooth is
+currently enable. If this method returns false, then Bluetooth is disabled. To
+request that Bluetooth be enabled, call <code>startActivityForResult()</code>
+with the <code>ACTION_REQUEST_ENABLE</code> action Intent.
+This will issue a request to enable Bluetooth through the system settings (without
+stopping your application). For example:</p>
+<p>WHATSON? f5a87fba-3cfa-46a0-92aa-6f3e0730525d</p>
+<pre> 
+if (!mBluetoothAdapter.isEnabled()) {
+    Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+    startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+}
+</pre>
+<p>A dialog will appear requesting user permission to enable Bluetooth, as shown
+in Figure 1. If the user responds "Yes," the system will begin to enable Bluetooth
+and focus will return to your application once the process completes (or fails).</p>
+<p>The <code>REQUEST_ENABLE_BT</code> constant passed to <code>startActivityForResult()</code> is a locally
+defined integer (which must be greater than 0), that the system passes back to you in your
+<code>onActivityResult()</code> implementation as the
+<code>requestCode</code> parameter.</p>
+<p>If enabling Bluetooth succeeds, your activity receives the <code>RESULT_OK</code> result code in the <code>onActivityResult()</code>
+callback. If Bluetooth was not enabled
+due to an error (or the user responded "No") then the result code is <code>RESULT_CANCELED</code>.</p>
+<p>Optionally, your application can also listen for the
+<code>ACTION_STATE_CHANGED</code> broadcast Intent, which
+the system will broadcast whenever the Bluetooth state has changed. This broadcast contains
+the extra fields <code>EXTRA_STATE</code> and <code>EXTRA_PREVIOUS_STATE</code>, containing the new and old
+Bluetooth states, respectively. Possible values for these extra fields are
+<code>STATE_TURNING_ON</code>, <code>STATE_ON</code>, <code>STATE_TURNING_OFF</code>, and <code>STATE_OFF</code>. Listening for this
+broadcast can be useful to detect changes made to the Bluetooth state while your
+app is running.</p>
+<p><strong>Tip:</strong> Enabling discoverability will automatically
+enable Bluetooth. If you plan to consistently enable device discoverability before
+performing Bluetooth activity, you can skip
+step 2 above. Read about enabling discoverability,
+below.</p>
+<h2>Finding Devices</h2>
+<p>Using the <code>BluetoothAdapter</code>, you can find remote Bluetooth
+devices either through device discovery or by querying the list of paired (bonded)
+devices.</p>
+<p>Device discovery is a scanning procedure that searches the local area for
+Bluetooth enabled devices and then requesting some information about each one
+(this is sometimes referred to as "discovering," "inquiring" or "scanning").
+However, a Bluetooth device within the local area will respond to a discovery
+request only if it is currently enabled to be discoverable. If a device is
+discoverable, it will respond to the discovery request by sharing some
+information, such as the device name, class, and its unique MAC address. Using
+this information, the device performing discovery can then choose to initiate a
+connection to the discovered device.</p>
+<p>Once a connection is made with a remote device for the first time, a pairing
+request is automatically presented to the user. When a device is
+paired, the basic information about that device (such as the device name, class,
+and MAC address) is saved and can be read using the Bluetooth APIs. Using the
+known MAC address for a remote device, a connection can be initiated with it at
+any time without performing discovery (assuming the device is within range).</p>
+<p>Remember there is a difference between being paired and being connected. To
+be paired means that two devices are aware of each other's existence, have a
+shared link-key that can be used for authentication, and are capable of
+establishing an encrypted connection with each other. To be connected means that
+the devices currently share an RFCOMM channel and are able to transmit data with
+each other. The current Android Bluetooth API's require devices to be paired
+before an RFCOMM connection can be established. (Pairing is automatically performed
+when you initiate an encrypted connection with the Bluetooth APIs.)</p>
+<p>The following sections describe how to find devices that have been paired, or
+discover new devices using device discovery.</p>
+<p><strong>Note:</strong> Android-powered devices are not
+discoverable by default. A user can make
+the device discoverable for a limited time through the system settings, or an
+application can request that the user enable discoverability without leaving the
+application. How to enable discoverability 
+is discussed below.</p>
+<h3>Querying paired devices</h3>
+<p>Before performing device discovery, its worth querying the set
+of paired devices to see if the desired device is already known. To do so,
+call <code>getBondedDevices()</code>. This
+will return a Set of <code>BluetoothDevice</code>s representing
+paired devices. For example, you can query all paired devices and then
+show the name of each device to the user, using an ArrayAdapter:</p>
+<p>WHATSON? 85bb15c3-764b-42f9-b29b-4a74e643e32a</p>
+<pre> 
+Set&lt;BluetoothDevice&gt; pairedDevices = mBluetoothAdapter.getBondedDevices();
+// If there are paired devices
+if (pairedDevices.size() &gt; 0) {
+    // Loop through paired devices
+    for (BluetoothDevice device : pairedDevices) {
+        // Add the name and address to an array adapter to show in a ListView
+        mArrayAdapter.add(device.getName() + "\n" + device.getAddress());
+    }
+}
+</pre>
+<p>All that's needed from the <code>BluetoothDevice</code> object
+in order to initiate a connection is the MAC address. In this example, it's saved
+as a part of an ArrayAdapter that's shown to the user. The MAC address can later
+be extracted in order to initiate the connection. You can learn more about creating
+a connection in the section about Connecting Devices.</p>
+<h3>Discovering devices</h3>
+<p>To start discovering devices, simply call <code>startDiscovery()</code>. The
+process is asynchronous and the method will immediately return with a boolean
+indicating whether discovery has successfully started. The discovery process
+usually involves an inquiry scan of about 12 seconds, followed by a page scan of
+each found device to retrieve its Bluetooth name.</p>
+<p>Your application must register a BroadcastReceiver for the
+<code>ACTION_FOUND</code> Intent in
+order to receive information about each
+device discovered. For each device, the system will broadcast the
+<code>ACTION_FOUND</code> Intent. This
+Intent carries the extra fields
+<code>EXTRA_DEVICE</code> and
+<code>EXTRA_CLASS</code>, containing a
+<code>BluetoothDevice</code> and a <code>BluetoothClass</code>, respectively. For example, here's how you can
+register to handle the broadcast when devices are discovered:</p>
+<p>WHATSON? 0737127c-7b33-427d-b6e0-d8bb67ce733f</p>
+<pre> 
+// Create a BroadcastReceiver for ACTION_FOUND
+private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
+    public void onReceive(Context context, Intent intent) {
+        String action = intent.getAction();
+        // When discovery finds a device
+        if (BluetoothDevice.ACTION_FOUND.equals(action)) {
+            // Get the BluetoothDevice object from the Intent
+            BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+            // Add the name and address to an array adapter to show in a ListView
+            mArrayAdapter.add(device.getName() + "\n" + device.getAddress());
+        }
+    }
+};
+// Register the BroadcastReceiver
+IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
+registerReceiver(mReceiver, filter); // Don't forget to unregister during onDestroy
+</pre>
+<p>All that's needed from the <code>BluetoothDevice</code> object
+in order to initiate a
+connection is the MAC address. In this example, it's saved as a part of an
+ArrayAdapter that's shown to the user. The MAC address can later be extracted in
+order to initiate the connection. You can learn more about creating a connection
+in the section about Connecting Devices.</p>
+<p><strong>Caution:</strong> Performing device discovery is
+a heavy procedure for the Bluetooth
+adapter and will consume a lot of its resources. Once you have found a device to
+connect, be certain that you always stop discovery with
+<code>cancelDiscovery()</code> before
+attempting a connection. Also, if you
+already hold a connection with a device, then performing discovery can
+significantly reduce the bandwidth available for the connection, so you should
+not perform discovery while connected.</p>
+<h4>Enabling discoverability</h4>
+<p>If you would like to make the local device discoverable to other devices,
+call <code>startActivityForResult(Intent, int)</code> with the
+<code>ACTION_REQUEST_DISCOVERABLE</code> action
+Intent. This will issue a request to enable discoverable mode through the system
+settings (without stopping your application). By default, the device will become
+discoverable for 120 seconds. You can define a different duration by adding the
+<code>EXTRA_DISCOVERABLE_DURATION</code> Intent
+extra. The maximum duration an app can set is 3600 seconds, and a value of 0
+means the device is always discoverable. Any value below 0 or above 3600 is
+automatically set to 120 secs). For example, this snippet sets the duration to
+300:</p>
+<p>WHATSON? b6b95e31-09a5-4420-9084-91315069ebf6</p>
+<pre>Intent discoverableIntent = new
+Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
+discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 300);
+startActivity(discoverableIntent);
+</pre>
+<p>A dialog will be displayed, requesting user permission to make the device
+discoverable, as shown in Figure 2. If the user responds "Yes," then the device
+will become discoverable for the specified amount of time. Your activity will
+then receive a call to the <code>onActivityResult())</code> callback, with the result code equal to the duration that the device
+is discoverable. If the user responded "No" or if an error occurred, the result code will
+be <code>RESULT_CANCELED</code>.</p>
+<p><strong>Note:</strong> If Bluetooth has not been enabled on the device,
+then enabling device discoverability will automatically enable Bluetooth.</p>
+<p>The device will silently remain in discoverable mode for the allotted time.
+If you would like to be notified when the discoverable mode has changed, you can
+register a BroadcastReceiver for the <code>ACTION_SCAN_MODE_CHANGED</code>
+Intent. This will contain the extra fields <code>EXTRA_SCAN_MODE</code> and
+<code>EXTRA_PREVIOUS_SCAN_MODE</code>, which tell you the
+new and old scan mode, respectively. Possible values for each are
+<code>SCAN_MODE_CONNECTABLE_DISCOVERABLE</code>,
+<code>SCAN_MODE_CONNECTABLE</code>, or <code>SCAN_MODE_NONE</code>,
+which indicate that the device is either in discoverable mode, not in
+discoverable mode but still able to receive connections, or not in discoverable
+mode and unable to receive connections, respectively.</p>
+<p>You do not need to enable device discoverability if you will be initiating
+the connection to a remote device. Enabling discoverability is only necessary when
+you want your application to host a server socket that will accept incoming
+connections, because the remote devices must be able to discover the device
+before it can initiate the connection.</p>
+<h2>Connecting Devices</h2>
+<p>In order to create a connection between your application on two devices, you
+must implement both the server-side and client-side mechanisms, because one
+device must open a server socket and the other one must initiate the connection
+(using the server device's MAC address to initiate a connection). The server and
+client are considered connected to each other when they each have a connected
+<code>BluetoothSocket</code> on the same RFCOMM channel. At this
+point, each device can obtain input and output streams and data transfer can
+begin, which is discussed in the section about Managing a Connection. This section describes how
+to initiate the connection between two devices.</p>
+<p>The server device and the client device each obtain the required <code>BluetoothSocket</code> in different ways. The server will receive it
+when an incoming connection is accepted. The client will receive it when it
+opens an RFCOMM channel to the server.</p>
+<p>One implementation technique is to automatically prepare each device as a
+server, so that each one has a server socket open and listening for connections.
+Then either device can initiate a connection with the other and become the
+client. Alternatively, one device can explicitly "host" the connection and open
+a server socket on demand and the other device can simply initiate the
+connection.</p>
+<p><strong>Note:</strong> If the two devices have not been previously paired,
+then the Android framework will automatically show a pairing request notification or
+dialog to the user during the connection procedure, as shown in Figure 3. So
+when attempting to connect devices,
+your application does not need to be concerned about whether or not the devices are
+paired. Your RFCOMM connection attempt will block until the user has successfully paired,
+or will fail if the user rejects pairing, or if pairing fails or times out. </p>
+<h3>Connecting as a server</h3>
+<p>When you want to connect two devices, one must act as a server by holding an
+open <code>BluetoothServerSocket</code>. The purpose of the server
+socket is to listen for incoming connection requests and when one is accepted,
+provide a connected <code>BluetoothSocket</code>. When the <code>BluetoothSocket</code> is acquired from the <code>BluetoothServerSocket</code>,
+the <code>BluetoothServerSocket</code> can (and should) be
+discarded, unless you want to accept more connections.</p>
+<h2>About UUID</h2>
+<p>A Universally Unique Identifier (UUID) is a standardized 128-bit format for a string
+ID used to uniquely identify information. The point of a UUID is that it's big
+enough that you can select any random and it won't clash. In this case, it's
+used to uniquely identify your application's Bluetooth service. To get a UUID to
+use with your application, you can use one of the many random UUID generators on
+the web, then initialize a <code>UUID</code> with <code>fromString(String)</code>.</p>
+<p>Here's the basic procedure to set up a server socket and accept a
+connection:</p>
+<ol> 
+<li>Get a <code>BluetoothServerSocket</code> by calling the
+<code>listenUsingRfcommWithServiceRecord(String, UUID)</code>.
+<p>The string is an identifiable name of your service, which the system will
+automatically write to a new Service Discovery Protocol (SDP) database entry on
+the device (the name is arbitrary and can simply be your application name). The
+UUID is also included in the SDP entry and will be the basis for the connection
+agreement with the client device. That is, when the client attempts to connect
+with this device, it will carry a UUID that uniquely identifies the service with
+which it wants to connect. These UUIDs must match in order for the connection to
+be accepted (in the next step).</p> 
+</li> 
+ 
+<li>Start listening for connection requests by calling
+<code>accept()</code>.
+<p>This is a blocking call. It will return when either a connection has been
+accepted or an exception has occurred. A connection is accepted only when a
+remote device has sent a connection request with a UUID matching the one
+registered with this listening server socket. When successful, <code>accept()</code> will
+return a connected <code>BluetoothSocket</code>.</p> 
+</li> 
+ 
+<li>Unless you want to accept additional connections, call
+<code>close()</code>.
+<p>This releases the server socket and all its resources, but does <em>not</em> close the
+connected <code>BluetoothSocket</code> that's been returned by <code>accept()</code>. Unlike TCP/IP, RFCOMM only allows one
+connected client per channel at a time, so in most cases it makes sense to call <code>close()</code> on the <code>BluetoothServerSocket</code> immediately after accepting a connected
+socket.</p> 
+</li> 
+</ol>
+<p>The string is an identifiable name of your service, which the system will
+automatically write to a new Service Discovery Protocol (SDP) database entry on
+the device (the name is arbitrary and can simply be your application name). The
+UUID is also included in the SDP entry and will be the basis for the connection
+agreement with the client device. That is, when the client attempts to connect
+with this device, it will carry a UUID that uniquely identifies the service with
+which it wants to connect. These UUIDs must match in order for the connection to
+be accepted (in the next step).</p>
+<p>This is a blocking call. It will return when either a connection has been
+accepted or an exception has occurred. A connection is accepted only when a
+remote device has sent a connection request with a UUID matching the one
+registered with this listening server socket. When successful, <code>accept()</code> will
+return a connected <code>BluetoothSocket</code>.</p>
+<p>This releases the server socket and all its resources, but does <em>not</em> close the
+connected <code>BluetoothSocket</code> that's been returned by <code>accept()</code>. Unlike TCP/IP, RFCOMM only allows one
+connected client per channel at a time, so in most cases it makes sense to call <code>close()</code> on the <code>BluetoothServerSocket</code> immediately after accepting a connected
+socket.</p>
+<p>The <code>accept()</code> call should not
+be executed in the main activity UI thread because it is a blocking call and
+will prevent any other interaction with the application. It usually makes
+sense to do all work with a <code>BluetoothServerSocket</code> or <code>BluetoothSocket</code> in a new
+thread managed by your application. To abort a blocked call such as <code>accept()</code>, call <code>close()</code> on the <code>BluetoothServerSocket</code> (or <code>BluetoothSocket</code>) from another thread and the blocked call will
+immediately return. Note that all methods on a <code>BluetoothServerSocket</code> or <code>BluetoothSocket</code>
+are thread-safe.</p>
+<h4>Example</h4>
+<p>Here's a simplified thread for the server component that accepts incoming
+connections:</p>
+<p>WHATSON? 2d36b26e-5ca8-48b6-a632-4273ad5d1480</p>
+<pre> 
+private class AcceptThread extends Thread {
+    private final BluetoothServerSocket mmServerSocket;
+ 
+    public AcceptThread() {
+        // Use a temporary object that is later assigned to mmServerSocket,
+        // because mmServerSocket is final
+        BluetoothServerSocket tmp = null;
+        try {
+            // MY_UUID is the app's UUID string, also used by the client code
+            tmp = mBluetoothAdapter.listenUsingRfcommWithServiceRecord(NAME, MY_UUID);
+        } catch (IOException e) { }
+        mmServerSocket = tmp;
+    }
+ 
+    public void run() {
+        BluetoothSocket socket = null;
+        // Keep listening until exception occurs or a socket is returned
+        while (true) {
+            try {
+                socket = mmServerSocket.accept();
+            } catch (IOException e) {
+                break;
+            }
+            // If a connection was accepted
+            if (socket != null) {
+                // Do work to manage the connection (in a separate thread)
+                manageConnectedSocket(socket);
+                mmServerSocket.close();
+                break;
+            }
+        }
+    }
+ 
+    /** Will cancel the listening socket, and cause the thread to finish */
+    public void cancel() {
+        try {
+            mmServerSocket.close();
+        } catch (IOException e) { }
+    }
+}
+</pre>
+<p>In this example, only one incoming connection is desired, so as soon as a
+connection is accepted and the <code>BluetoothSocket</code> is
+acquired, the application
+sends the acquired <code>BluetoothSocket</code> to a separate
+thread, closes the
+<code>BluetoothServerSocket</code> and breaks the loop.</p>
+<p>Note that when <code>accept()</code>
+returns the <code>BluetoothSocket</code>, the socket is already
+connected, so you should <em>not</em> call <code>connect()</code> (as you do from the
+client-side).</p>
+<p><code>manageConnectedSocket()</code> is a fictional method in the application
+that will
+initiate the thread for transferring data, which is discussed in the section
+about Managing a Connection.</p>
+<p>You should usually close your <code>BluetoothServerSocket</code>
+as soon as you are done listening for incoming connections. In this example, <code>close()</code> is called as soon
+as the <code>BluetoothSocket</code> is acquired. You may also want
+to provide a public method in your thread that can close the private <code>BluetoothSocket</code> in the event that you need to stop listening on the
+server socket.</p>
+<h3>Connecting as a client</h3>
+<p>In order to initiate a connection with a remote device (a device holding an
+open
+server socket), you must first obtain a <code>BluetoothDevice</code> object that represents the remote device.
+(Getting a <code>BluetoothDevice</code> is covered in the above
+section about Finding Devices.) You must then use the
+<code>BluetoothDevice</code> to acquire a <code>BluetoothSocket</code> and initiate the connection.</p>
+<p>Here's the basic procedure:</p>
+<ol> 
+<li>Using the <code>BluetoothDevice</code>, get a <code>BluetoothSocket</code> by calling <code>createRfcommSocketToServiceRecord(UUID)</code>.
+<p>This initializes a <code>BluetoothSocket</code> that will
+connect to the <code>BluetoothDevice</code>. The UUID passed here
+must match the UUID used by the server device when it opened its
+<code>BluetoothServerSocket</code> (with <code>listenUsingRfcommWithServiceRecord(String, UUID)</code>). Using the same UUID is simply a matter of hard-coding the UUID string
+into your application and then referencing it from both the server and client
+code.</p> 
+</li> 
+ 
+<li>Initiate the connection by calling <code>connect()</code>.
+<p>Upon this call, the system will perform an SDP lookup on the remote device in
+order to match the UUID. If the lookup is successful and the remote device
+accepts the connection, it will share the RFCOMM channel to use during the
+connection and <code>connect()</code> will return. This method is a
+blocking call. If, for
+any reason, the connection fails or the <code>connect()</code> method times out (after about
+12 seconds), then it will throw an exception.</p> 
+<p>Because <code>connect()</code> is a blocking call, this connection
+procedure should always be performed in a thread separate from the main activity
+thread.</p> 
+<p>Note: You should always ensure that the device is not performing
+device discovery when you call <code>connect()</code>. If discovery is in progress, then
+the
+connection attempt will be significantly slowed and is more likely to fail.</p> 
+</li> 
+</ol>
+<p>This initializes a <code>BluetoothSocket</code> that will
+connect to the <code>BluetoothDevice</code>. The UUID passed here
+must match the UUID used by the server device when it opened its
+<code>BluetoothServerSocket</code> (with <code>listenUsingRfcommWithServiceRecord(String, UUID)</code>). Using the same UUID is simply a matter of hard-coding the UUID string
+into your application and then referencing it from both the server and client
+code.</p>
+<p>Upon this call, the system will perform an SDP lookup on the remote device in
+order to match the UUID. If the lookup is successful and the remote device
+accepts the connection, it will share the RFCOMM channel to use during the
+connection and <code>connect()</code> will return. This method is a
+blocking call. If, for
+any reason, the connection fails or the <code>connect()</code> method times out (after about
+12 seconds), then it will throw an exception.</p>
+<p>Because <code>connect()</code> is a blocking call, this connection
+procedure should always be performed in a thread separate from the main activity
+thread.</p>
+<p>Note: You should always ensure that the device is not performing
+device discovery when you call <code>connect()</code>. If discovery is in progress, then
+the
+connection attempt will be significantly slowed and is more likely to fail.</p>
+<h4>Example</h4>
+<p>Here is a basic example of a thread that initiates a Bluetooth
+connection:</p>
+<p>WHATSON? ae114863-95fb-4ae5-9388-81e4c33e0d1a</p>
+<pre> 
+private class ConnectThread extends Thread {
+    private final BluetoothSocket mmSocket;
+    private final BluetoothDevice mmDevice;
+ 
+    public ConnectThread(BluetoothDevice device) {
+        // Use a temporary object that is later assigned to mmSocket,
+        // because mmSocket is final
+        BluetoothSocket tmp = null;
+        mmDevice = device;
+ 
+        // Get a BluetoothSocket to connect with the given BluetoothDevice
+        try {
+            // MY_UUID is the app's UUID string, also used by the server code
+            tmp = device.createRfcommSocketToServiceRecord(MY_UUID);
+        } catch (IOException e) { }
+        mmSocket = tmp;
+    }
+ 
+    public void run() {
+        // Cancel discovery because it will slow down the connection
+        mBluetoothAdapter.cancelDiscovery();
+ 
+        try {
+            // Connect the device through the socket. This will block
+            // until it succeeds or throws an exception
+            mmSocket.connect();
+        } catch (IOException connectException) {
+            // Unable to connect; close the socket and get out
+            try {
+                mmSocket.close();
+            } catch (IOException closeException) { }
+            return;
+        }
+ 
+        // Do work to manage the connection (in a separate thread)
+        manageConnectedSocket(mmSocket);
+    }
+ 
+    /** Will cancel an in-progress connection, and close the socket */
+    public void cancel() {
+        try {
+            mmSocket.close();
+        } catch (IOException e) { }
+    }
+}
+</pre>
+<p>Notice that <code>cancelDiscovery()</code> is called
+before the connection is made. You should always do this before connecting and it is safe
+to call without actually checking whether it is running or not (but if you do want to
+check, call <code>isDiscovering()</code>).</p>
+<p><code>manageConnectedSocket()</code> is a fictional method in the application
+that will initiate the thread for transferring data, which is discussed in the section
+about Managing a Connection.</p>
+<p>When you're done with your <code>BluetoothSocket</code>, always
+call <code>close()</code> to clean up.
+Doing so will immediately close the connected socket and clean up all internal
+resources.</p>
+<h2>Managing a Connection</h2>
+<p>When you have successfully connected two (or more) devices, each one will
+have a connected <code>BluetoothSocket</code>. This is where the fun
+begins because you can share data between devices. Using the <code>BluetoothSocket</code>, the general procedure to transfer arbitrary data is
+simple:</p>
+<ol> 
+<li>Get the <code>InputStream</code> and <code>OutputStream</code> that
+handle transmissions through the socket, via <code>getInputStream()</code> and
+<code>getOutputStream()</code>, respectively.</li> 
+ 
+<li>Read and write data to the streams with <code>read(byte[])</code> and <code>write(byte[])</code>.</li> 
+</ol>
+<p>That's it.</p>
+<p>There are, of course, implementation details to consider. First and foremost,
+you should use a dedicated thread for all stream reading and writing. This is
+important because both <code>read(byte[])</code> and <code>write(byte[])</code> methods are blocking calls. <code>read(byte[])</code> will block until there is something to read
+from the stream. <code>write(byte[])</code> does not usually
+block, but can block for flow control if the remote device is not calling <code>read(byte[])</code> quickly enough and the intermediate buffers are full.
+So, your main loop in the thread should be dedicated to reading from the <code>InputStream</code>. A separate public method in the thread can be used to initiate
+writes to the <code>OutputStream</code>.</p>
+<h4>Example</h4>
+<p>Here's an example of how this might look:</p>
+<p>WHATSON? 1de9a79a-e292-4064-be5f-d055d13fc5e6</p>
+<pre> 
+private class ConnectedThread extends Thread {
+    private final BluetoothSocket mmSocket;
+    private final InputStream mmInStream;
+    private final OutputStream mmOutStream;
+ 
+    public ConnectedThread(BluetoothSocket socket) {
+        mmSocket = socket;
+        InputStream tmpIn = null;
+        OutputStream tmpOut = null;
+ 
+        // Get the input and output streams, using temp objects because
+        // member streams are final
+        try {
+            tmpIn = socket.getInputStream();
+            tmpOut = socket.getOutputStream();
+        } catch (IOException e) { }
+ 
+        mmInStream = tmpIn;
+        mmOutStream = tmpOut;
+    }
+ 
+    public void run() {
+        byte[] buffer = new byte[1024];  // buffer store for the stream
+        int bytes; // bytes returned from read()
+ 
+        // Keep listening to the InputStream until an exception occurs
+        while (true) {
+            try {
+                // Read from the InputStream
+                bytes = mmInStream.read(buffer);
+                // Send the obtained bytes to the UI activity
+                mHandler.obtainMessage(MESSAGE_READ, bytes, -1, buffer)
+                        .sendToTarget();
+            } catch (IOException e) {
+                break;
+            }
+        }
+    }
+ 
+    /* Call this from the main activity to send data to the remote device */
+    public void write(byte[] bytes) {
+        try {
+            mmOutStream.write(bytes);
+        } catch (IOException e) { }
+    }
+ 
+    /* Call this from the main activity to shutdown the connection */
+    public void cancel() {
+        try {
+            mmSocket.close();
+        } catch (IOException e) { }
+    }
+}
+</pre>
+<p>The constructor acquires the necessary streams and once executed, the thread
+will wait for data to come through the InputStream. When <code>read(byte[])</code> returns with
+bytes from the stream, the data is sent to the main activity using a member
+Handler from the parent class. Then it goes back and waits for more bytes from
+the stream.</p>
+<p>Sending outgoing data is as simple as calling the thread's
+<code>write()</code> method from the main activity and passing in the bytes to
+be sent. This method then simply calls <code>write(byte[])</code> to send the data to the remote device.</p>
+<p>The thread's <code>cancel()</code> method is important so that the connection
+can be
+terminated at any time by closing the <code>BluetoothSocket</code>.
+This should always be called when you're done using the Bluetooth
+connection.</p>
+<p>For a  demonstration of using the Bluetooth APIs, see the Bluetooth Chat sample app.</p>
+<h2>Working with Profiles</h2>
+<p>Starting in Android 3.0, the Bluetooth API includes support for working with
+Bluetooth profiles. A <em>Bluetooth profile</em> is a wireless interface
+specification for Bluetooth-based communication between devices. An example
+is the Hands-Free profile. For a mobile phone to connect to a wireless headset,
+both devices must support the Hands-Free profile. </p>
+<p>You can implement the interface <code>BluetoothProfile</code> to write
+your own classes to support a particular Bluetooth profile. The Android
+Bluetooth API provides implementations for the following Bluetooth
+profiles:</p>
+<ul> 
+
+  <li><strong>Headset</strong>. The Headset profile provides support for
+Bluetooth headsets to be used with mobile phones. Android provides the <code>BluetoothHeadset</code> class, which is a proxy for controlling the
+Bluetooth Headset Service via interprocess communication (IPC). This includes both  Bluetooth Headset and Hands-Free (v1.5) profiles. The
+<code>BluetoothHeadset</code> class includes support for AT commands.
+For more discussion of this topic, see Vendor-specific AT commands</li>
+
+  <li><strong>A2DP</strong>. The Advanced Audio Distribution Profile (A2DP)
+profile defines how high quality audio can be streamed from one device to
+another over a Bluetooth connection. Android provides the <code>BluetoothA2dp</code> class, which is a proxy for controlling
+the Bluetooth A2DP  Service via IPC.</li> 
+
+ <li><strong>Health Device</strong>. Android 4.0 (API level 14) introduces
+support for the Bluetooth Health Device Profile (HDP). This lets you create
+applications that use Bluetooth to communicate with health devices that support
+Bluetooth, such as heart-rate monitors, blood meters, thermometers, scales, and
+so on. For a list of supported devices and their corresponding device data
+specialization codes, refer to <strong>Bluetooth Assigned Numbers</strong> at www.bluetooth.org. Note that these values
+are also referenced in the ISO/IEEE 11073-20601 [7] specification as
+MDC_DEV_SPEC_PROFILE_* in the Nomenclature Codes Annex. For more discussion of
+HDP, see Health Device Profile.</li> 
+
+</ul>
+<p>Here are the basic steps for working with a profile:</p>
+<ol> 
+
+  <li>Get the default adapter, as described in
+    Setting Up
+      Bluetooth.</li> 
+
+  <li>Use <code>getProfileProxy()</code> to
+establish a connection to the profile proxy object associated with the profile.
+In the example below, the profile proxy object is an instance of <code>BluetoothHeadset</code>. </li> 
+
+  <li>Set up a  <code>BluetoothProfile.ServiceListener</code>. This
+listener notifies <code>BluetoothProfile</code> IPC clients when
+they have been connected to or disconnected from the service.</li> 
+
+  <li>In <code>onServiceConnected()</code>, get a handle
+to the profile proxy object.</li> 
+
+  <li>Once you have the profile proxy object, you can use it to monitor the
+state of the connection and perform other operations that are relevant to that
+profile.</li> 
+</ol>
+<p> For example, this code snippet shows how to connect to a <code>BluetoothHeadset</code> proxy object so that you can control the
+Headset profile:</p>
+<p>WHATSON? 7f4e5625-4327-4bc8-828e-927fd12a63b4</p>
+<pre>BluetoothHeadset mBluetoothHeadset;
+ 
+// Get the default adapter
+BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+ 
+// Establish connection to the proxy.
+mBluetoothAdapter.getProfileProxy(context, mProfileListener, BluetoothProfile.HEADSET);
+ 
+private BluetoothProfile.ServiceListener mProfileListener = new BluetoothProfile.ServiceListener() {
+    public void onServiceConnected(int profile, BluetoothProfile proxy) {
+        if (profile == BluetoothProfile.HEADSET) {
+            mBluetoothHeadset = (BluetoothHeadset) proxy;
+        }
+    }
+    public void onServiceDisconnected(int profile) {
+        if (profile == BluetoothProfile.HEADSET) {
+            mBluetoothHeadset = null;
+        }
+    }
+};
+ 
+// ... call functions on mBluetoothHeadset
+ 
+// Close proxy connection after use.
+mBluetoothAdapter.closeProfileProxy(mBluetoothHeadset);
+</pre>
+<h3>Vendor-specific AT commands</h3>
+<p>Starting in Android 3.0, applications can register to receive system
+broadcasts of pre-defined vendor-specific AT commands sent by headsets (such as
+a Plantronics +XEVENT command). For example, an application could receive
+broadcasts that indicate a connected device's battery level and could notify the
+user or take other action as needed. Create a broadcast receiver for the <code>ACTION_VENDOR_SPECIFIC_HEADSET_EVENT</code> intent
+to handle vendor-specific AT commands for the headset.</p>
+<h3>Health Device Profile</h3>
+<p>Android 4.0 (API level 14) introduces support for the Bluetooth Health Device
+Profile (HDP). This lets you create applications that use Bluetooth to
+communicate with health devices that support Bluetooth, such as heart-rate
+monitors, blood meters, thermometers, and scales. The Bluetooth Health API
+includes the classes <code>BluetoothHealth</code>, <code>BluetoothHealthCallback</code>, and <code>BluetoothHealthAppConfiguration</code>, which are described in The Basics. </p>
+<p>In using the Bluetooth Health API, it's helpful to understand these key HDP concepts:</p>
+<h4>Creating an HDP Application</h4>
+<p>Here are the basic steps involved in creating an Android HDP application:</p>
+<ol>
+
+  <li>Get a reference to the <code>BluetoothHealth</code> proxy
+object. <p>Similar to regular headset and A2DP profile devices, you must call
+<code>getProfileProxy()</code>
+with a <code>BluetoothProfile.ServiceListener</code> and the <code>HEALTH</code> profile type to
+establish a connection with the profile proxy object.</p> </li>
+
+  <li>Create a <code>BluetoothHealthCallback</code> and register an
+application configuration 
+(<code>BluetoothHealthAppConfiguration</code>)
+that acts as a health
+sink.</li>
+
+  <li>Establish a connection to a health device.  Some devices will initiate the
+connection.  It is unnecessary to carry out this step for those devices.</li>
+
+  <li>When connected successfully to a health device, read/write to the health
+device using the file descriptor. <p>The received data needs to be interpreted
+using a health manager which implements the IEEE 11073-xxxxx
+specifications.</p></li>
+
+  <li>When done, close the health channel and unregister the application.  The
+channel also closes when there is extended inactivity.</li>
+</ol>
+<p>Similar to regular headset and A2DP profile devices, you must call
+<code>getProfileProxy()</code>
+with a <code>BluetoothProfile.ServiceListener</code> and the <code>HEALTH</code> profile type to
+establish a connection with the profile proxy object.</p>
+<p>The received data needs to be interpreted
+using a health manager which implements the IEEE 11073-xxxxx
+specifications.</p>
+<p>For a complete code sample that illustrates these steps, see Bluetooth HDP (Health
+Device Profile). </p>
+<h1>Bluetooth</h1>
+<h2>In this document</h2>
+<ol> 
+    <li>The Basics</li>
+    <li>Bluetooth Permissions</li>
+    <li>Setting Up Bluetooth</li> 
+    <li>Finding Devices 
+      <ol> 
+        <li>Querying paired devices</li> 
+        <li>Discovering devices</li> 
+      </ol></li> 
+    <li>Connecting Devices 
+      <ol> 
+        <li>Connecting as a server</li> 
+        <li>Connecting as a client</li> 
+      </ol></li> 
+    <li>Managing a Connection</li>
+    <li>Working with Profiles 
+      <ol>
+        <li>Vendor-specific AT commands
+        </li><li>Health Device Profile
+      </li></ol></li>
+  </ol>
+<ol> 
+        <li>Querying paired devices</li> 
+        <li>Discovering devices</li> 
+      </ol>
+<ol> 
+        <li>Connecting as a server</li> 
+        <li>Connecting as a client</li> 
+      </ol>
+<ol>
+        <li>Vendor-specific AT commands
+        </li><li>Health Device Profile
+      </li></ol>
+<h2>Key classes</h2>
+<ol> 
+    <li><code>BluetoothAdapter</code></li> 
+    <li><code>BluetoothDevice</code></li> 
+    <li><code>BluetoothSocket</code></li> 
+    <li><code>BluetoothServerSocket</code></li> 
+  </ol>
+<h2>Related samples</h2>
+<ol> 
+    <li>Bluetooth Chat</li> 
+    <li>Bluetooth HDP (Health Device Profile)</li>
+  </ol>
+<p>The Android platform includes support for the Bluetooth network stack,
+which allows a device to wirelessly exchange data with other Bluetooth devices.
+The application framework provides access to the Bluetooth functionality through
+the Android Bluetooth APIs. These APIs let applications wirelessly
+connect to other Bluetooth devices, enabling point-to-point and multipoint
+wireless features.</p>
+<p>Using the Bluetooth APIs, an Android application can perform the
+following:</p>
+<ul>
+  <li>Scan for other Bluetooth devices</li>
+  <li>Query the local Bluetooth adapter for paired Bluetooth devices</li>
+  <li>Establish RFCOMM channels</li>
+  <li>Connect to other devices through service discovery</li>
+  <li>Transfer data to and from other devices</li>
+  <li>Manage multiple connections</li>
+</ul>
+<p>This document describes how to use <em>Classic Bluetooth</em>. Classic
+Bluetooth is the right choice for more battery-intensive operations such as streaming
+and communicating between Android devices. For Bluetooth devices with low power requirements,
+Android 4.3 (API Level 18) introduces API support for Bluetooth Low Energy. To learn more,
+see Bluetooth Low Energy.</p>
+<h2>The Basics</h2>
+<p>This document describes how to use the Android Bluetooth APIs to accomplish
+the four major tasks necessary to communicate using Bluetooth: setting up
+Bluetooth, finding devices that are either paired or available in the local
+area, connecting devices, and transferring data between devices.</p>
+<p>All of the Bluetooth APIs are available in the <code>android.bluetooth</code>
+package. Here's a summary of the classes and interfaces you will need to create Bluetooth
+connections:</p>
+<h2>Bluetooth Permissions</h2>
+<p>In order to use Bluetooth features in your application, you must declare
+the Bluetooth permission <code>BLUETOOTH</code>.
+You need this permission to perform any Bluetooth communication,
+such as requesting a connection, accepting a connection, and transferring data.</p>
+<p>If you want your app to initiate device discovery or manipulate Bluetooth
+settings, you must also declare the <code>BLUETOOTH_ADMIN</code>
+permission. Most applications need this permission solely for the
+ability to discover local Bluetooth devices. The other abilities granted by this
+permission should not be used, unless the application is a "power manager" that
+will modify Bluetooth settings upon user request. <strong>Note:</strong> If you
+use <code>BLUETOOTH_ADMIN</code> permission, then you must
+also have the <code>BLUETOOTH</code> permission.</p>
+<p>Declare the Bluetooth permission(s) in your application manifest file. For
+example:</p>
+<p>WHATSON? a39ea0b0-ee8d-48fd-8cb9-66f8e2fb824d</p>
+<pre> 
+&lt;manifest ... &gt;
+  &lt;uses-permission android:name="android.permission.BLUETOOTH" /&gt;
+  ...
+&lt;/manifest&gt;
+</pre>
+<p>See the &lt;uses-permission&gt; 
+reference for more information about declaring application permissions.</p>
+<h2>Setting Up Bluetooth</h2>
+<p>Before your application can communicate over Bluetooth, you need to verify
+that Bluetooth is supported on the device, and if so, ensure that it is enabled.</p>
+<p>If Bluetooth is not supported, then you should gracefully disable any
+Bluetooth features. If Bluetooth is supported, but disabled, then you can request that the
+user enable Bluetooth without leaving your application. This setup is
+accomplished in two steps, using the <code>BluetoothAdapter</code>.</p>
+<ol> 
+<li>Get the <code>BluetoothAdapter</code>
+<p>The <code>BluetoothAdapter</code> is required for any and all Bluetooth
+activity. To get the <code>BluetoothAdapter</code>, call the static <code>getDefaultAdapter()</code> method. This returns a
+<code>BluetoothAdapter</code> that represents the device's own
+Bluetooth adapter (the Bluetooth radio). There's one Bluetooth adapter for the
+entire system, and your application can interact with it using this object. If
+<code>getDefaultAdapter()</code> returns null,
+then the device does not support Bluetooth and your story ends here. For example:</p> 
+<pre> 
+BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+if (mBluetoothAdapter == null) {
+    // Device does not support Bluetooth
+}
+</pre> 
+</li> 
+ 
+<li>Enable Bluetooth
+<p>Next, you need to ensure that Bluetooth is enabled. Call <code>isEnabled()</code> to check whether Bluetooth is
+currently enable. If this method returns false, then Bluetooth is disabled. To
+request that Bluetooth be enabled, call <code>startActivityForResult()</code>
+with the <code>ACTION_REQUEST_ENABLE</code> action Intent.
+This will issue a request to enable Bluetooth through the system settings (without
+stopping your application). For example:</p> 
+<pre> 
+if (!mBluetoothAdapter.isEnabled()) {
+    Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+    startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+}
+</pre> 
+ 
+<p>A dialog will appear requesting user permission to enable Bluetooth, as shown
+in Figure 1. If the user responds "Yes," the system will begin to enable Bluetooth
+and focus will return to your application once the process completes (or fails).</p> 
+
+<p>The <code>REQUEST_ENABLE_BT</code> constant passed to <code>startActivityForResult()</code> is a locally
+defined integer (which must be greater than 0), that the system passes back to you in your
+<code>onActivityResult()</code> implementation as the
+<code>requestCode</code> parameter.</p>
+
+<p>If enabling Bluetooth succeeds, your activity receives the <code>RESULT_OK</code> result code in the <code>onActivityResult()</code>
+callback. If Bluetooth was not enabled
+due to an error (or the user responded "No") then the result code is <code>RESULT_CANCELED</code>.</p>
+</li> 
+</ol>
+<p>The <code>BluetoothAdapter</code> is required for any and all Bluetooth
+activity. To get the <code>BluetoothAdapter</code>, call the static <code>getDefaultAdapter()</code> method. This returns a
+<code>BluetoothAdapter</code> that represents the device's own
+Bluetooth adapter (the Bluetooth radio). There's one Bluetooth adapter for the
+entire system, and your application can interact with it using this object. If
+<code>getDefaultAdapter()</code> returns null,
+then the device does not support Bluetooth and your story ends here. For example:</p>
+<p>WHATSON? 316b36a0-b796-4a6e-8707-082da7551d84</p>
+<pre> 
+BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+if (mBluetoothAdapter == null) {
+    // Device does not support Bluetooth
+}
+</pre>
+<p>Next, you need to ensure that Bluetooth is enabled. Call <code>isEnabled()</code> to check whether Bluetooth is
+currently enable. If this method returns false, then Bluetooth is disabled. To
+request that Bluetooth be enabled, call <code>startActivityForResult()</code>
+with the <code>ACTION_REQUEST_ENABLE</code> action Intent.
+This will issue a request to enable Bluetooth through the system settings (without
+stopping your application). For example:</p>
+<p>WHATSON? ee5be86a-bb0c-47ea-aaa5-9525c5c03c91</p>
+<pre> 
+if (!mBluetoothAdapter.isEnabled()) {
+    Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+    startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
+}
+</pre>
+<p>A dialog will appear requesting user permission to enable Bluetooth, as shown
+in Figure 1. If the user responds "Yes," the system will begin to enable Bluetooth
+and focus will return to your application once the process completes (or fails).</p>
+<p>The <code>REQUEST_ENABLE_BT</code> constant passed to <code>startActivityForResult()</code> is a locally
+defined integer (which must be greater than 0), that the system passes back to you in your
+<code>onActivityResult()</code> implementation as the
+<code>requestCode</code> parameter.</p>
+<p>If enabling Bluetooth succeeds, your activity receives the <code>RESULT_OK</code> result code in the <code>onActivityResult()</code>
+callback. If Bluetooth was not enabled
+due to an error (or the user responded "No") then the result code is <code>RESULT_CANCELED</code>.</p>
+<p>Optionally, your application can also listen for the
+<code>ACTION_STATE_CHANGED</code> broadcast Intent, which
+the system will broadcast whenever the Bluetooth state has changed. This broadcast contains
+the extra fields <code>EXTRA_STATE</code> and <code>EXTRA_PREVIOUS_STATE</code>, containing the new and old
+Bluetooth states, respectively. Possible values for these extra fields are
+<code>STATE_TURNING_ON</code>, <code>STATE_ON</code>, <code>STATE_TURNING_OFF</code>, and <code>STATE_OFF</code>. Listening for this
+broadcast can be useful to detect changes made to the Bluetooth state while your
+app is running.</p>
+<p><strong>Tip:</strong> Enabling discoverability will automatically
+enable Bluetooth. If you plan to consistently enable device discoverability before
+performing Bluetooth activity, you can skip
+step 2 above. Read about enabling discoverability,
+below.</p>
+<h2>Finding Devices</h2>
+<p>Using the <code>BluetoothAdapter</code>, you can find remote Bluetooth
+devices either through device discovery or by querying the list of paired (bonded)
+devices.</p>
+<p>Device discovery is a scanning procedure that searches the local area for
+Bluetooth enabled devices and then requesting some information about each one
+(this is sometimes referred to as "discovering," "inquiring" or "scanning").
+However, a Bluetooth device within the local area will respond to a discovery
+request only if it is currently enabled to be discoverable. If a device is
+discoverable, it will respond to the discovery request by sharing some
+information, such as the device name, class, and its unique MAC address. Using
+this information, the device performing discovery can then choose to initiate a
+connection to the discovered device.</p>
+<p>Once a connection is made with a remote device for the first time, a pairing
+request is automatically presented to the user. When a device is
+paired, the basic information about that device (such as the device name, class,
+and MAC address) is saved and can be read using the Bluetooth APIs. Using the
+known MAC address for a remote device, a connection can be initiated with it at
+any time without performing discovery (assuming the device is within range).</p>
+<p>Remember there is a difference between being paired and being connected. To
+be paired means that two devices are aware of each other's existence, have a
+shared link-key that can be used for authentication, and are capable of
+establishing an encrypted connection with each other. To be connected means that
+the devices currently share an RFCOMM channel and are able to transmit data with
+each other. The current Android Bluetooth API's require devices to be paired
+before an RFCOMM connection can be established. (Pairing is automatically performed
+when you initiate an encrypted connection with the Bluetooth APIs.)</p>
+<p>The following sections describe how to find devices that have been paired, or
+discover new devices using device discovery.</p>
+<p><strong>Note:</strong> Android-powered devices are not
+discoverable by default. A user can make
+the device discoverable for a limited time through the system settings, or an
+application can request that the user enable discoverability without leaving the
+application. How to enable discoverability 
+is discussed below.</p>
+<h3>Querying paired devices</h3>
+<p>Before performing device discovery, its worth querying the set
+of paired devices to see if the desired device is already known. To do so,
+call <code>getBondedDevices()</code>. This
+will return a Set of <code>BluetoothDevice</code>s representing
+paired devices. For example, you can query all paired devices and then
+show the name of each device to the user, using an ArrayAdapter:</p>
+<p>WHATSON? 2fc1afa5-e9db-47b5-9c3b-7528f31ddeb7</p>
+<pre> 
+Set&lt;BluetoothDevice&gt; pairedDevices = mBluetoothAdapter.getBondedDevices();
+// If there are paired devices
+if (pairedDevices.size() &gt; 0) {
+    // Loop through paired devices
+    for (BluetoothDevice device : pairedDevices) {
+        // Add the name and address to an array adapter to show in a ListView
+        mArrayAdapter.add(device.getName() + "\n" + device.getAddress());
+    }
+}
+</pre>
+<p>All that's needed from the <code>BluetoothDevice</code> object
+in order to initiate a connection is the MAC address. In this example, it's saved
+as a part of an ArrayAdapter that's shown to the user. The MAC address can later
+be extracted in order to initiate the connection. You can learn more about creating
+a connection in the section about Connecting Devices.</p>
+<h3>Discovering devices</h3>
+<p>To start discovering devices, simply call <code>startDiscovery()</code>. The
+process is asynchronous and the method will immediately return with a boolean
+indicating whether discovery has successfully started. The discovery process
+usually involves an inquiry scan of about 12 seconds, followed by a page scan of
+each found device to retrieve its Bluetooth name.</p>
+<p>Your application must register a BroadcastReceiver for the
+<code>ACTION_FOUND</code> Intent in
+order to receive information about each
+device discovered. For each device, the system will broadcast the
+<code>ACTION_FOUND</code> Intent. This
+Intent carries the extra fields
+<code>EXTRA_DEVICE</code> and
+<code>EXTRA_CLASS</code>, containing a
+<code>BluetoothDevice</code> and a <code>BluetoothClass</code>, respectively. For example, here's how you can
+register to handle the broadcast when devices are discovered:</p>
+<p>WHATSON? d38e95f7-0f9b-4216-9e21-578844895926</p>
+<pre> 
+// Create a BroadcastReceiver for ACTION_FOUND
+private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
+    public void onReceive(Context context, Intent intent) {
+        String action = intent.getAction();
+        // When discovery finds a device
+        if (BluetoothDevice.ACTION_FOUND.equals(action)) {
+            // Get the BluetoothDevice object from the Intent
+            BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+            // Add the name and address to an array adapter to show in a ListView
+            mArrayAdapter.add(device.getName() + "\n" + device.getAddress());
+        }
+    }
+};
+// Register the BroadcastReceiver
+IntentFilter filter = new IntentFilter(BluetoothDevice.ACTION_FOUND);
+registerReceiver(mReceiver, filter); // Don't forget to unregister during onDestroy
+</pre>
+<p>All that's needed from the <code>BluetoothDevice</code> object
+in order to initiate a
+connection is the MAC address. In this example, it's saved as a part of an
+ArrayAdapter that's shown to the user. The MAC address can later be extracted in
+order to initiate the connection. You can learn more about creating a connection
+in the section about Connecting Devices.</p>
+<p><strong>Caution:</strong> Performing device discovery is
+a heavy procedure for the Bluetooth
+adapter and will consume a lot of its resources. Once you have found a device to
+connect, be certain that you always stop discovery with
+<code>cancelDiscovery()</code> before
+attempting a connection. Also, if you
+already hold a connection with a device, then performing discovery can
+significantly reduce the bandwidth available for the connection, so you should
+not perform discovery while connected.</p>
+<h4>Enabling discoverability</h4>
+<p>If you would like to make the local device discoverable to other devices,
+call <code>startActivityForResult(Intent, int)</code> with the
+<code>ACTION_REQUEST_DISCOVERABLE</code> action
+Intent. This will issue a request to enable discoverable mode through the system
+settings (without stopping your application). By default, the device will become
+discoverable for 120 seconds. You can define a different duration by adding the
+<code>EXTRA_DISCOVERABLE_DURATION</code> Intent
+extra. The maximum duration an app can set is 3600 seconds, and a value of 0
+means the device is always discoverable. Any value below 0 or above 3600 is
+automatically set to 120 secs). For example, this snippet sets the duration to
+300:</p>
+<p>WHATSON? d86645ce-18f6-495e-bb9f-9be4bdb0edbb</p>
+<pre>Intent discoverableIntent = new
+Intent(BluetoothAdapter.ACTION_REQUEST_DISCOVERABLE);
+discoverableIntent.putExtra(BluetoothAdapter.EXTRA_DISCOVERABLE_DURATION, 300);
+startActivity(discoverableIntent);
+</pre>
+<p>A dialog will be displayed, requesting user permission to make the device
+discoverable, as shown in Figure 2. If the user responds "Yes," then the device
+will become discoverable for the specified amount of time. Your activity will
+then receive a call to the <code>onActivityResult())</code> callback, with the result code equal to the duration that the device
+is discoverable. If the user responded "No" or if an error occurred, the result code will
+be <code>RESULT_CANCELED</code>.</p>
+<p><strong>Note:</strong> If Bluetooth has not been enabled on the device,
+then enabling device discoverability will automatically enable Bluetooth.</p>
+<p>The device will silently remain in discoverable mode for the allotted time.
+If you would like to be notified when the discoverable mode has changed, you can
+register a BroadcastReceiver for the <code>ACTION_SCAN_MODE_CHANGED</code>
+Intent. This will contain the extra fields <code>EXTRA_SCAN_MODE</code> and
+<code>EXTRA_PREVIOUS_SCAN_MODE</code>, which tell you the
+new and old scan mode, respectively. Possible values for each are
+<code>SCAN_MODE_CONNECTABLE_DISCOVERABLE</code>,
+<code>SCAN_MODE_CONNECTABLE</code>, or <code>SCAN_MODE_NONE</code>,
+which indicate that the device is either in discoverable mode, not in
+discoverable mode but still able to receive connections, or not in discoverable
+mode and unable to receive connections, respectively.</p>
+<p>You do not need to enable device discoverability if you will be initiating
+the connection to a remote device. Enabling discoverability is only necessary when
+you want your application to host a server socket that will accept incoming
+connections, because the remote devices must be able to discover the device
+before it can initiate the connection.</p>
+<h2>Connecting Devices</h2>
+<p>In order to create a connection between your application on two devices, you
+must implement both the server-side and client-side mechanisms, because one
+device must open a server socket and the other one must initiate the connection
+(using the server device's MAC address to initiate a connection). The server and
+client are considered connected to each other when they each have a connected
+<code>BluetoothSocket</code> on the same RFCOMM channel. At this
+point, each device can obtain input and output streams and data transfer can
+begin, which is discussed in the section about Managing a Connection. This section describes how
+to initiate the connection between two devices.</p>
+<p>The server device and the client device each obtain the required <code>BluetoothSocket</code> in different ways. The server will receive it
+when an incoming connection is accepted. The client will receive it when it
+opens an RFCOMM channel to the server.</p>
+<p>One implementation technique is to automatically prepare each device as a
+server, so that each one has a server socket open and listening for connections.
+Then either device can initiate a connection with the other and become the
+client. Alternatively, one device can explicitly "host" the connection and open
+a server socket on demand and the other device can simply initiate the
+connection.</p>
+<p><strong>Note:</strong> If the two devices have not been previously paired,
+then the Android framework will automatically show a pairing request notification or
+dialog to the user during the connection procedure, as shown in Figure 3. So
+when attempting to connect devices,
+your application does not need to be concerned about whether or not the devices are
+paired. Your RFCOMM connection attempt will block until the user has successfully paired,
+or will fail if the user rejects pairing, or if pairing fails or times out. </p>
+<h3>Connecting as a server</h3>
+<p>When you want to connect two devices, one must act as a server by holding an
+open <code>BluetoothServerSocket</code>. The purpose of the server
+socket is to listen for incoming connection requests and when one is accepted,
+provide a connected <code>BluetoothSocket</code>. When the <code>BluetoothSocket</code> is acquired from the <code>BluetoothServerSocket</code>,
+the <code>BluetoothServerSocket</code> can (and should) be
+discarded, unless you want to accept more connections.</p>
+<h2>About UUID</h2>
+<p>A Universally Unique Identifier (UUID) is a standardized 128-bit format for a string
+ID used to uniquely identify information. The point of a UUID is that it's big
+enough that you can select any random and it won't clash. In this case, it's
+used to uniquely identify your application's Bluetooth service. To get a UUID to
+use with your application, you can use one of the many random UUID generators on
+the web, then initialize a <code>UUID</code> with <code>fromString(String)</code>.</p>
+<p>Here's the basic procedure to set up a server socket and accept a
+connection:</p>
+<ol> 
+<li>Get a <code>BluetoothServerSocket</code> by calling the
+<code>listenUsingRfcommWithServiceRecord(String, UUID)</code>.
+<p>The string is an identifiable name of your service, which the system will
+automatically write to a new Service Discovery Protocol (SDP) database entry on
+the device (the name is arbitrary and can simply be your application name). The
+UUID is also included in the SDP entry and will be the basis for the connection
+agreement with the client device. That is, when the client attempts to connect
+with this device, it will carry a UUID that uniquely identifies the service with
+which it wants to connect. These UUIDs must match in order for the connection to
+be accepted (in the next step).</p> 
+</li> 
+ 
+<li>Start listening for connection requests by calling
+<code>accept()</code>.
+<p>This is a blocking call. It will return when either a connection has been
+accepted or an exception has occurred. A connection is accepted only when a
+remote device has sent a connection request with a UUID matching the one
+registered with this listening server socket. When successful, <code>accept()</code> will
+return a connected <code>BluetoothSocket</code>.</p> 
+</li> 
+ 
+<li>Unless you want to accept additional connections, call
+<code>close()</code>.
+<p>This releases the server socket and all its resources, but does <em>not</em> close the
+connected <code>BluetoothSocket</code> that's been returned by <code>accept()</code>. Unlike TCP/IP, RFCOMM only allows one
+connected client per channel at a time, so in most cases it makes sense to call <code>close()</code> on the <code>BluetoothServerSocket</code> immediately after accepting a connected
+socket.</p> 
+</li> 
+</ol>
+<p>The string is an identifiable name of your service, which the system will
+automatically write to a new Service Discovery Protocol (SDP) database entry on
+the device (the name is arbitrary and can simply be your application name). The
+UUID is also included in the SDP entry and will be the basis for the connection
+agreement with the client device. That is, when the client attempts to connect
+with this device, it will carry a UUID that uniquely identifies the service with
+which it wants to connect. These UUIDs must match in order for the connection to
+be accepted (in the next step).</p>
+<p>This is a blocking call. It will return when either a connection has been
+accepted or an exception has occurred. A connection is accepted only when a
+remote device has sent a connection request with a UUID matching the one
+registered with this listening server socket. When successful, <code>accept()</code> will
+return a connected <code>BluetoothSocket</code>.</p>
+<p>This releases the server socket and all its resources, but does <em>not</em> close the
+connected <code>BluetoothSocket</code> that's been returned by <code>accept()</code>. Unlike TCP/IP, RFCOMM only allows one
+connected client per channel at a time, so in most cases it makes sense to call <code>close()</code> on the <code>BluetoothServerSocket</code> immediately after accepting a connected
+socket.</p>
+<p>The <code>accept()</code> call should not
+be executed in the main activity UI thread because it is a blocking call and
+will prevent any other interaction with the application. It usually makes
+sense to do all work with a <code>BluetoothServerSocket</code> or <code>BluetoothSocket</code> in a new
+thread managed by your application. To abort a blocked call such as <code>accept()</code>, call <code>close()</code> on the <code>BluetoothServerSocket</code> (or <code>BluetoothSocket</code>) from another thread and the blocked call will
+immediately return. Note that all methods on a <code>BluetoothServerSocket</code> or <code>BluetoothSocket</code>
+are thread-safe.</p>
+<h4>Example</h4>
+<p>Here's a simplified thread for the server component that accepts incoming
+connections:</p>
+<p>WHATSON? be9366b6-fabf-4a13-9b51-2c06cc58a5e7</p>
+<pre> 
+private class AcceptThread extends Thread {
+    private final BluetoothServerSocket mmServerSocket;
+ 
+    public AcceptThread() {
+        // Use a temporary object that is later assigned to mmServerSocket,
+        // because mmServerSocket is final
+        BluetoothServerSocket tmp = null;
+        try {
+            // MY_UUID is the app's UUID string, also used by the client code
+            tmp = mBluetoothAdapter.listenUsingRfcommWithServiceRecord(NAME, MY_UUID);
+        } catch (IOException e) { }
+        mmServerSocket = tmp;
+    }
+ 
+    public void run() {
+        BluetoothSocket socket = null;
+        // Keep listening until exception occurs or a socket is returned
+        while (true) {
+            try {
+                socket = mmServerSocket.accept();
+            } catch (IOException e) {
+                break;
+            }
+            // If a connection was accepted
+            if (socket != null) {
+                // Do work to manage the connection (in a separate thread)
+                manageConnectedSocket(socket);
+                mmServerSocket.close();
+                break;
+            }
+        }
+    }
+ 
+    /** Will cancel the listening socket, and cause the thread to finish */
+    public void cancel() {
+        try {
+            mmServerSocket.close();
+        } catch (IOException e) { }
+    }
+}
+</pre>
+<p>In this example, only one incoming connection is desired, so as soon as a
+connection is accepted and the <code>BluetoothSocket</code> is
+acquired, the application
+sends the acquired <code>BluetoothSocket</code> to a separate
+thread, closes the
+<code>BluetoothServerSocket</code> and breaks the loop.</p>
+<p>Note that when <code>accept()</code>
+returns the <code>BluetoothSocket</code>, the socket is already
+connected, so you should <em>not</em> call <code>connect()</code> (as you do from the
+client-side).</p>
+<p><code>manageConnectedSocket()</code> is a fictional method in the application
+that will
+initiate the thread for transferring data, which is discussed in the section
+about Managing a Connection.</p>
+<p>You should usually close your <code>BluetoothServerSocket</code>
+as soon as you are done listening for incoming connections. In this example, <code>close()</code> is called as soon
+as the <code>BluetoothSocket</code> is acquired. You may also want
+to provide a public method in your thread that can close the private <code>BluetoothSocket</code> in the event that you need to stop listening on the
+server socket.</p>
+<h3>Connecting as a client</h3>
+<p>In order to initiate a connection with a remote device (a device holding an
+open
+server socket), you must first obtain a <code>BluetoothDevice</code> object that represents the remote device.
+(Getting a <code>BluetoothDevice</code> is covered in the above
+section about Finding Devices.) You must then use the
+<code>BluetoothDevice</code> to acquire a <code>BluetoothSocket</code> and initiate the connection.</p>
+<p>Here's the basic procedure:</p>
+<ol> 
+<li>Using the <code>BluetoothDevice</code>, get a <code>BluetoothSocket</code> by calling <code>createRfcommSocketToServiceRecord(UUID)</code>.
+<p>This initializes a <code>BluetoothSocket</code> that will
+connect to the <code>BluetoothDevice</code>. The UUID passed here
+must match the UUID used by the server device when it opened its
+<code>BluetoothServerSocket</code> (with <code>listenUsingRfcommWithServiceRecord(String, UUID)</code>). Using the same UUID is simply a matter of hard-coding the UUID string
+into your application and then referencing it from both the server and client
+code.</p> 
+</li> 
+ 
+<li>Initiate the connection by calling <code>connect()</code>.
+<p>Upon this call, the system will perform an SDP lookup on the remote device in
+order to match the UUID. If the lookup is successful and the remote device
+accepts the connection, it will share the RFCOMM channel to use during the
+connection and <code>connect()</code> will return. This method is a
+blocking call. If, for
+any reason, the connection fails or the <code>connect()</code> method times out (after about
+12 seconds), then it will throw an exception.</p> 
+<p>Because <code>connect()</code> is a blocking call, this connection
+procedure should always be performed in a thread separate from the main activity
+thread.</p> 
+<p>Note: You should always ensure that the device is not performing
+device discovery when you call <code>connect()</code>. If discovery is in progress, then
+the
+connection attempt will be significantly slowed and is more likely to fail.</p> 
+</li> 
+</ol>
+<p>This initializes a <code>BluetoothSocket</code> that will
+connect to the <code>BluetoothDevice</code>. The UUID passed here
+must match the UUID used by the server device when it opened its
+<code>BluetoothServerSocket</code> (with <code>listenUsingRfcommWithServiceRecord(String, UUID)</code>). Using the same UUID is simply a matter of hard-coding the UUID string
+into your application and then referencing it from both the server and client
+code.</p>
+<p>Upon this call, the system will perform an SDP lookup on the remote device in
+order to match the UUID. If the lookup is successful and the remote device
+accepts the connection, it will share the RFCOMM channel to use during the
+connection and <code>connect()</code> will return. This method is a
+blocking call. If, for
+any reason, the connection fails or the <code>connect()</code> method times out (after about
+12 seconds), then it will throw an exception.</p>
+<p>Because <code>connect()</code> is a blocking call, this connection
+procedure should always be performed in a thread separate from the main activity
+thread.</p>
+<p>Note: You should always ensure that the device is not performing
+device discovery when you call <code>connect()</code>. If discovery is in progress, then
+the
+connection attempt will be significantly slowed and is more likely to fail.</p>
+<h4>Example</h4>
+<p>Here is a basic example of a thread that initiates a Bluetooth
+connection:</p>
+<p>WHATSON? 424b7bfa-5f92-4368-8adc-a86884b801f0</p>
+<pre> 
+private class ConnectThread extends Thread {
+    private final BluetoothSocket mmSocket;
+    private final BluetoothDevice mmDevice;
+ 
+    public ConnectThread(BluetoothDevice device) {
+        // Use a temporary object that is later assigned to mmSocket,
+        // because mmSocket is final
+        BluetoothSocket tmp = null;
+        mmDevice = device;
+ 
+        // Get a BluetoothSocket to connect with the given BluetoothDevice
+        try {
+            // MY_UUID is the app's UUID string, also used by the server code
+            tmp = device.createRfcommSocketToServiceRecord(MY_UUID);
+        } catch (IOException e) { }
+        mmSocket = tmp;
+    }
+ 
+    public void run() {
+        // Cancel discovery because it will slow down the connection
+        mBluetoothAdapter.cancelDiscovery();
+ 
+        try {
+            // Connect the device through the socket. This will block
+            // until it succeeds or throws an exception
+            mmSocket.connect();
+        } catch (IOException connectException) {
+            // Unable to connect; close the socket and get out
+            try {
+                mmSocket.close();
+            } catch (IOException closeException) { }
+            return;
+        }
+ 
+        // Do work to manage the connection (in a separate thread)
+        manageConnectedSocket(mmSocket);
+    }
+ 
+    /** Will cancel an in-progress connection, and close the socket */
+    public void cancel() {
+        try {
+            mmSocket.close();
+        } catch (IOException e) { }
+    }
+}
+</pre>
+<p>Notice that <code>cancelDiscovery()</code> is called
+before the connection is made. You should always do this before connecting and it is safe
+to call without actually checking whether it is running or not (but if you do want to
+check, call <code>isDiscovering()</code>).</p>
+<p><code>manageConnectedSocket()</code> is a fictional method in the application
+that will initiate the thread for transferring data, which is discussed in the section
+about Managing a Connection.</p>
+<p>When you're done with your <code>BluetoothSocket</code>, always
+call <code>close()</code> to clean up.
+Doing so will immediately close the connected socket and clean up all internal
+resources.</p>
+<h2>Managing a Connection</h2>
+<p>When you have successfully connected two (or more) devices, each one will
+have a connected <code>BluetoothSocket</code>. This is where the fun
+begins because you can share data between devices. Using the <code>BluetoothSocket</code>, the general procedure to transfer arbitrary data is
+simple:</p>
+<ol> 
+<li>Get the <code>InputStream</code> and <code>OutputStream</code> that
+handle transmissions through the socket, via <code>getInputStream()</code> and
+<code>getOutputStream()</code>, respectively.</li> 
+ 
+<li>Read and write data to the streams with <code>read(byte[])</code> and <code>write(byte[])</code>.</li> 
+</ol>
+<p>That's it.</p>
+<p>There are, of course, implementation details to consider. First and foremost,
+you should use a dedicated thread for all stream reading and writing. This is
+important because both <code>read(byte[])</code> and <code>write(byte[])</code> methods are blocking calls. <code>read(byte[])</code> will block until there is something to read
+from the stream. <code>write(byte[])</code> does not usually
+block, but can block for flow control if the remote device is not calling <code>read(byte[])</code> quickly enough and the intermediate buffers are full.
+So, your main loop in the thread should be dedicated to reading from the <code>InputStream</code>. A separate public method in the thread can be used to initiate
+writes to the <code>OutputStream</code>.</p>
+<h4>Example</h4>
+<p>Here's an example of how this might look:</p>
+<p>WHATSON? e0a30999-1409-4732-a07e-3088ef47f6d1</p>
+<pre> 
+private class ConnectedThread extends Thread {
+    private final BluetoothSocket mmSocket;
+    private final InputStream mmInStream;
+    private final OutputStream mmOutStream;
+ 
+    public ConnectedThread(BluetoothSocket socket) {
+        mmSocket = socket;
+        InputStream tmpIn = null;
+        OutputStream tmpOut = null;
+ 
+        // Get the input and output streams, using temp objects because
+        // member streams are final
+        try {
+            tmpIn = socket.getInputStream();
+            tmpOut = socket.getOutputStream();
+        } catch (IOException e) { }
+ 
+        mmInStream = tmpIn;
+        mmOutStream = tmpOut;
+    }
+ 
+    public void run() {
+        byte[] buffer = new byte[1024];  // buffer store for the stream
+        int bytes; // bytes returned from read()
+ 
+        // Keep listening to the InputStream until an exception occurs
+        while (true) {
+            try {
+                // Read from the InputStream
+                bytes = mmInStream.read(buffer);
+                // Send the obtained bytes to the UI activity
+                mHandler.obtainMessage(MESSAGE_READ, bytes, -1, buffer)
+                        .sendToTarget();
+            } catch (IOException e) {
+                break;
+            }
+        }
+    }
+ 
+    /* Call this from the main activity to send data to the remote device */
+    public void write(byte[] bytes) {
+        try {
+            mmOutStream.write(bytes);
+        } catch (IOException e) { }
+    }
+ 
+    /* Call this from the main activity to shutdown the connection */
+    public void cancel() {
+        try {
+            mmSocket.close();
+        } catch (IOException e) { }
+    }
+}
+</pre>
+<p>The constructor acquires the necessary streams and once executed, the thread
+will wait for data to come through the InputStream. When <code>read(byte[])</code> returns with
+bytes from the stream, the data is sent to the main activity using a member
+Handler from the parent class. Then it goes back and waits for more bytes from
+the stream.</p>
+<p>Sending outgoing data is as simple as calling the thread's
+<code>write()</code> method from the main activity and passing in the bytes to
+be sent. This method then simply calls <code>write(byte[])</code> to send the data to the remote device.</p>
+<p>The thread's <code>cancel()</code> method is important so that the connection
+can be
+terminated at any time by closing the <code>BluetoothSocket</code>.
+This should always be called when you're done using the Bluetooth
+connection.</p>
+<p>For a  demonstration of using the Bluetooth APIs, see the Bluetooth Chat sample app.</p>
+<h2>Working with Profiles</h2>
+<p>Starting in Android 3.0, the Bluetooth API includes support for working with
+Bluetooth profiles. A <em>Bluetooth profile</em> is a wireless interface
+specification for Bluetooth-based communication between devices. An example
+is the Hands-Free profile. For a mobile phone to connect to a wireless headset,
+both devices must support the Hands-Free profile. </p>
+<p>You can implement the interface <code>BluetoothProfile</code> to write
+your own classes to support a particular Bluetooth profile. The Android
+Bluetooth API provides implementations for the following Bluetooth
+profiles:</p>
+<ul> 
+
+  <li><strong>Headset</strong>. The Headset profile provides support for
+Bluetooth headsets to be used with mobile phones. Android provides the <code>BluetoothHeadset</code> class, which is a proxy for controlling the
+Bluetooth Headset Service via interprocess communication (IPC). This includes both  Bluetooth Headset and Hands-Free (v1.5) profiles. The
+<code>BluetoothHeadset</code> class includes support for AT commands.
+For more discussion of this topic, see Vendor-specific AT commands</li>
+
+  <li><strong>A2DP</strong>. The Advanced Audio Distribution Profile (A2DP)
+profile defines how high quality audio can be streamed from one device to
+another over a Bluetooth connection. Android provides the <code>BluetoothA2dp</code> class, which is a proxy for controlling
+the Bluetooth A2DP  Service via IPC.</li> 
+
+ <li><strong>Health Device</strong>. Android 4.0 (API level 14) introduces
+support for the Bluetooth Health Device Profile (HDP). This lets you create
+applications that use Bluetooth to communicate with health devices that support
+Bluetooth, such as heart-rate monitors, blood meters, thermometers, scales, and
+so on. For a list of supported devices and their corresponding device data
+specialization codes, refer to <strong>Bluetooth Assigned Numbers</strong> at www.bluetooth.org. Note that these values
+are also referenced in the ISO/IEEE 11073-20601 [7] specification as
+MDC_DEV_SPEC_PROFILE_* in the Nomenclature Codes Annex. For more discussion of
+HDP, see Health Device Profile.</li> 
+
+</ul>
+<p>Here are the basic steps for working with a profile:</p>
+<ol> 
+
+  <li>Get the default adapter, as described in
+    Setting Up
+      Bluetooth.</li> 
+
+  <li>Use <code>getProfileProxy()</code> to
+establish a connection to the profile proxy object associated with the profile.
+In the example below, the profile proxy object is an instance of <code>BluetoothHeadset</code>. </li> 
+
+  <li>Set up a  <code>BluetoothProfile.ServiceListener</code>. This
+listener notifies <code>BluetoothProfile</code> IPC clients when
+they have been connected to or disconnected from the service.</li> 
+
+  <li>In <code>onServiceConnected()</code>, get a handle
+to the profile proxy object.</li> 
+
+  <li>Once you have the profile proxy object, you can use it to monitor the
+state of the connection and perform other operations that are relevant to that
+profile.</li> 
+</ol>
+<p> For example, this code snippet shows how to connect to a <code>BluetoothHeadset</code> proxy object so that you can control the
+Headset profile:</p>
+<p>WHATSON? e79efcfe-d4f8-481d-a8da-e07ed5bf7dcb</p>
+<pre>BluetoothHeadset mBluetoothHeadset;
+ 
+// Get the default adapter
+BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+ 
+// Establish connection to the proxy.
+mBluetoothAdapter.getProfileProxy(context, mProfileListener, BluetoothProfile.HEADSET);
+ 
+private BluetoothProfile.ServiceListener mProfileListener = new BluetoothProfile.ServiceListener() {
+    public void onServiceConnected(int profile, BluetoothProfile proxy) {
+        if (profile == BluetoothProfile.HEADSET) {
+            mBluetoothHeadset = (BluetoothHeadset) proxy;
+        }
+    }
+    public void onServiceDisconnected(int profile) {
+        if (profile == BluetoothProfile.HEADSET) {
+            mBluetoothHeadset = null;
+        }
+    }
+};
+ 
+// ... call functions on mBluetoothHeadset
+ 
+// Close proxy connection after use.
+mBluetoothAdapter.closeProfileProxy(mBluetoothHeadset);
+</pre>
+<h3>Vendor-specific AT commands</h3>
+<p>Starting in Android 3.0, applications can register to receive system
+broadcasts of pre-defined vendor-specific AT commands sent by headsets (such as
+a Plantronics +XEVENT command). For example, an application could receive
+broadcasts that indicate a connected device's battery level and could notify the
+user or take other action as needed. Create a broadcast receiver for the <code>ACTION_VENDOR_SPECIFIC_HEADSET_EVENT</code> intent
+to handle vendor-specific AT commands for the headset.</p>
+<h3>Health Device Profile</h3>
+<p>Android 4.0 (API level 14) introduces support for the Bluetooth Health Device
+Profile (HDP). This lets you create applications that use Bluetooth to
+communicate with health devices that support Bluetooth, such as heart-rate
+monitors, blood meters, thermometers, and scales. The Bluetooth Health API
+includes the classes <code>BluetoothHealth</code>, <code>BluetoothHealthCallback</code>, and <code>BluetoothHealthAppConfiguration</code>, which are described in The Basics. </p>
+<p>In using the Bluetooth Health API, it's helpful to understand these key HDP concepts:</p>
+<h4>Creating an HDP Application</h4>
+<p>Here are the basic steps involved in creating an Android HDP application:</p>
+<ol>
+
+  <li>Get a reference to the <code>BluetoothHealth</code> proxy
+object. <p>Similar to regular headset and A2DP profile devices, you must call
+<code>getProfileProxy()</code>
+with a <code>BluetoothProfile.ServiceListener</code> and the <code>HEALTH</code> profile type to
+establish a connection with the profile proxy object.</p> </li>
+
+  <li>Create a <code>BluetoothHealthCallback</code> and register an
+application configuration 
+(<code>BluetoothHealthAppConfiguration</code>)
+that acts as a health
+sink.</li>
+
+  <li>Establish a connection to a health device.  Some devices will initiate the
+connection.  It is unnecessary to carry out this step for those devices.</li>
+
+  <li>When connected successfully to a health device, read/write to the health
+device using the file descriptor. <p>The received data needs to be interpreted
+using a health manager which implements the IEEE 11073-xxxxx
+specifications.</p></li>
+
+  <li>When done, close the health channel and unregister the application.  The
+channel also closes when there is extended inactivity.</li>
+</ol>
+<p>Similar to regular headset and A2DP profile devices, you must call
+<code>getProfileProxy()</code>
+with a <code>BluetoothProfile.ServiceListener</code> and the <code>HEALTH</code> profile type to
+establish a connection with the profile proxy object.</p>
+<p>The received data needs to be interpreted
+using a health manager which implements the IEEE 11073-xxxxx
+specifications.</p>
+<p>For a complete code sample that illustrates these steps, see Bluetooth HDP (Health
+Device Profile). </p>
+</body>
+</html>

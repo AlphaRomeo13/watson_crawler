@@ -1,0 +1,382 @@
+<h1 id="firstHeading" class="firstHeading" lang="en"><span dir="auto">Virtual method table</span></h1>
+<p>A <b>virtual method table</b>, <b>virtual function table</b>, <b>virtual call table</b>, <a href="/wiki/Dispatch_table" title="Dispatch table">dispatch table</a>, or <b>vtable</b>, is a mechanism used in a <a href="/wiki/Programming_language" title="Programming language">programming language</a> to support <a href="/wiki/Dynamic_dispatch" title="Dynamic dispatch">dynamic dispatch</a> (or <a href="/wiki/Run_time_(program_lifecycle_phase)" title="Run time (program lifecycle phase)">run-time</a> <a href="/wiki/Method_(computer_programming)" title="Method (computer programming)">method</a> <a href="/wiki/Name_binding" title="Name binding">binding</a>).</p>
+<p>Whenever a class defines a <a href="/wiki/Virtual_function" title="Virtual function">virtual function</a> (or method), most compilers add a hidden member variable to the class which points to a so-called virtual method table (VMT or Vtable). This VMT is basically an array of pointers to (virtual) functions. At runtime these pointers will be set to point to the right function, because at compile time, it is not yet known if the base function is to be called or a derived one implemented by a class that inherits from the base class.</p>
+<p>Suppose a program contains several <a href="/wiki/Class_(computer_programming)" title="Class (computer programming)">classes</a> in an <a href="/wiki/Inheritance_(object-oriented_programming)" title="Inheritance (object-oriented programming)">inheritance</a> hierarchy: a <a href="/wiki/Superclass_(computer_science)" title="Superclass (computer science)" class="mw-redirect">superclass</a>, <code>Cat</code>, and two <a href="/wiki/Subclass_(computer_science)" title="Subclass (computer science)" class="mw-redirect">subclasses</a>, <code>HouseCat</code> and <code>Lion</code>. Class <code>Cat</code> defines a <a href="/wiki/Virtual_function" title="Virtual function">virtual function</a> named <code>speak</code>, so its subclasses may provide an appropriate implementation (e.g. either <code>meow</code> or <code>roar</code>).</p>
+<p>When the program calls the <code>speak</code> method on a <code>Cat</code> pointer (which can point to a <code>Cat</code> class, or any subclass of <code>Cat</code>), the calling code must be able to determine which implementation to call, depending on the actual type of object that is pointed to. Because the type of object pointed to by the <code>Cat</code> pointer is not determined at <a href="/wiki/Compile_time" title="Compile time">compile-time</a>, the decision as to which branch to take cannot be decided at compile-time.</p>
+<p>There are a variety of different ways to implement such dynamic dispatch, but the vtable (virtual table) solution is especially common among <a href="/wiki/C%2B%2B" title="C++">C++</a> and related languages (such as <a href="/wiki/D_(programming_language)" title="D (programming language)">D</a> and <a href="/wiki/C_Sharp_(programming_language)" title="C Sharp (programming language)">C#</a>). Languages which separate the programmatic interface of objects from the implementation, like <a href="/wiki/Visual_Basic" title="Visual Basic">Visual Basic</a> and <a href="/wiki/Object_Pascal" title="Object Pascal">Delphi</a>, also tend to use the vtable approach, because it allows objects to use a different implementation simply by using a different set of method pointers.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Implementation"><span class="tocnumber">1</span> <span class="toctext">Implementation</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Example"><span class="tocnumber">2</span> <span class="toctext">Example</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#Multiple_inheritance_and_thunks"><span class="tocnumber">3</span> <span class="toctext">Multiple inheritance and thunks</span></a></li>
+<li class="toclevel-1 tocsection-4"><a href="#Invocation"><span class="tocnumber">4</span> <span class="toctext">Invocation</span></a></li>
+<li class="toclevel-1 tocsection-5"><a href="#Efficiency"><span class="tocnumber">5</span> <span class="toctext">Efficiency</span></a></li>
+<li class="toclevel-1 tocsection-6"><a href="#Comparison_with_alternatives"><span class="tocnumber">6</span> <span class="toctext">Comparison with alternatives</span></a></li>
+<li class="toclevel-1 tocsection-7"><a href="#See_also"><span class="tocnumber">7</span> <span class="toctext">See also</span></a></li>
+<li class="toclevel-1 tocsection-8"><a href="#Notes"><span class="tocnumber">8</span> <span class="toctext">Notes</span></a></li>
+<li class="toclevel-1 tocsection-9"><a href="#References"><span class="tocnumber">9</span> <span class="toctext">References</span></a></li>
+</ul>
+<p></p>
+<h2><span class="mw-headline" id="Implementation">Implementation</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Virtual_method_table&amp;action=edit&amp;section=1" title="Edit section: Implementation">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>An object's dispatch table will contain the <a href="/wiki/Memory_address" title="Memory address">addresses</a> of the object's dynamically bound methods. Method calls are performed by fetching the method's address from the object's dispatch table. The dispatch table is the same for all objects belonging to the same class, and is therefore typically shared between them. Objects belonging to type-compatible classes (for example siblings in an inheritance hierarchy) will have dispatch tables with the same layout: the address of a given method will appear at the same offset for all type-compatible classes. Thus, fetching the method's address from a given dispatch table offset will get the method corresponding to the object's actual class.<sup id="cite_ref-1" class="reference"><a href="#cite_note-1"><span>[</span>1<span>]</span></a></sup></p>
+<p>The <a href="/wiki/C%2B%2B" title="C++">C++</a> standards do not mandate exactly how dynamic dispatch must be implemented, but compilers generally use minor variations on the same basic model.</p>
+<p>Typically, the compiler creates a separate vtable for each class. When an object is created, a pointer to this vtable, called the <b>virtual table pointer</b>, <b>vpointer</b> or <b>VPTR</b>, is added as a hidden member of this object (becoming its first member unless it's made the last<sup id="cite_ref-2" class="reference"><a href="#cite_note-2"><span>[</span>2<span>]</span></a></sup>). The compiler also generates "hidden" code in the <a href="/wiki/Constructor_(object-oriented_programming)" title="Constructor (object-oriented programming)">constructor</a> of each class to initialize the vpointers of its objects to the address of the corresponding vtable. Note that the location of the vpointer in the object instance is not standard among all compilers, and relying on the position may result in unportable code. For example, <a href="/wiki/G%2B%2B" title="G++" class="mw-redirect">g++</a> previously placed the vpointer at the end of the object.<sup id="cite_ref-3" class="reference"><a href="#cite_note-3"><span>[</span>3<span>]</span></a></sup></p>
+<h2><span class="mw-headline" id="Example">Example</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Virtual_method_table&amp;action=edit&amp;section=2" title="Edit section: Example">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Consider the following class declarations in <a href="/wiki/C%2B%2B_syntax" title="C++ syntax" class="mw-redirect">C++ syntax</a>:</p>
+<p>WHATSON? f38aa324-2a1f-4a5f-9026-59b208131c3b</p>
+<pre class="de1">
+<span class="kw2">class</span> B1 <span class="br0">{</span>
+<span class="kw2">public</span><span class="sy4">:</span>
+  <span class="kw4">void</span> f0<span class="br0">(</span><span class="br0">)</span> <span class="br0">{</span><span class="br0">}</span>
+  <span class="kw2">virtual</span> <span class="kw4">void</span> f1<span class="br0">(</span><span class="br0">)</span> <span class="br0">{</span><span class="br0">}</span>
+  <span class="kw4">int</span> int_in_b1<span class="sy4">;</span>
+<span class="br0">}</span><span class="sy4">;</span>
+ 
+<span class="kw2">class</span> B2 <span class="br0">{</span>
+<span class="kw2">public</span><span class="sy4">:</span>
+  <span class="kw2">virtual</span> <span class="kw4">void</span> f2<span class="br0">(</span><span class="br0">)</span> <span class="br0">{</span><span class="br0">}</span>
+  <span class="kw4">int</span> int_in_b2<span class="sy4">;</span>
+<span class="br0">}</span><span class="sy4">;</span>
+</pre>
+<p>used to derive the following class:</p>
+<p>WHATSON? 8c543a86-88f3-49b4-86bf-a06136d03b70</p>
+<pre class="de1">
+<span class="kw2">class</span> D <span class="sy4">:</span> <span class="kw2">public</span> B1, <span class="kw2">public</span> B2 <span class="br0">{</span>
+<span class="kw2">public</span><span class="sy4">:</span>
+  <span class="kw4">void</span> d<span class="br0">(</span><span class="br0">)</span> <span class="br0">{</span><span class="br0">}</span>
+  <span class="kw4">void</span> f2<span class="br0">(</span><span class="br0">)</span> <span class="br0">{</span><span class="br0">}</span>  <span class="co1">// override B2::f2()</span>
+  <span class="kw4">int</span> int_in_d<span class="sy4">;</span>
+<span class="br0">}</span><span class="sy4">;</span>
+</pre>
+<p>and the following piece of C++ code:</p>
+<p>WHATSON? bbd28ae9-8987-4f93-98fb-f2712e5fd500</p>
+<pre class="de1">
+B2 <span class="sy2">*</span>b2 <span class="sy1">=</span> <span class="kw3">new</span> B2<span class="br0">(</span><span class="br0">)</span><span class="sy4">;</span>
+D  <span class="sy2">*</span>d  <span class="sy1">=</span> <span class="kw3">new</span> D<span class="br0">(</span><span class="br0">)</span><span class="sy4">;</span>
+</pre>
+<p>g++ 3.4.6 from <a href="/wiki/GNU_Compiler_Collection" title="GNU Compiler Collection">GCC</a> produces the following 32-bit memory layout for the object <code>b2</code>:<sup id="cite_ref-4" class="reference"><a href="#cite_note-4"><span>[</span>nb 1<span>]</span></a></sup></p>
+<p>WHATSON? 8e84e860-cc3c-4f17-b48f-f7f1efd3aef9</p>
+<pre>
+b2:
+  +0: pointer to virtual method table of B2
+  +4: value of int_in_b2
+
+virtual method table of B2:
+  +0: B2::f2()   
+</pre>
+<p>and the following memory layout for the object <code>d</code>:</p>
+<p>WHATSON? 81714a64-7b36-4277-969e-db7f63921920</p>
+<pre>
+d:
+  +0: pointer to virtual method table of D (for B1)
+  +4: value of int_in_b1
+  +8: pointer to virtual method table of D (for B2)
+ +12: value of int_in_b2
+ +16: value of int_in_d
+
+Total size: 20 Bytes.
+
+virtual method table of D (for B1):
+  +0: B1::f1()  // B1::f1() is not overridden
+
+virtual method table of D (for B2):
+  +8: D::f2()   // B2::f2() is overridden by D::f2()
+</pre>
+<p>Note that those functions not carrying the keyword <code>virtual</code> in their declaration (such as <code>f0()</code> and <code>d()</code>) do not generally appear in the vtable. There are exceptions for special cases as posed by the <a href="/wiki/Default_constructor" title="Default constructor">default constructor</a>.</p>
+<p>Overriding of the method <code>f2()</code> in class <code>D</code> is implemented by duplicating the virtual method table of <code>B2</code> and replacing the pointer to <code>B2::f2()</code> with a pointer to <code>D::f2()</code>.</p>
+<h2><span class="mw-headline" id="Multiple_inheritance_and_thunks">Multiple inheritance and thunks</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Virtual_method_table&amp;action=edit&amp;section=3" title="Edit section: Multiple inheritance and thunks">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>The g++ compiler implements the <a href="/wiki/Multiple_inheritance" title="Multiple inheritance">multiple inheritance</a> of the classes <code>B1</code> and <code>B2</code> in class <code>D</code> using two virtual method tables, one for each base class. (There are other ways to implement multiple inheritance, but this is the most common.) This leads to the necessity for "pointer fixups", also called <a href="/wiki/Thunk_(programming)" title="Thunk (programming)" class="mw-redirect">thunks</a>, when <a href="/wiki/Type_conversion" title="Type conversion">casting</a>.</p>
+<p>Consider the following C++ code:</p>
+<p>WHATSON? 4cdd42f1-217d-425d-a2ae-c6a0039f9581</p>
+<pre class="de1">
+D  <span class="sy2">*</span>d  <span class="sy1">=</span> <span class="kw3">new</span> D<span class="br0">(</span><span class="br0">)</span><span class="sy4">;</span>
+B1 <span class="sy2">*</span>b1 <span class="sy1">=</span> <span class="kw2">static_cast</span><span class="sy1">&lt;</span>B1<span class="sy2">*</span><span class="sy1">&gt;</span><span class="br0">(</span>d<span class="br0">)</span><span class="sy4">;</span>
+B2 <span class="sy2">*</span>b2 <span class="sy1">=</span> <span class="kw2">static_cast</span><span class="sy1">&lt;</span>B2<span class="sy2">*</span><span class="sy1">&gt;</span><span class="br0">(</span>d<span class="br0">)</span><span class="sy4">;</span>
+</pre>
+<p>While <code>d</code> and <code>b1</code> will point to the same memory location after execution of this code, <code>b2</code> will point to the location <code>d+8</code> (eight bytes beyond the memory location of <code>d</code>). Thus, <code>b2</code> points to the region within <code>d</code> which "looks like" an instance of <code>B2</code>, i.e., has the same memory layout as an instance of <code>B2</code>.</p>
+<h2><span class="mw-headline" id="Invocation">Invocation</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Virtual_method_table&amp;action=edit&amp;section=4" title="Edit section: Invocation">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>A call to <code>d-&gt;f1()</code> is handled by dereferencing <code>d</code>'s <code>D::B1</code> vpointer, looking up the <code>f1</code> entry in the vtable, and then dereferencing that pointer to call the code.</p>
+<p>In the case of single inheritance (or in a language with only single inheritance), if the vpointer is always the first element in <code>d</code> (as it is with many compilers), this reduces to the following pseudo-C++:</p>
+<p>WHATSON? e02766f0-f786-46fd-be0b-7b02e6bd44a8</p>
+<pre class="de1">
+<span class="br0">(</span><span class="sy2">*</span><span class="br0">(</span><span class="br0">(</span><span class="sy2">*</span>d<span class="br0">)</span><span class="br0">[</span><span class="nu0">0</span><span class="br0">]</span><span class="br0">)</span><span class="br0">)</span><span class="br0">(</span>d<span class="br0">)</span>
+</pre>
+<p>Where *d refers to the virtual method table of D and [0] refers to the first method in the vtable. The parameter d becomes the <a href="/wiki/This_(computer_science)" title="This (computer science)" class="mw-redirect">"this" pointer</a> to the object.</p>
+<h1 id="firstHeading" class="firstHeading" lang="en"><span dir="auto">Virtual method table</span></h1>
+<p>A <b>virtual method table</b>, <b>virtual function table</b>, <b>virtual call table</b>, <a href="/wiki/Dispatch_table" title="Dispatch table">dispatch table</a>, or <b>vtable</b>, is a mechanism used in a <a href="/wiki/Programming_language" title="Programming language">programming language</a> to support <a href="/wiki/Dynamic_dispatch" title="Dynamic dispatch">dynamic dispatch</a> (or <a href="/wiki/Run_time_(program_lifecycle_phase)" title="Run time (program lifecycle phase)">run-time</a> <a href="/wiki/Method_(computer_programming)" title="Method (computer programming)">method</a> <a href="/wiki/Name_binding" title="Name binding">binding</a>).</p>
+<p>Whenever a class defines a <a href="/wiki/Virtual_function" title="Virtual function">virtual function</a> (or method), most compilers add a hidden member variable to the class which points to a so-called virtual method table (VMT or Vtable). This VMT is basically an array of pointers to (virtual) functions. At runtime these pointers will be set to point to the right function, because at compile time, it is not yet known if the base function is to be called or a derived one implemented by a class that inherits from the base class.</p>
+<p>In the more general case, calling <code>B1::f1()</code> or <code>D::f2()</code> is more complicated:</p>
+<p>WHATSON? e3943654-fd34-4b7d-b6b5-96ede29b177a</p>
+<pre class="de1">
+<span class="br0">(</span><span class="sy2">*</span><span class="br0">(</span><span class="sy2">*</span><span class="br0">(</span>d<span class="br0">[</span><span class="sy2">+</span><span class="nu0">0</span><span class="br0">]</span><span class="coMULTI">/*pointer to virtual method table of D (for B1)*/</span><span class="br0">)</span><span class="br0">[</span><span class="nu0">0</span><span class="br0">]</span><span class="br0">)</span><span class="br0">)</span><span class="br0">(</span>d<span class="br0">)</span>   <span class="coMULTI">/* Call d-&gt;f1() */</span>
+<span class="br0">(</span><span class="sy2">*</span><span class="br0">(</span><span class="sy2">*</span><span class="br0">(</span>d<span class="br0">[</span><span class="sy2">+</span><span class="nu0">8</span><span class="br0">]</span><span class="coMULTI">/*pointer to virtual method table of D (for B2)*/</span><span class="br0">)</span><span class="br0">[</span><span class="nu0">0</span><span class="br0">]</span><span class="br0">)</span><span class="br0">)</span><span class="br0">(</span>d<span class="sy2">+</span><span class="nu0">8</span><span class="br0">)</span> <span class="coMULTI">/* Call d-&gt;f2() */</span>
+</pre>
+<p>The call to d-&gt;f1() passes a B1 pointer as a parameter. The call to d-&gt;f2() passes a B2 pointer as a parameter. This second call requires a fixup to produce the correct pointer. It is impossible to call B2::f2 since it has been overridden in D's implementation. The location of B2::f2 is not in the vtable for D.</p>
+<p>By comparison, a call to <code>d-&gt;f0()</code> is much simpler:</p>
+<p>WHATSON? 0a200aee-491f-40ce-a1c6-cbc2199f24e7</p>
+<pre class="de1">
+<span class="br0">(</span><span class="sy2">*</span>B1<span class="sy4">::</span><span class="me2">f0</span><span class="br0">)</span><span class="br0">(</span>d<span class="br0">)</span>
+</pre>
+<h2><span class="mw-headline" id="Efficiency">Efficiency</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Virtual_method_table&amp;action=edit&amp;section=5" title="Edit section: Efficiency">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>A virtual call requires at least an extra indexed dereference, and sometimes a "fixup" addition, compared to a non-virtual call, which is simply a jump to a compiled-in pointer. Therefore, calling virtual functions is inherently slower than calling non-virtual functions. An experiment done in 1996 indicates that approximately 6–13% of execution time is spent simply dispatching to the correct function, though the overhead can be as high as 50%.<sup id="cite_ref-5" class="reference"><a href="#cite_note-5"><span>[</span>4<span>]</span></a></sup> The cost of virtual functions may not be so high on modern <abbr title="Central Processing Unit">CPU</abbr> architectures due to much larger caches and better <a href="/wiki/Branch_predictor" title="Branch predictor">branch prediction</a>.</p>
+<p>Furthermore, in environments where <a href="/wiki/Just-in-time_compilation" title="Just-in-time compilation">JIT compilation</a> is not in use, virtual function calls usually cannot be <a href="/wiki/Inline_expansion" title="Inline expansion">inlined</a>. In certain cases it may be possible for the compiler to perform a process known as <i>devirtualization</i> in which, for instance, the lookup and indirect call are replaced with a conditional execution of each inlined body, but such optimizations are not common.</p>
+<p>To avoid this overhead, compilers usually avoid using vtables whenever the call can be resolved at <a href="/wiki/Compile_time" title="Compile time">compile time</a>.</p>
+<p>Thus, the call to <code>f1</code> above may not require a vtable lookup because the compiler may be able to tell that <code>d</code> can only hold a <code>D</code> at this point, and <code>D</code> does not override <code>f1</code>. Or the compiler (or optimizer) may be able to detect that there are no subclasses of <code>B1</code> anywhere in the program that override <code>f1</code>. The call to <code>B1::f1</code> or <code>B2::f2</code> will probably not require a vtable lookup because the implementation is specified explicitly (although it does still require the 'this'-pointer fixup).</p>
+<h2><span class="mw-headline" id="Comparison_with_alternatives">Comparison with alternatives</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Virtual_method_table&amp;action=edit&amp;section=6" title="Edit section: Comparison with alternatives">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>The vtable is generally a good performance trade-off to achieve dynamic dispatch, but there are alternatives, such as <a href="/w/index.php?title=Binary_tree_dispatch&amp;action=edit&amp;redlink=1" class="new" title="Binary tree dispatch (page does not exist)">binary tree dispatch</a>, with higher performance but different costs.<sup id="cite_ref-6" class="reference"><a href="#cite_note-6"><span>[</span>5<span>]</span></a></sup></p>
+<p>However, vtables only allow for <a href="/wiki/Single_dispatch" title="Single dispatch" class="mw-redirect">single dispatch</a> on the special "this" parameter, in contrast to <a href="/wiki/Multiple_dispatch" title="Multiple dispatch">multiple dispatch</a> (as in <a href="/wiki/Common_Lisp_Object_System" title="Common Lisp Object System">CLOS</a> or <a href="/wiki/Dylan_(programming_language)" title="Dylan (programming language)">Dylan</a>), where the types of all parameters can be taken into account in dispatching.</p>
+<p>Suppose a program contains several <a href="/wiki/Class_(computer_programming)" title="Class (computer programming)">classes</a> in an <a href="/wiki/Inheritance_(object-oriented_programming)" title="Inheritance (object-oriented programming)">inheritance</a> hierarchy: a <a href="/wiki/Superclass_(computer_science)" title="Superclass (computer science)" class="mw-redirect">superclass</a>, <code>Cat</code>, and two <a href="/wiki/Subclass_(computer_science)" title="Subclass (computer science)" class="mw-redirect">subclasses</a>, <code>HouseCat</code> and <code>Lion</code>. Class <code>Cat</code> defines a <a href="/wiki/Virtual_function" title="Virtual function">virtual function</a> named <code>speak</code>, so its subclasses may provide an appropriate implementation (e.g. either <code>meow</code> or <code>roar</code>).</p>
+<p>When the program calls the <code>speak</code> method on a <code>Cat</code> pointer (which can point to a <code>Cat</code> class, or any subclass of <code>Cat</code>), the calling code must be able to determine which implementation to call, depending on the actual type of object that is pointed to. Because the type of object pointed to by the <code>Cat</code> pointer is not determined at <a href="/wiki/Compile_time" title="Compile time">compile-time</a>, the decision as to which branch to take cannot be decided at compile-time.</p>
+<p>There are a variety of different ways to implement such dynamic dispatch, but the vtable (virtual table) solution is especially common among <a href="/wiki/C%2B%2B" title="C++">C++</a> and related languages (such as <a href="/wiki/D_(programming_language)" title="D (programming language)">D</a> and <a href="/wiki/C_Sharp_(programming_language)" title="C Sharp (programming language)">C#</a>). Languages which separate the programmatic interface of objects from the implementation, like <a href="/wiki/Visual_Basic" title="Visual Basic">Visual Basic</a> and <a href="/wiki/Object_Pascal" title="Object Pascal">Delphi</a>, also tend to use the vtable approach, because it allows objects to use a different implementation simply by using a different set of method pointers.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Implementation"><span class="tocnumber">1</span> <span class="toctext">Implementation</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Example"><span class="tocnumber">2</span> <span class="toctext">Example</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#Multiple_inheritance_and_thunks"><span class="tocnumber">3</span> <span class="toctext">Multiple inheritance and thunks</span></a></li>
+<li class="toclevel-1 tocsection-4"><a href="#Invocation"><span class="tocnumber">4</span> <span class="toctext">Invocation</span></a></li>
+<li class="toclevel-1 tocsection-5"><a href="#Efficiency"><span class="tocnumber">5</span> <span class="toctext">Efficiency</span></a></li>
+<li class="toclevel-1 tocsection-6"><a href="#Comparison_with_alternatives"><span class="tocnumber">6</span> <span class="toctext">Comparison with alternatives</span></a></li>
+<li class="toclevel-1 tocsection-7"><a href="#See_also"><span class="tocnumber">7</span> <span class="toctext">See also</span></a></li>
+<li class="toclevel-1 tocsection-8"><a href="#Notes"><span class="tocnumber">8</span> <span class="toctext">Notes</span></a></li>
+<li class="toclevel-1 tocsection-9"><a href="#References"><span class="tocnumber">9</span> <span class="toctext">References</span></a></li>
+</ul>
+<p></p>
+<h2><span class="mw-headline" id="Implementation">Implementation</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Virtual_method_table&amp;action=edit&amp;section=1" title="Edit section: Implementation">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>An object's dispatch table will contain the <a href="/wiki/Memory_address" title="Memory address">addresses</a> of the object's dynamically bound methods. Method calls are performed by fetching the method's address from the object's dispatch table. The dispatch table is the same for all objects belonging to the same class, and is therefore typically shared between them. Objects belonging to type-compatible classes (for example siblings in an inheritance hierarchy) will have dispatch tables with the same layout: the address of a given method will appear at the same offset for all type-compatible classes. Thus, fetching the method's address from a given dispatch table offset will get the method corresponding to the object's actual class.<sup id="cite_ref-1" class="reference"><a href="#cite_note-1"><span>[</span>1<span>]</span></a></sup></p>
+<p>Vtables also only work if dispatching is constrained to a known set of methods, so they can be placed in a simple array built at compile time, in contrast to <a href="/wiki/Duck_typing" title="Duck typing">duck typing</a> languages (such as <a href="/wiki/Smalltalk" title="Smalltalk">Smalltalk</a>, <a href="/wiki/Python_(programming_language)" title="Python (programming language)">Python</a> or <a href="/wiki/JavaScript" title="JavaScript">JavaScript</a>).</p>
+<p>Languages that provide either or both of these features often dispatch by looking up a string in a <a href="/wiki/Hash_table" title="Hash table">hash table</a>, or some other equivalent method. There are a variety of techniques to make this faster (e.g., <a href="/wiki/String_interning" title="String interning">interning</a>/tokenizing method names, caching lookups, <a href="/wiki/Just-in-time_compilation" title="Just-in-time compilation">just-in-time compilation</a>).</p>
+<h2><span class="mw-headline" id="See_also">See also</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Virtual_method_table&amp;action=edit&amp;section=7" title="Edit section: See also">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul>
+<li><a href="/wiki/Virtual_function" title="Virtual function">Virtual function</a></li>
+<li><a href="/wiki/Virtual_inheritance" title="Virtual inheritance">Virtual inheritance</a></li>
+<li><a href="/wiki/Branch_table" title="Branch table">Branch table</a></li>
+</ul>
+<h2><span class="mw-headline" id="Notes">Notes</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Virtual_method_table&amp;action=edit&amp;section=8" title="Edit section: Notes">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ol class="references">
+<li id="cite_note-4"><span class="mw-cite-backlink"><b><a href="#cite_ref-4">^</a></b></span> <span class="reference-text">G++'s <code>-fdump-class-hierarchy</code> argument can be used to dump virtual method tables for manual inspection. For AIX VisualAge XlC compiler, use <code>-qdump_class_hierarchy</code> to dump class hierarchy and virtual function table layout.</span></li>
+</ol>
+<h2><span class="mw-headline" id="References">References</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Virtual_method_table&amp;action=edit&amp;section=9" title="Edit section: References">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul>
+<li>Margaret A. Ellis and <a href="/wiki/Bjarne_Stroustrup" title="Bjarne Stroustrup">Bjarne Stroustrup</a> (1990) The Annotated C++ Reference Manual. Reading, MA: Addison-Wesley. (<a href="/wiki/Special:BookSources/0201514591" class="internal mw-magiclink-isbn">ISBN 0-201-51459-1</a>)</li>
+</ul>
+<ol class="references">
+<li id="cite_note-1"><span class="mw-cite-backlink"><b><a href="#cite_ref-1">^</a></b></span> <span class="reference-text">Ellis &amp; Stroustrup 1990, pp. 227–232</span></li>
+<li id="cite_note-2"><span class="mw-cite-backlink"><b><a href="#cite_ref-2">^</a></b></span> <span class="reference-text"><a rel="nofollow" class="external text" href="http://www.informit.com/guides/content.aspx?g=cplusplus&amp;seqNum=196">Heading "Multiple Inheritance"</a></span></li>
+<li id="cite_note-3"><span class="mw-cite-backlink"><b><a href="#cite_ref-3">^</a></b></span> <span class="reference-text"><a rel="nofollow" class="external text" href="https://web.archive.org/web/20110725153606/http://www.codesourcery.com/public/cxx-abi/cxx-closed.html">C++ ABI Closed Issues</a> at the <a href="/wiki/Wayback_Machine" title="Wayback Machine">Wayback Machine</a> (archived July 25, 2011)</span></li>
+<li id="cite_note-5"><span class="mw-cite-backlink"><b><a href="#cite_ref-5">^</a></b></span> <span class="reference-text">Driesen, Karel and Hölzle, Urs, <a rel="nofollow" class="external text" href="http://www.cs.ucsb.edu/~urs/oocsb/papers/oopsla96.pdf">"The Direct Cost of Virtual Function Calls in C++"</a>, OOPSLA 1996</span></li>
+<li id="cite_note-6"><span class="mw-cite-backlink"><b><a href="#cite_ref-6">^</a></b></span> <span class="reference-text">Zendra, Olivier and Driesen, Karel, <a rel="nofollow" class="external text" href="http://www.usenix.org/event/jvm02/full_papers/zendra/zendra_html/index.html">"Stress-testing Control Structures for Dynamic Dispatch in Java"</a>, Pp. 105–118, Proceedings of the USENIX 2nd Java Virtual Machine Research and Technology Symposium, 2002 (JVM '02)</span></li>
+</ol>
+<ul>
+<li class="nv-view"><a href="/wiki/Template:Application_binary_interface" title="Template:Application binary interface"><span title="View this template" style=";;background:none transparent;border:none;;">v</span></a></li>
+<li class="nv-talk"><a href="/w/index.php?title=Template_talk:Application_binary_interface&amp;action=edit&amp;redlink=1" class="new" title="Template talk:Application binary interface (page does not exist)"><span title="Discuss this template" style=";;background:none transparent;border:none;;">t</span></a></li>
+<li class="nv-edit"><a class="external text" href="//en.wikipedia.org/w/index.php?title=Template:Application_binary_interface&amp;action=edit"><span title="Edit this template" style=";;background:none transparent;border:none;;">e</span></a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Data_structure_alignment" title="Data structure alignment">Alignment</a></li>
+<li><a href="/wiki/Calling_convention" title="Calling convention">Calling convention</a></li>
+<li><a href="/wiki/Call_stack" title="Call stack">Call stack</a></li>
+<li><a href="/wiki/Library_(computing)" title="Library (computing)">Library</a>
+<ul>
+<li><a href="/wiki/Static_library" title="Static library">static</a></li>
+</ul>
+</li>
+<li><a href="/wiki/Machine_code" title="Machine code">Machine code</a></li>
+<li><a href="/wiki/Memory_segmentation" title="Memory segmentation">Memory segmentation</a></li>
+<li><a href="/wiki/Name_mangling" title="Name mangling">Name mangling</a></li>
+<li><a href="/wiki/Object_code" title="Object code">Object code</a></li>
+<li><a href="/wiki/Opaque_pointer" title="Opaque pointer">Opaque pointer</a></li>
+<li><a href="/wiki/Position-independent_code" title="Position-independent code">Position-independent code</a></li>
+<li><a href="/wiki/Register_allocation" title="Register allocation">Register allocation</a></li>
+<li><a href="/wiki/Relocation_(computing)" title="Relocation (computing)">Relocation</a></li>
+<li><a href="/wiki/System_call" title="System call">System call</a></li>
+<li><strong class="selflink">Virtual method table</strong></li>
+</ul>
+<ul>
+<li><a href="/wiki/Static_library" title="Static library">static</a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Binary_code_compatibility" title="Binary code compatibility">Binary code compatibility</a></li>
+<li><a href="/wiki/Foreign_function_interface" title="Foreign function interface">Foreign function interface</a></li>
+<li><a href="/wiki/Language_binding" title="Language binding">Language binding</a></li>
+<li><a href="/wiki/Linker_(computing)" title="Linker (computing)">Linker</a>
+<ul>
+<li><a href="/wiki/Dynamic_linker" title="Dynamic linker">dynamic</a></li>
+</ul>
+</li>
+<li><a href="/wiki/Loader_(computing)" title="Loader (computing)">Loader</a></li>
+<li><a href="/wiki/Year_2038_problem" title="Year 2038 problem">Year 2038 problem</a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Dynamic_linker" title="Dynamic linker">dynamic</a></li>
+</ul>
+<p>The <a href="/wiki/C%2B%2B" title="C++">C++</a> standards do not mandate exactly how dynamic dispatch must be implemented, but compilers generally use minor variations on the same basic model.</p>
+<p>Typically, the compiler creates a separate vtable for each class. When an object is created, a pointer to this vtable, called the <b>virtual table pointer</b>, <b>vpointer</b> or <b>VPTR</b>, is added as a hidden member of this object (becoming its first member unless it's made the last<sup id="cite_ref-2" class="reference"><a href="#cite_note-2"><span>[</span>2<span>]</span></a></sup>). The compiler also generates "hidden" code in the <a href="/wiki/Constructor_(object-oriented_programming)" title="Constructor (object-oriented programming)">constructor</a> of each class to initialize the vpointers of its objects to the address of the corresponding vtable. Note that the location of the vpointer in the object instance is not standard among all compilers, and relying on the position may result in unportable code. For example, <a href="/wiki/G%2B%2B" title="G++" class="mw-redirect">g++</a> previously placed the vpointer at the end of the object.<sup id="cite_ref-3" class="reference"><a href="#cite_note-3"><span>[</span>3<span>]</span></a></sup></p>
+<h2><span class="mw-headline" id="Example">Example</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Virtual_method_table&amp;action=edit&amp;section=2" title="Edit section: Example">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Consider the following class declarations in <a href="/wiki/C%2B%2B_syntax" title="C++ syntax" class="mw-redirect">C++ syntax</a>:</p>
+<p>WHATSON? ee0020c3-e82c-47d0-803e-c9bc153f6700</p>
+<pre class="de1">
+<span class="kw2">class</span> B1 <span class="br0">{</span>
+<span class="kw2">public</span><span class="sy4">:</span>
+  <span class="kw4">void</span> f0<span class="br0">(</span><span class="br0">)</span> <span class="br0">{</span><span class="br0">}</span>
+  <span class="kw2">virtual</span> <span class="kw4">void</span> f1<span class="br0">(</span><span class="br0">)</span> <span class="br0">{</span><span class="br0">}</span>
+  <span class="kw4">int</span> int_in_b1<span class="sy4">;</span>
+<span class="br0">}</span><span class="sy4">;</span>
+ 
+<span class="kw2">class</span> B2 <span class="br0">{</span>
+<span class="kw2">public</span><span class="sy4">:</span>
+  <span class="kw2">virtual</span> <span class="kw4">void</span> f2<span class="br0">(</span><span class="br0">)</span> <span class="br0">{</span><span class="br0">}</span>
+  <span class="kw4">int</span> int_in_b2<span class="sy4">;</span>
+<span class="br0">}</span><span class="sy4">;</span>
+</pre>
+<p>used to derive the following class:</p>
+<p>WHATSON? 3f1293fc-8edb-4f8a-a42c-6aa62ae12346</p>
+<pre class="de1">
+<span class="kw2">class</span> D <span class="sy4">:</span> <span class="kw2">public</span> B1, <span class="kw2">public</span> B2 <span class="br0">{</span>
+<span class="kw2">public</span><span class="sy4">:</span>
+  <span class="kw4">void</span> d<span class="br0">(</span><span class="br0">)</span> <span class="br0">{</span><span class="br0">}</span>
+  <span class="kw4">void</span> f2<span class="br0">(</span><span class="br0">)</span> <span class="br0">{</span><span class="br0">}</span>  <span class="co1">// override B2::f2()</span>
+  <span class="kw4">int</span> int_in_d<span class="sy4">;</span>
+<span class="br0">}</span><span class="sy4">;</span>
+</pre>
+<p>and the following piece of C++ code:</p>
+<p>WHATSON? 8b807a10-a62e-48a7-867b-cacab6f2f9c5</p>
+<pre class="de1">
+B2 <span class="sy2">*</span>b2 <span class="sy1">=</span> <span class="kw3">new</span> B2<span class="br0">(</span><span class="br0">)</span><span class="sy4">;</span>
+D  <span class="sy2">*</span>d  <span class="sy1">=</span> <span class="kw3">new</span> D<span class="br0">(</span><span class="br0">)</span><span class="sy4">;</span>
+</pre>
+<p>g++ 3.4.6 from <a href="/wiki/GNU_Compiler_Collection" title="GNU Compiler Collection">GCC</a> produces the following 32-bit memory layout for the object <code>b2</code>:<sup id="cite_ref-4" class="reference"><a href="#cite_note-4"><span>[</span>nb 1<span>]</span></a></sup></p>
+<p>WHATSON? 22a78a66-e11c-49ce-aba9-6a15e0671532</p>
+<pre>
+b2:
+  +0: pointer to virtual method table of B2
+  +4: value of int_in_b2
+
+virtual method table of B2:
+  +0: B2::f2()   
+</pre>
+<p>and the following memory layout for the object <code>d</code>:</p>
+<p>WHATSON? ad51b147-0f89-460a-a6b6-86b97fe0ee11</p>
+<pre>
+d:
+  +0: pointer to virtual method table of D (for B1)
+  +4: value of int_in_b1
+  +8: pointer to virtual method table of D (for B2)
+ +12: value of int_in_b2
+ +16: value of int_in_d
+
+Total size: 20 Bytes.
+
+virtual method table of D (for B1):
+  +0: B1::f1()  // B1::f1() is not overridden
+
+virtual method table of D (for B2):
+  +8: D::f2()   // B2::f2() is overridden by D::f2()
+</pre>
+<p>Note that those functions not carrying the keyword <code>virtual</code> in their declaration (such as <code>f0()</code> and <code>d()</code>) do not generally appear in the vtable. There are exceptions for special cases as posed by the <a href="/wiki/Default_constructor" title="Default constructor">default constructor</a>.</p>
+<p>Overriding of the method <code>f2()</code> in class <code>D</code> is implemented by duplicating the virtual method table of <code>B2</code> and replacing the pointer to <code>B2::f2()</code> with a pointer to <code>D::f2()</code>.</p>
+<h2><span class="mw-headline" id="Multiple_inheritance_and_thunks">Multiple inheritance and thunks</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Virtual_method_table&amp;action=edit&amp;section=3" title="Edit section: Multiple inheritance and thunks">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>The g++ compiler implements the <a href="/wiki/Multiple_inheritance" title="Multiple inheritance">multiple inheritance</a> of the classes <code>B1</code> and <code>B2</code> in class <code>D</code> using two virtual method tables, one for each base class. (There are other ways to implement multiple inheritance, but this is the most common.) This leads to the necessity for "pointer fixups", also called <a href="/wiki/Thunk_(programming)" title="Thunk (programming)" class="mw-redirect">thunks</a>, when <a href="/wiki/Type_conversion" title="Type conversion">casting</a>.</p>
+<p>Consider the following C++ code:</p>
+<p>WHATSON? 8f2de90b-3aa2-450c-850f-9ddba86f9a6a</p>
+<pre class="de1">
+D  <span class="sy2">*</span>d  <span class="sy1">=</span> <span class="kw3">new</span> D<span class="br0">(</span><span class="br0">)</span><span class="sy4">;</span>
+B1 <span class="sy2">*</span>b1 <span class="sy1">=</span> <span class="kw2">static_cast</span><span class="sy1">&lt;</span>B1<span class="sy2">*</span><span class="sy1">&gt;</span><span class="br0">(</span>d<span class="br0">)</span><span class="sy4">;</span>
+B2 <span class="sy2">*</span>b2 <span class="sy1">=</span> <span class="kw2">static_cast</span><span class="sy1">&lt;</span>B2<span class="sy2">*</span><span class="sy1">&gt;</span><span class="br0">(</span>d<span class="br0">)</span><span class="sy4">;</span>
+</pre>
+<p>While <code>d</code> and <code>b1</code> will point to the same memory location after execution of this code, <code>b2</code> will point to the location <code>d+8</code> (eight bytes beyond the memory location of <code>d</code>). Thus, <code>b2</code> points to the region within <code>d</code> which "looks like" an instance of <code>B2</code>, i.e., has the same memory layout as an instance of <code>B2</code>.</p>
+<h2><span class="mw-headline" id="Invocation">Invocation</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Virtual_method_table&amp;action=edit&amp;section=4" title="Edit section: Invocation">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>A call to <code>d-&gt;f1()</code> is handled by dereferencing <code>d</code>'s <code>D::B1</code> vpointer, looking up the <code>f1</code> entry in the vtable, and then dereferencing that pointer to call the code.</p>
+<p>In the case of single inheritance (or in a language with only single inheritance), if the vpointer is always the first element in <code>d</code> (as it is with many compilers), this reduces to the following pseudo-C++:</p>
+<p>WHATSON? 9bdbf1ce-e3f8-4c12-9205-bbf6409ef0aa</p>
+<pre class="de1">
+<span class="br0">(</span><span class="sy2">*</span><span class="br0">(</span><span class="br0">(</span><span class="sy2">*</span>d<span class="br0">)</span><span class="br0">[</span><span class="nu0">0</span><span class="br0">]</span><span class="br0">)</span><span class="br0">)</span><span class="br0">(</span>d<span class="br0">)</span>
+</pre>
+<p>Where *d refers to the virtual method table of D and [0] refers to the first method in the vtable. The parameter d becomes the <a href="/wiki/This_(computer_science)" title="This (computer science)" class="mw-redirect">"this" pointer</a> to the object.</p>
+<p>In the more general case, calling <code>B1::f1()</code> or <code>D::f2()</code> is more complicated:</p>
+<p>WHATSON? 8454740b-1a38-42a1-8ccf-742bb7f033dd</p>
+<pre class="de1">
+<span class="br0">(</span><span class="sy2">*</span><span class="br0">(</span><span class="sy2">*</span><span class="br0">(</span>d<span class="br0">[</span><span class="sy2">+</span><span class="nu0">0</span><span class="br0">]</span><span class="coMULTI">/*pointer to virtual method table of D (for B1)*/</span><span class="br0">)</span><span class="br0">[</span><span class="nu0">0</span><span class="br0">]</span><span class="br0">)</span><span class="br0">)</span><span class="br0">(</span>d<span class="br0">)</span>   <span class="coMULTI">/* Call d-&gt;f1() */</span>
+<span class="br0">(</span><span class="sy2">*</span><span class="br0">(</span><span class="sy2">*</span><span class="br0">(</span>d<span class="br0">[</span><span class="sy2">+</span><span class="nu0">8</span><span class="br0">]</span><span class="coMULTI">/*pointer to virtual method table of D (for B2)*/</span><span class="br0">)</span><span class="br0">[</span><span class="nu0">0</span><span class="br0">]</span><span class="br0">)</span><span class="br0">)</span><span class="br0">(</span>d<span class="sy2">+</span><span class="nu0">8</span><span class="br0">)</span> <span class="coMULTI">/* Call d-&gt;f2() */</span>
+</pre>
+<p>The call to d-&gt;f1() passes a B1 pointer as a parameter. The call to d-&gt;f2() passes a B2 pointer as a parameter. This second call requires a fixup to produce the correct pointer. It is impossible to call B2::f2 since it has been overridden in D's implementation. The location of B2::f2 is not in the vtable for D.</p>
+<p>By comparison, a call to <code>d-&gt;f0()</code> is much simpler:</p>
+<p>WHATSON? 42f39cb9-4e5c-4199-afef-16045304f54c</p>
+<pre class="de1">
+<span class="br0">(</span><span class="sy2">*</span>B1<span class="sy4">::</span><span class="me2">f0</span><span class="br0">)</span><span class="br0">(</span>d<span class="br0">)</span>
+</pre>
+<h2><span class="mw-headline" id="Efficiency">Efficiency</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Virtual_method_table&amp;action=edit&amp;section=5" title="Edit section: Efficiency">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>A virtual call requires at least an extra indexed dereference, and sometimes a "fixup" addition, compared to a non-virtual call, which is simply a jump to a compiled-in pointer. Therefore, calling virtual functions is inherently slower than calling non-virtual functions. An experiment done in 1996 indicates that approximately 6–13% of execution time is spent simply dispatching to the correct function, though the overhead can be as high as 50%.<sup id="cite_ref-5" class="reference"><a href="#cite_note-5"><span>[</span>4<span>]</span></a></sup> The cost of virtual functions may not be so high on modern <abbr title="Central Processing Unit">CPU</abbr> architectures due to much larger caches and better <a href="/wiki/Branch_predictor" title="Branch predictor">branch prediction</a>.</p>
+<p>Furthermore, in environments where <a href="/wiki/Just-in-time_compilation" title="Just-in-time compilation">JIT compilation</a> is not in use, virtual function calls usually cannot be <a href="/wiki/Inline_expansion" title="Inline expansion">inlined</a>. In certain cases it may be possible for the compiler to perform a process known as <i>devirtualization</i> in which, for instance, the lookup and indirect call are replaced with a conditional execution of each inlined body, but such optimizations are not common.</p>
+<p>To avoid this overhead, compilers usually avoid using vtables whenever the call can be resolved at <a href="/wiki/Compile_time" title="Compile time">compile time</a>.</p>
+<p>Thus, the call to <code>f1</code> above may not require a vtable lookup because the compiler may be able to tell that <code>d</code> can only hold a <code>D</code> at this point, and <code>D</code> does not override <code>f1</code>. Or the compiler (or optimizer) may be able to detect that there are no subclasses of <code>B1</code> anywhere in the program that override <code>f1</code>. The call to <code>B1::f1</code> or <code>B2::f2</code> will probably not require a vtable lookup because the implementation is specified explicitly (although it does still require the 'this'-pointer fixup).</p>
+<h2><span class="mw-headline" id="Comparison_with_alternatives">Comparison with alternatives</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Virtual_method_table&amp;action=edit&amp;section=6" title="Edit section: Comparison with alternatives">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>The vtable is generally a good performance trade-off to achieve dynamic dispatch, but there are alternatives, such as <a href="/w/index.php?title=Binary_tree_dispatch&amp;action=edit&amp;redlink=1" class="new" title="Binary tree dispatch (page does not exist)">binary tree dispatch</a>, with higher performance but different costs.<sup id="cite_ref-6" class="reference"><a href="#cite_note-6"><span>[</span>5<span>]</span></a></sup></p>
+<p>However, vtables only allow for <a href="/wiki/Single_dispatch" title="Single dispatch" class="mw-redirect">single dispatch</a> on the special "this" parameter, in contrast to <a href="/wiki/Multiple_dispatch" title="Multiple dispatch">multiple dispatch</a> (as in <a href="/wiki/Common_Lisp_Object_System" title="Common Lisp Object System">CLOS</a> or <a href="/wiki/Dylan_(programming_language)" title="Dylan (programming language)">Dylan</a>), where the types of all parameters can be taken into account in dispatching.</p>
+<p>Vtables also only work if dispatching is constrained to a known set of methods, so they can be placed in a simple array built at compile time, in contrast to <a href="/wiki/Duck_typing" title="Duck typing">duck typing</a> languages (such as <a href="/wiki/Smalltalk" title="Smalltalk">Smalltalk</a>, <a href="/wiki/Python_(programming_language)" title="Python (programming language)">Python</a> or <a href="/wiki/JavaScript" title="JavaScript">JavaScript</a>).</p>
+<p>Languages that provide either or both of these features often dispatch by looking up a string in a <a href="/wiki/Hash_table" title="Hash table">hash table</a>, or some other equivalent method. There are a variety of techniques to make this faster (e.g., <a href="/wiki/String_interning" title="String interning">interning</a>/tokenizing method names, caching lookups, <a href="/wiki/Just-in-time_compilation" title="Just-in-time compilation">just-in-time compilation</a>).</p>
+<h2><span class="mw-headline" id="See_also">See also</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Virtual_method_table&amp;action=edit&amp;section=7" title="Edit section: See also">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul>
+<li><a href="/wiki/Virtual_function" title="Virtual function">Virtual function</a></li>
+<li><a href="/wiki/Virtual_inheritance" title="Virtual inheritance">Virtual inheritance</a></li>
+<li><a href="/wiki/Branch_table" title="Branch table">Branch table</a></li>
+</ul>
+<h2><span class="mw-headline" id="Notes">Notes</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Virtual_method_table&amp;action=edit&amp;section=8" title="Edit section: Notes">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ol class="references">
+<li id="cite_note-4"><span class="mw-cite-backlink"><b><a href="#cite_ref-4">^</a></b></span> <span class="reference-text">G++'s <code>-fdump-class-hierarchy</code> argument can be used to dump virtual method tables for manual inspection. For AIX VisualAge XlC compiler, use <code>-qdump_class_hierarchy</code> to dump class hierarchy and virtual function table layout.</span></li>
+</ol>
+<h2><span class="mw-headline" id="References">References</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Virtual_method_table&amp;action=edit&amp;section=9" title="Edit section: References">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul>
+<li>Margaret A. Ellis and <a href="/wiki/Bjarne_Stroustrup" title="Bjarne Stroustrup">Bjarne Stroustrup</a> (1990) The Annotated C++ Reference Manual. Reading, MA: Addison-Wesley. (<a href="/wiki/Special:BookSources/0201514591" class="internal mw-magiclink-isbn">ISBN 0-201-51459-1</a>)</li>
+</ul>
+<ol class="references">
+<li id="cite_note-1"><span class="mw-cite-backlink"><b><a href="#cite_ref-1">^</a></b></span> <span class="reference-text">Ellis &amp; Stroustrup 1990, pp. 227–232</span></li>
+<li id="cite_note-2"><span class="mw-cite-backlink"><b><a href="#cite_ref-2">^</a></b></span> <span class="reference-text"><a rel="nofollow" class="external text" href="http://www.informit.com/guides/content.aspx?g=cplusplus&amp;seqNum=196">Heading "Multiple Inheritance"</a></span></li>
+<li id="cite_note-3"><span class="mw-cite-backlink"><b><a href="#cite_ref-3">^</a></b></span> <span class="reference-text"><a rel="nofollow" class="external text" href="https://web.archive.org/web/20110725153606/http://www.codesourcery.com/public/cxx-abi/cxx-closed.html">C++ ABI Closed Issues</a> at the <a href="/wiki/Wayback_Machine" title="Wayback Machine">Wayback Machine</a> (archived July 25, 2011)</span></li>
+<li id="cite_note-5"><span class="mw-cite-backlink"><b><a href="#cite_ref-5">^</a></b></span> <span class="reference-text">Driesen, Karel and Hölzle, Urs, <a rel="nofollow" class="external text" href="http://www.cs.ucsb.edu/~urs/oocsb/papers/oopsla96.pdf">"The Direct Cost of Virtual Function Calls in C++"</a>, OOPSLA 1996</span></li>
+<li id="cite_note-6"><span class="mw-cite-backlink"><b><a href="#cite_ref-6">^</a></b></span> <span class="reference-text">Zendra, Olivier and Driesen, Karel, <a rel="nofollow" class="external text" href="http://www.usenix.org/event/jvm02/full_papers/zendra/zendra_html/index.html">"Stress-testing Control Structures for Dynamic Dispatch in Java"</a>, Pp. 105–118, Proceedings of the USENIX 2nd Java Virtual Machine Research and Technology Symposium, 2002 (JVM '02)</span></li>
+</ol>
+<ul>
+<li class="nv-view"><a href="/wiki/Template:Application_binary_interface" title="Template:Application binary interface"><span title="View this template" style=";;background:none transparent;border:none;;">v</span></a></li>
+<li class="nv-talk"><a href="/w/index.php?title=Template_talk:Application_binary_interface&amp;action=edit&amp;redlink=1" class="new" title="Template talk:Application binary interface (page does not exist)"><span title="Discuss this template" style=";;background:none transparent;border:none;;">t</span></a></li>
+<li class="nv-edit"><a class="external text" href="//en.wikipedia.org/w/index.php?title=Template:Application_binary_interface&amp;action=edit"><span title="Edit this template" style=";;background:none transparent;border:none;;">e</span></a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Data_structure_alignment" title="Data structure alignment">Alignment</a></li>
+<li><a href="/wiki/Calling_convention" title="Calling convention">Calling convention</a></li>
+<li><a href="/wiki/Call_stack" title="Call stack">Call stack</a></li>
+<li><a href="/wiki/Library_(computing)" title="Library (computing)">Library</a>
+<ul>
+<li><a href="/wiki/Static_library" title="Static library">static</a></li>
+</ul>
+</li>
+<li><a href="/wiki/Machine_code" title="Machine code">Machine code</a></li>
+<li><a href="/wiki/Memory_segmentation" title="Memory segmentation">Memory segmentation</a></li>
+<li><a href="/wiki/Name_mangling" title="Name mangling">Name mangling</a></li>
+<li><a href="/wiki/Object_code" title="Object code">Object code</a></li>
+<li><a href="/wiki/Opaque_pointer" title="Opaque pointer">Opaque pointer</a></li>
+<li><a href="/wiki/Position-independent_code" title="Position-independent code">Position-independent code</a></li>
+<li><a href="/wiki/Register_allocation" title="Register allocation">Register allocation</a></li>
+<li><a href="/wiki/Relocation_(computing)" title="Relocation (computing)">Relocation</a></li>
+<li><a href="/wiki/System_call" title="System call">System call</a></li>
+<li><strong class="selflink">Virtual method table</strong></li>
+</ul>
+<ul>
+<li><a href="/wiki/Static_library" title="Static library">static</a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Binary_code_compatibility" title="Binary code compatibility">Binary code compatibility</a></li>
+<li><a href="/wiki/Foreign_function_interface" title="Foreign function interface">Foreign function interface</a></li>
+<li><a href="/wiki/Language_binding" title="Language binding">Language binding</a></li>
+<li><a href="/wiki/Linker_(computing)" title="Linker (computing)">Linker</a>
+<ul>
+<li><a href="/wiki/Dynamic_linker" title="Dynamic linker">dynamic</a></li>
+</ul>
+</li>
+<li><a href="/wiki/Loader_(computing)" title="Loader (computing)">Loader</a></li>
+<li><a href="/wiki/Year_2038_problem" title="Year 2038 problem">Year 2038 problem</a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Dynamic_linker" title="Dynamic linker">dynamic</a></li>
+</ul>

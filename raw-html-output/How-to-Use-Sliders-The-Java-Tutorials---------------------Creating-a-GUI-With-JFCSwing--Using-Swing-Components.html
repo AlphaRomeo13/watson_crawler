@@ -1,0 +1,93 @@
+<h1>How to Use Sliders</h1>
+<p>A 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/javax/swing/JSlider.html"><code>JSlider</code></a> component is intended to let the user easily enter a numeric value bounded by a minimum and maximum value. If space is limited, a <a href="spinner.html">spinner</a> is a possible alternative to a slider.</p>
+<p>The following picture shows an application that uses a slider to control animation speed:</p>
+<ol>
+<li>Click the Launch button to run SliderDemo using 
+<a class="OutsideLink" target="_blank" href="http://www.oracle.com/technetwork/java/javase/javawebstart/index.html">Java™ Web Start</a> (<a href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">download JDK 7 or later</a>). Alternatively, to compile and run the example yourself, consult the <a href="../examples/components/index.html#SliderDemo">example index</a>.<a href="http://docs.oracle.com/javase/tutorialJWS/samples/uiswing/SliderDemoProject/SliderDemo.jnlp"><img src="../../images/jws-launch-button.png" width="88" align="bottom" alt="Launches the SliderDemo application"></a><br></li>
+<li>Use the slider to adjust the animation speed.</li>
+<li>Push the slider to 0 to stop the animation.</li>
+</ol>
+<p>Below is the code from the 
+<a class="SourceLink" target="_blank" href="../examples/components/SliderDemoProject/src/components/SliderDemo.java" onclick="showCode('../../displayCode.html', '../examples/components/SliderDemoProject/src/components/SliderDemo.java'); return false;"><code>SliderDemo.java</code></a> file that creates the slider in the previous example.</p>
+<p>WHATSON? 0989f03b-58ac-4fc0-ba1b-239a789b58e1</p>
+<pre>
+static final int FPS_MIN = 0;
+static final int FPS_MAX = 30;
+static final int FPS_INIT = 15;    //initial frames per second
+. . .
+JSlider framesPerSecond = new JSlider(JSlider.HORIZONTAL,
+                                      FPS_MIN, FPS_MAX, FPS_INIT);
+framesPerSecond.addChangeListener(this);
+
+//Turn on labels at major tick marks.
+framesPerSecond.setMajorTickSpacing(10);
+framesPerSecond.setMinorTickSpacing(1);
+framesPerSecond.setPaintTicks(true);
+framesPerSecond.setPaintLabels(true);
+</pre>
+<p>By default, spacing for major and minor tick marks is zero. To see tick marks, you must explicitly set the spacing for either major or minor tick marks (or both) to a non-zero value and call the <code>setPaintTicks(true)</code> method. However, you also need labels for your tick marks. To display standard, numeric labels at major tick mark locations, set the major tick spacing, then call the <code>setPaintLabels(true)</code> method. The example program provides labels for its slider in this way. But you are not constrained to using only these labels. <a href="#labels">Customizing Labels on a Slider</a> shows you how to customize slider labels. In addition, a slider feature allows you to set a font for the <code>JSlider</code> component.</p>
+<p>WHATSON? e1f9c1a2-0f8d-4b76-ad58-dfc069d32057</p>
+<pre>
+Font font = new Font("Serif", Font.ITALIC, 15);
+framesPerSecond.setFont(font);
+</pre>
+<p>When you move the slider's knob, the <code>stateChanged</code> method of the slider's <code>ChangeListener</code> is called. For information about change listeners, refer to <a href="../events/changelistener.html">How to Write a Change Listener</a>. Here is the change listener code that reacts to slider value changes:</p>
+<p>WHATSON? 82fad106-1027-4db1-a2f6-4cd0b01c6944</p>
+<pre>
+public void stateChanged(ChangeEvent e) {
+    JSlider source = (JSlider)e.getSource();
+    if (!source.getValueIsAdjusting()) {
+        int fps = (int)source.getValue();
+        if (fps == 0) {
+            if (!frozen) stopAnimation();
+        } else {
+            delay = 1000 / fps;
+            timer.setDelay(delay);
+            timer.setInitialDelay(delay * 10);
+            if (frozen) startAnimation();
+        }
+    }
+}
+</pre>
+<p>Notice that the <code>stateChanged</code> method changes the animation speed only if the <code>getValueIsAdjusting</code> method returns <code>false</code>. Many change events are fired as the user moves the slider knob. This program is interested only in the final result of the user's action.</p>
+<h2><a name="labels" id="labels">Customizing Labels on a Slider</a></h2>
+<p>The demo below is a modified version of the SliderDemo that uses a slider with custom labels:</p>
+<p style="text-align: center"></p>
+<p>The source for this program can be found in 
+<a class="SourceLink" target="_blank" href="../examples/components/SliderDemo2Project/src/components/SliderDemo2.java" onclick="showCode('../../displayCode.html', '../examples/components/SliderDemo2Project/src/components/SliderDemo2.java'); return false;"><code>SliderDemo2.java</code></a>. Click the Launch button to run SliderDemo2 using 
+<a class="OutsideLink" target="_blank" href="http://www.oracle.com/technetwork/java/javase/javawebstart/index.html">Java™ Web Start</a> (<a href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">download JDK 7 or later</a>). Alternatively, to compile and run the example yourself, consult the <a href="../examples/components/index.html#SliderDemo2">example index</a>.</p>
+<p>The following code creates the slider and customizes its labels:</p>
+<p>WHATSON? 5ab6e382-4bbd-4ea8-88d9-b84debbf6002</p>
+<pre>
+//Create the slider
+JSlider framesPerSecond = new JSlider(JSlider.VERTICAL,
+                                      FPS_MIN, FPS_MAX, FPS_INIT);
+framesPerSecond.addChangeListener(this);
+framesPerSecond.setMajorTickSpacing(10);
+framesPerSecond.setPaintTicks(true);
+
+//Create the label table
+Hashtable labelTable = new Hashtable();
+labelTable.put( new Integer( 0 ), new JLabel("Stop") );
+labelTable.put( new Integer( FPS_MAX/10 ), new JLabel("Slow") );
+labelTable.put( new Integer( FPS_MAX ), new JLabel("Fast") );
+framesPerSecond.setLabelTable( labelTable );
+
+framesPerSecond.setPaintLabels(true);
+</pre>
+<p>Each key-value pair in the hashtable specified with the <code>setLabelTable</code> method gives the position and the value of one label. The hashtable key must be of an <code>Integer</code> type and must have a value within the slider's range at which to place the label. The hashtable value associated with each key must be a <code>Component</code> object. This demo uses <code>JLabel</code> instances with text only. An interesting modification would be to use <code>JLabel</code> instances with icons or buttons that move the knob to the label's position.</p>
+<p>Use the <code>createStandardLabels</code> method of the <code>JSlider</code> class to create a set of numeric labels positioned at a specific interval. You can also modify the table returned by the <code>createStandardLabels</code> method in order to customize it.</p>
+<h2><a name="api" id="api">The Slider API</a></h2>
+<p>The following tables list the commonly used <code>JSlider</code> constructors and methods. See <a href="jcomponent.html">The JComponent Class</a> for tables of commonly used inherited methods.</p>
+<p>The API for using sliders is divided into these categories:</p>
+<ul>
+<li><a href="#creating">Creating the Slider</a></li>
+<li><a href="#looks">Fine Tuning the Slider's Appearance</a></li>
+<li><a href="#operation">Watching the Slider Operate</a></li>
+<li><a href="#modelapi">Working Directly with the Data Model</a></li>
+</ul>
+<h2><a name="eg" id="eg">Examples that Use Sliders</a></h2>
+<p>This table shows the examples that use <code>JSlider</code> and where those examples are described.</p>
+<p>If you are programming in JavaFX, see
+<a class="OutsideLink" target="_blank" href="http://docs.oracle.com/javase/8/javafx/user-interface-tutorial/slider.htm">Slider</a>.</p>

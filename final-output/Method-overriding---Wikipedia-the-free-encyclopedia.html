@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Method-overriding---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Method overriding</h1>
+<p><b>Method overriding</b>, in object oriented programming, is a language feature that allows a subclass or child class to provide a specific implementation of a method that is already provided by one of its superclasses or parent classes. The implementation in the subclass overrides (replaces) the implementation in the superclass by providing a method that has same name, same parameters or signature, and same return type as the method in the parent class. The version of a method that is executed will be determined by the object that is used to invoke it. If an object of a parent class is used to invoke the method, then the version in the parent class will be executed, but if an object of the subclass is used to invoke the method, then the version in the child class will be executed. Some languages allow a programmer to prevent a method from being overridden.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Language-specific examples
+<ul>
+<li>1.1 Ada</li>
+<li>1.2 C#</li>
+<li>1.3 C++</li>
+<li>1.4 Delphi</li>
+<li>1.5 Eiffel</li>
+<li>1.6 Java</li>
+<li>1.7 Python</li>
+</ul>
+</li>
+<li>2 Notes</li>
+<li>3 See also</li>
+<li>4 References</li>
+<li>5 External links</li>
+</ul>
+<ul>
+<li>1.1 Ada</li>
+<li>1.2 C#</li>
+<li>1.3 C++</li>
+<li>1.4 Delphi</li>
+<li>1.5 Eiffel</li>
+<li>1.6 Java</li>
+<li>1.7 Python</li>
+</ul>
+<p></p>
+<h2>Language-specific examples</h2>
+<h3>Ada</h3>
+<p>Ada provides method overriding by default. To favor early error detection (e.g. a misspelling), it is possible to specify when a method is expected to be actually overriding, or not. That will be checked by the compiler.</p>
+<p>WHATSON? 09a402a2-dea5-4208-8163-10eb86785913</p>
+<pre>
+  type T is new Controlled with ......;
+  procedure Op(Obj: in out T; Data: in Integer);
+ 
+  type NT is new T with null record;
+  overriding    -- overriding indicator
+  procedure Op(Obj: in out NT; Data: in Integer);
+  overriding    -- overriding indicator
+  procedure Op(Obj: in out NT; Data: in String);
+  -- ^ compiler issues an error: subprogram "Op" is not overriding
+</pre>
+<h3>C#</h3>
+<p>C# does support method overriding, but only if explicitly requested using the modifiers override and virtual.</p>
+<p>WHATSON? a3fc5912-2b8b-40f8-bc65-e36044e977cf</p>
+<pre>
+abstract class Animal {
+  public          String name;
+  // Methods
+  public          void   drink();
+  public virtual  void   eat();
+  public          void   go();
+}
+ 
+class Cat : Animal {
+  public new      String name;
+  // Methods
+  public          void   drink();  // warning: hides inherited drink(). Use new
+  public override void   eat();    // overrides inherited eat().
+  public new      void   go();     // hides inherited go().
+}
+</pre>
+<p>When overriding one method with another, the signatures of the two methods must be identical (and with same visibility). In C#, class methods, indexers, properties and events can all be overridden.</p>
+<p>Non-virtual or static methods cannot be overridden. The overridden base method must be <i>virtual</i>, <i>abstract</i>, or <i>override</i>.</p>
+<p>In addition to the modifiers that are used for method overriding, C# allows the <b>hiding</b> of an inherited property or method. This is done using the same signature of a property or method but adding the modifier new in front of it.</p>
+<p>In the above example, hiding causes the following:</p>
+<p>WHATSON? 3b11c28c-3cdc-4cd5-b0a0-f6d4281b762b</p>
+<pre>
+Cat cat = new Cat();
+ 
+cat.name = …;             // accesses Cat.name
+cat.eat();                // calls Cat.eat()
+cat.go();                 // calls Cat.go()
+((Animal)cat).name = …;   // accesses Animal.name!
+((Animal)cat).eat();      // calls Cat.eat()!
+((Animal)cat).go();       // calls Animal.go()!
+</pre>
+<h3>C++</h3>
+<p>In C++, the name of the parent or base class is used followed by the scope resolution operator to override functions. For example, the following code presents two classes, the base class TRectangle, and the derived class TBox. TBox overrides the TRectangle class's print() method, so as also to print its height.</p>
+<p>WHATSON? ed52c12b-c00b-44c2-b515-66e913cc3b50</p>
+<pre>
+#include &lt;iostream&gt;
+ 
+//---------------------------------------------------------------------------
+class TRectangle
+{
+public:
+    TRectangle(double l, double w) : length(l), width(w) {}
+    virtual void print() const;
+ 
+private:
+    double length;
+    double width;
+};
+ 
+//---------------------------------------------------------------------------
+void TRectangle::print() const
+{
+   // print() method of base class.
+   std::cout &lt;&lt; "Length = " &lt;&lt; this-&gt;length &lt;&lt; "; Width = " &lt;&lt; this-&gt;width;
+}
+ 
+//---------------------------------------------------------------------------
+class TBox : public TRectangle
+{
+public:
+    TBox(double l, double w, double h) : TRectangle(l, w), height(h) {}
+    // virtual is optional here, but it is a good practice to remind it to the developer.
+    virtual void print() const;
+private:
+    double height;
+};
+ 
+//---------------------------------------------------------------------------
+// print() method of derived class.
+void TBox::print() const
+{
+   // Invoke parent print() method.
+   TRectangle::print();
+   std::cout &lt;&lt; "; Height = " &lt;&lt; this-&gt;height;
+}
+</pre>
+<p>The method print() in class TBox, by invoking the parent version of method print(), is also able to output the private variables length and width of the base class. Otherwise, these variables are inaccessible to TBox.</p>
+<p>The following statements will instantiate objects of type TRectangle and TBox, and call their respective print() methods:</p>
+<p>WHATSON? 9a76f824-d74a-4de4-adf3-653d16445dc2</p>
+<pre>
+int main(int argc, char** argv)
+{
+   TRectangle rectangle(5.0, 3.0);
+ 
+   // Outputs: Length = 5.0; Width = 3.0
+   rectangle.print();
+ 
+   TBox box(6.0, 5.0, 4.0);
+ 
+   // The pointer to the most overridden method in the vtable in on TBox::print,
+   // but this call does not illustrate overriding.
+   box.print();
+ 
+   // This call illustrate overriding.
+   // outputs: Length = 6.0; Width = 5.0; Height= 4.0
+   static_cast&lt;TRectangle&amp;&gt;(box).print();
+}
+</pre>
+<p>In C++11, similar to Java, a method that is declared <code>final</code> in the super class cannot be overridden; also, a method can be declared <code>override</code> to make the compiler check that it overrides a method in the base class.</p>
+<h3>Delphi</h3>
+<p>In Delphi, the method overriding is done with the directive <b>override</b>, but only if a method was marked as <b>dynamic</b> or <b>virtual</b> directives.</p>
+<p>The <b>inherited</b> reserved work must be called when you want to call superclass behavior</p>
+<p>WHATSON? eae4b116-c218-49e8-a6a3-98c863aa0833</p>
+<pre>
+type
+  TRectangle = class
+  private
+    FLength: Double;
+    FWidth: Double;
+  public
+    property Length read FLength write FLength;
+    property Width read FWidth write FWidth;
+ 
+    procedure Print; virtual;
+  end;
+ 
+  TBox = class(TRectangle)
+  public
+    procedure Print; override;
+  end;
+</pre>
+<h3>Eiffel</h3>
+<p>In Eiffel, <b>feature redefinition</b> is analogous to method overriding in C++ and Java. Redefinition is one of three forms of feature adaptation classified as <b>redeclaration</b>. Redeclaration also covers <b>effecting</b>, in which an implementation is provided for a feature which was deferred (abstract) in the parent class, and <b>undefinition</b>, in which a feature that was effective (concrete) in the parent becomes deferred again in the heir class. When a feature is redefined, the feature name is kept by the heir class, but properties of the feature such as its signature, contract (respecting restrictions for preconditions and postconditions), and/or implementation will be different in the heir. If the original feature in the parent class, called the heir feature's <b>precursor</b>, is effective, then the redefined feature in the heir will be effective. If the precursor is deferred, the feature in the heir will be deferred.</p>
+<p>The intent to redefine a feature, as message in the example below, must be explicitly declared in the inherit clause of the heir class.</p>
+<p>WHATSON? 24aee180-f5cf-4381-b866-bb10c14aeba5</p>
+<pre>
+class
+    THOUGHT
+feature
+    message
+            -- Display thought message
+        do
+            print ("I feel like I am diagonally parked in a parallel universe.%N")
+        end
+end
+ 
+class
+    ADVICE
+inherit
+    THOUGHT
+        redefine
+            message
+        end
+feature
+    message
+            -- &lt;Precursor&gt;
+        do
+            print ("Warning: Dates in calendar are closer than they appear.%N")
+        end
+end
+</pre>
+<p>In class ADVICE the feature message is given an implementation that differs from that of its precursor in class THOUGHT.</p>
+<p>Consider a class which uses instances for both THOUGHT and ADVICE:</p>
+<p>WHATSON? c6c3d201-f74a-4a83-be1f-8a42cc250cbc</p>
+<pre>
+class
+    APPLICATION
+create
+    make
+feature 
+    make
+            -- Run application.
+        do
+            (create {THOUGHT}).message;
+            (create {ADVICE}).message
+        end
+end
+</pre>
+<p>When instantiated, class APPLICATION produces the following output:</p>
+<p>WHATSON? 42afb48e-ba28-4508-8d39-2796a331f0bd</p>
+<pre>
+I feel like I am diagonally parked in a parallel universe.
+Warning: Dates in calendar are closer than they appear.
+</pre>
+<p>Within a redefined feature, access to the feature's precursor can be gained by using the language keyword Precursor. Assume the implementation of {ADVICE}.message is altered as follows:</p>
+<p>WHATSON? a065f084-eebd-4c50-a300-3e951b90d8b3</p>
+<pre>
+    message
+            -- &lt;Precursor&gt;
+        do
+            print ("Warning: Dates in calendar are closer than they appear.%N")
+            Precursor
+        end
+</pre>
+<p>Invocation of the feature now includes the execution of {THOUGHT}.message, and produces the following output:</p>
+<p>WHATSON? bd4421b2-b732-4c93-8062-20cbb4be74b9</p>
+<pre>
+Warning: Dates in calendar are closer than they appear.
+I feel like I am diagonally parked in a parallel universe.
+</pre>
+<h3>Java</h3>
+<p>In Java, when a subclass contains a method that overrides a method of the superclass, it can also invoke the superclass method by using the keyword super (Lewis &amp; Loftus, 2006). Example:</p>
+<p>WHATSON? 2e4e608d-ad78-4d64-85eb-5e996fccbc32</p>
+<pre>
+ class Thought {
+    public void message() {
+        System.out.println("I feel like I am diagonally parked in a parallel universe.");
+    }
+}
+ 
+public class Advice extends Thought {
+    @Override  // @Override annotation in Java 5 is optional but helpful.
+    public void message() {
+        System.out.println("Warning: Dates in calendar are closer than they appear.");
+    }
+}
+</pre>
+<p>Class Thought represents the superclass and implements a method call message(). The subclass called Advice inherits every method that could be in the Thought class. However, class Advice overrides the method message(), replacing its functionality from Thought.</p>
+<p>WHATSON? 71c1ab30-a8ec-47c6-86b7-63e333caac5f</p>
+<pre>
+Thought parking = new Thought();
+parking.message();  // Prints "I feel like I am diagonally parked in a parallel universe."
+ 
+Thought dates = new Advice();  // Polymorphism
+dates.message();  // Prints "Warning: Dates in calendar are closer than they appear."
+</pre>
+<p>The super reference can be</p>
+<p>WHATSON? 27227d7c-fd2c-47e8-947f-58438a75d348</p>
+<pre>
+public class Advice extends Thought {
+      @Override
+      public void message() {
+          System.out.println("Warning: Dates in calendar are closer than they appear.");
+          super.message();  // Invoke parent's version of method.
+      }
+</pre>
+<p>There are methods that a subclass cannot override. For example, in Java, a method that is declared final in the super class cannot be overridden. Methods that are declared private or static cannot be overridden either because they are implicitly final. It is also impossible for a class that is declared final to become a super class.</p>
+<h3>Python</h3>
+<p>In Python, when a subclass contains a method that overrides a method of the superclass, you can also call the superclass method by calling super(Subclass, self).method instead of self.method. Example:</p>
+<p>WHATSON? 2638a637-e2f2-4ef6-9012-577f04bb4a0f</p>
+<pre>
+class Thought(object):
+    def __init__(self):
+        pass
+    def message(self):
+        print "I feel like I am diagonally parked in a parallel universe."
+ 
+class Advice(Thought):
+    def __init__(self):
+        super(Advice, self).__init__()
+    def message(self):
+        print "Warning: Dates in calendar are closer than they appear"
+        super(Advice, self).message()
+</pre>
+<h2>Notes</h2>
+<ol>
+<li><b>^</b> Flanagan 2002, p. 107</li>
+<li>^   Lewis &amp; Loftus 2006, p.454</li>
+<li><b>^</b> Mössenböck, Hanspeter (2002-03-25). "Advanced C#: Overriding of Methods". http://ssw.jku.at/Teaching/Lectures/CSharp/Tutorial/: Institut für Systemsoftware, Johannes Kepler Universität Linz, Fachbereich Informatik. pp. 6–8. Retrieved 2011-08-02. </li>
+<li><b>^</b> Malik 2006, p. 676</li>
+<li><b>^</b> Meyer 2009, page 572-575</li>
+<li><b>^</b> Deitel &amp; Deitel 2001, p.474</li>
+<li><b>^</b> super().method in Python 3 - see https://docs.python.org/3/library/functions.html#super</li>
+</ol>
+<h2>See also</h2>
+<ul>
+<li>Implementation inheritance</li>
+<li>Inheritance semantics</li>
+<li>Method overloading</li>
+<li>Polymorphism in object-oriented programming</li>
+<li>Template method pattern</li>
+<li>Virtual inheritance</li>
+</ul>
+</body>
+</html>

@@ -1,0 +1,109 @@
+<h1>Embedding JNLP File in Applet Tag</h1>
+<p>When applets are deployed by using the Java Network Launch Protocol (JNLP), the Java Plug-in software launches the applet after downloading the JNLP file from the network. Beginning in the Java SE 7 release, you can reduce the the time it takes for applets to launch, by embedding the JNLP file in the web page itself so that an additional network request can be avoided the first time the applet is loaded. This will result in applets launching quickly on the web browser.</p>
+<p>A Base64 encoded JNLP file can be embedded in the <code>jnlp_embedded</code> parameter when deploying an applet in a web page. The attributes of the <code>&lt;jnlp&gt;</code> element should meet the following restrictions:</p>
+<ul>
+<li>The <code>href</code> attribute should contain a relative path.</li>
+<li>The <code>codebase</code> attribute should not be specified. This implies that the codebase will be derived from the URL of the web page in which the applet is loaded.</li>
+</ul>
+<p>The following steps describe how to embed a JNLP file in a web page to deploy an applet.</p>
+<ol>
+<li>Create a 
+<a class="SourceLink" target="_blank" href="examples/depl_EmbeddingJNLPInWebPage/src/dynamictree_applet.jnlp" onclick="showCode('../../displayCode.html', 'examples/depl_EmbeddingJNLPInWebPage/src/dynamictree_applet.jnlp'); return false;"><code><code>JNLP</code></code></a> file for your applet. A sample file is shown next.
+<div class="codeblock"><pre>
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;!-- href attribute contains relative path;
+     codebase attribute not specified --&gt;
+&lt;jnlp href="dynamictree_applet.jnlp"&gt;
+    &lt;information&gt;
+        &lt;title&gt;Dynamic Tree Demo&lt;/title&gt;
+        &lt;vendor&gt;Dynamic Team&lt;/vendor&gt;
+    &lt;/information&gt;
+    &lt;resources&gt;
+        &lt;!-- Application Resources --&gt;
+        &lt;j2se version="1.7+" /&gt;
+        &lt;jar href=
+            "dist/applet_ComponentArch_DynamicTreeDemo/DynamicTreeDemo.jar" 
+             main="true" /&gt;
+    &lt;/resources&gt;
+    &lt;applet-desc 
+         name="Dynamic Tree Demo Applet"
+         main-class="appletComponentArch.DynamicTreeApplet"
+         width="300"
+         height="300"&gt;
+     &lt;/applet-desc&gt;
+     &lt;update check="background"/&gt;
+&lt;/jnlp&gt;
+</pre></div>
+</li>
+<li>Encode the contents of the JNLP file using the Base64 scheme. You can use any Base64 encoding tool to encode the the JNLP file. Check the usage of the tool to create a string with Base64 encoding. Some examples of tools and web sites that may be used are as follows:
+<ul>
+<li>UNIX commands – <code>base64</code>, <code>uuencode</code></li>
+<li>Web sites – 
+<a class="OutsideLink" target="_blank" href="http://base64encode.org/">Base64 Encode and Decode</a>, 
+<a class="OutsideLink" target="_blank" href="http://www.opinionatedgeek.com/dotnet/tools/base64encode/">Base64 Encoder</a></li>
+</ul>
+</li>
+<li>When deploying the applet in a web page, specify the <code>jnlp_embedded</code> parameter with it's value set to the Base64 encoded JNLP string. Make sure to include only the actual Base64 bytes without any encoding tool specific headers or footers.
+<div class="codeblock"><pre>
+&lt;script src="https://www.java.com/js/deployJava.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+    var attributes = {} ;
+    &lt;!-- Base64 encoded string truncated below for readability --&gt;
+    var parameters = {jnlp_href: 'dynamictree_applet.jnlp',
+        <b>jnlp_embedded: 'PCEtLSANCi8qDQogKiBDb ... bmxwPg=='</b>
+    } ;
+    deployJava.runApplet(attributes, parameters, '1.6');
+&lt;/script&gt;
+</pre></div>
+<p>Some encoding tools may wrap the encoded string into several 76-column lines. To use this multi-line attribute value in JavaScript code, specify the attribute value as a set of concatenated strings. You can include the multi-line attribute value as is if the applet is deployed directly with the <code>&lt;applet&gt;</code> HTML tag.</p>
+</li>
+</ol>
+<p>WHATSON? 37d5c16f-5b53-41c6-9cc8-10f4fde1dcdb</p>
+<pre>
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;!-- href attribute contains relative path;
+     codebase attribute not specified --&gt;
+&lt;jnlp href="dynamictree_applet.jnlp"&gt;
+    &lt;information&gt;
+        &lt;title&gt;Dynamic Tree Demo&lt;/title&gt;
+        &lt;vendor&gt;Dynamic Team&lt;/vendor&gt;
+    &lt;/information&gt;
+    &lt;resources&gt;
+        &lt;!-- Application Resources --&gt;
+        &lt;j2se version="1.7+" /&gt;
+        &lt;jar href=
+            "dist/applet_ComponentArch_DynamicTreeDemo/DynamicTreeDemo.jar" 
+             main="true" /&gt;
+    &lt;/resources&gt;
+    &lt;applet-desc 
+         name="Dynamic Tree Demo Applet"
+         main-class="appletComponentArch.DynamicTreeApplet"
+         width="300"
+         height="300"&gt;
+     &lt;/applet-desc&gt;
+     &lt;update check="background"/&gt;
+&lt;/jnlp&gt;
+</pre>
+<ul>
+<li>UNIX commands – <code>base64</code>, <code>uuencode</code></li>
+<li>Web sites – 
+<a class="OutsideLink" target="_blank" href="http://base64encode.org/">Base64 Encode and Decode</a>, 
+<a class="OutsideLink" target="_blank" href="http://www.opinionatedgeek.com/dotnet/tools/base64encode/">Base64 Encoder</a></li>
+</ul>
+<p>WHATSON? 818b2ee3-0ffb-415c-9678-a08e90d6b20e</p>
+<pre>
+&lt;script src="https://www.java.com/js/deployJava.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+    var attributes = {} ;
+    &lt;!-- Base64 encoded string truncated below for readability --&gt;
+    var parameters = {jnlp_href: 'dynamictree_applet.jnlp',
+        <b>jnlp_embedded: 'PCEtLSANCi8qDQogKiBDb ... bmxwPg=='</b>
+    } ;
+    deployJava.runApplet(attributes, parameters, '1.6');
+&lt;/script&gt;
+</pre>
+<p>Some encoding tools may wrap the encoded string into several 76-column lines. To use this multi-line attribute value in JavaScript code, specify the attribute value as a set of concatenated strings. You can include the multi-line attribute value as is if the applet is deployed directly with the <code>&lt;applet&gt;</code> HTML tag.</p>
+<p>Open 
+<a class="SourceLink" target="_blank" href="examples/dist/depl_EmbeddingJNLPInWebPage/AppletPage.html" onclick="showCode('../../displayCode.html', 'examples/dist/depl_EmbeddingJNLPInWebPage/AppletPage.html'); return false;"><code><code>AppletPage.html</code></code></a> in a browser to view the Dynamic Tree Demo applet that is launched by using the JNLP file embedded in the web page.</p>
+<p>
+<a class="TutorialLink" target="_top" href="examplesIndex.html#EmbeddedJNLP">Download source code</a> for the <em>Embedded JNLP</em> example to experiment further.</p>

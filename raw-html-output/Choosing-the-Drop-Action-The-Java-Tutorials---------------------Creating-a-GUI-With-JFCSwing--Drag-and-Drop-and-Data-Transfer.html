@@ -1,0 +1,35 @@
+<h1>Choosing the Drop Action</h1>
+<p>Every drag source (Java based or otherwise) advertises the set of actions it supports when exporting data. If it supports data being copied, it advertises the <code>COPY</code> action; if it supports data being moved from it, then it advertises the <code>MOVE</code> action, and so on. For Swing components, the source actions are advertised through the 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/javax/swing/TransferHandler.html#getSourceActions-javax.swing.JComponent-"><code>getSourceActions</code></a> method.</p>
+<p>When a drag is initiated, the user has some control over which of the source actions is chosen for the transfer by way of keyboard modifiers used in conjunction with the drag gesture — this is called the <em>user action</em>. For example, the default (where no modifiers are used) generally indicates a move action, holding the Control key indicates a copy action, and holding both Shift and Control indicates a linking action. The user action is available via the 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/javax/swing/TransferHandler.TransferSupport.html#getUserDropAction--"><code>getUserDropAction</code></a> method.</p>
+<p>The user action indicates a preference, but ultimately it is the target that decides the drop action. For example, consider a component that will only accept copied data. And consider a drag source that supports both copy and move. The <code>TransferHandler</code> for the copy-only target can be coded to only accept data from the source using the 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/javax/swing/TransferHandler.TransferSupport.html#setDropAction-int-"><code>setDropAction</code></a> method, even if the user has indicated a preference for a move action.</p>
+<p>This work happens in the <code>canImport</code> method, where the target's <code>TransferHandler</code> decides whether to accept the incoming data. An implementation that explicitly chooses the <code>COPY</code> action, if it is supported by the source, might look like this:</p>
+<p>WHATSON? 8ed45cb4-b660-4dbc-a2cf-0d3ead920356</p>
+<pre>
+public boolean canImport(TransferHandler.TransferSupport support) {
+    // for the demo, we will only support drops (not clipboard paste)
+    if (!support.isDrop()) {
+        return false;
+    }
+
+    // we only import Strings
+    if (!support.isDataFlavorSupported(DataFlavor.stringFlavor)) {
+        return false;
+    }
+
+    // check if the source actions (a bitwise-OR of supported actions)
+    // contains the COPY action
+    <b>boolean copySupported = (COPY &amp; support.getSourceDropActions()) == COPY;
+    if (copySupported) {
+        support.setDropAction(COPY);
+        return true;
+    }</b>
+
+    // COPY is not supported, so reject the transfer
+    return false;
+}
+</pre>
+<p>The code snippet displayed in bold shows where the source's supported drop actions are queried. If copy is supported, the <code>setDropAction</code> method is invoked to ensure that only a copy action will take place and the method returns true.</p>
+<p>Next we will look at a demo that explicitly sets the drop action using <code>setDropAction</code>.</p>

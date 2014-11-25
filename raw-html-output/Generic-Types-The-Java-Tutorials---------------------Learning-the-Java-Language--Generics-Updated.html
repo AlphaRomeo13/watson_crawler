@@ -1,0 +1,140 @@
+<h1>Generic Types</h1>
+<p>
+A <em>generic type</em> is a generic class or interface that is parameterized over types. The following <tt>Box</tt> class will be modified to demonstrate the concept.</p>
+<h2>A Simple Box Class</h2>
+<p>
+Begin by examining a non-generic <tt>Box</tt> class that operates on objects of any type. It needs only to provide two methods: <tt>set</tt>, which adds an object to the box, and <tt>get</tt>, which retrieves it:</p>
+<p>WHATSON? 24863710-47df-4106-b4b1-23752d8a0cde</p>
+<pre>
+public class Box {
+    private Object object;
+
+    public void set(Object object) { this.object = object; }
+    public Object get() { return object; }
+}
+</pre>
+<p>
+Since its methods accept or return an <tt>Object</tt>, you are free to pass in whatever you want, provided that it is not one of the primitive types. There is no way to verify, at compile time, how the class is used. One part of the code may place an <tt>Integer</tt> in the box and expect to get <tt>Integer</tt>s out of it, while another part of the code may mistakenly pass in a <tt>String</tt>, resulting in a runtime error.</p>
+<h2>A Generic Version of the Box Class</h2>
+<p>
+A <em>generic class</em> is defined with the following format:</p>
+<p>WHATSON? 4342a172-623d-4db5-9b57-d38919bd23d2</p>
+<pre>
+class name&lt;T1, T2, ..., Tn&gt; { /* ... */ }
+</pre>
+<p>
+The type parameter section, delimited by angle brackets (<tt>&lt;&gt;</tt>), follows the class name. It specifies the <em>type parameters</em> (also called <em>type variables</em>) <tt>T1</tt>, <tt>T2</tt>, ..., and <tt>Tn</tt>.</p>
+<p>
+To update the <tt>Box</tt> class to use generics, you create a <em>generic type declaration</em> by changing the code "<tt>public class Box</tt>" to "<tt>public class Box&lt;T&gt;</tt>". This introduces the type variable, <tt>T</tt>, that can be used anywhere inside the class.</p>
+<p>
+With this change, the <tt>Box</tt> class becomes:</p>
+<p>WHATSON? 6957d27d-883f-47bf-92cc-aebf03b011fe</p>
+<pre>
+/**
+ * Generic version of the Box class.
+ * @param &lt;T&gt; the type of the value being boxed
+ */
+public class Box&lt;T&gt; {
+    // T stands for "Type"
+    private T t;
+
+    public void set(T t) { this.t = t; }
+    public T get() { return t; }
+}
+</pre>
+<p>
+As you can see, all occurrences of <tt>Object</tt> are replaced by <tt>T</tt>.  A type variable can be any <strong>non-primitive</strong> type you specify: any class type, any interface type, any array type, or even another type variable.</p>
+<p>
+This same technique can be applied to create generic interfaces.</p>
+<h2>Type Parameter Naming Conventions</h2>
+<p>By convention, type parameter names are single, uppercase letters. This stands in sharp contrast to the variable 
+<a class="TutorialLink" target="_top" href="../nutsandbolts/variables.html#naming">naming</a> conventions that you already know about, and with good reason: Without this convention, it would be difficult to tell the difference between a type variable and an ordinary class or interface name.</p>
+<p>The most commonly used type parameter names are:</p>
+<ul>
+<li>E - Element (used extensively by the Java Collections Framework)</li>
+<li>K - Key</li>
+<li>N - Number</li>
+<li>T - Type</li>
+<li>V - Value</li>
+<li>S,U,V etc. - 2nd, 3rd, 4th types</li>
+</ul>
+<p>You'll see these names used throughout the Java SE API and the rest of this lesson.</p>
+<h2><a name="instantiation">Invoking and Instantiating a Generic Type</a></h2>
+<p>
+To reference the generic <tt>Box</tt> class from within your code, you must perform a <em>generic type invocation</em>, which replaces <tt>T</tt> with some concrete value, such as <tt>Integer</tt>:</p>
+<p>WHATSON? cb7ab335-a630-44e7-af5c-ec1d66304dac</p>
+<pre>
+Box&lt;Integer&gt; integerBox;
+</pre>
+<p>
+You can think of a generic type invocation as being similar to an ordinary method invocation, but instead of passing an argument to a method, you are passing a <em>type argument</em> — <tt>Integer</tt> in this case — to the <tt>Box</tt> class itself.</p>
+<p>
+Like any other variable declaration, this code does not actually create a new <tt>Box</tt> object. It simply declares that <tt>integerBox</tt> will hold a reference to a "<tt>Box</tt> of <tt>Integer</tt>", which is how <tt>Box&lt;Integer&gt;</tt> is read.</p>
+<p>
+An invocation of a generic type is generally known as a <em>parameterized type</em>.</p>
+<p>
+To instantiate this class, use the <tt>new</tt> keyword, as usual, but place <tt>&lt;Integer&gt;</tt> between the class name and the parenthesis:</p>
+<p>WHATSON? 8c9b54e1-2764-4707-8064-f32277a8d76b</p>
+<pre>
+Box&lt;Integer&gt; integerBox = new Box&lt;Integer&gt;();
+</pre>
+<h2><a name="diamond" id="diamond">The Diamond</a></h2>
+<p>
+In Java SE 7 and later, you can replace the type arguments required to invoke the constructor of a generic class with an empty set of type arguments (&lt;&gt;) as long as the compiler can determine, or infer, the type arguments from the context. This pair of angle brackets, &lt;&gt;, is informally called <em>the diamond</em>. For example, you can create an instance of <tt>Box&lt;Integer&gt;</tt> with the following statement:</p>
+<p>WHATSON? 981acef5-b70c-4e75-9d5d-64fb3abedcb7</p>
+<pre>
+Box&lt;Integer&gt; integerBox = new Box&lt;&gt;();
+</pre>
+<p>
+For more information on diamond notation and type inference, see
+<a class="TutorialLink" target="_top" href="genTypeInference.html">Type Inference</a>.</p>
+<h2><a name="multiple" id="multiple">Multiple Type Parameters</a></h2>
+<p>
+As mentioned previously, a generic class can have multiple type parameters. For example, the generic <tt>OrderedPair</tt> class, which implements the generic <tt>Pair</tt> interface:</p>
+<p>WHATSON? 902d3990-46b5-4de4-b632-db7321af25ae</p>
+<pre>
+public interface Pair&lt;K, V&gt; {
+    public K getKey();
+    public V getValue();
+}
+
+public class OrderedPair&lt;K, V&gt; implements Pair&lt;K, V&gt; {
+
+    private K key;
+    private V value;
+
+    public OrderedPair(K key, V value) {
+	this.key = key;
+	this.value = value;
+    }
+
+    public K getKey()	{ return key; }
+    public V getValue() { return value; }
+}
+</pre>
+<p>
+The following statements create two instantiations of the <tt>OrderedPair</tt> class:</p>
+<p>WHATSON? 0bef61cc-300f-48aa-912d-f58f65d57c29</p>
+<pre>
+Pair&lt;String, Integer&gt; p1 = new OrderedPair&lt;String, Integer&gt;("Even", 8);
+Pair&lt;String, String&gt;  p2 = new OrderedPair&lt;String, String&gt;("hello", "world");
+</pre>
+<p>
+The code, <tt>new OrderedPair&lt;String, Integer&gt;</tt>, instantiates <tt>K</tt> as a <tt>String</tt> and <tt>V</tt> as an <tt>Integer</tt>. Therefore, the parameter types of <tt>OrderedPair</tt>'s constructor are <tt>String</tt> and <tt>Integer</tt>, respectively. Due to 
+<a class="TutorialLink" target="_top" href="../data/autoboxing.html">autoboxing</a>, it is valid to pass a <tt>String</tt> and an <tt>int</tt> to the class.</p>
+<p>
+As mentioned in <a href="#diamond">The Diamond</a>, because a Java compiler can infer the <tt>K</tt> and <tt>V</tt> types from the declaration <tt>OrderedPair&lt;String, Integer&gt;</tt>, these statements can be shortened using diamond notation:</p>
+<p>WHATSON? acbaaa17-b6c0-4411-bd8c-0c7cd49dd2c6</p>
+<pre>
+OrderedPair&lt;String, Integer&gt; p1 = new OrderedPair<strong>&lt;&gt;</strong>("Even", 8);
+OrderedPair&lt;String, String&gt;  p2 = new OrderedPair<strong>&lt;&gt;</strong>("hello", "world");
+</pre>
+<p>
+To create a generic interface, follow the same conventions as for creating a generic class.</p>
+<h2>Parameterized Types</h2>
+<p>
+You can also substitute a type parameter (i.e., <tt>K</tt> or <tt>V</tt>) with a parameterized type (i.e., <tt>List&lt;String&gt;</tt>). For example, using the <tt>OrderedPair&lt;K, V&gt;</tt> example:</p>
+<p>WHATSON? 129b83cf-03a8-4372-bb34-67937eeff596</p>
+<pre>
+OrderedPair&lt;String, <strong>Box&lt;Integer&gt;</strong>&gt; p = new OrderedPair&lt;&gt;("primes", new Box&lt;Integer&gt;(...));
+</pre>

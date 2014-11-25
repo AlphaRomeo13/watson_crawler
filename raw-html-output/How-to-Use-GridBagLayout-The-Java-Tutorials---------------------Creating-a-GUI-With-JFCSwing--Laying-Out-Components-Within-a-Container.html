@@ -1,0 +1,168 @@
+<h1>How to Use GridBagLayout</h1>
+<p>If you are interested in using JavaFX to create your GUI, see
+<a class="OutsideLink" target="_blank" href="http://docs.oracle.com/javase/8/javafx/layout-tutorial/index.html">Working With Layouts in JavaFX</a>.</p>
+<p>Here is a picture of an example that uses 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/awt/GridBagLayout.html"><code>GridBagLayout</code></a>.</p>
+<p>Click the Launch button to run GridBagLayoutDemo using 
+<a class="OutsideLink" target="_blank" href="http://www.oracle.com/technetwork/java/javase/javawebstart/index.html">Java™ Web Start</a> (<a href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">download JDK 7 or later</a>). Alternatively, to compile and run the example yourself, consult the <a href="../examples/layout/index.html#GridBagLayoutDemo">example index</a>.</p>
+<p>The code for GridBagDemo is in 
+<a class="SourceLink" target="_blank" href="../examples/layout/GridBagLayoutDemoProject/src/layout/GridBagLayoutDemo.java" onclick="showCode('../../displayCode.html', '../examples/layout/GridBagLayoutDemoProject/src/layout/GridBagLayoutDemo.java'); return false;"><code>GridBagLayoutDemo.java</code></a>.</p>
+<p><code>GridBagLayout</code> is one of the most flexible  and complex  layout managers the Java platform provides. A <code>GridBagLayout</code> places components in a grid of rows and columns, allowing specified components to span multiple rows or columns. Not all rows necessarily have the same height. Similarly, not all columns necessarily have the same width. Essentially, <code>GridBagLayout</code> places components in rectangles (cells) in a grid, and then uses the components' preferred sizes to determine how big the cells should be.</p>
+<p>The following figure shows the grid for the preceding applet. As you can see, the grid has three rows and three columns. The button in the second row spans all the columns; the button in the third row spans the two right columns.</p>
+<p>If you enlarge the window as shown in the following figure, you will notice that the bottom row, which contains Button 5, gets all the new vertical space. The new horizontal space is split evenly among all the columns. This resizing behavior is based on weights the program assigns to individual components in the <code>GridBagLayout</code>. You will also notice that each component takes up all the available horizontal space  but not (as you can see with button 5) all the available vertical space. This behavior is also specified by the program.</p>
+<p>The way the program specifies the size and position characteristics of its components is by specifying <em>constraints</em> for each component. The preferred approach to set constraints on a component is to use the <code>Container.add</code> variant, passing it a <code>GridBagConstraints</code> object, as demonstrated in the next sections.</p>
+<p>The following sections explain the constraints you can set and provide examples.</p>
+<h2><a name="gridbagConstraints" id="gridbagConstraints">Specifying Constraints</a></h2>
+<p>The following code is typical of what goes in a container that uses a 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/awt/GridBagLayout.html"><code>GridBagLayout</code></a>. You will see a more detailed example in the next section.</p>
+<p>WHATSON? 21f53155-caab-44b7-94b5-4e9459d84032</p>
+<pre>
+JPanel pane = new JPanel(new GridBagLayout());
+GridBagConstraints c = new GridBagConstraints();
+
+<em>//For each component to be added to this container:</em>
+<em>//...Create the component...</em>
+<em>//...Set instance variables in the GridBagConstraints instance...</em>
+pane.add(theComponent, c);
+</pre>
+<p>As you might have guessed from the above example, it is possible to reuse the same <code>GridBagConstraints</code> instance for multiple components, even if the components have different constraints. However, it is recommended that you do not reuse <code>GridBagConstraints</code>, as this can very easily lead to you introducing subtle bugs if you forget to reset the fields for each new instance.</p>
+<p>You can set the following 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/awt/GridBagConstraints.html"><code>GridBagConstraints</code></a> instance variables:</p>
+<p><strong>Note:</strong> <code>GridBagLayout</code> does not allow components to span multiple rows unless the component is in the leftmost column or you have specified positive <code>gridx</code> and <code>gridy</code> values for the component.</p>
+<p>Here is a picture of how these values are interpreted in a container that has the default, left-to-right component orientation. <!--[PENDING: A real figure will go here.
+     It will put a hint of a button border around each constant,
+     so that it's obvious that the component is hugging the 
+     specified part of its display area.]--></p>
+<p>Unless you specify at least one non-zero value for <code>weightx</code> or <code>weighty</code>, all the components clump together in the center of their container. This is because when the weight is 0.0 (the default), the <code>GridBagLayout</code> puts any extra space between its grid of cells and the edges of the container.</p>
+<p>Generally weights are specified with 0.0 and 1.0 as the extremes: the numbers in between are used as necessary. Larger numbers indicate that the component's row or column should get more space. For each column, the weight is related to the highest <code>weightx</code> specified for a component within that column, with each multicolumn component's weight being split somehow between the columns the component is in. Similarly, each row's weight is related to the highest <code>weighty</code> specified for a component within that row. Extra space tends to go toward the rightmost column and bottom row.</p>
+<p>The next section discusses constraints in depth, in the context of explaining how the example program works.</p>
+<h2><a name="gridbagExample" id="gridbagExample">The Example Explained</a></h2>
+<p>Here, again, is a picture of the GridBagLayoutDemo application.</p>
+<p>Click the Launch button to run GridBagLayoutDemo using 
+<a class="OutsideLink" target="_blank" href="http://www.oracle.com/technetwork/java/javase/javawebstart/index.html">Java™ Web Start</a> (<a href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">download JDK 7 or later</a>). Alternatively, to compile and run the example yourself, consult the <a href="../examples/layout/index.html#GridBagLayoutDemo">example index</a>.</p>
+<p>The following code creates the <code>GridBagLayout</code> and the components it manages. You can find the entire source file in 
+<a class="SourceLink" target="_blank" href="../examples/layout/GridBagLayoutDemoProject/src/layout/GridBagLayoutDemo.java" onclick="showCode('../../displayCode.html', '../examples/layout/GridBagLayoutDemoProject/src/layout/GridBagLayoutDemo.java'); return false;"><code>GridBagLayoutDemo.java</code></a>.</p>
+<p>WHATSON? 573508dc-2526-4f8e-95d3-8b1173d56d2f</p>
+<pre>
+JButton button;
+pane.setLayout(new GridBagLayout());
+GridBagConstraints c = new GridBagConstraints();
+if (shouldFill) {
+                //natural height, maximum width
+                c.fill = GridBagConstraints.HORIZONTAL;
+}
+
+button = new JButton("Button 1");
+if (shouldWeightX) {
+                   c.weightx = 0.5;
+}
+c.fill = GridBagConstraints.HORIZONTAL;
+c.gridx = 0;
+c.gridy = 0;
+pane.add(button, c);
+
+button = new JButton("Button 2");
+c.fill = GridBagConstraints.HORIZONTAL;
+c.weightx = 0.5;
+c.gridx = 1;
+c.gridy = 0;
+pane.add(button, c);
+
+button = new JButton("Button 3");
+c.fill = GridBagConstraints.HORIZONTAL;
+c.weightx = 0.5;
+c.gridx = 2;
+c.gridy = 0;
+pane.add(button, c);
+
+button = new JButton("Long-Named Button 4");
+c.fill = GridBagConstraints.HORIZONTAL;
+c.ipady = 40;      //make this component tall
+c.weightx = 0.0;
+c.gridwidth = 3;
+c.gridx = 0;
+c.gridy = 1;
+pane.add(button, c);
+
+button = new JButton("5");
+c.fill = GridBagConstraints.HORIZONTAL;
+c.ipady = 0;       //reset to default
+c.weighty = 1.0;   //request any extra vertical space
+c.anchor = GridBagConstraints.PAGE_END; //bottom of space
+c.insets = new Insets(10,0,0,0);  //top padding
+c.gridx = 1;       //aligned with button 2
+c.gridwidth = 2;   //2 columns wide
+c.gridy = 2;       //third row
+pane.add(button, c);
+</pre>
+<p>This example uses one <code>GridBagConstraints</code> instance for all the components the <code>GridBagLayout</code> manages, however in real-life situations it is recommended that you do not reuse <code>GridBagConstraints</code>, as this can very easily lead to you introducing subtle bugs if you forget to reset the fields for each new instance. Just before each component is added to the container, the code sets (or resets to default values) the appropriate instance variables in the <code>GridBagConstraints</code> object. It then adds the component to its container, specifying the <code>GridBagConstraints</code> object as the second argument to the <code>add</code> method.</p>
+<p>For example, to make button 4 be extra tall, the example has this code:</p>
+<p>WHATSON? b02bf8f1-e277-4702-8fc2-e7896529eeca</p>
+<pre>
+c.ipady = 40;
+</pre>
+<p>And before setting the constraints of the next component, the code resets the value of <code>ipady</code> to the default:</p>
+<p>WHATSON? 47c3ad07-4ef8-4ceb-abd8-ff4cd02c2ede</p>
+<pre>
+c.ipady = 0;
+</pre>
+<p>If a component's display area is larger than the component itself, then you can specify whereabouts in the display area the component will be displayed by using the <code>GridBagConstraints.anchor</code> constraint. The <code>anchor</code> constraint's values can be absolute (north, south, east, west, and so on), or orientation-relative (at start of page, at end of line, at the start of the first line, and so on), or relative to the component's baseline. For a full list of the possible values of the <code>anchor</code> constraint, including baseline-relative values,see the API documentation for 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/awt/GridBagConstraints.html#anchor"><code>GridBagConstraints.anchor</code></a>. You can see in the code extract above that Button 5 specifies that it should be displayed at the end of the display area by setting an anchor at <code>GridBagConstraints.PAGE_END</code>.</p>
+<p>WHATSON? b2618a94-7b2e-484b-9c76-ffcb092c5a6e</p>
+<pre>
+GridBagLayout gridbag = new GridBagLayout();
+pane.setLayout(gridbag);
+...
+gridbag.setConstraints(button, c);
+pane.add(button);
+</pre>
+<p>Here is a table that shows all the constraints for each component in GridBagLayoutDemo's content pane. Values that are not the default are marked in <b>boldface</b>. Values that are different from those in the previous table entry are marked in <i>italics</i>.</p>
+<p>WHATSON? c601aae3-39c6-43e7-85d1-c93f6bda1fe9</p>
+<pre>
+ipadx = 0
+<b>fill = GridBagConstraints.HORIZONTAL</b>
+</pre>
+<p>WHATSON? bb4d3a7a-bcdb-454b-9c81-bb2c9b6c7e72</p>
+<pre>
+ipady = 0 <b>weightx = 0.5</b> weighty = 0.0 gridwidth = 1 anchor = GridBagConstraints.CENTER insets = new Insets(0,0,0,0) <b>gridx = 0</b> <b>gridy = 0</b>
+</pre>
+<p>WHATSON? cd10f0e4-57dd-4be7-a573-722c571afe66</p>
+<pre>
+<b>weightx = 0.5</b>
+<i><b>gridx = 1</b></i>
+<b>gridy = 0</b>
+</pre>
+<p>WHATSON? b379bd7b-b4e9-49c5-80a6-90164b885c12</p>
+<pre>
+<b>weightx = 0.5</b>
+<i><b>gridx = 2</b></i>
+<b>gridy = 0</b>
+</pre>
+<p>WHATSON? 61d8390e-9844-4d1d-88a8-6479762fa81a</p>
+<pre>
+<i><b>ipady = 40</b></i>
+<i>weightx = 0.0</i>
+<i><b>gridwidth = 3</b></i>
+<i><b>gridx = 0</b></i>
+<i><b>gridy = 1</b></i>
+</pre>
+<p>WHATSON? 3f9eacdd-f906-4e0b-b734-0938b6656e7d</p>
+<pre>
+<i>ipady = 0</i>
+weightx = 0.0
+<i><b>weighty = 1.0</b></i>
+<i><b>anchor = GridBagConstraints.PAGE_END</b></i>
+<i><b>insets = new Insets(10,0,0,0)</b></i>
+<i><b>gridwidth = 2</b></i>
+<i><b>gridx = 1</b></i>
+<i><b>gridy = 2</b></i>
+</pre>
+<p>GridBagLayoutDemo has two components that span multiple columns (buttons 4 and 5). To make button 4 tall, we added internal padding (<code>ipady</code>) to it. To put space between buttons 4 and 5, we used insets to add a minimum of 10 pixels above button 5, and we made button 5 hug the bottom edge of its cell.</p>
+<p>All the components in the <code>pane</code> container are as wide as possible, given the cells that they occupy. The program accomplishes this by setting the <code>GridBagConstraints</code> <code>fill</code> instance variable to <code>GridBagConstraints.HORIZONTAL</code>, leaving it at that setting for all the components. If the program did not specify the fill, the buttons would be at their natural width, like this:</p>
+<p>When you enlarge GridBagLayoutDemo's window, the columns grow proportionately. This is because each component in the first row, where each component is one column wide, has <code>weightx = 0.5</code>. The actual value of these components' <code>weightx</code> is unimportant. What matters is that all the components, and consequently, all the columns, have an equal weight that is greater than 0. If no component managed by the <code>GridBagLayout</code> had <code>weightx</code> set, then when the components' container was made wider, the components would stay clumped together in the center of the container, like this:</p>
+<p>If the container is given a size that is smaller or bigger than the prefered size, then any space is distributed according to the <code>GridBagContainer</code> weights.</p>
+<p>Note that if you enlarge the window, the last row is the only one that gets taller. This is because only button 5 has <code>weighty</code> greater than zero.</p>
+<h2><a name="api" id="api">The GridBagLayout API</a></h2>
+<p>The <code>GridBagLayout</code> and <code>GridBagConstraints</code> classes each have only one constructor, with no arguments. Instead of invoking methods on a <code>GridBagConstraints</code> object, you manipulate its instance variables, as described in <a href="#gridbagConstraints">Specifying Constraints</a>. Generally, the only method you invoke on a <code>GridBagLayout</code> object is <code>setConstraints</code>, as demonstrated in <a href="#gridbagExample">The Example Explained</a>.</p>
+<h2><a name="eg" id="eg">Examples that Use GridBagLayout</a></h2>
+<p>You can find examples of using <code>GridBagLayout</code> throughout this tutorial. The following table lists a few.</p>

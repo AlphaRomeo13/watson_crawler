@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Fragile-base-class---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Fragile base class</h1>
+<p>The <b>fragile base class problem</b> is a fundamental architectural problem of object-oriented programming systems where base classes (superclasses) are considered "fragile" because seemingly safe modifications to a base class, when inherited by the derived classes, may cause the derived classes to malfunction. The programmer cannot determine whether a base class change is safe simply by examining in isolation the methods of the base class.</p>
+<p>One possible solution is to make instance variables private to their defining class and force subclasses to use accessors to modify superclass states. A language could also make it so that subclasses can control which inherited methods are exposed publicly. These changes prevent subclasses from relying on implementation details of superclasses and allow subclasses to expose only those superclass methods that are applicable to themselves.</p>
+<p>Another alternative solution could be to have an interface instead of superclass.</p>
+<p>The fragile base class problem has been blamed on open recursion (dynamic dispatch of methods on <code>this</code>), with the suggestion that invoking methods on <code>this</code> default to closed recursion (static dispatch, early binding) rather than open recursion (dynamic dispatch, late binding), only using open recursion when it is specifically requested; external calls (not using <code>this</code>) would be dynamically dispatched as usual.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Java Example</li>
+<li>2 Solutions</li>
+<li>3 See also</li>
+<li>4 References</li>
+<li>5 External links</li>
+</ul>
+<p></p>
+<h2>Java Example</h2>
+<p>The following trivial example is written in the Java programming language and shows how a seemingly safe modification of a base class, can cause an inheriting subclass to malfunction by entering an infinite recursion which will result into a Stack Overflow.</p>
+<p>WHATSON? dbb0a67f-dd1c-4525-8064-1bb8dd05590d</p>
+<pre>
+class Super {
+ 
+  private int counter = 0;
+ 
+  void inc1() {
+    counter++;
+  }
+ 
+  void inc2() {
+    counter++;
+  }
+ 
+}
+ 
+class Sub extends Super {
+ 
+  @Override
+  void inc2() {
+    inc1();
+  }
+ 
+}
+</pre>
+<p>Calling the dynamically bound method <i>inc2()</i> on an instance of <i>Sub</i> will correctly increase the field <i>counter</i> by one. If however the code of the superclass is changed in the following way:</p>
+<p>WHATSON? c3bf6bd1-7e4c-4d0d-8090-13649888e41d</p>
+<pre>
+class Super {
+ 
+  private int counter = 0;
+ 
+  void inc1() {
+    inc2();
+  }
+ 
+  void inc2() {
+    counter++;
+  }
+}
+</pre>
+<p>a call to the dynamically bound method <i>inc2()</i> on an instance of <i>Sub</i> will cause an infinite recursion between itself and the method <i>inc1()</i> of the sub-class and eventually cause a stack overflow. This problem could have been avoided, by declaring the methods in the superclass as <b>final</b>, which would make it impossible for a sub-class to override them. However, this is not always desirable or possible. Therefore, it is good practice for super-classes to avoid changing calls to dynamically-bound methods.</p>
+<h2>Solutions</h2>
+<ul>
+<li>Objective-C has categories as well as non-fragile instance variables.</li>
+<li>Component Pascal deprecates superclass calls.</li>
+<li>Java, C++ and D allow inheritance or overriding a class method to be prohibited by labeling a declaration of a class or method, respectively, with the keyword "<tt>final</tt>". In the book <i>Effective Java</i>, author Joshua Bloch writes (in item 17) that programmers should "Design and document for inheritance or else prohibit it".</li>
+<li>C# and VB.NET like Java have "<tt>sealed</tt>" and "<tt>Not Inheritable</tt>" class declaration keywords to prohibit inheritance.</li>
+<li>Scala require a subclass to use keyword "<tt>override</tt>" explicitly in order to override a parent class method. In the book "Programming in Scala, 2nd Edition", the author writes that (with modifications here) If there was no method f(), the client’s original implementation of method f() could not have had an override modifier. Once you add the f() method to the second version of your library class, a recompile of the client code would give an compile error instead of wrong behavior.</li>
+</ul>
+<h2>See also</h2>
+<ul>
+<li>Fragile binary interface problem</li>
+<li>Implementation inheritance</li>
+<li>Inheritance semantics</li>
+<li>Software brittleness</li>
+<li>Virtual Inheritance (object-oriented programming)</li>
+</ul>
+</body>
+</html>

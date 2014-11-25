@@ -1,0 +1,26 @@
+<h1>Memory Consistency Errors</h1>
+<p><i>Memory consistency errors</i> occur when different threads have inconsistent views of what should be the same data. The causes of memory consistency errors are complex and beyond the scope of this tutorial. Fortunately, the programmer does not need a detailed understanding of these causes. All that is needed is a strategy for avoiding them.</p>
+<p>The key to avoiding memory consistency errors is understanding the <i>happens-before</i> relationship. This relationship is simply a guarantee that memory writes by one specific statement are visible to another specific statement. To see this, consider the following example. Suppose a simple <code>int</code> field is defined and initialized:</p>
+<p>WHATSON? 5311107f-4032-4d02-bf92-63c4e11634d1</p>
+<pre>
+int counter = 0;
+</pre>
+<p>The <code>counter</code> field is shared between two threads, A and B. Suppose thread A increments <code>counter</code>:</p>
+<p>WHATSON? 03fb8e20-43b2-4dd8-a24b-feb953569c55</p>
+<pre>
+counter++;
+</pre>
+<p>Then, shortly afterwards, thread B prints out <code>counter</code>:</p>
+<p>WHATSON? 93a0528f-34fe-446b-830f-c80778d50485</p>
+<pre>
+System.out.println(counter);
+</pre>
+<p>If the two statements had been executed in the same thread, it would be safe to assume that the value printed out would be "1". But if the two statements are executed in separate threads, the value printed out might well be "0", because there's no guarantee that thread A's change to <code>counter</code> will be visible to thread B  unless the programmer has established a happens-before relationship between these two statements.</p>
+<p>There are several actions that create happens-before relationships. One of them is synchronization, as we will see in the following sections.</p>
+<p>We've already seen two actions that create happens-before relationships.</p>
+<ul>
+<li>When a statement invokes <code>Thread.start</code>, every statement that has a happens-before relationship with that statement also has a happens-before relationship with every statement executed by the new thread. The effects of the code that led up to the creation of the new thread are visible to the new thread.</li>
+<li>When a thread terminates and causes a <code>Thread.join</code> in another thread to return, then all the statements executed by the terminated thread have a happens-before relationship with all the statements following the successful join. The effects of the code in the thread are now visible to the thread that performed the join.</li>
+</ul>
+<p>For a list of actions that create happens-before relationships, refer to the 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/util/concurrent/package-summary.html#MemoryVisibility">Summary page of the <code>java.util.concurrent</code> package.</a>.</p>

@@ -1,0 +1,372 @@
+<h1 itemprop="name">Pickers</h1>
+<h2>In this document</h2>
+<ol>
+  <li><a href="#TimePicker">Creating a Time Picker</a>
+    <ol>
+      <li><a href="#TimePickerFragment">Extending DialogFragment for a time picker</a></li>
+      <li><a href="#ShowingTheTimePicker">Showing the time picker</a></li>
+    </ol>
+  </li>
+  <li><a href="#DatePicker">Creating a Date Picker</a>
+    <ol>
+      <li><a href="#DatePickerFragment">Extending DialogFragment for a date picker</a></li>
+      <li><a href="#ShowingTheDatePicker">Showing the date picker</a></li>
+    </ol>
+  </li>
+</ol>
+<ol>
+      <li><a href="#TimePickerFragment">Extending DialogFragment for a time picker</a></li>
+      <li><a href="#ShowingTheTimePicker">Showing the time picker</a></li>
+    </ol>
+<ol>
+      <li><a href="#DatePickerFragment">Extending DialogFragment for a date picker</a></li>
+      <li><a href="#ShowingTheDatePicker">Showing the date picker</a></li>
+    </ol>
+<h2>Key classes</h2>
+<ol>
+    <li><code><a href="/reference/android/app/DatePickerDialog.html">DatePickerDialog</a></code></li>
+    <li><code><a href="/reference/android/app/TimePickerDialog.html">TimePickerDialog</a></code></li>
+    <li><code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code></li>
+  </ol>
+<h2>See also</h2>
+<ol>
+    <li><a href="/guide/components/fragments.html">Fragments</a></li>
+  </ol>
+<p>Android provides controls for the user to pick a time or pick a date as ready-to-use dialogs.
+Each picker provides controls for selecting each part of the time (hour, minute, AM/PM) or date
+(month, day, year). Using these pickers helps ensure that your users can pick a time or date that
+is valid, formatted correctly, and adjusted to the user's locale.</p>
+<p>We recommend that you use <code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code> to host each time or date
+picker. The <code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code> manages the dialog lifecycle for you and
+allows you to display the pickers in different layout configurations,
+such as in a basic dialog on handsets or as an embedded part of the layout on large screens.</p>
+<p>Although <code><a href="/reference/android/app/DialogFragment.html">DialogFragment</a></code> was first added to the platform in Android 3.0 (API
+level 11), if your app supports versions of Android older than 3.0—even as low as Android
+1.6—you can use the <code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code> class that's available in
+the <a href="/tools/support-library/index.html">support library</a> for backward
+compatibility.</p>
+<p class="note"><strong>Note:</strong> The code samples below show how to create dialogs for a time
+picker and date picker using the <a href="/tools/support-library/index.html">support
+library</a> APIs for <code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code>. If your app's <a href="/guide/topics/manifest/uses-sdk-element.html#min"><code>minSdkVersion</code></a> is 11 or
+higher, you can instead use the platform version of <code><a href="/reference/android/app/DialogFragment.html">DialogFragment</a></code>.</p>
+<h2 id="TimePicker">Creating a Time Picker</h2>
+<p>To display a <code><a href="/reference/android/app/TimePickerDialog.html">TimePickerDialog</a></code> using <code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code>, you need to define a fragment class that extends <code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code> and return a <code><a href="/reference/android/app/TimePickerDialog.html">TimePickerDialog</a></code> from the
+fragment's <code><a href="/reference/android/support/v4/app/DialogFragment.html#onCreateDialog(android.os.Bundle)">onCreateDialog()</a></code> method.</p>
+<p class="note"><strong>Note:</strong> If your app supports versions of Android older than 3.0,
+be sure you've set up your Android project with the support library as described in <a href="/tools/support-library/setup.html">Setting Up a Project to Use a
+Library</a>.</p>
+<h3 id="TimePickerFragment">Extending DialogFragment for a time picker</h3>
+<p>To define a <code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code> for a <code><a href="/reference/android/app/TimePickerDialog.html">TimePickerDialog</a></code>, you
+must:</p>
+<ul>
+  <li>Define the <code><a href="/reference/android/support/v4/app/DialogFragment.html#onCreateDialog(android.os.Bundle)">onCreateDialog()</a></code>
+method to return an instance of <code><a href="/reference/android/app/TimePickerDialog.html">TimePickerDialog</a></code></li>
+  <li>Implement the
+<code><a href="/reference/android/app/TimePickerDialog.OnTimeSetListener.html">TimePickerDialog.OnTimeSetListener</a></code> interface to receive a callback when the user
+sets the time.</li>
+</ul>
+<p>Here's an example:</p>
+<p>WHATSON? 2a1650d7-ba11-475b-8fae-77ac3001a1da</p>
+<pre>
+public static class TimePickerFragment extends DialogFragment
+                            implements TimePickerDialog.OnTimeSetListener {
+
+    @Override
+    public Dialog onCreateDialog(Bundle savedInstanceState) {
+        // Use the current time as the default values for the picker
+        final Calendar c = Calendar.getInstance();
+        int hour = c.get(Calendar.HOUR_OF_DAY);
+        int minute = c.get(Calendar.MINUTE);
+
+        // Create a new instance of TimePickerDialog and return it
+        return new TimePickerDialog(getActivity(), this, hour, minute,
+                DateFormat.is24HourFormat(getActivity()));
+    }
+
+    public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+        // Do something with the time chosen by the user
+    }
+}
+</pre>
+<p>See the <code><a href="/reference/android/app/TimePickerDialog.html">TimePickerDialog</a></code> class for information about the constructor
+arguments.</p>
+<p>Now all you need is an event that adds an instance of this fragment to your activity.</p>
+<h3 id="ShowingTheTimePicker">Showing the time picker</h3>
+<p>Once you've defined a <code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code> like the one shown above,
+you can display the time picker by creating an instance of the <code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code> and calling <code><a href="/reference/android/support/v4/app/DialogFragment.html#show(android.support.v4.app.FragmentManager,%20java.lang.String)">show()</a></code>.</p>
+<p>For example, here's a button that, when clicked, calls a method to show the dialog:</p>
+<p>WHATSON? 9a97bffa-024c-4ab5-8474-9b1b60c4bedd</p>
+<pre>
+&lt;Button 
+    android:layout_width="wrap_content" 
+    android:layout_height="wrap_content"
+    android:text="@string/pick_time" 
+    android:onClick="showTimePickerDialog" /&gt;
+</pre>
+<p>When the user clicks this button, the system calls the following method:</p>
+<p>WHATSON? 95ff83d5-56eb-4268-b3bf-fda5666ca68f</p>
+<pre>
+public void showTimePickerDialog(View v) {
+    DialogFragment newFragment = new TimePickerFragment();
+    newFragment.show(getSupportFragmentManager(), "timePicker");
+}
+</pre>
+<p>This method calls <code><a href="/reference/android/support/v4/app/DialogFragment.html#show(android.support.v4.app.FragmentManager,%20java.lang.String)">show()</a></code> on a new instance of the <code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code> defined above. The <code><a href="/reference/android/support/v4/app/DialogFragment.html#show(android.support.v4.app.FragmentManager,%20java.lang.String)">show()</a></code> method requires an instance of <code><a href="/reference/android/support/v4/app/FragmentManager.html">FragmentManager</a></code> and a unique tag name for the fragment.</p>
+<p class="caution"><strong>Caution:</strong> If your app supports versions of Android lower than
+3.0, be sure that you call <code><a href="/reference/android/support/v4/app/FragmentActivity.html#getSupportFragmentManager()">getSupportFragmentManager()</a></code> to acquire an instance of
+<code><a href="/reference/android/support/v4/app/FragmentManager.html">FragmentManager</a></code>. Also make sure that your activity that displays the
+time picker extends <code><a href="/reference/android/support/v4/app/FragmentActivity.html">FragmentActivity</a></code> instead of the standard <code><a href="/reference/android/app/Activity.html">Activity</a></code> class.</p>
+<h2 id="DatePicker">Creating a Date Picker</h2>
+<p>Creating a <code><a href="/reference/android/app/DatePickerDialog.html">DatePickerDialog</a></code> is just like creating a <code><a href="/reference/android/app/TimePickerDialog.html">TimePickerDialog</a></code>. The only difference is the dialog you create for the fragment.</p>
+<p>To display a <code><a href="/reference/android/app/DatePickerDialog.html">DatePickerDialog</a></code> using <code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code>, you need to define a fragment class that extends <code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code> and return a <code><a href="/reference/android/app/DatePickerDialog.html">DatePickerDialog</a></code> from the
+fragment's <code><a href="/reference/android/support/v4/app/DialogFragment.html#onCreateDialog(android.os.Bundle)">onCreateDialog()</a></code> method.</p>
+<p class="note"><strong>Note:</strong> If your app supports versions of Android older than 3.0,
+be sure you've set up your Android project with the support library as described in <a href="/tools/support-library/setup.html">Setting Up a Project to Use a
+Library</a>.</p>
+<h3 id="DatePickerFragment">Extending DialogFragment for a date picker</h3>
+<p>To define a <code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code> for a <code><a href="/reference/android/app/DatePickerDialog.html">DatePickerDialog</a></code>, you
+must:</p>
+<ul>
+  <li>Define the <code><a href="/reference/android/support/v4/app/DialogFragment.html#onCreateDialog(android.os.Bundle)">onCreateDialog()</a></code>
+method to return an instance of <code><a href="/reference/android/app/DatePickerDialog.html">DatePickerDialog</a></code></li>
+  <li>Implement the
+<code><a href="/reference/android/app/DatePickerDialog.OnDateSetListener.html">DatePickerDialog.OnDateSetListener</a></code> interface to receive a callback when the user
+sets the date.</li>
+</ul>
+<p>Here's an example:</p>
+<p>WHATSON? 68a49167-b154-4a5d-987f-aad8150f7911</p>
+<pre>
+public static class DatePickerFragment extends DialogFragment
+                            implements DatePickerDialog.OnDateSetListener {
+
+    @Override
+    public Dialog onCreateDialog(Bundle savedInstanceState) {
+        // Use the current date as the default date in the picker
+        final Calendar c = Calendar.getInstance();
+        int year = c.get(Calendar.YEAR);
+        int month = c.get(Calendar.MONTH);
+        int day = c.get(Calendar.DAY_OF_MONTH);
+
+        // Create a new instance of DatePickerDialog and return it
+        return new DatePickerDialog(getActivity(), this, year, month, day);
+    }
+
+    public void onDateSet(DatePicker view, int year, int month, int day) {
+        // Do something with the date chosen by the user
+    }
+}
+</pre>
+<p>See the <code><a href="/reference/android/app/DatePickerDialog.html">DatePickerDialog</a></code> class for information about the constructor
+arguments.</p>
+<p>Now all you need is an event that adds an instance of this fragment to your activity.</p>
+<h3 id="ShowingTheDatePicker">Showing the date picker</h3>
+<p>Once you've defined a <code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code> like the one shown above,
+you can display the date picker by creating an instance of the <code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code> and calling <code><a href="/reference/android/support/v4/app/DialogFragment.html#show(android.support.v4.app.FragmentManager,%20java.lang.String)">show()</a></code>.</p>
+<p>For example, here's a button that, when clicked, calls a method to show the dialog:</p>
+<p>WHATSON? 76b1f5cf-ec58-4dba-846f-bf1b5eb86a6f</p>
+<pre>
+&lt;Button 
+    android:layout_width="wrap_content" 
+    android:layout_height="wrap_content"
+    android:text="@string/pick_date" 
+    android:onClick="showDatePickerDialog" /&gt;
+</pre>
+<p>When the user clicks this button, the system calls the following method:</p>
+<p>WHATSON? b8baf3bb-b684-44ba-9b8d-a5c65a7954c2</p>
+<pre>
+public void showDatePickerDialog(View v) {
+    DialogFragment newFragment = new DatePickerFragment();
+    newFragment.show(getSupportFragmentManager(), "datePicker");
+}
+</pre>
+<p>This method calls <code><a href="/reference/android/support/v4/app/DialogFragment.html#show(android.support.v4.app.FragmentManager,%20java.lang.String)">show()</a></code> on a new instance of the <code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code> defined above. The <code><a href="/reference/android/support/v4/app/DialogFragment.html#show(android.support.v4.app.FragmentManager,%20java.lang.String)">show()</a></code> method requires an instance of <code><a href="/reference/android/support/v4/app/FragmentManager.html">FragmentManager</a></code> and a unique tag name for the fragment.</p>
+<p class="caution"><strong>Caution:</strong> If your app supports versions of Android lower than
+3.0, be sure that you call <code><a href="/reference/android/support/v4/app/FragmentActivity.html#getSupportFragmentManager()">getSupportFragmentManager()</a></code> to acquire an instance of
+<code><a href="/reference/android/support/v4/app/FragmentManager.html">FragmentManager</a></code>. Also make sure that your activity that displays the
+time picker extends <code><a href="/reference/android/support/v4/app/FragmentActivity.html">FragmentActivity</a></code> instead of the standard <code><a href="/reference/android/app/Activity.html">Activity</a></code> class.</p>
+<h1 itemprop="name">Pickers</h1>
+<h2>In this document</h2>
+<ol>
+  <li><a href="#TimePicker">Creating a Time Picker</a>
+    <ol>
+      <li><a href="#TimePickerFragment">Extending DialogFragment for a time picker</a></li>
+      <li><a href="#ShowingTheTimePicker">Showing the time picker</a></li>
+    </ol>
+  </li>
+  <li><a href="#DatePicker">Creating a Date Picker</a>
+    <ol>
+      <li><a href="#DatePickerFragment">Extending DialogFragment for a date picker</a></li>
+      <li><a href="#ShowingTheDatePicker">Showing the date picker</a></li>
+    </ol>
+  </li>
+</ol>
+<ol>
+      <li><a href="#TimePickerFragment">Extending DialogFragment for a time picker</a></li>
+      <li><a href="#ShowingTheTimePicker">Showing the time picker</a></li>
+    </ol>
+<ol>
+      <li><a href="#DatePickerFragment">Extending DialogFragment for a date picker</a></li>
+      <li><a href="#ShowingTheDatePicker">Showing the date picker</a></li>
+    </ol>
+<h2>Key classes</h2>
+<ol>
+    <li><code><a href="/reference/android/app/DatePickerDialog.html">DatePickerDialog</a></code></li>
+    <li><code><a href="/reference/android/app/TimePickerDialog.html">TimePickerDialog</a></code></li>
+    <li><code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code></li>
+  </ol>
+<h2>See also</h2>
+<ol>
+    <li><a href="/guide/components/fragments.html">Fragments</a></li>
+  </ol>
+<p>Android provides controls for the user to pick a time or pick a date as ready-to-use dialogs.
+Each picker provides controls for selecting each part of the time (hour, minute, AM/PM) or date
+(month, day, year). Using these pickers helps ensure that your users can pick a time or date that
+is valid, formatted correctly, and adjusted to the user's locale.</p>
+<p>We recommend that you use <code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code> to host each time or date
+picker. The <code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code> manages the dialog lifecycle for you and
+allows you to display the pickers in different layout configurations,
+such as in a basic dialog on handsets or as an embedded part of the layout on large screens.</p>
+<p>Although <code><a href="/reference/android/app/DialogFragment.html">DialogFragment</a></code> was first added to the platform in Android 3.0 (API
+level 11), if your app supports versions of Android older than 3.0—even as low as Android
+1.6—you can use the <code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code> class that's available in
+the <a href="/tools/support-library/index.html">support library</a> for backward
+compatibility.</p>
+<p class="note"><strong>Note:</strong> The code samples below show how to create dialogs for a time
+picker and date picker using the <a href="/tools/support-library/index.html">support
+library</a> APIs for <code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code>. If your app's <a href="/guide/topics/manifest/uses-sdk-element.html#min"><code>minSdkVersion</code></a> is 11 or
+higher, you can instead use the platform version of <code><a href="/reference/android/app/DialogFragment.html">DialogFragment</a></code>.</p>
+<h2 id="TimePicker">Creating a Time Picker</h2>
+<p>To display a <code><a href="/reference/android/app/TimePickerDialog.html">TimePickerDialog</a></code> using <code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code>, you need to define a fragment class that extends <code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code> and return a <code><a href="/reference/android/app/TimePickerDialog.html">TimePickerDialog</a></code> from the
+fragment's <code><a href="/reference/android/support/v4/app/DialogFragment.html#onCreateDialog(android.os.Bundle)">onCreateDialog()</a></code> method.</p>
+<p class="note"><strong>Note:</strong> If your app supports versions of Android older than 3.0,
+be sure you've set up your Android project with the support library as described in <a href="/tools/support-library/setup.html">Setting Up a Project to Use a
+Library</a>.</p>
+<h3 id="TimePickerFragment">Extending DialogFragment for a time picker</h3>
+<p>To define a <code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code> for a <code><a href="/reference/android/app/TimePickerDialog.html">TimePickerDialog</a></code>, you
+must:</p>
+<ul>
+  <li>Define the <code><a href="/reference/android/support/v4/app/DialogFragment.html#onCreateDialog(android.os.Bundle)">onCreateDialog()</a></code>
+method to return an instance of <code><a href="/reference/android/app/TimePickerDialog.html">TimePickerDialog</a></code></li>
+  <li>Implement the
+<code><a href="/reference/android/app/TimePickerDialog.OnTimeSetListener.html">TimePickerDialog.OnTimeSetListener</a></code> interface to receive a callback when the user
+sets the time.</li>
+</ul>
+<p>Here's an example:</p>
+<p>WHATSON? 5544af18-c515-4cdf-80a0-0c004aa57041</p>
+<pre>
+public static class TimePickerFragment extends DialogFragment
+                            implements TimePickerDialog.OnTimeSetListener {
+
+    @Override
+    public Dialog onCreateDialog(Bundle savedInstanceState) {
+        // Use the current time as the default values for the picker
+        final Calendar c = Calendar.getInstance();
+        int hour = c.get(Calendar.HOUR_OF_DAY);
+        int minute = c.get(Calendar.MINUTE);
+
+        // Create a new instance of TimePickerDialog and return it
+        return new TimePickerDialog(getActivity(), this, hour, minute,
+                DateFormat.is24HourFormat(getActivity()));
+    }
+
+    public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
+        // Do something with the time chosen by the user
+    }
+}
+</pre>
+<p>See the <code><a href="/reference/android/app/TimePickerDialog.html">TimePickerDialog</a></code> class for information about the constructor
+arguments.</p>
+<p>Now all you need is an event that adds an instance of this fragment to your activity.</p>
+<h3 id="ShowingTheTimePicker">Showing the time picker</h3>
+<p>Once you've defined a <code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code> like the one shown above,
+you can display the time picker by creating an instance of the <code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code> and calling <code><a href="/reference/android/support/v4/app/DialogFragment.html#show(android.support.v4.app.FragmentManager,%20java.lang.String)">show()</a></code>.</p>
+<p>For example, here's a button that, when clicked, calls a method to show the dialog:</p>
+<p>WHATSON? c9106680-f00a-4ec5-a4c0-352a2a3383e9</p>
+<pre>
+&lt;Button 
+    android:layout_width="wrap_content" 
+    android:layout_height="wrap_content"
+    android:text="@string/pick_time" 
+    android:onClick="showTimePickerDialog" /&gt;
+</pre>
+<p>When the user clicks this button, the system calls the following method:</p>
+<p>WHATSON? 8e196987-383f-4fb9-9b65-ad68b4097d1b</p>
+<pre>
+public void showTimePickerDialog(View v) {
+    DialogFragment newFragment = new TimePickerFragment();
+    newFragment.show(getSupportFragmentManager(), "timePicker");
+}
+</pre>
+<p>This method calls <code><a href="/reference/android/support/v4/app/DialogFragment.html#show(android.support.v4.app.FragmentManager,%20java.lang.String)">show()</a></code> on a new instance of the <code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code> defined above. The <code><a href="/reference/android/support/v4/app/DialogFragment.html#show(android.support.v4.app.FragmentManager,%20java.lang.String)">show()</a></code> method requires an instance of <code><a href="/reference/android/support/v4/app/FragmentManager.html">FragmentManager</a></code> and a unique tag name for the fragment.</p>
+<p class="caution"><strong>Caution:</strong> If your app supports versions of Android lower than
+3.0, be sure that you call <code><a href="/reference/android/support/v4/app/FragmentActivity.html#getSupportFragmentManager()">getSupportFragmentManager()</a></code> to acquire an instance of
+<code><a href="/reference/android/support/v4/app/FragmentManager.html">FragmentManager</a></code>. Also make sure that your activity that displays the
+time picker extends <code><a href="/reference/android/support/v4/app/FragmentActivity.html">FragmentActivity</a></code> instead of the standard <code><a href="/reference/android/app/Activity.html">Activity</a></code> class.</p>
+<h2 id="DatePicker">Creating a Date Picker</h2>
+<p>Creating a <code><a href="/reference/android/app/DatePickerDialog.html">DatePickerDialog</a></code> is just like creating a <code><a href="/reference/android/app/TimePickerDialog.html">TimePickerDialog</a></code>. The only difference is the dialog you create for the fragment.</p>
+<p>To display a <code><a href="/reference/android/app/DatePickerDialog.html">DatePickerDialog</a></code> using <code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code>, you need to define a fragment class that extends <code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code> and return a <code><a href="/reference/android/app/DatePickerDialog.html">DatePickerDialog</a></code> from the
+fragment's <code><a href="/reference/android/support/v4/app/DialogFragment.html#onCreateDialog(android.os.Bundle)">onCreateDialog()</a></code> method.</p>
+<p class="note"><strong>Note:</strong> If your app supports versions of Android older than 3.0,
+be sure you've set up your Android project with the support library as described in <a href="/tools/support-library/setup.html">Setting Up a Project to Use a
+Library</a>.</p>
+<h3 id="DatePickerFragment">Extending DialogFragment for a date picker</h3>
+<p>To define a <code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code> for a <code><a href="/reference/android/app/DatePickerDialog.html">DatePickerDialog</a></code>, you
+must:</p>
+<ul>
+  <li>Define the <code><a href="/reference/android/support/v4/app/DialogFragment.html#onCreateDialog(android.os.Bundle)">onCreateDialog()</a></code>
+method to return an instance of <code><a href="/reference/android/app/DatePickerDialog.html">DatePickerDialog</a></code></li>
+  <li>Implement the
+<code><a href="/reference/android/app/DatePickerDialog.OnDateSetListener.html">DatePickerDialog.OnDateSetListener</a></code> interface to receive a callback when the user
+sets the date.</li>
+</ul>
+<p>Here's an example:</p>
+<p>WHATSON? dcc370ab-b739-4f01-a5c9-027df2557b95</p>
+<pre>
+public static class DatePickerFragment extends DialogFragment
+                            implements DatePickerDialog.OnDateSetListener {
+
+    @Override
+    public Dialog onCreateDialog(Bundle savedInstanceState) {
+        // Use the current date as the default date in the picker
+        final Calendar c = Calendar.getInstance();
+        int year = c.get(Calendar.YEAR);
+        int month = c.get(Calendar.MONTH);
+        int day = c.get(Calendar.DAY_OF_MONTH);
+
+        // Create a new instance of DatePickerDialog and return it
+        return new DatePickerDialog(getActivity(), this, year, month, day);
+    }
+
+    public void onDateSet(DatePicker view, int year, int month, int day) {
+        // Do something with the date chosen by the user
+    }
+}
+</pre>
+<p>See the <code><a href="/reference/android/app/DatePickerDialog.html">DatePickerDialog</a></code> class for information about the constructor
+arguments.</p>
+<p>Now all you need is an event that adds an instance of this fragment to your activity.</p>
+<h3 id="ShowingTheDatePicker">Showing the date picker</h3>
+<p>Once you've defined a <code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code> like the one shown above,
+you can display the date picker by creating an instance of the <code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code> and calling <code><a href="/reference/android/support/v4/app/DialogFragment.html#show(android.support.v4.app.FragmentManager,%20java.lang.String)">show()</a></code>.</p>
+<p>For example, here's a button that, when clicked, calls a method to show the dialog:</p>
+<p>WHATSON? d0761eb7-2b94-40b1-8a94-0f53528b8155</p>
+<pre>
+&lt;Button 
+    android:layout_width="wrap_content" 
+    android:layout_height="wrap_content"
+    android:text="@string/pick_date" 
+    android:onClick="showDatePickerDialog" /&gt;
+</pre>
+<p>When the user clicks this button, the system calls the following method:</p>
+<p>WHATSON? 3aa52afc-167f-408c-9e24-14156ef45325</p>
+<pre>
+public void showDatePickerDialog(View v) {
+    DialogFragment newFragment = new DatePickerFragment();
+    newFragment.show(getSupportFragmentManager(), "datePicker");
+}
+</pre>
+<p>This method calls <code><a href="/reference/android/support/v4/app/DialogFragment.html#show(android.support.v4.app.FragmentManager,%20java.lang.String)">show()</a></code> on a new instance of the <code><a href="/reference/android/support/v4/app/DialogFragment.html">DialogFragment</a></code> defined above. The <code><a href="/reference/android/support/v4/app/DialogFragment.html#show(android.support.v4.app.FragmentManager,%20java.lang.String)">show()</a></code> method requires an instance of <code><a href="/reference/android/support/v4/app/FragmentManager.html">FragmentManager</a></code> and a unique tag name for the fragment.</p>
+<p class="caution"><strong>Caution:</strong> If your app supports versions of Android lower than
+3.0, be sure that you call <code><a href="/reference/android/support/v4/app/FragmentActivity.html#getSupportFragmentManager()">getSupportFragmentManager()</a></code> to acquire an instance of
+<code><a href="/reference/android/support/v4/app/FragmentManager.html">FragmentManager</a></code>. Also make sure that your activity that displays the
+time picker extends <code><a href="/reference/android/support/v4/app/FragmentActivity.html">FragmentActivity</a></code> instead of the standard <code><a href="/reference/android/app/Activity.html">Activity</a></code> class.</p>

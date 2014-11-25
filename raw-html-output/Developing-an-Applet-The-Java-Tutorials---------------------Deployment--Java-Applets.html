@@ -1,0 +1,92 @@
+<h1>Developing an Applet</h1>
+<p>An application designed using 
+<a class="TutorialLink" target="_top" href="../index.html#componentBasedArch">component-based architecture</a> can be developed into a Java applet. Consider the example of a Java applet with a Swing-based graphical user interface (GUI). With component-based design, the GUI can be built with smaller building blocks or components. The following general steps are used to create an applet GUI:</p>
+<ul>
+<li>Create a class <code>MyTopJPanel</code> that is a subclass of <code>javax.swing.JPanel</code>. Lay out your applet's GUI components in the constructor of the <code>MyTopJPanel</code> class.</li>
+<li>Create a class called <code>MyApplet</code> that is a subclass of <code>javax.swing.JApplet</code>.</li>
+<li>In the <code>init</code> method of <code>MyApplet</code>, instantiate <code>MyTopJPanel</code> and set it as the applet's content pane.</li>
+</ul>
+<p>The following sections explore these steps in greater detail by using the Dynamic Tree Demo applet.  If you are not familiar with Swing, see 
+<a class="TutorialLink" target="_top" href="../../uiswing/index.html">Creating a GUI with Swing</a> to learn more about using Swing GUI components.</p>
+<h2>Creating the Top <code>JPanel</code> Class</h2>
+<p>Create a class that is a subclass of <code>JPanel</code>. This top <code>JPanel</code> acts as a container for all your other UI components. In the following example, the <code>DynamicTreePanel</code> class is the topmost <code>JPanel</code>. The constructor of the <code>DynamicTreePanel</code> class invokes other methods to create and lay out the UI controls properly.</p>
+<p>WHATSON? d67d0a9f-28ff-4735-9969-14f748aebdae</p>
+<pre>
+public class DynamicTreePanel extends JPanel implements ActionListener {
+    private int newNodeSuffix = 1;
+    private static String ADD_COMMAND = "add";
+    private static String REMOVE_COMMAND = "remove";
+    private static String CLEAR_COMMAND = "clear";
+    
+    private DynamicTree treePanel;
+
+    public DynamicTreePanel() {
+        super(new BorderLayout());
+        
+        //Create the components.
+        treePanel = new DynamicTree();
+        populateTree(treePanel);
+
+        JButton addButton = new JButton("Add");
+        addButton.setActionCommand(ADD_COMMAND);
+        addButton.addActionListener(this);
+        
+        JButton removeButton = new JButton("Remove");
+        
+        // ...
+        
+        JButton clearButton = new JButton("Clear");
+        
+        // ...
+        
+        //Lay everything out.
+        treePanel.setPreferredSize(
+            new Dimension(300, 150));
+        add(treePanel, BorderLayout.CENTER);
+
+        JPanel panel = new JPanel(new GridLayout(0,3));
+        panel.add(addButton);
+        panel.add(removeButton); 
+        panel.add(clearButton);
+        add(panel, BorderLayout.SOUTH);
+    }
+    // ...
+}
+</pre>
+<h2>Creating the Applet</h2>
+<p>For a Java applet that has a Swing-based GUI, create a class that is a subclass of <code>javax.swing.JApplet</code>. An applet that does not contain a Swing-based GUI can extend the <code>java.applet.Applet</code> class.</p>
+<p>Override the applet's <code>init</code> method to instantiate your top <code>JPanel</code> class and create the applet's GUI. The <code>init</code> method of the <code>DynamicTreeApplet</code> class invokes the <code>createGUI</code> method in the AWT Event Dispatcher thread.</p>
+<p>WHATSON? d76c58d1-7c07-496d-9d0d-f630bc622ea5</p>
+<pre>
+package appletComponentArch;
+
+import javax.swing.JApplet;
+import javax.swing.SwingUtilities;
+
+public class DynamicTreeApplet extends JApplet {
+    //Called when this applet is loaded into the browser.
+    public void init() {
+        //Execute a job on the event-dispatching thread; creating this applet's GUI.
+        try {
+            SwingUtilities.invokeAndWait(new Runnable() {
+                public void run() {
+                    createGUI();
+                }
+            });
+        } catch (Exception e) { 
+            System.err.println("createGUI didn't complete successfully");
+        }
+    }
+    
+    private void createGUI() {
+        //Create and set up the content pane.
+        DynamicTreePanel newContentPane = new DynamicTreePanel();
+        newContentPane.setOpaque(true); 
+        setContentPane(newContentPane);        
+    }        
+}
+</pre>
+<h2>Benefits of Separating Core Functionality From the Final Deployment Mechanism</h2>
+<p>Another way to create an applet is to just remove the layer of abstraction (separate top <code>JPanel</code>) and lay out all the controls in the applet's <code>init</code> method itself. The downside to creating the GUI directly in the applet is that it will now be more difficult to deploy your functionality as a Java Web Start application, if you choose to do so later.</p>
+<p>In the Dynamic Tree Demo example, the core functionality resides in the <code>DynamicTreePanel</code> class. It is now trivial to drop the <code>DynamicTreePanel</code> class into a <code>JFrame</code> and deploy as a Java Web Start application.</p>
+<p>Hence, to preserve portability and keep deployment options open, follow component-based design as described on this page.</p>

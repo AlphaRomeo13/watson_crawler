@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Making-Applications-Accessible--Android-Developers.html</title></head>
+<body>
+<h1>Making Applications Accessible</h1>
+<h2>In this document</h2>
+<ol>
+    <li>Labeling User Interface Elements</li>
+    <li>Enabling Focus Navigation
+      <ol>
+        <li>Enabling view focus</li>
+        <li>Controlling focus order</li>
+      </ol>
+    </li>
+    <li>Building Accessible Custom Views
+      <ol>
+        <li>Handling directional controller clicks</li>
+        <li>Implementing accessibility API methods</li>
+        <li>Sending accessibility events</li>
+        <li>Populating accessibility events</li>
+        <li>Providing a customized accessibility context</li>
+        <li>Handling custom touch events</li>
+      </ol>
+    </li>
+    <li>Testing Accessibility</li>
+  </ol>
+<ol>
+        <li>Enabling view focus</li>
+        <li>Controlling focus order</li>
+      </ol>
+<ol>
+        <li>Handling directional controller clicks</li>
+        <li>Implementing accessibility API methods</li>
+        <li>Sending accessibility events</li>
+        <li>Populating accessibility events</li>
+        <li>Providing a customized accessibility context</li>
+        <li>Handling custom touch events</li>
+      </ol>
+<h2>Key classes</h2>
+<ol>
+    <li><code>AccessibilityEvent</code></li>
+    <li><code>AccessibilityNodeInfo</code></li>
+    <li><code>AccessibilityNodeInfoCompat</code></li>
+    <li><code>View.AccessibilityDelegate</code></li>
+    <li><code>AccessibilityDelegateCompat</code></li>
+  </ol>
+<h2>See also</h2>
+<ol>
+    <li>Accessibility Developer Checklist</li><li>
+    </li><li>Accessibility Testing Checklist</li><li>
+    </li><li>Android Design: Accessibility</li>
+    <li>Designing Effective Navigation</li>
+    <li>Training: Implementing Accessibility</li>
+  </ol>
+<p>Applications built for Android are more accessible to users with visual, physical or age-related
+limitations when those users activate accessibility services and features on a device. These
+services make your application more accessible even if you do not make any accessibility changes
+to your code. However, there are steps you should take to optimize the accessibility of your
+application and ensure a pleasant experience for all your users.</p>
+<p>Making sure your application is accessible to all users requires only a few steps, particularly
+when you create your user interface with the components provided by the Android framework. If you
+use only the standard components for your application, the steps are:</p>
+<ol>
+  <li>Add descriptive text to user interface controls in your application using the
+    
+    <code>android:contentDescription</code> attribute. Pay particular attention to
+    <code>ImageButton</code>, <code>ImageView</code>
+    and <code>CheckBox</code>.</li>
+  <li>Make sure that all user interface elements that can accept input (touches or typing) can be
+    reached with a directional controller, such as a trackball, D-pad (physical or virtual) or
+    navigation gestures
+    .</li>
+  <li>Make sure that audio prompts are always accompanied by another visual prompt or notification,
+    to assist users who are deaf or hard of hearing.</li>
+  <li>Test your application using only accessibility navigation services and features. Turn on
+    TalkBack and
+    Explore by Touch,
+    and then try using your application using only directional controls. For more information on
+    testing for accessibility, see the 
+    Accessibility Testing Checklist.</li>
+</ol>
+<p>If you build custom controls that extend the <code>View</code> class, you must complete
+some additional work to make sure your components are accessible. This document discusses how to
+make custom view controls compatible with accessibility services.</p>
+<p>
+<strong>Note:</strong> The implementation steps in this document describe the requirements for
+making your application accessible for users with blindness or low-vision. Be sure to review the
+requirements for serving users who are deaf and hard of hearing in the
+Accessibility Developer
+Checklist</p>
+<h2>Labeling User Interface Elements</h2>
+<p>Many user interface controls depend on visual cues to indicate their meaning and usage. For
+example, a note-taking application might use an <code>ImageButton</code> with a
+picture of a plus sign to indicate that the user can add a new note. An <code>EditText</code> component may have a label near it that indicates its purpose. A user
+with impaired vision can't see these cues well enough to follow them, which makes them useless.</p>
+<p>You can make these controls more accessible with the
+
+<code>android:contentDescription</code> XML layout attribute. The text in this attribute does not
+appear on screen, but if the user enables accessibility services that provide audible prompts, then
+when the user navigates to that control, the text is spoken.</p>
+<p>For this reason, set the
+
+<code>android:contentDescription</code> attribute for every <code>ImageButton</code>,
+<code>ImageView</code>, <code>CheckBox</code>
+in your application's user interface, and add descriptions to any other input controls that might
+require additional information for users who are not able to see it.</p>
+<p>For example, the following <code>ImageButton</code> sets the content description for
+the plus button to the <code>add_note</code> string resource, which could be defined as “Add note" for an
+English language interface:</p>
+<p>WHATSON? 744f983b-3335-4e58-8a5b-842b78d39fb3</p>
+<pre>
+&lt;ImageButton
+    android:id=”@+id/add_note_button”
+    android:src=”@drawable/add_note”
+    android:contentDescription=”@string/add_note”/&gt;
+</pre>
+<p>By including the description, an accessibility service that provides spoken feedback can announce
+"Add note" when a user moves focus to this button or hovers over it.</p>
+<p><strong>Note:</strong> For <code>EditText</code> fields, provide an
+android:hint
+attribute <em>instead</em> of a content description, to help users understand what content is
+expected when the text field is empty. When the field is filled, TalkBack reads the entered
+content to the user, instead of the hint text.</p>
+<h2>Enabling Focus Navigation</h2>
+<p>Focus navigation allows users with disabilities to step through user interface controls using a
+directional controller. Directional controllers can be physical, such as a trackball, directional
+pad (D-pad) or arrow keys, or virtual, such as the
+
+Eyes-Free Keyboard, or the gestures navigation mode available in Android 4.1 and higher.
+Directional controllers are a primary means of navigation for many Android users.
+</p>
+<p>To ensure that users can navigate your application using only a directional controller, verify
+that all user interface (UI) input controls in your application can be reached and activated
+without using the touchscreen. You should also verify that clicking with the center button (or OK
+button) of a directional controller has the same effect as touching a control that already has
+focus. For information on testing directional controls, see
+Testing
+focus navigation.</p>
+<h3>Enabling view focus</h3>
+<p>A user interface element is reachable using directional controls when its
+
+<code>android:focusable</code> attribute is set to <code>true</code>. This setting allows users to focus
+on the element using the directional controls and then interact with it. The user interface controls
+provided by the Android framework are focusable by default and visually indicate focus by changing
+the control’s appearance.</p>
+<p>Android provides several APIs that let you control whether a user interface control is focusable
+and even request that a control be given focus:</p>
+<ul>
+  <li><code>setFocusable()</code></li>
+  <li><code>isFocusable()</code></li>
+  <li><code>requestFocus()</code></li>
+</ul>
+<p>If a view is not focusable by default, you can make it focusable in your layout file by setting
+the 
+<code>android:focusable</code> attribute to <code>true</code> or by calling the its <code>setFocusable()</code> method.</p>
+<h3>Controlling focus order</h3>
+<p>When users navigate in any direction using directional controls, focus is passed from one
+user interface element (view) to another, as determined by the focus order. This order is based on
+an algorithm that finds the nearest neighbor in a given direction. In rare cases, the algorithm may
+not match the order that you intended or may not be logical for users. In these situations, you can
+provide explicit overrides to the ordering using the following XML attributes in your layout file:
+</p>
+<p>The following example XML layout shows two focusable user interface elements where the
+<code>android:nextFocusDown</code> and
+<code>android:nextFocusUp</code> attributes have been explicitly set. The <code>TextView</code> is
+located to the right of the <code>EditText</code>. However, since these properties have
+been set, the <code>TextView</code> element can now be reached by pressing the down arrow
+when focus is on the <code>EditText</code> element:</p>
+<p>WHATSON? aada50e0-c9a8-4b27-abb9-3dfa28be0044</p>
+<pre>
+&lt;LinearLayout android:orientation="horizontal"
+        ... &gt;
+    &lt;EditText android:id="@+id/edit"
+        android:nextFocusDown=”@+id/text”
+        ... /&gt;
+    &lt;TextView android:id="@+id/text"
+        android:focusable=”true”
+        android:text="Hello, I am a focusable TextView"
+        android:nextFocusUp=”@id/edit”
+        ... /&gt;
+&lt;/LinearLayout&gt;
+</pre>
+<p>When modifying focus order, be sure that the navigation works as expected in all directions from
+each user interface control and when navigating in reverse (to get back to where you came from).</p>
+<p><strong>Note:</strong> You can modify the focus order of user interface components
+at runtime, using methods such as <code>setNextFocusDownId()</code>
+and <code>setNextFocusRightId()</code>.</p>
+<h2>Building Accessible Custom Views</h2>
+<p>If your application requires a custom
+view component, you must do some additional work to ensure that your custom view is accessible.
+These are the main tasks for ensuring the accessibility of your view:</p>
+<ul>
+  <li>Handle directional controller clicks</li>
+  <li>Implement accessibility API methods</li>
+  <li>Send <code>AccessibilityEvent</code> objects specific to your custom
+    view</li>
+  <li>Populate <code>AccessibilityEvent</code> and <code>AccessibilityNodeInfo</code> for your view</li>
+</ul>
+<h3>Handling directional controller clicks</h3>
+<p>On most devices, clicking a view using a directional controller sends a <code>KeyEvent</code> with <code>KEYCODE_DPAD_CENTER</code> to the view currently
+in focus. All standard Android views already handle <code>KEYCODE_DPAD_CENTER</code> appropriately. When building a custom <code>View</code> control, make sure this event has the same effect as touching the view on the
+touchscreen. </p>
+<p>Your custom control should also treat the <code>KEYCODE_ENTER</code> event the
+same as <code>KEYCODE_DPAD_CENTER</code>. This approach makes interaction from a
+full keyboard much easier for users.</p>
+<h3>Implementing accessibility API methods</h3>
+<p>Accessibility events are messages about users interaction with visual interface components in
+your application. These messages are handled by Accessibility Services,
+which use the information in these events to produce supplemental feedback and prompts. In
+Android 4.0 (API Level 14) and higher, the methods for
+generating accessibility events have been expanded to provide more detailed information than the
+<code>AccessibilityEventSource</code> interface introduced in Android 1.6 (API
+Level 4). The expanded accessibility methods are part of the <code>View</code> class as well
+as the <code>View.AccessibilityDelegate</code> class. The methods are as follows:</p>
+<p><strong>Note:</strong> Modifying additional attributes beyond the text within
+this method potentially overwrites properties set by other methods. While you can modify
+attributes of the accessibility event with this method, you should limit these changes
+to text content, and use the <code>onInitializeAccessibilityEvent()</code> method to modify other properties of the event.</p>
+<p><strong>Note:</strong> If your implementation of this event completely
+overrides the output text without allowing other parts of your layout to modify its content, then
+do not call the super implementation of this method in your code.</p>
+<p>In order to support these accessibility methods for a custom view, you should take one of the
+following approaches:</p>
+<ul>
+  <li>If your application targets Android 4.0 (API level 14) and higher, override and implement the
+accessibility methods listed above directly in your custom view class.</li>
+  <li>If your custom view is intended to be compatible with Android 1.6 (API Level 4) and above, add
+the Android Support Library, revision 5 or
+higher, to your project. Then, within your custom view class, call the
+<code>ViewCompat.setAccessibilityDelegate()</code> method to implement the accessibility methods
+above. For an example of this approach, see the Android Support Library (revision 5 or higher)
+sample <code>AccessibilityDelegateSupportActivity</code> in
+(<code>&lt;sdk&gt;/extras/android/support/v4/samples/Support4Demos/</code>)
+  </li>
+</ul>
+<p>In either case, you should implement the following accessibility methods for your custom view
+class:</p>
+<ul>
+  <li><code>dispatchPopulateAccessibilityEvent()</code></li>
+  <li><code>onPopulateAccessibilityEvent()</code></li>
+  <li><code>onInitializeAccessibilityEvent()</code></li>
+  <li><code>onInitializeAccessibilityNodeInfo()</code></li>
+</ul>
+<p>For more information about implementing these methods, see Populating
+Accessibility Events.</p>
+<h3>Sending accessibility events</h3>
+<p>Depending on the specifics of your custom view, it may need to send <code>AccessibilityEvent</code> objects at a different times or for events not
+handled by the default implementation. The <code>View</code> class provides a default
+implementation for these event types:</p>
+<ul>
+  <li>Starting with API Level 4:
+    <ul>
+      <li><code>TYPE_VIEW_CLICKED</code></li>
+
+      <li><code>TYPE_VIEW_LONG_CLICKED</code></li>
+
+      <li><code>TYPE_VIEW_FOCUSED</code></li>
+    </ul>
+  </li>
+  <li>Starting with API Level 14:
+    <ul>
+      <li><code>TYPE_VIEW_SCROLLED</code></li>
+
+      <li><code>TYPE_VIEW_HOVER_ENTER</code></li>
+
+      <li><code>TYPE_VIEW_HOVER_EXIT</code></li>
+    </ul>
+  </li>
+</ul>
+<ul>
+      <li><code>TYPE_VIEW_CLICKED</code></li>
+
+      <li><code>TYPE_VIEW_LONG_CLICKED</code></li>
+
+      <li><code>TYPE_VIEW_FOCUSED</code></li>
+    </ul>
+<ul>
+      <li><code>TYPE_VIEW_SCROLLED</code></li>
+
+      <li><code>TYPE_VIEW_HOVER_ENTER</code></li>
+
+      <li><code>TYPE_VIEW_HOVER_EXIT</code></li>
+    </ul>
+<p><strong>Note:</strong> Hover events are associated with the Explore by
+Touch feature, which uses these events as triggers for providing audible prompts for user interface
+elements.</p>
+<p>In general, you should send an <code>AccessibilityEvent</code> whenever the
+content of your custom view changes. For example, if you are implementing a custom slider bar that
+allows a user to select a numeric value by pressing the left or right arrows, your custom view
+should emit an event of type <code>TYPE_VIEW_TEXT_CHANGED</code> whenever the slider
+value changes. The following sample code demonstrates the use of the <code>sendAccessibilityEvent()</code> method to report this event.</p>
+<p>WHATSON? e0064b5c-1640-4d8e-9979-1233afa2bcf0</p>
+<pre>
+@Override
+public boolean onKeyUp (int keyCode, KeyEvent event) {
+    if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) {
+        mCurrentValue--;
+        sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED);
+        return true;
+    }
+    ...
+}
+</pre>
+<h3>Populating accessibility events</h3>
+<p>Each <code>AccessibilityEvent</code> has a set of required properties that
+describe the current state of the view. These properties include things such as the view’s class
+name, content description and checked state. The specific properties required for each event type
+are described in the <code>AccessibilityEvent</code> reference documentation.
+The <code>View</code> implementation provides default values for these properties. Many of
+these values, including the class name and event timestamp, are provided automatically. If you are
+creating a custom view component, you must provide some information about the content and
+characteristics of the view. This information may be as simple as a button label, but may also
+include additional state information that you want to add to the event.</p>
+<p>The minimum requirement for providing information to accessibility services with a custom
+view is to implement <code>dispatchPopulateAccessibilityEvent()</code>. This method is called by the system to request
+information for an <code>AccessibilityEvent</code> and makes your custom
+view compatible with accessibility services on Android 1.6 (API Level 4) and higher. The
+following example code demonstrates a basic implementation of this method.</p>
+<p>WHATSON? 4b2cd52d-9f86-4026-bc75-cd7d082fa390</p>
+<pre>
+@Override
+public void dispatchPopulateAccessibilityEvent(AccessibilityEvent event) {
+    super.dispatchPopulateAccessibilityEvent(event);
+    // Call the super implementation to populate its text to the event, which
+    // calls onPopulateAccessibilityEvent() on API Level 14 and up.
+
+    // In case this is running on a API revision earlier that 14, check
+    // the text content of the event and add an appropriate text
+    // description for this custom view:
+    CharSequence text = getText();
+    if (!TextUtils.isEmpty(text)) {
+        event.getText().add(text);
+    }
+}
+</pre>
+<p>For Android 4.0 (API Level 14) and higher, use the <code>onPopulateAccessibilityEvent()</code> and
+<code>onInitializeAccessibilityEvent()</code>
+methods to populate or modify the information in an <code>AccessibilityEvent</code>. Use the
+<code>onPopulateAccessibilityEvent()</code> method
+specifically for adding or modifying the text content of the event, which is turned into audible
+prompts by accessibility services such as TalkBack. Use the
+<code>onInitializeAccessibilityEvent()</code> method for
+populating additional information about the event, such as the selection state of the view.</p>
+<p>In addition, implement the
+<code>onInitializeAccessibilityNodeInfo()</code>
+method. The <code>AccessibilityNodeInfo</code> objects populated by this method
+are used by accessibility services to investigate the view hierarchy that generated an accessibility
+event after receiving that event, to obtain a more detailed context information and provide
+appropriate feedback to users.</p>
+<p>The example code below shows how override these three methods by using
+<code>ViewCompat.setAccessibilityDelegate()</code>. Note that this sample code requires that the Android
+Support Library for API Level 4 (revision
+5 or higher) is added to your project.</p>
+<p>WHATSON? c6ba5a26-8bd6-4991-83fb-28cbe84ab873</p>
+<pre>
+ViewCompat.setAccessibilityDelegate(new AccessibilityDelegateCompat() {
+    @Override
+    public void onPopulateAccessibilityEvent(View host, AccessibilityEvent event) {
+        super.onPopulateAccessibilityEvent(host, event);
+        // We call the super implementation to populate its text for the
+        // event. Then we add our text not present in a super class.
+        // Very often you only need to add the text for the custom view.
+        CharSequence text = getText();
+        if (!TextUtils.isEmpty(text)) {
+            event.getText().add(text);
+        }
+    }
+    @Override
+    public void onInitializeAccessibilityEvent(View host, AccessibilityEvent event) {
+        super.onInitializeAccessibilityEvent(host, event);
+        // We call the super implementation to let super classes
+        // set appropriate event properties. Then we add the new property
+        // (checked) which is not supported by a super class.
+        event.setChecked(isChecked());
+    }
+    @Override
+    public void onInitializeAccessibilityNodeInfo(View host,
+            AccessibilityNodeInfoCompat info) {
+        super.onInitializeAccessibilityNodeInfo(host, info);
+        // We call the super implementation to let super classes set
+        // appropriate info properties. Then we add our properties
+        // (checkable and checked) which are not supported by a super class.
+        info.setCheckable(true);
+        info.setChecked(isChecked());
+        // Quite often you only need to add the text for the custom view.
+        CharSequence text = getText();
+        if (!TextUtils.isEmpty(text)) {
+            info.setText(text);
+        }
+    }
+}
+</pre>
+<p>In applications targeting Android 4.0 (API Level 14) and higher, you can implement these methods
+directly in your custom view class. For another example of this approach, see the Android
+Support Library (revision 5 or higher)
+sample <code>AccessibilityDelegateSupportActivity</code> in
+(<code>&lt;sdk&gt;/extras/android/support/v4/samples/Support4Demos/</code>).</p>
+<p><strong>Note:</strong> You may find information on implementing accessibility for
+custom views written prior to Android 4.0 that describes the use of the
+<code>dispatchPopulateAccessibilityEvent()</code>
+method for populating AccessibilityEvents. As of the Android 4.0 release, however, the recommended
+approach is to use the
+<code>onPopulateAccessibilityEvent()</code> and
+<code>onInitializeAccessibilityEvent()</code>
+methods.</p>
+<h3>Providing a customized accessibility context</h3>
+<p>In Android 4.0 (API Level 14), the framework was enhanced to allow accessibility services to
+  inspect the containing view hierarchy of a user interface component that generates an
+  accessibility event. This enhancement allows accessibility services to provide a much richer set
+  of contextual information with which to aid users.</p>
+<p>There are some cases where accessibility services cannot get adequate information
+  from the view hierarchy. An example of this is a custom interface control that has two or more
+  separately clickable areas, such as a calendar control. In this case, the services cannot get
+  adequate information because the clickable subsections are not part of the view hierarchy.</p>
+<p>
+  <strong>Figure 1.</strong> A custom calendar view with selectable day elements.
+</p>
+<p>In the example shown in Figure 1, the entire calendar is implemented as a single view, so if you
+  do not do anything else, accessibility services do not receive enough information about the
+  content of the view and the user's selection within the view. For example, if a user clicks on the
+  day containing <strong>17</strong>, the accessibility framework only receives the description
+  information for the whole calendar control. In this case, the TalkBack accessibility service would
+  simply announce "Calendar" or, only slightly better, "April Calendar" and the user would be left
+  to wonder what day was selected.</p>
+<p>To provide adequate context information for accessibility services in situations like this,
+  the framework provides a way to specify a virtual view hierarchy. A <em>virtual view
+  hierarchy</em> is a way for application developers to provide a complementary view hierarchy
+  to accessibility services that more closely matches the actual information on screen. This
+  approach allows accessibility services to provide more useful context information to users.</p>
+<p>Another situation where a virtual view hierarchy may be needed is a user interface containing
+  a set of controls (views) that have closely related functions, where an action on one control
+  affects the contents of one or more elements, such as a number picker with separate up and down
+  buttons. In this case, accessibility services cannot get adequate information because action on
+  one control changes content in another and the relationship of those controls may not be apparent
+  to the service. To handle this situation, group the related controls with a containing view and
+  provide a virtual view hierarchy from this container to clearly represent the information and
+  behavior provided by the controls.</p>
+<p>In order to provide a virtual view hierarchy for a view, override the <code>getAccessibilityNodeProvider()</code> method in your custom view or view group and
+  return an implementation of <code>AccessibilityNodeProvider</code>. For an
+  example implementation of this accessibility feature, see
+  <code>AccessibilityNodeProviderActivity</code> in the ApiDemos sample project. You can implement a
+  virtual view hierarchy that is compatible with Android 1.6 and later by using the
+  Support Library with the
+  <code>ViewCompat.getAccessibilityNodeProvider()</code> method and providing an implementation with
+  <code>AccessibilityNodeProviderCompat</code>.</p>
+<h3>Handling custom touch events</h3>
+<p>Custom view controls may require non-standard touch event behavior. For example, a custom
+control may use the <code>onTouchEvent(MotionEvent)</code> listener method to detect the
+<code>ACTION_DOWN</code> and <code>ACTION_UP</code> events
+and trigger a special click event. In order to maintain compatibility with accessibility services,
+the code that handles this custom click event must do the following:</p>
+<ol>
+  <li>Generate an appropriate <code>AccessibilityEvent</code> for the
+  interpreted click action.</li>
+  <li>Enable accessibility services to perform the custom click action for users who are not able to
+   use a touch screen.</li>
+</ol>
+<p>To handle these requirements in an efficient way, your code should override the
+<code>performClick()</code> method, which must call the super implementation of this
+method and then execute whatever actions are required by the click event. When the custom click
+action is detected, that code should then call your <code>performClick()</code> method. The following
+code example demonstrates this pattern.</p>
+<p>WHATSON? 59e12dbc-4567-4983-b9a0-def7844b4a6a</p>
+<pre>
+class CustomTouchView extends View {
+
+    public CustomTouchView(Context context) {
+        super(context);
+    }
+
+    boolean mDownTouch = false;
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        super.onTouchEvent(event);
+
+        // Listening for the down and up touch events
+        switch (event.getAction()) {
+            case MotionEvent.ACTION_DOWN:
+                mDownTouch = true;
+                return true;
+
+            case MotionEvent.ACTION_UP:
+                if (mDownTouch) {
+                    mDownTouch = false;
+                    performClick(); // Call this method to handle the response, and
+                                    // thereby enable accessibility services to
+                                    // perform this action for a user who cannot
+                                    // click the touchscreen.
+                    return true;
+                }
+        }
+        return false; // Return false for other touch events
+    }
+
+    @Override
+    public boolean performClick() {
+        // Calls the super implementation, which generates an AccessibilityEvent
+        // and calls the onClick() listener on the view, if any
+        super.performClick();
+
+        // Handle the action for the custom click here
+
+        return true;
+    }
+}
+</pre>
+<p>The pattern shown above makes sure that the custom click event is compatible with
+accessibility services by using the <code>performClick()</code> method to both generate
+an accessibility event and provide an entry point for accessibility services to act on behalf of a
+user to perform this custom click event.</p>
+<p><strong>Note:</strong> If your custom view has distinct clickable regions, such as
+a custom calendar view, you must implement a virtual view
+hierarchy by overriding <code>getAccessibilityNodeProvider()</code> in your custom
+view in order to be compatible with accessibility services.</p>
+<h2>Testing Accessibility</h2>
+<p>Testing the accessibility of your application is an important part of ensuring your users have a
+great experience. You can test the most important accessibility features by using your application
+with audible feedback enabled and navigating within your application using only directional
+controls. For more information on testing accessibility in your application, see the
+Accessibility Testing Checklist.
+</p>
+<h1>Making Applications Accessible</h1>
+<h2>In this document</h2>
+<ol>
+    <li>Labeling User Interface Elements</li>
+    <li>Enabling Focus Navigation
+      <ol>
+        <li>Enabling view focus</li>
+        <li>Controlling focus order</li>
+      </ol>
+    </li>
+    <li>Building Accessible Custom Views
+      <ol>
+        <li>Handling directional controller clicks</li>
+        <li>Implementing accessibility API methods</li>
+        <li>Sending accessibility events</li>
+        <li>Populating accessibility events</li>
+        <li>Providing a customized accessibility context</li>
+        <li>Handling custom touch events</li>
+      </ol>
+    </li>
+    <li>Testing Accessibility</li>
+  </ol>
+<ol>
+        <li>Enabling view focus</li>
+        <li>Controlling focus order</li>
+      </ol>
+<ol>
+        <li>Handling directional controller clicks</li>
+        <li>Implementing accessibility API methods</li>
+        <li>Sending accessibility events</li>
+        <li>Populating accessibility events</li>
+        <li>Providing a customized accessibility context</li>
+        <li>Handling custom touch events</li>
+      </ol>
+<h2>Key classes</h2>
+<ol>
+    <li><code>AccessibilityEvent</code></li>
+    <li><code>AccessibilityNodeInfo</code></li>
+    <li><code>AccessibilityNodeInfoCompat</code></li>
+    <li><code>View.AccessibilityDelegate</code></li>
+    <li><code>AccessibilityDelegateCompat</code></li>
+  </ol>
+<h2>See also</h2>
+<ol>
+    <li>Accessibility Developer Checklist</li><li>
+    </li><li>Accessibility Testing Checklist</li><li>
+    </li><li>Android Design: Accessibility</li>
+    <li>Designing Effective Navigation</li>
+    <li>Training: Implementing Accessibility</li>
+  </ol>
+<p>Applications built for Android are more accessible to users with visual, physical or age-related
+limitations when those users activate accessibility services and features on a device. These
+services make your application more accessible even if you do not make any accessibility changes
+to your code. However, there are steps you should take to optimize the accessibility of your
+application and ensure a pleasant experience for all your users.</p>
+<p>Making sure your application is accessible to all users requires only a few steps, particularly
+when you create your user interface with the components provided by the Android framework. If you
+use only the standard components for your application, the steps are:</p>
+<ol>
+  <li>Add descriptive text to user interface controls in your application using the
+    
+    <code>android:contentDescription</code> attribute. Pay particular attention to
+    <code>ImageButton</code>, <code>ImageView</code>
+    and <code>CheckBox</code>.</li>
+  <li>Make sure that all user interface elements that can accept input (touches or typing) can be
+    reached with a directional controller, such as a trackball, D-pad (physical or virtual) or
+    navigation gestures
+    .</li>
+  <li>Make sure that audio prompts are always accompanied by another visual prompt or notification,
+    to assist users who are deaf or hard of hearing.</li>
+  <li>Test your application using only accessibility navigation services and features. Turn on
+    TalkBack and
+    Explore by Touch,
+    and then try using your application using only directional controls. For more information on
+    testing for accessibility, see the 
+    Accessibility Testing Checklist.</li>
+</ol>
+<p>If you build custom controls that extend the <code>View</code> class, you must complete
+some additional work to make sure your components are accessible. This document discusses how to
+make custom view controls compatible with accessibility services.</p>
+<p>
+<strong>Note:</strong> The implementation steps in this document describe the requirements for
+making your application accessible for users with blindness or low-vision. Be sure to review the
+requirements for serving users who are deaf and hard of hearing in the
+Accessibility Developer
+Checklist</p>
+<h2>Labeling User Interface Elements</h2>
+<p>Many user interface controls depend on visual cues to indicate their meaning and usage. For
+example, a note-taking application might use an <code>ImageButton</code> with a
+picture of a plus sign to indicate that the user can add a new note. An <code>EditText</code> component may have a label near it that indicates its purpose. A user
+with impaired vision can't see these cues well enough to follow them, which makes them useless.</p>
+<p>You can make these controls more accessible with the
+
+<code>android:contentDescription</code> XML layout attribute. The text in this attribute does not
+appear on screen, but if the user enables accessibility services that provide audible prompts, then
+when the user navigates to that control, the text is spoken.</p>
+<p>For this reason, set the
+
+<code>android:contentDescription</code> attribute for every <code>ImageButton</code>,
+<code>ImageView</code>, <code>CheckBox</code>
+in your application's user interface, and add descriptions to any other input controls that might
+require additional information for users who are not able to see it.</p>
+<p>For example, the following <code>ImageButton</code> sets the content description for
+the plus button to the <code>add_note</code> string resource, which could be defined as “Add note" for an
+English language interface:</p>
+<p>WHATSON? 1cf23a9d-2e19-4296-94e7-131a443e6f4c</p>
+<pre>
+&lt;ImageButton
+    android:id=”@+id/add_note_button”
+    android:src=”@drawable/add_note”
+    android:contentDescription=”@string/add_note”/&gt;
+</pre>
+<p>By including the description, an accessibility service that provides spoken feedback can announce
+"Add note" when a user moves focus to this button or hovers over it.</p>
+<p><strong>Note:</strong> For <code>EditText</code> fields, provide an
+android:hint
+attribute <em>instead</em> of a content description, to help users understand what content is
+expected when the text field is empty. When the field is filled, TalkBack reads the entered
+content to the user, instead of the hint text.</p>
+<h2>Enabling Focus Navigation</h2>
+<p>Focus navigation allows users with disabilities to step through user interface controls using a
+directional controller. Directional controllers can be physical, such as a trackball, directional
+pad (D-pad) or arrow keys, or virtual, such as the
+
+Eyes-Free Keyboard, or the gestures navigation mode available in Android 4.1 and higher.
+Directional controllers are a primary means of navigation for many Android users.
+</p>
+<p>To ensure that users can navigate your application using only a directional controller, verify
+that all user interface (UI) input controls in your application can be reached and activated
+without using the touchscreen. You should also verify that clicking with the center button (or OK
+button) of a directional controller has the same effect as touching a control that already has
+focus. For information on testing directional controls, see
+Testing
+focus navigation.</p>
+<h3>Enabling view focus</h3>
+<p>A user interface element is reachable using directional controls when its
+
+<code>android:focusable</code> attribute is set to <code>true</code>. This setting allows users to focus
+on the element using the directional controls and then interact with it. The user interface controls
+provided by the Android framework are focusable by default and visually indicate focus by changing
+the control’s appearance.</p>
+<p>Android provides several APIs that let you control whether a user interface control is focusable
+and even request that a control be given focus:</p>
+<ul>
+  <li><code>setFocusable()</code></li>
+  <li><code>isFocusable()</code></li>
+  <li><code>requestFocus()</code></li>
+</ul>
+<p>If a view is not focusable by default, you can make it focusable in your layout file by setting
+the 
+<code>android:focusable</code> attribute to <code>true</code> or by calling the its <code>setFocusable()</code> method.</p>
+<h3>Controlling focus order</h3>
+<p>When users navigate in any direction using directional controls, focus is passed from one
+user interface element (view) to another, as determined by the focus order. This order is based on
+an algorithm that finds the nearest neighbor in a given direction. In rare cases, the algorithm may
+not match the order that you intended or may not be logical for users. In these situations, you can
+provide explicit overrides to the ordering using the following XML attributes in your layout file:
+</p>
+<p>The following example XML layout shows two focusable user interface elements where the
+<code>android:nextFocusDown</code> and
+<code>android:nextFocusUp</code> attributes have been explicitly set. The <code>TextView</code> is
+located to the right of the <code>EditText</code>. However, since these properties have
+been set, the <code>TextView</code> element can now be reached by pressing the down arrow
+when focus is on the <code>EditText</code> element:</p>
+<p>WHATSON? 4adc0440-3e9b-4790-8f56-193844b2b08d</p>
+<pre>
+&lt;LinearLayout android:orientation="horizontal"
+        ... &gt;
+    &lt;EditText android:id="@+id/edit"
+        android:nextFocusDown=”@+id/text”
+        ... /&gt;
+    &lt;TextView android:id="@+id/text"
+        android:focusable=”true”
+        android:text="Hello, I am a focusable TextView"
+        android:nextFocusUp=”@id/edit”
+        ... /&gt;
+&lt;/LinearLayout&gt;
+</pre>
+<p>When modifying focus order, be sure that the navigation works as expected in all directions from
+each user interface control and when navigating in reverse (to get back to where you came from).</p>
+<p><strong>Note:</strong> You can modify the focus order of user interface components
+at runtime, using methods such as <code>setNextFocusDownId()</code>
+and <code>setNextFocusRightId()</code>.</p>
+<h2>Building Accessible Custom Views</h2>
+<p>If your application requires a custom
+view component, you must do some additional work to ensure that your custom view is accessible.
+These are the main tasks for ensuring the accessibility of your view:</p>
+<ul>
+  <li>Handle directional controller clicks</li>
+  <li>Implement accessibility API methods</li>
+  <li>Send <code>AccessibilityEvent</code> objects specific to your custom
+    view</li>
+  <li>Populate <code>AccessibilityEvent</code> and <code>AccessibilityNodeInfo</code> for your view</li>
+</ul>
+<h3>Handling directional controller clicks</h3>
+<p>On most devices, clicking a view using a directional controller sends a <code>KeyEvent</code> with <code>KEYCODE_DPAD_CENTER</code> to the view currently
+in focus. All standard Android views already handle <code>KEYCODE_DPAD_CENTER</code> appropriately. When building a custom <code>View</code> control, make sure this event has the same effect as touching the view on the
+touchscreen. </p>
+<p>Your custom control should also treat the <code>KEYCODE_ENTER</code> event the
+same as <code>KEYCODE_DPAD_CENTER</code>. This approach makes interaction from a
+full keyboard much easier for users.</p>
+<h3>Implementing accessibility API methods</h3>
+<p>Accessibility events are messages about users interaction with visual interface components in
+your application. These messages are handled by Accessibility Services,
+which use the information in these events to produce supplemental feedback and prompts. In
+Android 4.0 (API Level 14) and higher, the methods for
+generating accessibility events have been expanded to provide more detailed information than the
+<code>AccessibilityEventSource</code> interface introduced in Android 1.6 (API
+Level 4). The expanded accessibility methods are part of the <code>View</code> class as well
+as the <code>View.AccessibilityDelegate</code> class. The methods are as follows:</p>
+<p><strong>Note:</strong> Modifying additional attributes beyond the text within
+this method potentially overwrites properties set by other methods. While you can modify
+attributes of the accessibility event with this method, you should limit these changes
+to text content, and use the <code>onInitializeAccessibilityEvent()</code> method to modify other properties of the event.</p>
+<p><strong>Note:</strong> If your implementation of this event completely
+overrides the output text without allowing other parts of your layout to modify its content, then
+do not call the super implementation of this method in your code.</p>
+<p>In order to support these accessibility methods for a custom view, you should take one of the
+following approaches:</p>
+<ul>
+  <li>If your application targets Android 4.0 (API level 14) and higher, override and implement the
+accessibility methods listed above directly in your custom view class.</li>
+  <li>If your custom view is intended to be compatible with Android 1.6 (API Level 4) and above, add
+the Android Support Library, revision 5 or
+higher, to your project. Then, within your custom view class, call the
+<code>ViewCompat.setAccessibilityDelegate()</code> method to implement the accessibility methods
+above. For an example of this approach, see the Android Support Library (revision 5 or higher)
+sample <code>AccessibilityDelegateSupportActivity</code> in
+(<code>&lt;sdk&gt;/extras/android/support/v4/samples/Support4Demos/</code>)
+  </li>
+</ul>
+<p>In either case, you should implement the following accessibility methods for your custom view
+class:</p>
+<ul>
+  <li><code>dispatchPopulateAccessibilityEvent()</code></li>
+  <li><code>onPopulateAccessibilityEvent()</code></li>
+  <li><code>onInitializeAccessibilityEvent()</code></li>
+  <li><code>onInitializeAccessibilityNodeInfo()</code></li>
+</ul>
+<p>For more information about implementing these methods, see Populating
+Accessibility Events.</p>
+<h3>Sending accessibility events</h3>
+<p>Depending on the specifics of your custom view, it may need to send <code>AccessibilityEvent</code> objects at a different times or for events not
+handled by the default implementation. The <code>View</code> class provides a default
+implementation for these event types:</p>
+<ul>
+  <li>Starting with API Level 4:
+    <ul>
+      <li><code>TYPE_VIEW_CLICKED</code></li>
+
+      <li><code>TYPE_VIEW_LONG_CLICKED</code></li>
+
+      <li><code>TYPE_VIEW_FOCUSED</code></li>
+    </ul>
+  </li>
+  <li>Starting with API Level 14:
+    <ul>
+      <li><code>TYPE_VIEW_SCROLLED</code></li>
+
+      <li><code>TYPE_VIEW_HOVER_ENTER</code></li>
+
+      <li><code>TYPE_VIEW_HOVER_EXIT</code></li>
+    </ul>
+  </li>
+</ul>
+<ul>
+      <li><code>TYPE_VIEW_CLICKED</code></li>
+
+      <li><code>TYPE_VIEW_LONG_CLICKED</code></li>
+
+      <li><code>TYPE_VIEW_FOCUSED</code></li>
+    </ul>
+<ul>
+      <li><code>TYPE_VIEW_SCROLLED</code></li>
+
+      <li><code>TYPE_VIEW_HOVER_ENTER</code></li>
+
+      <li><code>TYPE_VIEW_HOVER_EXIT</code></li>
+    </ul>
+<p><strong>Note:</strong> Hover events are associated with the Explore by
+Touch feature, which uses these events as triggers for providing audible prompts for user interface
+elements.</p>
+<p>In general, you should send an <code>AccessibilityEvent</code> whenever the
+content of your custom view changes. For example, if you are implementing a custom slider bar that
+allows a user to select a numeric value by pressing the left or right arrows, your custom view
+should emit an event of type <code>TYPE_VIEW_TEXT_CHANGED</code> whenever the slider
+value changes. The following sample code demonstrates the use of the <code>sendAccessibilityEvent()</code> method to report this event.</p>
+<p>WHATSON? 4253d6f2-871a-4667-a0e2-1517096fc089</p>
+<pre>
+@Override
+public boolean onKeyUp (int keyCode, KeyEvent event) {
+    if (keyCode == KeyEvent.KEYCODE_DPAD_LEFT) {
+        mCurrentValue--;
+        sendAccessibilityEvent(AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED);
+        return true;
+    }
+    ...
+}
+</pre>
+<h3>Populating accessibility events</h3>
+<p>Each <code>AccessibilityEvent</code> has a set of required properties that
+describe the current state of the view. These properties include things such as the view’s class
+name, content description and checked state. The specific properties required for each event type
+are described in the <code>AccessibilityEvent</code> reference documentation.
+The <code>View</code> implementation provides default values for these properties. Many of
+these values, including the class name and event timestamp, are provided automatically. If you are
+creating a custom view component, you must provide some information about the content and
+characteristics of the view. This information may be as simple as a button label, but may also
+include additional state information that you want to add to the event.</p>
+<p>The minimum requirement for providing information to accessibility services with a custom
+view is to implement <code>dispatchPopulateAccessibilityEvent()</code>. This method is called by the system to request
+information for an <code>AccessibilityEvent</code> and makes your custom
+view compatible with accessibility services on Android 1.6 (API Level 4) and higher. The
+following example code demonstrates a basic implementation of this method.</p>
+<p>WHATSON? b620bd1f-494d-46f7-a71c-57d3a673257b</p>
+<pre>
+@Override
+public void dispatchPopulateAccessibilityEvent(AccessibilityEvent event) {
+    super.dispatchPopulateAccessibilityEvent(event);
+    // Call the super implementation to populate its text to the event, which
+    // calls onPopulateAccessibilityEvent() on API Level 14 and up.
+
+    // In case this is running on a API revision earlier that 14, check
+    // the text content of the event and add an appropriate text
+    // description for this custom view:
+    CharSequence text = getText();
+    if (!TextUtils.isEmpty(text)) {
+        event.getText().add(text);
+    }
+}
+</pre>
+<p>For Android 4.0 (API Level 14) and higher, use the <code>onPopulateAccessibilityEvent()</code> and
+<code>onInitializeAccessibilityEvent()</code>
+methods to populate or modify the information in an <code>AccessibilityEvent</code>. Use the
+<code>onPopulateAccessibilityEvent()</code> method
+specifically for adding or modifying the text content of the event, which is turned into audible
+prompts by accessibility services such as TalkBack. Use the
+<code>onInitializeAccessibilityEvent()</code> method for
+populating additional information about the event, such as the selection state of the view.</p>
+<p>In addition, implement the
+<code>onInitializeAccessibilityNodeInfo()</code>
+method. The <code>AccessibilityNodeInfo</code> objects populated by this method
+are used by accessibility services to investigate the view hierarchy that generated an accessibility
+event after receiving that event, to obtain a more detailed context information and provide
+appropriate feedback to users.</p>
+<p>The example code below shows how override these three methods by using
+<code>ViewCompat.setAccessibilityDelegate()</code>. Note that this sample code requires that the Android
+Support Library for API Level 4 (revision
+5 or higher) is added to your project.</p>
+<p>WHATSON? 71f92060-24ee-40a2-a25a-715427ea63f9</p>
+<pre>
+ViewCompat.setAccessibilityDelegate(new AccessibilityDelegateCompat() {
+    @Override
+    public void onPopulateAccessibilityEvent(View host, AccessibilityEvent event) {
+        super.onPopulateAccessibilityEvent(host, event);
+        // We call the super implementation to populate its text for the
+        // event. Then we add our text not present in a super class.
+        // Very often you only need to add the text for the custom view.
+        CharSequence text = getText();
+        if (!TextUtils.isEmpty(text)) {
+            event.getText().add(text);
+        }
+    }
+    @Override
+    public void onInitializeAccessibilityEvent(View host, AccessibilityEvent event) {
+        super.onInitializeAccessibilityEvent(host, event);
+        // We call the super implementation to let super classes
+        // set appropriate event properties. Then we add the new property
+        // (checked) which is not supported by a super class.
+        event.setChecked(isChecked());
+    }
+    @Override
+    public void onInitializeAccessibilityNodeInfo(View host,
+            AccessibilityNodeInfoCompat info) {
+        super.onInitializeAccessibilityNodeInfo(host, info);
+        // We call the super implementation to let super classes set
+        // appropriate info properties. Then we add our properties
+        // (checkable and checked) which are not supported by a super class.
+        info.setCheckable(true);
+        info.setChecked(isChecked());
+        // Quite often you only need to add the text for the custom view.
+        CharSequence text = getText();
+        if (!TextUtils.isEmpty(text)) {
+            info.setText(text);
+        }
+    }
+}
+</pre>
+<p>In applications targeting Android 4.0 (API Level 14) and higher, you can implement these methods
+directly in your custom view class. For another example of this approach, see the Android
+Support Library (revision 5 or higher)
+sample <code>AccessibilityDelegateSupportActivity</code> in
+(<code>&lt;sdk&gt;/extras/android/support/v4/samples/Support4Demos/</code>).</p>
+<p><strong>Note:</strong> You may find information on implementing accessibility for
+custom views written prior to Android 4.0 that describes the use of the
+<code>dispatchPopulateAccessibilityEvent()</code>
+method for populating AccessibilityEvents. As of the Android 4.0 release, however, the recommended
+approach is to use the
+<code>onPopulateAccessibilityEvent()</code> and
+<code>onInitializeAccessibilityEvent()</code>
+methods.</p>
+<h3>Providing a customized accessibility context</h3>
+<p>In Android 4.0 (API Level 14), the framework was enhanced to allow accessibility services to
+  inspect the containing view hierarchy of a user interface component that generates an
+  accessibility event. This enhancement allows accessibility services to provide a much richer set
+  of contextual information with which to aid users.</p>
+<p>There are some cases where accessibility services cannot get adequate information
+  from the view hierarchy. An example of this is a custom interface control that has two or more
+  separately clickable areas, such as a calendar control. In this case, the services cannot get
+  adequate information because the clickable subsections are not part of the view hierarchy.</p>
+<p>
+  <strong>Figure 1.</strong> A custom calendar view with selectable day elements.
+</p>
+<p>In the example shown in Figure 1, the entire calendar is implemented as a single view, so if you
+  do not do anything else, accessibility services do not receive enough information about the
+  content of the view and the user's selection within the view. For example, if a user clicks on the
+  day containing <strong>17</strong>, the accessibility framework only receives the description
+  information for the whole calendar control. In this case, the TalkBack accessibility service would
+  simply announce "Calendar" or, only slightly better, "April Calendar" and the user would be left
+  to wonder what day was selected.</p>
+<p>To provide adequate context information for accessibility services in situations like this,
+  the framework provides a way to specify a virtual view hierarchy. A <em>virtual view
+  hierarchy</em> is a way for application developers to provide a complementary view hierarchy
+  to accessibility services that more closely matches the actual information on screen. This
+  approach allows accessibility services to provide more useful context information to users.</p>
+<p>Another situation where a virtual view hierarchy may be needed is a user interface containing
+  a set of controls (views) that have closely related functions, where an action on one control
+  affects the contents of one or more elements, such as a number picker with separate up and down
+  buttons. In this case, accessibility services cannot get adequate information because action on
+  one control changes content in another and the relationship of those controls may not be apparent
+  to the service. To handle this situation, group the related controls with a containing view and
+  provide a virtual view hierarchy from this container to clearly represent the information and
+  behavior provided by the controls.</p>
+<p>In order to provide a virtual view hierarchy for a view, override the <code>getAccessibilityNodeProvider()</code> method in your custom view or view group and
+  return an implementation of <code>AccessibilityNodeProvider</code>. For an
+  example implementation of this accessibility feature, see
+  <code>AccessibilityNodeProviderActivity</code> in the ApiDemos sample project. You can implement a
+  virtual view hierarchy that is compatible with Android 1.6 and later by using the
+  Support Library with the
+  <code>ViewCompat.getAccessibilityNodeProvider()</code> method and providing an implementation with
+  <code>AccessibilityNodeProviderCompat</code>.</p>
+<h3>Handling custom touch events</h3>
+<p>Custom view controls may require non-standard touch event behavior. For example, a custom
+control may use the <code>onTouchEvent(MotionEvent)</code> listener method to detect the
+<code>ACTION_DOWN</code> and <code>ACTION_UP</code> events
+and trigger a special click event. In order to maintain compatibility with accessibility services,
+the code that handles this custom click event must do the following:</p>
+<ol>
+  <li>Generate an appropriate <code>AccessibilityEvent</code> for the
+  interpreted click action.</li>
+  <li>Enable accessibility services to perform the custom click action for users who are not able to
+   use a touch screen.</li>
+</ol>
+<p>To handle these requirements in an efficient way, your code should override the
+<code>performClick()</code> method, which must call the super implementation of this
+method and then execute whatever actions are required by the click event. When the custom click
+action is detected, that code should then call your <code>performClick()</code> method. The following
+code example demonstrates this pattern.</p>
+<p>WHATSON? 2c4059fc-bfc4-4431-8498-467be5b98987</p>
+<pre>
+class CustomTouchView extends View {
+
+    public CustomTouchView(Context context) {
+        super(context);
+    }
+
+    boolean mDownTouch = false;
+
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        super.onTouchEvent(event);
+
+        // Listening for the down and up touch events
+        switch (event.getAction()) {
+            case MotionEvent.ACTION_DOWN:
+                mDownTouch = true;
+                return true;
+
+            case MotionEvent.ACTION_UP:
+                if (mDownTouch) {
+                    mDownTouch = false;
+                    performClick(); // Call this method to handle the response, and
+                                    // thereby enable accessibility services to
+                                    // perform this action for a user who cannot
+                                    // click the touchscreen.
+                    return true;
+                }
+        }
+        return false; // Return false for other touch events
+    }
+
+    @Override
+    public boolean performClick() {
+        // Calls the super implementation, which generates an AccessibilityEvent
+        // and calls the onClick() listener on the view, if any
+        super.performClick();
+
+        // Handle the action for the custom click here
+
+        return true;
+    }
+}
+</pre>
+<p>The pattern shown above makes sure that the custom click event is compatible with
+accessibility services by using the <code>performClick()</code> method to both generate
+an accessibility event and provide an entry point for accessibility services to act on behalf of a
+user to perform this custom click event.</p>
+<p><strong>Note:</strong> If your custom view has distinct clickable regions, such as
+a custom calendar view, you must implement a virtual view
+hierarchy by overriding <code>getAccessibilityNodeProvider()</code> in your custom
+view in order to be compatible with accessibility services.</p>
+<h2>Testing Accessibility</h2>
+<p>Testing the accessibility of your application is an important part of ensuring your users have a
+great experience. You can test the most important accessibility features by using your application
+with audible feedback enabled and navigating within your application using only directional
+controls. For more information on testing accessibility in your application, see the
+Accessibility Testing Checklist.
+</p>
+</body>
+</html>

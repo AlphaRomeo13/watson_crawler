@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>The-Map-Interface-The-Java-Tutorials---------------------Collections--Interfaces.html</title></head>
+<body>
+<h1>The Map Interface</h1>
+<p>A 
+<code>Map</code> is an object that maps keys to values. A map cannot contain duplicate keys: Each key can map to at most one value. It models the mathematical <i>function</i> abstraction. The <code>Map</code> interface includes methods for 
+basic operations (such as <code>put</code>, <code>get</code>, <code>remove</code>, 
+<code>containsKey</code>, <code>containsValue</code>, <code>size</code>, and <code>empty</code>),
+bulk operations (such as <code>putAll</code> and <code>clear</code>), and
+collection views (such as <code>keySet</code>, <code>entrySet</code>, and <code>values</code>).
+</p>
+<p>The Java platform contains three general-purpose <code>Map</code> implementations: 
+<code>HashMap</code>, 
+<code>TreeMap</code>, and 
+<code>LinkedHashMap</code>. Their behavior and performance are precisely analogous to <code>HashSet</code>, <code>TreeSet</code>, and <code>LinkedHashSet</code>, as described in 
+The Set Interface section. </p>
+<p>
+The remainder of this page discusses the <code>Map</code> interface in detail. 
+But first, here are some more examples of collecting to <code>Map</code>s using JDK 8 aggregate operations. Modeling real-world objects is a common task in object-oriented programming, so it is reasonable to think that some programs might, for example, group employees by department:
+</p>
+<p>WHATSON? 14fcabaa-a0df-4c23-bcc5-3c15f2c32ba9</p>
+<pre>
+// Group employees by department
+Map&lt;Department, List&lt;Employee&gt;&gt; byDept = employees.stream()
+.collect(Collectors.groupingBy(Employee::getDepartment));
+</pre>
+<p>
+Or compute the sum of all salaries by department:
+</p>
+<p>WHATSON? 81e2f6fd-ac18-4ff6-be42-99baae0b3b64</p>
+<pre>
+// Compute sum of salaries by department
+Map&lt;Department, Integer&gt; totalByDept = employees.stream()
+.collect(Collectors.groupingBy(Employee::getDepartment,
+Collectors.summingInt(Employee::getSalary)));
+</pre>
+<p>
+Or perhaps group students by passing or failing grades:
+</p>
+<p>WHATSON? f7a5cba1-3c52-42fb-97d3-39a390c60d49</p>
+<pre>
+// Partition students into passing and failing
+Map&lt;Boolean, List&lt;Student&gt;&gt; passingFailing = students.stream()
+.collect(Collectors.partitioningBy(s -&gt; s.getGrade()&gt;= PASS_THRESHOLD)); 
+</pre>
+<p>
+You could also group people by city:
+</p>
+<p>WHATSON? 6906a57d-914e-4adb-a243-0ff21853e947</p>
+<pre>
+// Classify Person objects by city
+Map&lt;String, List&lt;Person&gt;&gt; peopleByCity
+         = personStream.collect(Collectors.groupingBy(Person::getCity));
+</pre>
+<p>
+Or even cascade two collectors to classify people by state and city:
+</p>
+<p>WHATSON? 0c9c461c-1da4-40b0-801b-77032ba5802b</p>
+<pre>
+// Cascade Collectors 
+Map&lt;String, Map&lt;String, List&lt;Person&gt;&gt;&gt; peopleByStateAndCity
+  = personStream.collect(Collectors.groupingBy(Person::getState,
+  Collectors.groupingBy(Person::getCity)))
+</pre>
+<p>
+Again, these are but a few examples of how to use the new JDK 8 APIs. For in-depth
+coverage of lambda expressions and aggregate operations see the lesson entitled
+
+Aggregate Operations.
+</p>
+<h2>Map Interface Basic Operations</h2>
+<p>The basic operations of <code>Map</code> (<code>put</code>, <code>get</code>, <code>containsKey</code>, <code>containsValue</code>, <code>size</code>, and <code>isEmpty</code>) behave exactly like their counterparts in <code>Hashtable</code>. The 
+<code>following program</code> generates a frequency table of the words found in its argument list. The frequency table maps each word to the number of times it occurs in the argument list.</p>
+<p>WHATSON? 25646782-f209-4523-bed2-35020ec221a0</p>
+<pre>
+import java.util.*;
+
+public class Freq {
+    public static void main(String[] args) {
+        Map&lt;String, Integer&gt; m = new HashMap&lt;String, Integer&gt;();
+
+        // Initialize frequency table from command line
+        for (String a : args) {
+            Integer freq = m.get(a);
+            m.put(a, (freq == null) ? 1 : freq + 1);
+        }
+
+        System.out.println(m.size() + " distinct words:");
+        System.out.println(m);
+    }
+}
+</pre>
+<p>The only tricky thing about this program is the second argument of the <code>put</code> statement. That argument is a conditional expression that has the effect of setting the frequency to one if the word has never been seen before or one more than its current value if the word has already been seen. Try running this program with the command:</p>
+<p>WHATSON? cdd3609b-c3e1-474a-b126-bcbf0b7a06c3</p>
+<pre>
+java Freq if it is to be it is up to me to delegate
+</pre>
+<p>The program yields the following output.</p>
+<p>WHATSON? 26568451-590c-4e81-ab19-afca386551ae</p>
+<pre>
+8 distinct words:
+{to=3, delegate=1, be=1, it=2, up=1, if=1, me=1, is=2}
+</pre>
+<p>Suppose you'd prefer to see the frequency table in alphabetical order. All you have to do is change the implementation type of the <code>Map</code> from <code>HashMap</code> to <code>TreeMap</code>. Making this four-character change causes the program to generate the following output from the same command line.</p>
+<p>WHATSON? 201ad5f2-3def-4652-bb8e-1ced4a738de6</p>
+<pre>
+8 distinct words:
+{be=1, delegate=1, if=1, is=2, it=2, me=1, to=3, up=1}
+</pre>
+<p>Similarly, you could make the program print the frequency table in the order the words first appear on the command line simply by changing the implementation type of the map to <code>LinkedHashMap</code>. Doing so results in the following output.</p>
+<p>WHATSON? 06c5ad0e-dc6c-4386-942e-9886534a582b</p>
+<pre>
+8 distinct words:
+{if=1, it=2, is=2, to=3, be=1, up=1, me=1, delegate=1}
+</pre>
+<p>This flexibility provides a potent illustration of the power of an interface-based framework.</p>
+<p>Like the 
+<code>Set</code>and 
+<code>List</code>interfaces, <code>Map</code> strengthens the requirements on the <code>equals</code> and <code>hashCode</code> methods so that two <code>Map</code> objects can be compared for logical equality without regard to their implementation types. Two <code>Map</code> instances are equal if they represent the same key-value mappings.</p>
+<p>By convention, all general-purpose <code>Map</code> implementations provide constructors that take a <code>Map</code> object and initialize the new <code>Map</code> to contain all the key-value mappings in the specified <code>Map</code>. This standard <code>Map</code> conversion constructor is entirely analogous to the standard <code>Collection</code> constructor: It allows the caller to create a <code>Map</code> of a desired implementation type that initially contains all of the mappings in another <code>Map</code>, regardless of the other <code>Map</code>'s implementation type. For example, suppose you have a <code>Map</code>, named <code>m</code>. The following one-liner creates a new <code>HashMap</code> initially containing all of the same key-value mappings as <code>m</code>.</p>
+<p>WHATSON? 97014b9f-641b-4b86-b3c0-6bdba489d72d</p>
+<pre>
+Map&lt;K, V&gt; copy = new HashMap&lt;K, V&gt;(m);
+</pre>
+<h2>Map Interface Bulk Operations</h2>
+<p>The <code>clear</code> operation does exactly what you would think it could do: It removes all the mappings from the <code>Map</code>. The <code>putAll</code> operation is the <code>Map</code> analogue of the <code>Collection</code> interface's <code>addAll</code> operation. In addition to its obvious use of dumping one <code>Map</code> into another, it has a second, more subtle use. Suppose a <code>Map</code> is used to represent a collection of attribute-value pairs; the <code>putAll</code> operation, in combination with the <code>Map</code> conversion constructor, provides a neat way to implement attribute map creation with default values. The following is a static factory method that demonstrates this technique.</p>
+<p>WHATSON? f2ed0ae2-047b-4d23-a987-19b25ad6f734</p>
+<pre>
+static &lt;K, V&gt; Map&lt;K, V&gt; newAttributeMap(Map&lt;K, V&gt;defaults, Map&lt;K, V&gt; overrides) {
+    Map&lt;K, V&gt; result = new HashMap&lt;K, V&gt;(defaults);
+    result.putAll(overrides);
+    return result;
+}
+</pre>
+<h2>Collection Views</h2>
+<p>The <code>Collection</code> view methods allow a <code>Map</code> to be viewed as a <code>Collection</code> in these three ways:</p>
+<ul>
+<li><code>keySet</code>  the <code>Set</code> of keys contained in the <code>Map</code>.</li>
+<li><code>values</code>  The <code>Collection</code> of values contained in the <code>Map</code>. This <code>Collection</code> is not a <code>Set</code>, because multiple keys can map to the same value.</li>
+<li><code>entrySet</code>  the <code>Set</code> of key-value pairs contained in the <code>Map</code>. The <code>Map</code> interface provides a small nested interface called <code>Map.Entry</code>, the type of the elements in this <code>Set</code>.</li>
+</ul>
+<p>The <code>Collection</code> views provide the <i>only</i> means to iterate over a <code>Map</code>. This example illustrates the standard idiom for iterating over the keys in a <code>Map</code> with a <code>for-each</code> construct:</p>
+<p>WHATSON? 57a9f721-e50f-4084-befa-6de5264aaef4</p>
+<pre>
+for (KeyType key : m.keySet())
+    System.out.println(key);
+</pre>
+<p>and with an <code>iterator</code>:</p>
+<p>WHATSON? 8212e700-389a-4744-9a63-2ca20121e6da</p>
+<pre>
+// Filter a map based on some 
+// property of its keys.
+for (Iterator&lt;Type&gt; it = m.keySet().iterator(); it.hasNext(); )
+    if (it.next().isBogus())
+        it.remove();
+</pre>
+<p>The idiom for iterating over values is analogous. Following is the idiom for iterating over key-value pairs.</p>
+<p>WHATSON? a64950bd-dad3-4cb0-af8c-de6153751d2f</p>
+<pre>
+for (Map.Entry&lt;KeyType, ValType&gt; e : m.entrySet())
+    System.out.println(e.getKey() + ": " + e.getValue());
+</pre>
+<p>At first, many people worry that these idioms may be slow because the <code>Map</code> has to create a new <code>Collection</code> instance each time a <code>Collection</code> view operation is called. Rest easy: There's no reason that a <code>Map</code> cannot always return the same object each time it is asked for a given <code>Collection</code> view. This is precisely what all the <code>Map</code> implementations in <code>java.util</code> do.</p>
+<p>With all three <code>Collection</code> views, calling an <code>Iterator</code>'s <code>remove</code> operation removes the associated entry from the backing <code>Map</code>, assuming that the backing <code>Map</code> supports element removal to begin with. This is illustrated by the preceding filtering idiom.</p>
+<p>With the <code>entrySet</code> view, it is also possible to change the value associated with a key by calling a <code>Map.Entry</code>'s <code>setValue</code> method during iteration (again, assuming the <code>Map</code> supports value modification to begin with). Note that these are the <i>only</i> safe ways to modify a <code>Map</code> during iteration; the behavior is unspecified if the underlying <code>Map</code> is modified in any other way while the iteration is in progress.</p>
+<p>The <code>Collection</code> views support element removal in all its many forms  <code>remove</code>, <code>removeAll</code>, <code>retainAll</code>, and <code>clear</code> operations, as well as the <code>Iterator.remove</code> operation. (Yet again, this assumes that the backing <code>Map</code> supports element removal.)</p>
+<p>The <code>Collection</code> views <i>do not</i> support element addition under any circumstances. It would make no sense for the <code>keySet</code> and <code>values</code> views, and it's unnecessary for the <code>entrySet</code> view, because the backing <code>Map</code>'s <code>put</code> and <code>putAll</code> methods provide the same functionality.</p>
+<h2>Fancy Uses of Collection Views: Map Algebra</h2>
+<p>When applied to the <code>Collection</code> views, bulk operations (<code>containsAll</code>, <code>removeAll</code>, and <code>retainAll</code>) are surprisingly potent tools. For starters, suppose you want to know whether one <code>Map</code> is a submap of another  that is, whether the first <code>Map</code> contains all the key-value mappings in the second. The following idiom does the trick.</p>
+<p>WHATSON? 93156119-7b53-4c10-80b6-6c01ab634086</p>
+<pre>
+if (m1.entrySet().containsAll(m2.entrySet())) {
+    ...
+}
+</pre>
+<p>Along similar lines, suppose you want to know whether two <code>Map</code> objects contain mappings for all of the same keys.</p>
+<p>WHATSON? c4269000-a488-4245-ae55-b5acc4511c10</p>
+<pre>
+if (m1.keySet().equals(m2.keySet())) {
+    ...
+}
+</pre>
+<p>Suppose you have a <code>Map</code> that represents a collection of attribute-value pairs, and two <code>Set</code>s representing required attributes and permissible attributes. (The permissible attributes include the required attributes.) The following snippet determines whether the attribute map conforms to these constraints and prints a detailed error message if it doesn't.</p>
+<p>WHATSON? 6f33cdf9-b775-4604-9dfa-323d6c987ca0</p>
+<pre>
+static &lt;K, V&gt; boolean validate(Map&lt;K, V&gt; attrMap, Set&lt;K&gt; requiredAttrs, Set&lt;K&gt;permittedAttrs) {
+    boolean valid = true;
+    Set&lt;K&gt; attrs = attrMap.keySet();
+
+    if (! attrs.containsAll(requiredAttrs)) {
+        Set&lt;K&gt; missing = new HashSet&lt;K&gt;(requiredAttrs);
+        missing.removeAll(attrs);
+        System.out.println("Missing attributes: " + missing);
+        valid = false;
+    }
+    if (! permittedAttrs.containsAll(attrs)) {
+        Set&lt;K&gt; illegal = new HashSet&lt;K&gt;(attrs);
+        illegal.removeAll(permittedAttrs);
+        System.out.println("Illegal attributes: " + illegal);
+        valid = false;
+    }
+    return valid;
+}
+</pre>
+<p>Suppose you want to know all the keys common to two <code>Map</code> objects.</p>
+<p>WHATSON? 4773a15b-f180-41e1-b186-4b0debd46c84</p>
+<pre>
+Set&lt;KeyType&gt;commonKeys = new HashSet&lt;KeyType&gt;(m1.keySet());
+commonKeys.retainAll(m2.keySet());
+</pre>
+<p>A similar idiom gets you the common values.</p>
+<p>All the idioms presented thus far have been nondestructive; that is, they don't modify the backing <code>Map</code>. Here are a few that do. Suppose you want to remove all of the key-value pairs that one <code>Map</code> has in common with another.</p>
+<p>WHATSON? 479d10a0-900e-4365-bf26-5d60d0b7ad57</p>
+<pre>
+m1.entrySet().removeAll(m2.entrySet());
+</pre>
+<p>Suppose you want to remove from one <code>Map</code> all of the keys that have mappings in another.</p>
+<p>WHATSON? e3597529-275b-4112-9dce-ff169cf82c0c</p>
+<pre>
+m1.keySet().removeAll(m2.keySet());
+</pre>
+<p>What happens when you start mixing keys and values in the same bulk operation? Suppose you have a <code>Map</code>, <code>managers</code>, that maps each employee in a company to the employee's manager. We'll be deliberately vague about the types of the key and the value objects. It doesn't matter, as long as they're the same. Now suppose you want to know who all the "individual contributors" (or nonmanagers) are. The following snippet tells you exactly what you want to know.</p>
+<p>WHATSON? 6c2c2036-cedd-4825-8df1-bb2298c8938d</p>
+<pre>
+Set&lt;Employee&gt; individualContributors = new HashSet&lt;Employee&gt;(managers.keySet());
+individualContributors.removeAll(managers.values());
+</pre>
+<p>Suppose you want to fire all the employees who report directly to some manager, Simon.</p>
+<p>WHATSON? bd1f31c3-8479-4f1a-bd29-58a8797bb8db</p>
+<pre>
+Employee simon = ... ;
+managers.values().removeAll(Collections.singleton(simon));
+</pre>
+<p>Note that this idiom makes use of <code>Collections.singleton</code>, a static factory method that returns an immutable <code>Set</code> with the single, specified element.</p>
+<p>Once you've done this, you may have a bunch of employees whose managers no longer work for the company (if any of Simon's direct-reports were themselves managers). The following code will tell you which employees have managers who no longer works for the company.</p>
+<p>WHATSON? 948c8094-9409-4dd5-b37d-fd624a86723d</p>
+<pre>
+Map&lt;Employee, Employee&gt; m = new HashMap&lt;Employee, Employee&gt;(managers);
+m.values().removeAll(managers.keySet());
+Set&lt;Employee&gt; slackers = m.keySet();
+</pre>
+<p>This example is a bit tricky. First, it makes a temporary copy of the <code>Map</code>, and it removes from the temporary copy all entries whose (manager) value is a key in the original <code>Map</code>. Remember that the original <code>Map</code> has an entry for each employee. Thus, the remaining entries in the temporary <code>Map</code> comprise all the entries from the original <code>Map</code> whose (manager) values are no longer employees. The keys in the temporary copy, then, represent precisely the employees that we're looking for.</p>
+<p>There are many more idioms like the ones contained in this section, but it would be impractical and tedious to list them all. Once you get the hang of it, it's not that difficult to come up with the right one when you need it.</p>
+<h2>Multimaps</h2>
+<p>A <i>multimap</i> is like a <code>Map</code> but it can map each key to multiple values. The Java Collections Framework doesn't include an interface for multimaps because they aren't used all that commonly. It's a fairly simple matter to use a <code>Map</code> whose values are <code>List</code> instances as a multimap. This technique is demonstrated in the next code example, which reads a word list containing one word per line (all lowercase) and prints out all the anagram groups that meet a size criterion. An <i>anagram group</i> is a bunch of words, all of which contain exactly the same letters but in a different order. The program takes two arguments on the command line: (1) the name of the dictionary file and (2) the minimum size of anagram group to print out. Anagram groups containing fewer words than the specified minimum are not printed.</p>
+<p>There is a standard trick for finding anagram groups: For each word in the dictionary, alphabetize the letters in the word (that is, reorder the word's letters into alphabetical order) and put an entry into a multimap, mapping the alphabetized word to the original word. For example, the word <em>bad</em> causes an entry mapping <em>abd</em> into <em>bad</em> to be put into the multimap. A moment's reflection will show that all the words to which any given key maps form an anagram group. It's a simple matter to iterate over the keys in the multimap, printing out each anagram group that meets the size constraint.</p>
+<p>
+<code>The following program</code> is a straightforward implementation of this technique.</p>
+<p>WHATSON? c1e27772-0fb8-4464-84d3-5179be2681e1</p>
+<pre>
+import java.util.*;
+import java.io.*;
+
+public class Anagrams {
+    public static void main(String[] args) {
+        int minGroupSize = Integer.parseInt(args[1]);
+
+        // Read words from file and put into a simulated multimap
+        Map&lt;String, List&lt;String&gt;&gt; m = new HashMap&lt;String, List&lt;String&gt;&gt;();
+
+        try {
+            Scanner s = new Scanner(new File(args[0]));
+            while (s.hasNext()) {
+                String word = s.next();
+                String alpha = alphabetize(word);
+                List&lt;String&gt; l = m.get(alpha);
+                if (l == null)
+                    m.put(alpha, l=new ArrayList&lt;String&gt;());
+                l.add(word);
+            }
+        } catch (IOException e) {
+            System.err.println(e);
+            System.exit(1);
+        }
+
+        // Print all permutation groups above size threshold
+        for (List&lt;String&gt; l : m.values())
+            if (l.size() &gt;= minGroupSize)
+                System.out.println(l.size() + ": " + l);
+    }
+
+    private static String alphabetize(String s) {
+        char[] a = s.toCharArray();
+        Arrays.sort(a);
+        return new String(a);
+    }
+}
+</pre>
+<p>Running this program on a 173,000-word dictionary file with a minimum anagram group size of eight produces the following output.</p>
+<p>WHATSON? 073965dc-9168-4ec6-918a-77221151ab20</p>
+<pre>
+9: [estrin, inerts, insert, inters, niters, nitres, sinter,
+     triens, trines]
+8: [lapse, leaps, pales, peals, pleas, salep, sepal, spale]
+8: [aspers, parses, passer, prases, repass, spares, sparse,
+     spears]
+10: [least, setal, slate, stale, steal, stela, taels, tales,
+      teals, tesla]
+8: [enters, nester, renest, rentes, resent, tenser, ternes,
+     treens]
+8: [arles, earls, lares, laser, lears, rales, reals, seral]
+8: [earings, erasing, gainers, reagins, regains, reginas,
+     searing, seringa]
+8: [peris, piers, pries, prise, ripes, speir, spier, spire]
+12: [apers, apres, asper, pares, parse, pears, prase, presa,
+      rapes, reaps, spare, spear]
+11: [alerts, alters, artels, estral, laster, ratels, salter,
+      slater, staler, stelar, talers]
+9: [capers, crapes, escarp, pacers, parsec, recaps, scrape,
+     secpar, spacer]
+9: [palest, palets, pastel, petals, plates, pleats, septal,
+     staple, tepals]
+9: [anestri, antsier, nastier, ratines, retains, retinas,
+     retsina, stainer, stearin]
+8: [ates, east, eats, etas, sate, seat, seta, teas]
+8: [carets, cartes, caster, caters, crates, reacts, recast,
+     traces]
+
+</pre>
+<p>Many of these words seem a bit bogus, but that's not the program's fault; they're in the dictionary file. 
+Here's the
+<code>dictionary file</code> we used.
+It was derived from the Public Domain ENABLE benchmark reference word list.
+</p>
+</body>
+</html>

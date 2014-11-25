@@ -1,0 +1,189 @@
+<h1 id="firstHeading" class="firstHeading" lang="en"><span dir="auto">Isolation (database systems)</span></h1>
+<p>In <a href="/wiki/Database" title="Database">database</a> systems, <b>isolation</b> determines how transaction integrity is visible to other users and systems. For example, when a user is creating a Purchase Order and has created the header, but not the PO lines, is the header available for other systems/users, carrying out <a href="/wiki/Concurrency_(computer_science)" title="Concurrency (computer science)">concurrent</a> operations (such as a report on Purchase Orders), to see?</p>
+<p>A lower isolation level increases the ability of many users to access data at the same time, but increases the number of concurrency effects (such as dirty reads or lost updates) users might encounter. Conversely, a higher isolation level reduces the types of concurrency effects that users may encounter, but requires more system resources and increases the chances that one transaction will block another.<sup id="cite_ref-1" class="reference"><a href="#cite_note-1"><span>[</span>1<span>]</span></a></sup></p>
+<p>It is typically defined at database level as a property that defines how/when the changes made by one operation become visible to other, but on older systems may be implemented systemically, for example through the use of temporary tables. In two-tier systems, a TP manager is required to maintain isolation. In n-tier systems (such as multiple websites attempting to book the last seat on a flight) a combination of stored procedures and transaction management is required to commit the booking and confirm to the customer.<sup id="cite_ref-2" class="reference"><a href="#cite_note-2"><span>[</span>2<span>]</span></a></sup></p>
+<p>Isolation is one of the <a href="/wiki/ACID" title="ACID">ACID</a> (Atomicity, Consistency, Isolation, Durability) properties.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Concurrency_control"><span class="tocnumber">1</span> <span class="toctext">Concurrency control</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Isolation_levels"><span class="tocnumber">2</span> <span class="toctext">Isolation levels</span></a>
+<ul>
+<li class="toclevel-2 tocsection-3"><a href="#Serializable"><span class="tocnumber">2.1</span> <span class="toctext">Serializable</span></a></li>
+<li class="toclevel-2 tocsection-4"><a href="#Repeatable_reads"><span class="tocnumber">2.2</span> <span class="toctext">Repeatable reads</span></a></li>
+<li class="toclevel-2 tocsection-5"><a href="#Read_committed"><span class="tocnumber">2.3</span> <span class="toctext">Read committed</span></a></li>
+<li class="toclevel-2 tocsection-6"><a href="#Read_uncommitted"><span class="tocnumber">2.4</span> <span class="toctext">Read uncommitted</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-7"><a href="#Default_isolation_level"><span class="tocnumber">3</span> <span class="toctext">Default isolation level</span></a></li>
+<li class="toclevel-1 tocsection-8"><a href="#Read_phenomena"><span class="tocnumber">4</span> <span class="toctext">Read phenomena</span></a>
+<ul>
+<li class="toclevel-2 tocsection-9"><a href="#Dirty_reads"><span class="tocnumber">4.1</span> <span class="toctext">Dirty reads</span></a></li>
+<li class="toclevel-2 tocsection-10"><a href="#Non-repeatable_reads"><span class="tocnumber">4.2</span> <span class="toctext">Non-repeatable reads</span></a></li>
+<li class="toclevel-2 tocsection-11"><a href="#Phantom_reads"><span class="tocnumber">4.3</span> <span class="toctext">Phantom reads</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-12"><a href="#Isolation_Levels.2C_Read_Phenomena_and_Locks"><span class="tocnumber">5</span> <span class="toctext">Isolation Levels, Read Phenomena and Locks</span></a>
+<ul>
+<li class="toclevel-2 tocsection-13"><a href="#Isolation_Levels_vs_Read_Phenomena"><span class="tocnumber">5.1</span> <span class="toctext">Isolation Levels vs Read Phenomena</span></a></li>
+<li class="toclevel-2 tocsection-14"><a href="#Isolation_Levels_vs_Lock_Duration"><span class="tocnumber">5.2</span> <span class="toctext">Isolation Levels vs Lock Duration</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-15"><a href="#See_also"><span class="tocnumber">6</span> <span class="toctext">See also</span></a></li>
+<li class="toclevel-1 tocsection-16"><a href="#References"><span class="tocnumber">7</span> <span class="toctext">References</span></a></li>
+<li class="toclevel-1 tocsection-17"><a href="#External_links"><span class="tocnumber">8</span> <span class="toctext">External links</span></a></li>
+</ul>
+<ul>
+<li class="toclevel-2 tocsection-3"><a href="#Serializable"><span class="tocnumber">2.1</span> <span class="toctext">Serializable</span></a></li>
+<li class="toclevel-2 tocsection-4"><a href="#Repeatable_reads"><span class="tocnumber">2.2</span> <span class="toctext">Repeatable reads</span></a></li>
+<li class="toclevel-2 tocsection-5"><a href="#Read_committed"><span class="tocnumber">2.3</span> <span class="toctext">Read committed</span></a></li>
+<li class="toclevel-2 tocsection-6"><a href="#Read_uncommitted"><span class="tocnumber">2.4</span> <span class="toctext">Read uncommitted</span></a></li>
+</ul>
+<ul>
+<li class="toclevel-2 tocsection-9"><a href="#Dirty_reads"><span class="tocnumber">4.1</span> <span class="toctext">Dirty reads</span></a></li>
+<li class="toclevel-2 tocsection-10"><a href="#Non-repeatable_reads"><span class="tocnumber">4.2</span> <span class="toctext">Non-repeatable reads</span></a></li>
+<li class="toclevel-2 tocsection-11"><a href="#Phantom_reads"><span class="tocnumber">4.3</span> <span class="toctext">Phantom reads</span></a></li>
+</ul>
+<ul>
+<li class="toclevel-2 tocsection-13"><a href="#Isolation_Levels_vs_Read_Phenomena"><span class="tocnumber">5.1</span> <span class="toctext">Isolation Levels vs Read Phenomena</span></a></li>
+<li class="toclevel-2 tocsection-14"><a href="#Isolation_Levels_vs_Lock_Duration"><span class="tocnumber">5.2</span> <span class="toctext">Isolation Levels vs Lock Duration</span></a></li>
+</ul>
+<p></p>
+<h2><span class="mw-headline" id="Concurrency_control">Concurrency control</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Isolation_(database_systems)&amp;action=edit&amp;section=1" title="Edit section: Concurrency control">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><a href="/wiki/Concurrency_control" title="Concurrency control">Concurrency control</a> comprises the underlying mechanisms in a <a href="/wiki/DBMS" title="DBMS" class="mw-redirect">DBMS</a> which handles isolation and guarantees related correctness. It is heavily utilized by the database and storage engines (see above) both to guarantee the correct execution of concurrent transactions, and (different mechanisms) the correctness of other DBMS processes. The transaction-related mechanisms typically constrain the database data access operations' timing (<a href="/wiki/Schedule_(computer_science)" title="Schedule (computer science)">transaction schedules</a>) to certain orders characterized as the <a href="/wiki/Serializability" title="Serializability">serializability</a> and <a href="/wiki/Recoverability" title="Recoverability" class="mw-redirect">recoverability</a> schedule properties. Constraining database access operation execution typically means reduced performance (rates of execution), and thus concurrency control mechanisms are typically designed to provide the best performance possible under the constraints. Often, when possible without harming correctness, the serializability property is compromised for better performance. However, recoverability cannot be compromised, since such typically results in a quick database integrity violation.</p>
+<p><a href="/wiki/Two-phase_locking" title="Two-phase locking">Two-phase locking</a> is the most common transaction concurrency control method in DBMSs, used to provide both serializability and recoverability for correctness. In order to access a database object a transaction first needs to acquire a <a href="/wiki/Lock_(database)" title="Lock (database)">lock</a> for this object. Depending on the access operation type (e.g., reading or writing an object) and on the lock type, acquiring the lock may be blocked and postponed, if another transaction is holding a lock for that object.</p>
+<h2><span class="mw-headline" id="Isolation_levels">Isolation levels</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Isolation_(database_systems)&amp;action=edit&amp;section=2" title="Edit section: Isolation levels">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Of the four <a href="/wiki/ACID" title="ACID">ACID</a> properties in a <a href="/wiki/Database_management_system" title="Database management system" class="mw-redirect">DBMS</a> (Database Management System), the isolation property is the one most often relaxed. When attempting to maintain the highest level of isolation, a DBMS usually acquires <a href="/wiki/Lock_(database)" title="Lock (database)">locks</a> on data or implements <a href="/wiki/Multiversion_concurrency_control" title="Multiversion concurrency control">multiversion concurrency control</a>, which may result in a loss of <a href="/wiki/Concurrency_(computer_science)" title="Concurrency (computer science)">concurrency</a>. This requires adding logic for the <a href="/wiki/Software_application" title="Software application" class="mw-redirect">application</a> to function correctly.</p>
+<p>Most DBMSs offer a number of <i>transaction isolation levels</i>, which control the degree of locking that occurs when selecting data. For many database applications, the majority of database transactions can be constructed to avoid requiring high isolation levels (e.g. SERIALIZABLE level), thus reducing the locking overhead for the system. The programmer must carefully analyze database access code to ensure that any relaxation of isolation does not cause software bugs that are difficult to find. Conversely, if higher isolation levels are used, the possibility of <a href="/wiki/Deadlock" title="Deadlock">deadlock</a> is increased, which also requires careful analysis and programming techniques to avoid.</p>
+<p>The isolation levels defined by the <a href="/wiki/American_National_Standards_Institute" title="American National Standards Institute">ANSI</a>/<a href="/wiki/International_Organization_for_Standardization" title="International Organization for Standardization">ISO</a> <a href="/wiki/SQL" title="SQL">SQL</a> standard are listed as follows.</p>
+<h3><span class="mw-headline" id="Serializable">Serializable</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Isolation_(database_systems)&amp;action=edit&amp;section=3" title="Edit section: Serializable">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>This is the <i>highest</i> isolation level.</p>
+<p>With a lock-based <a href="/wiki/Concurrency_control" title="Concurrency control">concurrency control</a> DBMS implementation, <a href="/wiki/Serializability" title="Serializability">serializability</a> requires read and write locks (acquired on selected data) to be released at the end of the transaction. Also <i>range-locks</i> must be acquired when a <a href="/wiki/Select_(SQL)" title="Select (SQL)">SELECT</a> query uses a ranged <i>WHERE</i> clause, especially to avoid the <i>phantom reads</i> phenomenon (see below).</p>
+<p>When using non-lock based concurrency control, no locks are acquired; however, if the system detects a <i>write collision</i> among several concurrent transactions, only one of them is allowed to commit. See <i><a href="/wiki/Snapshot_isolation" title="Snapshot isolation">snapshot isolation</a></i> for more details on this topic.</p>
+<h3><span class="mw-headline" id="Repeatable_reads">Repeatable reads</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Isolation_(database_systems)&amp;action=edit&amp;section=4" title="Edit section: Repeatable reads">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>In this isolation level, a lock-based <a href="/wiki/Concurrency_control" title="Concurrency control">concurrency control</a> DBMS implementation keeps read and write locks (acquired on selected data) until the end of the transaction. However, <i>range-locks</i> are not managed, so <i><b><a href="/wiki/Isolation_(database_systems)#Phantom_reads" title="Isolation (database systems)">phantom reads</a></b></i> can occur.</p>
+<h3><span class="mw-headline" id="Read_committed">Read committed</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Isolation_(database_systems)&amp;action=edit&amp;section=5" title="Edit section: Read committed">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>In this isolation level, a lock-based <a href="/wiki/Concurrency_control" title="Concurrency control">concurrency control</a> DBMS implementation keeps write locks (acquired on selected data) until the end of the transaction, but read locks are released as soon as the <a href="/wiki/Select_(SQL)" title="Select (SQL)">SELECT</a> operation is performed (so the <i>non-repeatable reads</i> phenomenon can occur in this isolation level, as discussed below). As in the previous level, <i>range-locks</i> are not managed.</p>
+<p>Putting it in simpler words, read committed is an isolation level that guarantees that any data read is committed at the moment it is read. It simply restricts the reader from seeing any intermediate, uncommitted, 'dirty' read. It makes no promise whatsoever that if the transaction re-issues the read, it will find the same data; data is free to change after it is read.</p>
+<h3><span class="mw-headline" id="Read_uncommitted">Read uncommitted</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Isolation_(database_systems)&amp;action=edit&amp;section=6" title="Edit section: Read uncommitted">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>This is the <i>lowest</i> isolation level. In this level, <i><b><a href="/wiki/Isolation_(database_systems)#Dirty_reads" title="Isolation (database systems)">dirty reads</a></b></i> are allowed, so one transaction may see <i>not-yet-committed</i> changes made by other transactions.</p>
+<p>Since each isolation level is stronger than those below, in that no higher isolation level allows an action forbidden by a lower one, the standard permits a DBMS to run a transaction at an isolation level stronger than that requested (e.g., a "Read committed" transaction may actually be performed at a "Repeatable read" isolation level).</p>
+<h2><span class="mw-headline" id="Default_isolation_level">Default isolation level</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Isolation_(database_systems)&amp;action=edit&amp;section=7" title="Edit section: Default isolation level">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>The <i>default isolation level</i> of different <a href="/wiki/Database_management_system" title="Database management system" class="mw-redirect">DBMS</a>'s varies quite widely. Most databases that feature transactions allow the user to set any isolation level. Some DBMS's also require additional syntax when performing a SELECT statement to acquire locks (e.g. <i>SELECT ... FOR UPDATE</i> to acquire exclusive write locks on accessed rows).</p>
+<p>However, the definitions above have been criticized <sup id="cite_ref-3" class="reference"><a href="#cite_note-3"><span>[</span>3<span>]</span></a></sup> as being ambiguous, and as not accurately reflecting the isolation provided by many databases:</p>
+<p>There are also other criticisms concerning ANSI SQL's isolation definition, in that it encourages implementors to do "bad things":</p>
+<h2><span class="mw-headline" id="Read_phenomena">Read phenomena</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Isolation_(database_systems)&amp;action=edit&amp;section=8" title="Edit section: Read phenomena">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>The ANSI/ISO standard SQL 92 refers to three different <i>read phenomena</i> when Transaction 1 reads data that Transaction 2 might have changed.</p>
+<p>In the following examples, two transactions take place. In the first, Query 1 is performed. Then, in the second transaction, Query 2 is performed and committed. Finally, in the first transaction, Query 1 is performed again.</p>
+<p>The queries use the following data table:</p>
+<h3><span class="mw-headline" id="Dirty_reads">Dirty reads</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Isolation_(database_systems)&amp;action=edit&amp;section=9" title="Edit section: Dirty reads">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>A <i>dirty read</i> (aka <i>uncommitted dependency</i>) occurs when a transaction is allowed to read data from a row that has been modified by another running transaction and not yet committed.</p>
+<p>Dirty reads work similarly to <a href="/wiki/Isolation_(database_systems)#Non-repeatable_reads" title="Isolation (database systems)">non-repeatable reads</a>; however, the second transaction would not need to be committed for the first query to return a different result. The only thing that may be prevented in the READ UNCOMMITTED isolation level is updates appearing out of order in the results; that is, earlier updates will always appear in a result set before later updates.</p>
+<p>In our example, Transaction 2 changes a row, but does not commit the changes. Transaction 1 then reads the uncommitted data. Now if Transaction 2 rolls back its changes (already read by Transaction 1) or updates different changes to the database, then the view of the data may be wrong in the records of Transaction 1.</p>
+<p>WHATSON? 5ab667de-d18d-4309-aa51-4c5f12fbe2f3</p>
+<pre class="de1">
+<span class="coMULTI">/* Query 1 */</span>
+<span class="kw1">SELECT</span> age <span class="kw1">FROM</span> users <span class="kw1">WHERE</span> id <span class="sy0">=</span> <span class="nu0">1</span>;
+<span class="coMULTI">/* will read 20 */</span>
+</pre>
+<p>WHATSON? 913ac229-507d-42af-9c65-b9c0fe22ee87</p>
+<pre class="de1">
+<span class="coMULTI">/* Query 2 */</span>
+<span class="kw1">UPDATE</span> users <span class="kw1">SET</span> age <span class="sy0">=</span> <span class="nu0">21</span> <span class="kw1">WHERE</span> id <span class="sy0">=</span> <span class="nu0">1</span>;
+<span class="coMULTI">/* No commit here */</span>
+</pre>
+<p>WHATSON? 233d6fb0-976d-439f-b667-d6e7923187f7</p>
+<pre class="de1">
+<span class="coMULTI">/* Query 1 */</span>
+<span class="kw1">SELECT</span> age <span class="kw1">FROM</span> users <span class="kw1">WHERE</span> id <span class="sy0">=</span> <span class="nu0">1</span>;
+<span class="coMULTI">/* will read 21 */</span>
+</pre>
+<p>WHATSON? b81e346e-6be8-4fe8-8782-59428f43c7df</p>
+<pre class="de1">
+<span class="kw1">ROLLBACK</span>; <span class="coMULTI">/* lock-based DIRTY READ */</span>
+</pre>
+<p>But in this case no row exists that has an id of 1 and an age of 21.</p>
+<h3><span class="mw-headline" id="Non-repeatable_reads">Non-repeatable reads</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Isolation_(database_systems)&amp;action=edit&amp;section=10" title="Edit section: Non-repeatable reads">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>A <i>non-repeatable read</i> occurs, when during the course of a transaction, a row is retrieved twice and the values within the row differ between reads.</p>
+<p><i>Non-repeatable reads</i> phenomenon may occur in a lock-based concurrency control method when read locks are not acquired when performing a <a href="/wiki/Select_(SQL)" title="Select (SQL)">SELECT</a>, or when the acquired locks on affected rows are released as soon as the SELECT operation is performed. Under the <a href="/wiki/Multiversion_concurrency_control" title="Multiversion concurrency control">multiversion concurrency control</a> method, <i>non-repeatable reads</i> may occur when the requirement that a transaction affected by a <a href="/w/index.php?title=Commit_conflict&amp;action=edit&amp;redlink=1" class="new" title="Commit conflict (page does not exist)">commit conflict</a> must roll back is relaxed.</p>
+<p>WHATSON? 9dbf7920-4730-4353-8eb0-a436b558bd42</p>
+<pre class="de1">
+<span class="coMULTI">/* Query 1 */</span>
+<span class="kw1">SELECT</span> <span class="sy0">*</span> <span class="kw1">FROM</span> users <span class="kw1">WHERE</span> id <span class="sy0">=</span> <span class="nu0">1</span>;
+</pre>
+<p>WHATSON? bb8645e9-374b-440a-b35f-b52508586272</p>
+<pre class="de1">
+<span class="coMULTI">/* Query 2 */</span>
+<span class="kw1">UPDATE</span> users <span class="kw1">SET</span> age <span class="sy0">=</span> <span class="nu0">21</span> <span class="kw1">WHERE</span> id <span class="sy0">=</span> <span class="nu0">1</span>;
+COMMIT; <span class="coMULTI">/* in multiversion concurrency
+   control, or lock-based READ COMMITTED */</span>
+</pre>
+<p>WHATSON? b2af6fdc-3684-4991-a20a-58eaf3878281</p>
+<pre class="de1">
+<span class="coMULTI">/* Query 1 */</span>
+<span class="kw1">SELECT</span> <span class="sy0">*</span> <span class="kw1">FROM</span> users <span class="kw1">WHERE</span> id <span class="sy0">=</span> <span class="nu0">1</span>;
+COMMIT; <span class="coMULTI">/* lock-based REPEATABLE READ */</span>
+</pre>
+<p>In this example, Transaction 2 commits successfully, which means that its changes to the row with id 1 should become visible. However, Transaction 1 has already seen a different value for <i>age</i> in that row. At the SERIALIZABLE and REPEATABLE READ isolation levels, the DBMS must return the old value for the second SELECT. At READ COMMITTED and READ UNCOMMITTED, the DBMS may return the updated value; this is a non-repeatable read.</p>
+<p>There are two basic strategies used to prevent non-repeatable reads. The first is to delay the execution of Transaction 2 until Transaction 1 has committed or rolled back. This method is used when locking is used, and produces the serial <a href="/wiki/Schedule_(computer_science)" title="Schedule (computer science)">schedule</a> <b>T1, T2</b>. A serial schedule exhibits <i>repeatable reads</i> behaviour.</p>
+<p>In the other strategy, as used in <i><a href="/wiki/Multiversion_concurrency_control" title="Multiversion concurrency control">multiversion concurrency control</a></i>, Transaction 2 is permitted to commit first, which provides for better concurrency. However, Transaction 1, which commenced prior to Transaction 2, must continue to operate on a past version of the database — a snapshot of the moment it was started. When Transaction 1 eventually tries to commit, the DBMS checks if the result of committing Transaction 1 would be equivalent to the schedule <b>T1, T2</b>. If it is, then Transaction 1 can proceed. If it cannot be seen to be equivalent, however, Transaction 1 must roll back with a serialization failure.</p>
+<p>Using a lock-based concurrency control method, at the REPEATABLE READ isolation mode, the row with ID = 1 would be locked, thus blocking Query 2 until the first transaction was committed or rolled back. In READ COMMITTED mode, the second time Query 1 was executed, the age would have changed.</p>
+<p>Under multiversion concurrency control, at the SERIALIZABLE isolation level, both SELECT queries see a snapshot of the database taken at the start of Transaction 1. Therefore, they return the same data. However, if Transaction 1 then attempted to UPDATE that row as well, a serialization failure would occur and Transaction 1 would be forced to roll back.</p>
+<p>At the READ COMMITTED isolation level, each query sees a snapshot of the database taken at the start of each query. Therefore, they each see different data for the updated row. No serialization failure is possible in this mode (because no promise of serializability is made), and Transaction 1 will not have to be retried.</p>
+<h3><span class="mw-headline" id="Phantom_reads">Phantom reads</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Isolation_(database_systems)&amp;action=edit&amp;section=11" title="Edit section: Phantom reads">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>A <i>phantom read</i> occurs when, in the course of a transaction, two identical queries are executed, and the collection of rows returned by the second query is different from the first.</p>
+<p>This can occur when <i><a href="/w/index.php?title=Range_locks&amp;action=edit&amp;redlink=1" class="new" title="Range locks (page does not exist)">range locks</a></i> are not acquired on performing a <i><a href="/wiki/Select_(SQL)" title="Select (SQL)">SELECT</a> ... WHERE</i> operation. The <i>phantom reads</i> anomaly is a special case of <i>Non-repeatable reads</i> when Transaction 1 repeats a ranged <i>SELECT ... WHERE</i> query and, between both operations, Transaction 2 creates (i.e. <a href="/wiki/INSERT" title="INSERT" class="mw-redirect">INSERT</a>) new rows (in the target table) which fulfill that <i>WHERE</i> clause.</p>
+<p>WHATSON? 5ed20484-d47f-427e-99ce-7bf6483104b4</p>
+<pre class="de1">
+<span class="coMULTI">/* Query 1 */</span>
+<span class="kw1">SELECT</span> <span class="sy0">*</span> <span class="kw1">FROM</span> users
+<span class="kw1">WHERE</span> age <span class="kw1">BETWEEN</span> <span class="nu0">10</span> <span class="kw1">AND</span> <span class="nu0">30</span>;
+</pre>
+<p>WHATSON? c6714a4c-308d-49e1-9a06-195947c72a68</p>
+<pre class="de1">
+<span class="coMULTI">/* Query 2 */</span>
+<span class="kw1">INSERT</span> <span class="kw1">INTO</span> users <span class="kw1">VALUES</span> <span class="br0">(</span> <span class="nu0">3</span><span class="sy0">,</span> <span class="st0">'Bob'</span><span class="sy0">,</span> <span class="nu0">27</span> <span class="br0">)</span>;
+COMMIT;
+</pre>
+<p>WHATSON? 588de941-b9e8-491d-8b6c-b85069f9d85b</p>
+<pre class="de1">
+<span class="coMULTI">/* Query 1 */</span>
+<span class="kw1">SELECT</span> <span class="sy0">*</span> <span class="kw1">FROM</span> users
+<span class="kw1">WHERE</span> age <span class="kw1">BETWEEN</span> <span class="nu0">10</span> <span class="kw1">AND</span> <span class="nu0">30</span>;
+COMMIT;
+</pre>
+<p>Note that Transaction 1 executed the same query twice. If the highest level of isolation were maintained, the same set of rows should be returned both times, and indeed that is what is mandated to occur in a database operating at the SQL SERIALIZABLE isolation level. However, at the lesser isolation levels, a different set of rows may be returned the second time.</p>
+<p>In the SERIALIZABLE isolation mode, Query 1 would result in all records with age in the range 10 to 30 being locked, thus Query 2 would block until the first transaction was committed. In REPEATABLE READ mode, the range would not be locked, allowing the record to be inserted and the second execution of Query 1 to include the new row in its results.</p>
+<h2><span class="mw-headline" id="Isolation_Levels.2C_Read_Phenomena_and_Locks">Isolation Levels, Read Phenomena and Locks</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Isolation_(database_systems)&amp;action=edit&amp;section=12" title="Edit section: Isolation Levels, Read Phenomena and Locks">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<h3><span class="mw-headline" id="Isolation_Levels_vs_Read_Phenomena">Isolation Levels vs Read Phenomena</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Isolation_(database_systems)&amp;action=edit&amp;section=13" title="Edit section: Isolation Levels vs Read Phenomena">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Anomaly Serializable is not the same as Serializable. That is, it is necessary, but not sufficient that a Serializable schedule should be free of all three phenomena types. See [1] below.</p>
+<p>"may occur" means that the isolation level suffers that phenomenon, while "-" means that it does not suffer it.</p>
+<h3><span class="mw-headline" id="Isolation_Levels_vs_Lock_Duration">Isolation Levels vs Lock Duration</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Isolation_(database_systems)&amp;action=edit&amp;section=14" title="Edit section: Isolation Levels vs Lock Duration">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p><sup class="noprint Inline-Template Template-Fact" style="white-space:nowrap;">[<i><a href="/wiki/Wikipedia:Citation_needed" title="Wikipedia:Citation needed"><span title="This is a still a mess. Write operations always place locks until commit, whatever isolation level is used. Queries (selects/reads) never place any kind of lock under Read Uncommitted isolation level. Locks placed by read operations (the only operations that are affected by the isolation level used) should not be referred as Read and Range, but as Data Locks and Predicate Locks. Write operations also place Data and Predicate locks, always until commit, whatever isolation level is used. (January 2014)">citation needed</span></a></i>]</sup></p>
+<p>In lock-based concurrency control, isolation level determines the duration that locks are held.<br>
+<b>"C"</b> - Denotes that locks are held until the transaction commits.<br>
+<b>"S"</b> - Denotes that the locks are held only during the currently executing statement. Note that if locks are released after a statement, the underlying data could be changed by another transaction before the current transaction commits, thus creating a violation.</p>
+<h2><span class="mw-headline" id="See_also">See also</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Isolation_(database_systems)&amp;action=edit&amp;section=15" title="Edit section: See also">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul>
+<li><a href="/wiki/Atomicity_(database_systems)" title="Atomicity (database systems)">Atomicity</a></li>
+<li><a href="/wiki/Consistency_(database_systems)" title="Consistency (database systems)">Consistency</a></li>
+<li><a href="/wiki/Durability_(database_systems)" title="Durability (database systems)">Durability</a></li>
+<li><a href="/wiki/Lock_(database)" title="Lock (database)">Lock (database)</a></li>
+<li><a href="/wiki/Optimistic_concurrency_control" title="Optimistic concurrency control">Optimistic concurrency control</a></li>
+<li><a href="/wiki/Relational_Database_Management_System" title="Relational Database Management System" class="mw-redirect">Relational Database Management System</a></li>
+<li><a href="/wiki/Snapshot_isolation" title="Snapshot isolation">Snapshot isolation</a></li>
+</ul>
+<h2><span class="mw-headline" id="References">References</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Isolation_(database_systems)&amp;action=edit&amp;section=16" title="Edit section: References">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ol class="references">
+<li id="cite_note-1"><span class="mw-cite-backlink"><b><a href="#cite_ref-1">^</a></b></span> <span class="reference-text">"Isolation Levels in the Database Engine", Technet, Microsoft, <a rel="nofollow" class="external free" href="http://technet.microsoft.com/en-us/library/ms189122(v=SQL.105).aspx">http://technet.microsoft.com/en-us/library/ms189122(v=SQL.105).aspx</a></span></li>
+<li id="cite_note-2"><span class="mw-cite-backlink"><b><a href="#cite_ref-2">^</a></b></span> <span class="reference-text">"The Architecture of Transaction Processing Systems", Chapter 23, Evolution of Processing Systems, Department of Computer Science, Stony Brook University, retrieved 20 March 2014, <a rel="nofollow" class="external free" href="http://www.cs.sunysb.edu/~liu/cse315/23.pdf">http://www.cs.sunysb.edu/~liu/cse315/23.pdf</a></span></li>
+<li id="cite_note-3"><span class="mw-cite-backlink"><b><a href="#cite_ref-3">^</a></b></span> <span class="reference-text"><span class="citation web"><a rel="nofollow" class="external text" href="http://www.cs.umb.edu/~poneil/iso.pdf">"A Critique of ANSI SQL Isolation Levels"</a><span class="reference-accessdate">. Retrieved 29 July 2012</span>.</span><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AIsolation+%28database+systems%29&amp;rft.btitle=A+Critique+of+ANSI+SQL+Isolation+Levels&amp;rft.genre=book&amp;rft_id=http%3A%2F%2Fwww.cs.umb.edu%2F~poneil%2Fiso.pdf&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook" class="Z3988"><span style="display:none;"> </span></span></span></li>
+<li id="cite_note-4"><span class="mw-cite-backlink"><b><a href="#cite_ref-4">^</a></b></span> <span class="reference-text"><span class="citation web">salesforce (2010-12-06). <a rel="nofollow" class="external text" href="http://www.youtube.com/v/7J61pPG9j90?version=3">"Customer testimonials (SimpleGeo, CLOUDSTOCK 2010)"</a>. www.DataStax.com: DataStax<span class="reference-accessdate">. Retrieved 2010-03-09</span>. "(see above at about 13:30 minutes of the webcast!)"</span><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AIsolation+%28database+systems%29&amp;rft.aulast=salesforce&amp;rft.au=salesforce&amp;rft.btitle=Customer+testimonials+%28SimpleGeo%2C+CLOUDSTOCK+2010%29&amp;rft.date=2010-12-06&amp;rft.genre=book&amp;rft_id=http%3A%2F%2Fwww.youtube.com%2Fv%2F7J61pPG9j90%3Fversion%3D3&amp;rft.place=www.DataStax.com&amp;rft.pub=DataStax&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook" class="Z3988"><span style="display:none;"> </span></span></span></li>
+</ol>
+<h2><span class="mw-headline" id="External_links">External links</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Isolation_(database_systems)&amp;action=edit&amp;section=17" title="Edit section: External links">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul>
+<li><a rel="nofollow" class="external text" href="http://docs.oracle.com/cd/B12037_01/server.101/b10743/toc.htm">Oracle® Database Concepts</a>, <a rel="nofollow" class="external text" href="http://docs.oracle.com/cd/B12037_01/server.101/b10743/consist.htm#sthref1919">chapter 13 Data Concurrency and Consistency, Preventable Phenomena and Transaction Isolation Levels</a></li>
+<li><a rel="nofollow" class="external text" href="http://docs.oracle.com/cd/B19306_01/server.102/b14200/toc.htm">Oracle® Database SQL Reference</a>, <a rel="nofollow" class="external text" href="http://docs.oracle.com/cd/B19306_01/server.102/b14200/statements_10.htm#i2068385">chapter 19 SQL Statements: SAVEPOINT to UPDATE</a>, <a rel="nofollow" class="external text" href="http://docs.oracle.com/cd/B19306_01/server.102/b14200/statements_10005.htm#i2067247">SET TRANSACTION</a></li>
+<li>in <a href="/wiki/Java_Database_Connectivity" title="Java Database Connectivity">JDBC</a>: <a rel="nofollow" class="external text" href="http://docs.oracle.com/javase/7/docs/api/java/sql/Connection.html#field_summary">Connection constant fields</a>, <a rel="nofollow" class="external text" href="http://docs.oracle.com/javase/7/docs/api/java/sql/Connection.html#getTransactionIsolation()">Connection.getTransactionIsolation()</a>, <a rel="nofollow" class="external text" href="http://docs.oracle.com/javase/7/docs/api/java/sql/Connection.html#setTransactionIsolation(int)">Connection.setTransactionIsolation(int)</a></li>
+<li>in <a href="/wiki/Spring_Framework" title="Spring Framework">Spring Framework</a>: <a rel="nofollow" class="external text" href="http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/transaction/annotation/Transactional.html">@Transactional</a>, <a rel="nofollow" class="external text" href="http://static.springsource.org/spring/docs/current/javadoc-api/org/springframework/transaction/annotation/Isolation.html">Isolation</a></li>
+</ul>

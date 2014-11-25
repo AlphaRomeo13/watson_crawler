@@ -1,0 +1,49 @@
+<h1>Using and Creating a DataFlavor</h1>
+<p>The 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/awt/datatransfer/DataFlavor.html"><code>DataFlavor</code></a> class allows you to specify the content type of your data. You need to specify a <code>DataFlavor</code> when fetching the data from the <code>importData</code> method. Several flavor types are predefined for you:</p>
+<ul>
+<li>
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/awt/datatransfer/DataFlavor.html#imageFlavor"><code>imageFlavor</code></a> represents data in the <code>java.awt.Image</code> format. This is used when dragging image data.</li>
+<li>
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/awt/datatransfer/DataFlavor.html#stringFlavor"><code>stringFlavor</code></a> represents data in the most basic form of text — <code>java.lang.String</code>. This is the most commonly used data flavor for most applications.</li>
+<li>
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/awt/datatransfer/DataFlavor.html#javaFileListFlavor"><code>javaFileListFlavor</code></a> represents <code>java.io.File</code> objects in a <code>java.util.List</code> format. This is useful for applications that drag files, such as the <code>TopLevelTransferHandler</code> example, discussed in the 
+<a class="TutorialLink" target="_top" href="toplevel.html">Top-Level Drop</a> lesson.</li>
+</ul>
+<p>For most applications, this is all you need to know about data flavors. However, if you require a flavor other than these predefined types, you can create your own. If you create a custom component and want it to participate in data transfer, you will need to create a custom data flavor. The constructor for specifying a data flavor is 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/awt/datatransfer/DataFlavor.html#DataFlavor-java.lang.Class-java.lang.String-"><code>DataFlavor(Class, String)</code></a>. For example, to create a data flavor for the <code>java.util.ArrayList</code> class:</p>
+<p>WHATSON? b80db6ae-482a-46a1-b8ff-592ac7e42f7a</p>
+<pre>
+new DataFlavor(ArrayList.class, "ArrayList");
+</pre>
+<p>To create a data flavor for an integer array:</p>
+<p>WHATSON? 3296ce83-2245-4df9-a748-5fe8b6c02cb2</p>
+<pre>
+new DataFlavor(int[].class, "Integer Array");
+</pre>
+<p>Transferring the data using this mechanism uses <code>Object</code> serialization, so the class you use to transfer the data must implement the <code>Serializable</code> interface, as must anything that is serialized with it. If everything is not serializable, you will see a <code>NotSerializableException</code> during drop or copy to the clipboard.</p>
+<p>Creating a data flavor using the <code>DataFlavor(Class, String)</code> constructor allows you to transfer data between applications, including native applications. If you want to create a data flavor that transfers data only within an application, use 
+<a class="SourceLink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/awt/datatransfer/DataFlavor.html#javaJVMLocalObjectMimeType" onclick="showCode('../../displayCode.html', 'http://docs.oracle.com/javase/8/docs/api/java/awt/datatransfer/DataFlavor.html#javaJVMLocalObjectMimeType'); return false;"><code><code>javaJVMLocalObjectMimeType</code></code></a> and the 
+<a class="SourceLink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/awt/datatransfer/DataFlavor.html#DataFlavor-java.lang.String-" onclick="showCode('../../displayCode.html', 'http://docs.oracle.com/javase/8/docs/api/java/awt/datatransfer/DataFlavor.html#DataFlavor-java.lang.String-'); return false;"><code><code>DataFlavor(String)</code></code></a> constructor. For example, to specify a data flavor that transfers color from a <code>JColorChooser</code> only within your application, you could use this code:</p>
+<p>WHATSON? 89cf6c7a-7525-4e39-820b-ee99d210b7d5</p>
+<pre>
+String colorType = DataFlavor.javaJVMLocalObjectMimeType +
+                   ";class=java.awt.Color";
+DataFlavor colorFlavor = new DataFlavor(colorType);
+</pre>
+<p>To create a data flavor for an <code>ArrayList</code> that would work only within your application:</p>
+<p>WHATSON? df272190-1766-4916-91c8-0930e3dfb7bd</p>
+<pre>
+new DataFlavor(DataFlavor.javaJVMLocalObjectMimeType +
+               ";class=java.util.ArrayList");
+</pre>
+<p>To create a data flavor for an integer array:</p>
+<p>WHATSON? 8612f953-42de-4cf5-8a07-62e0de50bcfd</p>
+<pre>
+new DataFlavor(DataFlavor.javaJVMLocalObjectMimeType +
+               ";class=\"" + int[].class.getName() + "\"");
+</pre>
+<p>A MIME type containing special characters, such as <b>[</b> or <b>;</b>, must have those characters enclosed in quotes.</p>
+<p>A <code>Transferable</code> can be implemented to support multiple flavors. For example, you can use both local and serialization flavors together, or you can use two forms of the same data, such as the <code>ArrayList</code> and integer array flavors, together, or you can create a <code>TransferHandler</code> that accepts different types of data, such as color and text.</p>
+<p>When you create an array of <code>DataFlavors</code> to be returned from the <code>Transferable</code>'s 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/awt/datatransfer/Transferable.html#getTransferDataFlavors--"><code>getTransferDataFlavors</code></a> method, the flavors should be inserted in preferred order, with the most preferred appearing at element 0 of the array. Genereally the preferred order is from the richest, or most complex, form of the data down to the simpleset — the form most likely to be understood by other objects.</p>

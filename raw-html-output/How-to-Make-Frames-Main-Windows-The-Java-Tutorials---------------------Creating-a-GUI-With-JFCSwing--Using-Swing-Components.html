@@ -1,0 +1,150 @@
+<h1>How to Make Frames (Main Windows)</h1>
+<p>A Frame is a top-level window with a title and a border. The size of the frame includes any area designated for the border. The dimensions of the border area may be obtained using the <code>getInsets</code> method. Since the border area is included in the overall size of the frame, the border effectively obscures a portion of the frame, constraining the area available for rendering and/or displaying subcomponents to the rectangle which has an upper-left corner location of <code>(insets.left</code>, <code>insets.top)</code>, and has a size of <code>width - (insets.left + insets.right)</code> by <code>height - (insets.top + insets.bottom)</code>.</p>
+<p>A frame, implemented as an instance of the 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/javax/swing/JFrame.html"><code>JFrame</code></a> class, is a window that has decorations such as a border, a title, and supports button components that close or iconify the window. Applications with a GUI usually include at least one frame. Applets sometimes use frames, as well.</p>
+<p>To make a window that is dependent on another window  disappearing when the other window is iconified, for example  use a <a href="dialog.html"><code>dialog</code></a> instead of <code>frame.</code>. To make a window that appears within another window, use an <a href="internalframe.html">internal frame</a>. <a name="anexample" id="anexample"></a></p>
+<h2><a name="anexample__1" id="anexample__1">Creating and Showing Frames</a></h2>
+<p>Here is a picture of the extremely plain window created by the <code>FrameDemo</code> demonstration application. You can find the source code in 
+<a class="SourceLink" target="_blank" href="../examples/components/FrameDemoProject/src/components/FrameDemo.java" onclick="showCode('../../displayCode.html', '../examples/components/FrameDemoProject/src/components/FrameDemo.java'); return false;"><code>FrameDemo.java</code></a>. You can <a href="http://docs.oracle.com/javase/tutorialJWS/samples/uiswing/FrameDemoProject/FrameDemo.jnlp">run FrameDemo</a> ( 
+<a class="OutsideLink" target="_blank" href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">download JDK 7 or later</a>).</p>
+<p>The following <code>FrameDemo</code> code shows how to create and set up a frame.</p>
+<p>WHATSON? 422704c2-a6e9-41df-8c84-73466f62fcd2</p>
+<pre>
+<!-- removed as per Shannon's notes. dsd
+//1. Optional: Specify who draws the window decorations. 
+JFrame.setDefaultLookAndFeelDecorated(true);
+-->
+//1. Create the frame.
+JFrame frame = new JFrame("FrameDemo");
+
+//2. Optional: What happens when the frame closes?
+frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+//3. Create components and put them in the frame.
+<em>//...create emptyLabel...</em>
+frame.getContentPane().add(emptyLabel, BorderLayout.CENTER);
+
+//4. Size the frame.
+frame.pack();
+
+//5. Show it.
+frame.setVisible(true);
+</pre>
+<p>Here are some details about the code:</p>
+<ol><!-- commented out as per Shannon's notes.dsd
+<li>
+Calling <code>setDefaultLookAndFeelDecorated(true)</code> 
+requests that 
+any subsequently created frames
+have window decorations provided
+by the look and feel,
+and not by the window system.
+For details, see
+<a href="#setDefaultLookAndFeelDecorated">Specifying Window Decorations</a>.
+<p>
+-->
+<li>The first line of code creates a frame using a constructor that lets you set the frame title. The other frequently used <code>JFrame</code> constructor is the no-argument constructor.</li>
+<li>Next the code specifies what happens when your user closes the frame. The <code>EXIT_ON_CLOSE</code> operation exits the program when your user closes the frame. This behavior is appropriate for this program because the program has only one frame, and closing the frame makes the program useless.
+<p>See <a href="#windowevents">Responding to Window-Closing Events</a> for more information.</p>
+</li>
+<li>The next bit of code adds a blank label to the frame content pane. If you're not already familiar with content panes and how to add components to them, please read <a href="toplevel.html#contentpane">Adding Components to the Content Pane</a>.
+<p>For frames that have menus, you'd typically add the menu bar to the frame here using the <code>setJMenuBar</code> method. See <a href="menu.html">How to Use Menus</a> for details.</p>
+</li>
+<li>The <code>pack</code> method sizes the frame so that all its contents are at or above their preferred sizes. An alternative to <code>pack</code> is to establish a frame size explicitly by calling <code>setSize</code> or <code>setBounds</code> (which also sets the frame location). In general, using <code>pack</code> is preferable to calling <code>setSize</code>, since <code>pack</code> leaves the frame layout manager in charge of the frame size, and layout managers are good at adjusting to platform dependencies and other factors that affect component size.
+<p>This example does not set the frame location, but it is easy to do so using either the <code>setLocationRelativeTo</code> or <code>setLocation</code> method. For example, the following code centers a frame onscreen:</p>
+<div class="codeblock"><pre>
+frame.setLocationRelativeTo(null);
+</pre></div>
+</li>
+<li>Calling <code>setVisible(true)</code> makes the frame appear onscreen. Sometimes you might see the <code>show</code> method used instead. The two usages are equivalent, but we use <code>setVisible(true)</code> for consistency's sake.</li>
+</ol>
+<p>See <a href="#windowevents">Responding to Window-Closing Events</a> for more information.</p>
+<p>For frames that have menus, you'd typically add the menu bar to the frame here using the <code>setJMenuBar</code> method. See <a href="menu.html">How to Use Menus</a> for details.</p>
+<p>This example does not set the frame location, but it is easy to do so using either the <code>setLocationRelativeTo</code> or <code>setLocation</code> method. For example, the following code centers a frame onscreen:</p>
+<p>WHATSON? 37b41490-a4f5-4035-ac71-0f0fadd0785d</p>
+<pre>
+frame.setLocationRelativeTo(null);
+</pre>
+<p>
+</p>
+<h2><a name="setDefaultLookAndFeelDecorated" id="setDefaultLookAndFeelDecorated">Specifying Window Decorations</a></h2>
+<p>By default, window decorations are supplied by the native window system. However, you can request that the look-and-feel provide the decorations for a frame. You can also specify that the frame have no window decorations at all, a feature that can be used on its own, or to provide your own decorations, or with 
+<a class="TutorialLink" target="_top" href="../../extra/fullscreen/index.html">full-screen exclusive mode</a>.</p>
+<p>Besides specifying who provides the window decorations, you can also specify which icon is used to represent the window. Exactly how this icon is used depends on the window system or look and feel that provides the window decorations. If the window system supports minimization, then the icon is used to represent the minimized window. Most window systems or look and feels also display the icon in the window decorations. A typical icon size is 16x16 pixels, but some window systems use other sizes.</p>
+<p>The following snapshots show three frames that are identical except for their window decorations. As you can tell by the appearance of the button in each frame, all three use the Java look and feel. The first uses decorations provided by the window system, which happen to be Microsoft Windows, but could as easily be any other system running the Java platform.The second and third use window decorations provided by the Java look and feel. The third frame uses Java look and feel window decorations, but has a custom icon. <!-- changed the order of screen shots as per Shannon's notes.dsd --></p>
+<p>Here is an example of creating a frame with a custom icon and with window decorations provided by the look and feel:</p>
+<p>WHATSON? a33167b0-6acc-4143-99f3-cf1fc20b78f8</p>
+<pre>
+//Ask for window decorations provided by the look and feel.
+JFrame.setDefaultLookAndFeelDecorated(true);
+
+//Create the frame.
+JFrame frame = new JFrame("A window");
+
+//Set the frame icon to an image loaded from a file.
+frame.setIconImage(new ImageIcon(imgURL).getImage());
+</pre>
+<p>As the preceding code snippet implies, you must invoke the <code>setDefaultLookAndFeelDecorated</code> method <em>before</em> creating the frame whose decorations you wish to affect. The value you set with <code>setDefaultLookAndFeelDecorated</code> is used for all subsequently created <code>JFrame</code>s. You can switch back to using window system decorations by invoking <code>JFrame.setDefaultLookAndFeelDecorated(false)</code>. Some look and feels might not support window decorations; in this case, the window system decorations are used.</p>
+<p>The full source code for the application that creates the frames pictured above is in 
+<a class="SourceLink" target="_blank" href="../examples/components/FrameDemo2Project/src/components/FrameDemo2.java" onclick="showCode('../../displayCode.html', '../examples/components/FrameDemo2Project/src/components/FrameDemo2.java'); return false;"><code>FrameDemo2.java</code></a>. Besides showing how to choose window decorations, FrameDemo2 also shows how to disable all window decorations and gives an example of positioning windows. It includes two methods that create the <code>Image</code> objects used as icons  one is loaded from a file, and the other is painted from scratch. <!-- ***************** boilerplate stuff **************** --></p>
+<ol>
+<li>Click the Launch button to run the Frame Demo using 
+<a class="OutsideLink" target="_blank" href="http://www.oracle.com/technetwork/java/javase/javawebstart/index.html">Java™ Web Start</a> (<a href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">download JDK 7 or later</a>). Alternatively, to compile and run the example yourself, consult the <a href="../examples/components/index.html#FrameDemo2">example index</a>.<a href="http://docs.oracle.com/javase/tutorialJWS/samples/uiswing/FrameDemo2Project/FrameDemo2.jnlp"><img src="../../images/jws-launch-button.png" width="88" height="23" align="bottom" alt="Launches the FrameDemo2 example"></a><br>
+<p><!--  ******* end boilerplate stuff  *******  -->
+ <!--
+
+<div class="note"><hr /><strong>Try this:</strong>&nbsp;<ol>
+<li> <a href="http://docs.oracle.com/javase/tutorialJWS/samples/uiswing/FrameDemo2Project/FrameDemo2.jnlp">Run FrameDemo2</a> (
+<a class="OutsideLink" target="_blank" href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">download JDK 7 or later</a>).    Or, to compile and run the example yourself,
+     consult the
+     <a href="../examples/components/index.html#FrameDemo2">example index</a>.
+
+        --></p>
+</li>
+<li>Bring up two windows, both with look-and-feel-provided decorations, but with different icons.<br>
+The Java look and feel displays the icons in its window decorations. Depending on your window system, the icon may be used elsewhere to represent the window, especially when the window is minimized.</li>
+<li>Bring up one or more windows with window system decorations.<br>
+See if your window system treats these icons differently.</li>
+<li>Bring up one or more windows with no window decorations.<br>
+Play with the various types of windows to see how the window decorations, window system, and frame icons interact.</li>
+</ol>
+<p><!--  ******* end boilerplate stuff  *******  -->
+ <!--
+
+<div class="note"><hr /><strong>Try this:</strong>&nbsp;<ol>
+<li> <a href="http://docs.oracle.com/javase/tutorialJWS/samples/uiswing/FrameDemo2Project/FrameDemo2.jnlp">Run FrameDemo2</a> (
+<a class="OutsideLink" target="_blank" href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">download JDK 7 or later</a>).    Or, to compile and run the example yourself,
+     consult the
+     <a href="../examples/components/index.html#FrameDemo2">example index</a>.
+
+        --></p>
+<h2><a name="windowevents" id="windowevents">Responding to Window-Closing Events</a></h2>
+<p>By default, when the user closes a frame onscreen, the frame is hidden. Although invisible, the frame still exists and the program can make it visible again. If you want different behavior, then you need to either register a window listener that handles window-closing events, or you need to specify default close behavior using the <code>setDefaultCloseOperation</code> method. You can even do both.</p>
+<p>The argument to <code>setDefaultCloseOperation</code> must be one of the following values, the first three of which are defined in the 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/javax/swing/WindowConstants.html"><code>WindowConstants</code></a> interface (implemented by <code>JFrame</code>, <code>JInternalPane</code>, and <code>JDialog</code>):</p>
+<p><a name="4030718"></a></p>
+<p><code>DISPOSE_ON_CLOSE</code> can have results similar to <code>EXIT_ON_CLOSE</code> if only one window is onscreen. More precisely, when the last displayable window within the Java virtual machine (VM) is disposed of, the VM may terminate. See 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/awt/doc-files/AWTThreadIssues.html">AWT Threading Issues</a> for details.</p>
+<p>The default close operation is executed after any window listeners handle the window-closing event. So, for example, assume that you specify that the default close operation is to dispose of a frame. You also implement a window listener that tests whether the frame is the last one visible and, if so, saves some data and exits the application. Under these conditions, when the user closes a frame, the window listener will be called first. If it does not exit the application, then the default close operation  disposing of the frame  will then be performed.</p>
+<p>For more information about handling window-closing events, see 
+<a class="TutorialLink" target="_top" href="../events/windowlistener.html">How to Write Window Listeners</a>. Besides handling window-closing events, window listeners can also react to other window state changes, such as iconification and activation.</p>
+<h2><a name="api" id="api">The Frame API</a></h2>
+<p>The following tables list the commonly used <code>JFrame</code> constructors and methods. Other methods you might want to call are defined by the 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/awt/Frame.html"><code>java.awt.Frame</code></a>, 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/awt/Window.html"><code>java.awt.Window</code></a>, and 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/awt/Component.html"><code>java.awt.Component</code></a> classes, from which <code>JFrame</code> descends.</p>
+<p>Because each <code>JFrame</code> object has a root pane, frames have support for interposing input and painting behavior in front of the frame children, placing children on different "layers", and for Swing menu bars. These topics are introduced in <a href="toplevel.html">Using Top-Level Containers</a> and explained in detail in <a href="rootpane.html">How to Use Root Panes</a>.</p>
+<p>The API for using frames falls into these categories:</p>
+<ul>
+<li><a href="#creating">Creating and Setting Up a Frame</a></li>
+<li><a href="#sizeplace">Setting the Window Size and Location</a></li>
+<li><a href="#rootpane">Methods Related to the Root Pane</a></li>
+</ul>
+<ul>
+<li><code>DO_NOTHING_ON_CLOSE</code></li>
+<li><code>HIDE_ON_CLOSE</code></li>
+<li><code>DISPOSE_ON_CLOSE</code></li>
+<li><code>EXIT_ON_CLOSE</code></li>
+</ul>
+<h2><a name="eg" id="eg">Examples that Use Frames</a></h2>
+<p>All of the standalone applications in this trail use <code>JFrame</code>. The following table lists a few and tells you where each is discussed.</p>

@@ -1,0 +1,99 @@
+<h1>Scanning</h1>
+<p>Objects of type 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/util/Scanner.html"><code>Scanner</code></a> are useful for breaking down formatted input into tokens and translating individual tokens according to their data type.</p>
+<h2>Breaking Input into Tokens</h2>
+<p>By default, a scanner uses white space to separate tokens. (White space characters include blanks, tabs, and line terminators. For the full list, refer to the documentation for 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/lang/Character.html#isWhitespace-char-"><code>Character.isWhitespace</code></a>.) To see how scanning works, let's look at 
+<a class="SourceLink" target="_blank" href="examples/ScanXan.java" onclick="showCode('../../displayCode.html', 'examples/ScanXan.java'); return false;"><code>ScanXan</code></a>, a program that reads the individual words in <code>xanadu.txt</code> and prints them out, one per line.</p>
+<p>WHATSON? e296e3d3-09f3-46a7-b9da-23bfe7ea1a24</p>
+<pre>
+import java.io.*;
+import java.util.Scanner;
+
+public class ScanXan {
+    public static void main(String[] args) throws IOException {
+
+        Scanner s = null;
+
+        try {
+            s = new Scanner(new BufferedReader(new FileReader("xanadu.txt")));
+
+            while (s.hasNext()) {
+                System.out.println(s.next());
+            }
+        } finally {
+            if (s != null) {
+                s.close();
+            }
+        }
+    }
+}
+</pre>
+<p>Notice that <code>ScanXan</code> invokes <code>Scanner</code>'s <code>close</code> method when it is done with the scanner object. Even though a scanner is not a stream, you need to close it to indicate that you're done with its underlying stream.</p>
+<p>The output of <code>ScanXan</code> looks like this:</p>
+<p>WHATSON? cd47f248-aa29-403b-ab76-f90f3807a5ce</p>
+<pre>
+In
+Xanadu
+did
+Kubla
+Khan
+A
+stately
+pleasure-dome
+...
+</pre>
+<p>To use a different token separator, invoke <code>useDelimiter()</code>, specifying a regular expression. For example, suppose you wanted the token separator to be a comma, optionally followed by white space. You would invoke,</p>
+<p>WHATSON? a9b3bcce-3229-4746-a626-c95d6f8bb8e9</p>
+<pre>
+s.useDelimiter(",\\s*");
+</pre>
+<h2>Translating Individual Tokens</h2>
+<p>The <code>ScanXan</code> example treats all input tokens as simple <code>String</code> values. <code>Scanner</code> also supports tokens for all of the Java language's primitive types (except for <code>char</code>), as well as <code>BigInteger</code> and <code>BigDecimal</code>. Also, numeric values can use thousands separators. Thus, in a <code>US</code> locale, <code>Scanner</code> correctly reads the string "32,767" as representing an integer value.</p>
+<p>We have to mention the locale, because thousands separators and decimal symbols are locale specific. So, the following example would not work correctly in all locales if we didn't specify that the scanner should use the <code>US</code> locale. That's not something you usually have to worry about, because your input data usually comes from sources that use the same locale as you do. But this example is part of the Java Tutorial and gets distributed all over the world.</p>
+<p>The 
+<a class="SourceLink" target="_blank" href="examples/ScanSum.java" onclick="showCode('../../displayCode.html', 'examples/ScanSum.java'); return false;"><code>ScanSum</code></a> example reads a list of <code>double</code> values and adds them up. Here's the source:</p>
+<p>WHATSON? c837b261-fae6-4773-a307-9d7e23d0ee70</p>
+<pre>
+import java.io.FileReader;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.util.Scanner;
+import java.util.Locale;
+
+public class ScanSum {
+    public static void main(String[] args) throws IOException {
+
+        Scanner s = null;
+        double sum = 0;
+
+        try {
+            s = new Scanner(new BufferedReader(new FileReader("usnumbers.txt")));
+            s.useLocale(Locale.US);
+
+            while (s.hasNext()) {
+                if (s.hasNextDouble()) {
+                    sum += s.nextDouble();
+                } else {
+                    s.next();
+                }   
+            }
+        } finally {
+            s.close();
+        }
+
+        System.out.println(sum);
+    }
+}
+</pre>
+<p>And here's the sample input file, 
+<a class="SourceLink" target="_blank" href="examples/usnumbers.txt" onclick="showCode('../../displayCode.html', 'examples/usnumbers.txt'); return false;"><code>usnumbers.txt</code></a></p>
+<p>WHATSON? e907e852-3f8a-4d98-9e16-41003b89a01b</p>
+<pre>
+8.5
+32,767
+3.14159
+1,000,000.1
+</pre>
+<p>The output string is "1032778.74159". The period will be a different character in some locales, because <code>System.out</code> is a <code>PrintStream</code> object, and that class doesn't provide a way to override the default locale. We could override the locale for the whole program  or we could just use formatting, as described in the next topic, 
+<a class="TutorialLink" target="_top" href="formatting.html">Formatting</a>.</p>

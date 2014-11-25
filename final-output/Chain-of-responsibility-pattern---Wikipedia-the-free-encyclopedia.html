@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Chain-of-responsibility-pattern---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Chain-of-responsibility pattern</h1>
+<p>In object-oriented design, the <b>chain-of-responsibility pattern</b> is a design pattern consisting of a source of command objects and a series of <b>processing objects</b>. Each processing object contains logic that defines the types of command objects that it can handle; the rest are passed to the next processing object in the chain. A mechanism also exists for adding new processing objects to the end of this chain.</p>
+<p>In a variation of the standard chain-of-responsibility model, some handlers may act as dispatchers, capable of sending commands out in a variety of directions, forming a <i>tree of responsibility</i>. In some cases, this can occur recursively, with processing objects calling higher-up processing objects with commands that attempt to solve some smaller part of the problem; in this case recursion continues until the command is processed, or the entire tree has been explored. An XML interpreter might work in this manner.</p>
+<p>This pattern promotes the idea of loose coupling, which is considered a programming best practice.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Example
+<ul>
+<li>1.1 Java</li>
+<li>1.2 C#</li>
+<li>1.3 Another Java example</li>
+</ul>
+</li>
+<li>2 Implementations
+<ul>
+<li>2.1 Cocoa and Cocoa Touch</li>
+</ul>
+</li>
+<li>3 See also</li>
+<li>4 References</li>
+</ul>
+<ul>
+<li>1.1 Java</li>
+<li>1.2 C#</li>
+<li>1.3 Another Java example</li>
+</ul>
+<ul>
+<li>2.1 Cocoa and Cocoa Touch</li>
+</ul>
+<p></p>
+<h2>Example</h2>
+<p>The following code illustrates the pattern with the example of a logging class. Each logging handler acts as the processing object. Each handler decides if any action is to be taken at this log level and then passes the message on to the next logging handler. Note that this example should not be seen as a recommendation on how to write logging classes.</p>
+<p>Also, note that in a 'pure' implementation of the chain-of-responsibility pattern, a processing object may not pass responsibility further down the chain after handling a message. But in this example, a message will be passed down the logger chain whether it is handled or not. Its behavior allows logging to both stdout and to an e-mail address.</p>
+<h3>Java</h3>
+<p>WHATSON? 56cc88da-45cb-4a06-b429-d02562097ee7</p>
+<pre>
+package chainofresp;
+ 
+abstract class Logger {
+    public static int ERR = 3;
+    public static int NOTICE = 5;
+    public static int DEBUG = 7;
+    protected int mask;
+ 
+    // The next element in the chain of responsibility
+    protected Logger next;
+ 
+    public void setNext(Logger log) {
+        next = log;
+    }
+ 
+    public void message(String msg, int priority) {
+        if (priority &lt;= mask) {
+            writeMessage(msg);
+        }
+        if (next != null) {
+            next.message(msg, priority);
+        }
+    }
+ 
+    abstract protected void writeMessage(String msg);
+}
+ 
+class StdoutLogger extends Logger {
+    public StdoutLogger(int mask) {
+        this.mask = mask;
+    }
+ 
+    protected void writeMessage(String msg) {
+        System.out.println("Writing to stdout: " + msg);
+    }
+}
+ 
+class EmailLogger extends Logger {
+    public EmailLogger(int mask) {
+        this.mask = mask;
+    }
+ 
+    protected void writeMessage(String msg) {
+        System.out.println("Sending via e-mail: " + msg);
+    }
+}
+ 
+class StderrLogger extends Logger {
+    public StderrLogger(int mask) {
+        this.mask = mask;
+    }
+ 
+    protected void writeMessage(String msg) {
+        System.err.println("Sending to stderr: " + msg);
+    }
+}
+ 
+public class ChainOfResponsibilityExample {
+ 
+    private static Logger createChain() {
+        // Build the chain of responsibility
+ 
+        Logger logger = new StdoutLogger(Logger.DEBUG);
+ 
+        Logger logger1 = new EmailLogger(Logger.NOTICE);
+        logger.setNext(logger1);
+ 
+        Logger logger2 = new StderrLogger(Logger.ERR);
+        logger1.setNext(logger2);
+ 
+        return logger;
+    }
+ 
+    public static void main(String[] args) {
+        Logger chain = createChain();
+ 
+        // Handled by StdoutLogger (level = 7)
+        chain.message("Entering function y.", Logger.DEBUG);
+ 
+        // Handled by StdoutLogger and EmailLogger (level = 5)
+        chain.message("Step1 completed.", Logger.NOTICE);
+ 
+        // Handled by all three loggers (level = 3)
+        chain.message("An error has occurred.", Logger.ERR);
+    }
+}
+/*
+The output is:
+   Writing to stdout:   Entering function y.
+   Writing to stdout:   Step1 completed.
+   Sending via e-mail:  Step1 completed.
+   Writing to stdout:   An error has occurred.
+   Sending via e-mail:  An error has occurred.
+   Sending to stderr:   An error has occurred.
+*/
+</pre>
+<h3>C#</h3>
+<p>WHATSON? 88fcce20-a500-4ec2-b890-60c12c345eb4</p>
+<pre>
+//IVSR: ChainOfResponsibility example
+namespace IVSR.DesignPatterns.ChainOfResponsibility
+{
+    [Flags]
+    public enum LogLevel
+    {
+        None = 0,                 //        0
+        Info = 1,                 //        1
+        Debug = 2,                //       10
+        Warning = 4,              //      100
+        Error = 8,                //     1000
+        FunctionalMessage = 16,   //    10000
+        FunctionalError = 32,     //   100000
+        All = 63                  //   111111
+    }
+ 
+    /// &lt;summary&gt;
+    /// Abstract Handler in chain of responsibility pattern.
+    /// &lt;/summary&gt;
+    public abstract class Logger
+    {
+        protected LogLevel logMask;
+ 
+        // The next Handler in the chain
+        protected Logger next;
+ 
+        public Logger(LogLevel mask)
+        {
+            this.logMask = mask;
+        }
+ 
+        /// &lt;summary&gt;
+        /// Sets the Next logger to make a list/chain of Handlers.
+        /// &lt;/summary&gt;
+        public Logger SetNext(Logger nextlogger)
+        {
+            next = nextlogger;
+            return nextlogger;
+        }
+ 
+        public void Message(string msg, LogLevel severity)
+        {
+            if ((severity &amp; logMask) != 0) //True only if all logMask bits are set in severity
+            {
+                WriteMessage(msg);
+            }
+            if (next != null) 
+            {
+                next.Message(msg, severity); 
+            }
+        }
+ 
+        abstract protected void WriteMessage(string msg);
+    }
+ 
+    public class ConsoleLogger : Logger
+    {
+        public ConsoleLogger(LogLevel mask)
+            : base(mask)
+        { }
+ 
+        protected override void WriteMessage(string msg)
+        {
+            Console.WriteLine("Writing to console: " + msg);
+        }
+    }
+ 
+    public class EmailLogger : Logger
+    {
+        public EmailLogger(LogLevel mask)
+            : base(mask)
+        { }
+ 
+        protected override void WriteMessage(string msg)
+        {
+            // Placeholder for mail send logic, usually the email configurations are saved in config file.
+            Console.WriteLine("Sending via email: " + msg);
+        }
+    }
+ 
+    class FileLogger : Logger
+    {
+        public FileLogger(LogLevel mask)
+            : base(mask)
+        { }
+ 
+        protected override void WriteMessage(string msg)
+        {
+            // Placeholder for File writing logic
+            Console.WriteLine("Writing to Log File: " + msg);
+        }
+    }
+ 
+    public class Program
+    {
+        public static void Main(string[] args)
+        {
+            // Build the chain of responsibility
+            Logger logger, logger1, logger2;
+            logger = new ConsoleLogger(LogLevel.All);
+            logger1 = logger.SetNext(new EmailLogger(LogLevel.FunctionalMessage | LogLevel.FunctionalError));
+            logger2 = logger1.SetNext(new FileLogger(LogLevel.Warning | LogLevel.Error));
+ 
+            // Handled by ConsoleLogger since the console has a loglevel of all
+            logger.Message("Entering function ProcessOrder().", LogLevel.Debug);
+            logger.Message("Order record retrieved.", LogLevel.Info);
+ 
+            // Handled by ConsoleLogger and FileLogger since filelogger implements Warning &amp; Error
+            logger.Message("Customer Address details missing in Branch DataBase.", LogLevel.Warning);
+            logger.Message("Customer Address details missing in Organization DataBase.", LogLevel.Error);
+ 
+            // Handled by ConsoleLogger and EmailLogger as it implements functional error
+            logger.Message("Unable to Process Order ORD1 Dated D1 For Customer C1.", LogLevel.FunctionalError);
+ 
+            // Handled by ConsoleLogger and EmailLogger
+            logger.Message("Order Dispatched.", LogLevel.FunctionalMessage);
+        }
+    }
+}
+ 
+/* Output
+Writing to console: Entering function ProcessOrder().
+Writing to console: Order record retrieved.
+Writing to console: Customer Address details missing in Branch DataBase.
+Writing to Log File: Customer Address details missing in Branch DataBase.
+Writing to console: Customer Address details missing in Organization DataBase.
+Writing to Log File: Customer Address details missing in Organization DataBase.
+Writing to console: Unable to Process Order ORD1 Dated D1 For Customer C1.
+Sending via email: Unable to Process Order ORD1 Dated D1 For Customer C1.
+Writing to console: Order Dispatched.
+Sending via email: Order Dispatched.
+*/
+</pre>
+<h3>Another Java example</h3>
+<p>Below is another example of this pattern in Java. In this example we have different roles, each having a fixed purchasing limit and a successor. Every time a user in a role receives a purchase request that exceeds his or her limit, the request is passed to his or her successor.</p>
+<p>The PurchasePower abstract class with the abstract method processRequest.</p>
+<p>WHATSON? 5cd1aea7-3baa-49ea-8b8e-91073c6082a0</p>
+<pre>
+abstract class PurchasePower {
+    protected static final double BASE = 500;
+    protected PurchasePower successor;
+ 
+    public void setSuccessor(PurchasePower successor) {
+        this.successor = successor;
+    }
+ 
+    abstract public void processRequest(PurchaseRequest request);
+}
+</pre>
+<p>Four implementations of the abstract class above: Manager, Director, Vice President, President</p>
+<p>WHATSON? a4fc1bd1-2818-42d8-a699-7a8791b7b5ef</p>
+<pre>
+class ManagerPPower extends PurchasePower {
+    private final double ALLOWABLE = 10 * BASE;
+ 
+    public void processRequest(PurchaseRequest request) {
+        if (request.getAmount() &lt; ALLOWABLE) {
+            System.out.println("Manager will approve $" + request.getAmount());
+        } else if (successor != null) {
+            successor.processRequest(request);
+        }
+    }
+}
+ 
+class DirectorPPower extends PurchasePower {
+    private final double ALLOWABLE = 20 * BASE;
+ 
+    public void processRequest(PurchaseRequest request) {
+        if (request.getAmount() &lt; ALLOWABLE) {
+            System.out.println("Director will approve $" + request.getAmount());
+        } else if (successor != null) {
+            successor.processRequest(request);
+        }
+    }
+}
+ 
+class VicePresidentPPower extends PurchasePower {
+    private final double ALLOWABLE = 40 * BASE;
+ 
+    public void processRequest(PurchaseRequest request) {
+        if (request.getAmount() &lt; ALLOWABLE) {
+            System.out.println("Vice President will approve $" + request.getAmount());
+        } else if (successor != null) {
+            successor.processRequest(request);
+        }
+    }
+}
+ 
+class PresidentPPower extends PurchasePower {
+    private final double ALLOWABLE = 60 * BASE;
+ 
+    public void processRequest(PurchaseRequest request) {
+        if (request.getAmount() &lt; ALLOWABLE) {
+            System.out.println("President will approve $" + request.getAmount());
+        } else {
+            System.out.println( "Your request for $" + request.getAmount() + " needs a board meeting!");
+        }
+    }
+}
+</pre>
+<p>The following code defines the PurchaseRequest class that keeps the request data in this example.</p>
+<p>WHATSON? 749889f4-fbb4-471c-9b29-552492120f9f</p>
+<pre>
+class PurchaseRequest {
+    private double amount;
+    private String purpose;
+ 
+    public PurchaseRequest(double amount, String purpose) {
+        this.amount = amount;
+        this.purpose = purpose;
+    }
+ 
+    public double getAmount() {
+        return amount;
+    }
+    public void setAmount(double amt)  {
+        amount = amt;
+    }
+ 
+    public String getPurpose() {
+        return purpose;
+    }
+    public void setPurpose(String reason) {
+        purpose = reason;
+    }
+}
+</pre>
+<p>In the following usage example, the successors are set as follows: Manager -&gt; Director -&gt; Vice President -&gt; President</p>
+<p>WHATSON? e00da18d-9552-4ba0-8969-1a9bbe0e8e5e</p>
+<pre>
+class CheckAuthority {
+    public static void main(String[] args) {
+        ManagerPPower manager = new ManagerPPower();
+        DirectorPPower director = new DirectorPPower();
+        VicePresidentPPower vp = new VicePresidentPPower();
+        PresidentPPower president = new PresidentPPower();
+        manager.setSuccessor(director);
+        director.setSuccessor(vp);
+        vp.setSuccessor(president);
+ 
+        // Press Ctrl+C to end.
+        try {
+            while (true) {
+                System.out.println("Enter the amount to check who should approve your expenditure.");
+                System.out.print("&gt;");
+                double d = Double.parseDouble(new BufferedReader(new InputStreamReader(System.in)).readLine());
+                manager.processRequest(new PurchaseRequest(d, "General"));
+           }
+        } catch(Exception e) {
+            System.exit(1);
+        }
+    }
+}
+</pre>
+<h2>Implementations</h2>
+<h3>Cocoa and Cocoa Touch</h3>
+<p>The Cocoa and Cocoa Touch frameworks, used for OS X and iOS applications respectively, actively use the chain-of-responsibility pattern for handling events. Objects that participate in the chain are called <i>responder</i> objects, inheriting from the <code>NSResponder</code> (OS X)/<code>UIResponder</code> (iOS) class. All view objects (<code>NSView</code>/<code>UIView</code>), view controller objects (<code>NSViewController</code>/<code>UIViewController</code>), window objects (<code>NSWindow</code>/<code>UIWindow</code>), and the application object (<code>NSApplication</code>/<code>UIApplication</code>) are responder objects.</p>
+<p>Typically, when a view receives an event which it can't handle, it dispatches it to its superview until it reaches the view controller or window object. If the window can't handle the event, the event is dispatched to the application object, which is the last object in the chain. For example:</p>
+<ul>
+<li>On OS X, moving a textured window with the mouse can be done from any location (not just the title bar), unless on that location there's a view which handles dragging events, like slider controls. If no such view (or superview) is there, dragging events are sent up the chain to the window which does handle the dragging event.</li>
+<li>On iOS, it's typical to handle view events in the view controller which manages the view hierarchy, instead of subclassing the view itself. Since a view controller lies in the responder chain after all of its managed subviews, it can intercept any view events and handle them.</li>
+</ul>
+<h2>See also</h2>
+<ul>
+<li>Single responsibility principle</li>
+</ul>
+</body>
+</html>

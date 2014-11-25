@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Animation-Resources--Android-Developers.html</title></head>
+<body>
+<h1>Animation Resources</h1>
+<h2>In this document</h2>
+<ol>
+      <li>Property Animation</li>
+      <li>View Animation
+        <ol>
+          <li>Tween animation</li>
+          <li>Frame animation</li>
+        </ol>      
+      </li>
+    </ol>
+<ol>
+          <li>Tween animation</li>
+          <li>Frame animation</li>
+        </ol>
+<h2>See also</h2>
+<ol>
+      <li>View Animation</li>
+      <li>Property Animation</li>
+    </ol>
+<p>An animation resource can define one of two types of animations:</p>
+<p>There are two types of animations that you can do with the view animation framework:</p>
+<ul>
+    <li>Tween animation: Creates an animation by performing a series of transformations on a single image
+    with an <code>Animation</code></li>
+    <li>Frame animation: or creates an animation by showing a sequence of images in order
+    with an <code>AnimationDrawable</code>.</li>
+  </ul>
+<h2>Property Animation</h2>
+<p>An animation defined in XML that modifies properties of the target object, such as
+background color or alpha value, over a set amount of time.</p>
+<p>WHATSON? c7f85bd5-f6cc-4a78-b09c-ea3759be03c1</p>
+<pre>
+&lt;set
+  android:ordering=["together" | "sequentially"]&gt;
+
+    &lt;objectAnimator
+        android:propertyName="<em>string</em>"
+        android:duration="<em>int</em>"
+        android:valueFrom="<em>float</em> | <em>int</em> | <em>color</em>"
+        android:valueTo="<em>float</em> | <em>int</em> | <em>color</em>"
+        android:startOffset="<em>int</em>"
+        android:repeatCount="<em>int</em>"
+        android:repeatMode=["repeat" | "reverse"]
+        android:valueType=["intType" | "floatType"]/&gt;
+
+    &lt;animator
+        android:duration="<em>int</em>"
+        android:valueFrom="<em>float</em> | <em>int</em> | <em>color</em>"
+        android:valueTo="<em>float</em> | <em>int</em> | <em>color</em>"
+        android:startOffset="<em>int</em>"
+        android:repeatCount="<em>int</em>"
+        android:repeatMode=["repeat" | "reverse"]
+        android:valueType=["intType" | "floatType"]/&gt;
+
+    &lt;set&gt;
+        ...
+    &lt;/set&gt;
+&lt;/set&gt;
+</pre>
+<p>The file must have a single root element: either 
+<code>&lt;set&gt;</code>, <code>&lt;objectAnimator&gt;</code>, or <code>&lt;valueAnimator&gt;</code>. You can
+group animation elements together inside the <code>&lt;set&gt;</code> element, including other
+<code>&lt;set&gt;</code> elements.
+</p>
+<p>You can specify nested <code>&lt;set&gt;</code> tags to further
+    group animations together. Each <code>&lt;set&gt;</code> can define its own 
+    <code>ordering</code> attribute.</p>
+<p>attributes:</p>
+<p>attributes:</p>
+<p>attributes:</p>
+<p>WHATSON? 8abde5a6-0a66-4d6a-8661-5f86c824f56d</p>
+<pre>
+&lt;set android:ordering="sequentially"&gt;
+    &lt;set&gt;
+        &lt;objectAnimator
+            android:propertyName="x"
+            android:duration="500"
+            android:valueTo="400"
+            android:valueType="intType"/&gt;
+        &lt;objectAnimator
+            android:propertyName="y"
+            android:duration="500"
+            android:valueTo="300"
+            android:valueType="intType"/&gt;
+    &lt;/set&gt;
+    &lt;objectAnimator
+        android:propertyName="alpha"
+        android:duration="500"
+        android:valueTo="1f"/&gt;
+&lt;/set&gt;
+</pre>
+<p>In order to run this animation, you must inflate the XML resources in your code to an <code>AnimatorSet</code> object, and then set the target objects for all of the animations
+  before starting the animation set. Calling <code>setTarget()</code> sets a single target object for all children of the <code>AnimatorSet</code> as a convenience. The following code shows how to do this:</p>
+<p>WHATSON? 70a52376-8175-44cf-b60f-6b32c0845e4c</p>
+<pre>
+AnimatorSet set = (AnimatorSet) AnimatorInflater.loadAnimator(myContext,
+    R.anim.property_animator);
+set.setTarget(myObject);
+set.start();
+</pre>
+<ul>
+  <li>Property Animation</li>
+  <li>API Demos for examples
+  on how to use the property animation system.</li>
+</ul>
+<h2>View Animation</h2>
+<h3>Tween animation</h3>
+<p>An animation defined in XML that performs transitions such as rotating,
+fading, moving, and stretching on a graphic.
+</p>
+<p>WHATSON? d9a6b4c7-4289-461c-b52a-eb418ea302ab</p>
+<pre>
+&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;set xmlns:android="http://schemas.android.com/apk/res/android"
+    android:interpolator="@[package:]anim/<em>interpolator_resource</em>"
+    android:shareInterpolator=["true" | "false"] &gt;
+    &lt;alpha
+        android:fromAlpha="<em>float</em>"
+        android:toAlpha="<em>float</em>" /&gt;
+    &lt;scale
+        android:fromXScale="<em>float</em>"
+        android:toXScale="<em>float</em>"
+        android:fromYScale="<em>float</em>"
+        android:toYScale="<em>float</em>"
+        android:pivotX="<em>float</em>"
+        android:pivotY="<em>float</em>" /&gt;
+    &lt;translate
+        android:fromXDelta="<em>float</em>"
+        android:toXDelta="<em>float</em>"
+        android:fromYDelta="<em>float</em>"
+        android:toYDelta="<em>float</em>" /&gt;
+    &lt;rotate
+        android:fromDegrees="<em>float</em>"
+        android:toDegrees="<em>float</em>"
+        android:pivotX="<em>float</em>"
+        android:pivotY="<em>float</em>" /&gt;
+    &lt;set&gt;
+        ...
+    &lt;/set&gt;
+&lt;/set&gt;
+</pre>
+<p>The file must have a single root element: either an
+<code>&lt;alpha&gt;</code>, <code>&lt;scale&gt;</code>, <code>&lt;translate&gt;</code>,
+<code>&lt;rotate&gt;</code>, or <code>&lt;set&gt;</code> element that holds
+a group (or groups) of other animation elements (even nested <code>&lt;set&gt;</code> elements).
+</p>
+<p>attributes:</p>
+<p>attributes:</p>
+<p>For more attributes supported by <code>&lt;alpha&gt;</code>, see the
+<code>Animation</code> class reference (of which, all XML attributes are
+inherrited by this element).</p>
+<p>attributes:</p>
+<p>For more attributes supported by <code>&lt;scale&gt;</code>, see the
+<code>Animation</code> class reference (of which, all XML attributes are
+inherrited by this element).</p>
+<p>attributes:</p>
+<p>For more attributes supported by <code>&lt;translate&gt;</code>, see the
+<code>Animation</code> class reference (of which, all XML attributes are
+inherrited by this element).</p>
+<p>attributes:</p>
+<p>For more attributes supported by <code>&lt;rotate&gt;</code>, see the
+<code>Animation</code> class reference (of which, all XML attributes are
+inherrited by this element).</p>
+<p>WHATSON? a2c37efa-b0f6-41d2-b1e0-e3e32d2fccf7</p>
+<pre>
+&lt;set xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shareInterpolator="false"&gt;
+    &lt;scale
+        android:interpolator="@android:anim/accelerate_decelerate_interpolator"
+        android:fromXScale="1.0"
+        android:toXScale="1.4"
+        android:fromYScale="1.0"
+        android:toYScale="0.6"
+        android:pivotX="50%"
+        android:pivotY="50%"
+        android:fillAfter="false"
+        android:duration="700" /&gt;
+    &lt;set
+        android:interpolator="@android:anim/accelerate_interpolator"
+        android:startOffset="700"&gt;
+        &lt;scale
+            android:fromXScale="1.4"
+            android:toXScale="0.0"
+            android:fromYScale="0.6"
+            android:toYScale="0.0"
+            android:pivotX="50%"
+            android:pivotY="50%"
+            android:duration="400" /&gt;
+        &lt;rotate
+            android:fromDegrees="0"
+            android:toDegrees="-45"
+            android:toYScale="0.0"
+            android:pivotX="50%"
+            android:pivotY="50%"
+            android:duration="400" /&gt;
+    &lt;/set&gt;
+&lt;/set&gt;
+</pre>
+<p>This application code will apply the animation to an <code>ImageView</code> and
+start the animation:</p>
+<p>WHATSON? fba40efe-c0ef-4319-a8d4-b5959c55f5c3</p>
+<pre>
+ImageView image = (ImageView) findViewById(R.id.image);
+Animation hyperspaceJump = AnimationUtils.<code>loadAnimation</code>(this, R.anim.hyperspace_jump);
+image.<code>startAnimation</code>(hyperspaceJump);
+</pre>
+<ul>
+  <li>2D
+Graphics: Tween Animation</li>
+</ul>
+<h4>Interpolators</h4>
+<p>An interpolator is an animation modifier defined in XML that affects the rate of change in an
+animation. This allows your existing animation effects to be accelerated, decelerated, repeated,
+bounced, etc.</p>
+<p>An interpolator is applied to an animation element with the <code>android:interpolator</code>
+attribute, the value of which is a reference to an interpolator resource.</p>
+<p>All interpolators available in Android are subclasses of the <code>Interpolator</code> class. For each interpolator class, Android
+includes a public resource you can reference in order to apply the interpolator to an animation
+using the <code>android:interpolator</code> attribute.
+The following table specifies the resource to use for each interpolator:</p>
+<p>Here's how you can apply one of these with the <code>android:interpolator</code> attribute:</p>
+<p>WHATSON? 51b1b80c-1570-4432-a3ec-56a21b83853c</p>
+<pre>
+&lt;set android:interpolator="@android:anim/accelerate_interpolator"&gt;
+    ...
+&lt;/set&gt;
+</pre>
+<h4>Custom interpolators</h4>
+<p>If you're not satisfied with the interpolators provided by the platform (listed in the
+table above), you can create a custom interpolator resource with modified attributes.
+For example, you can adjust the rate of
+acceleration for the <code>AnticipateInterpolator</code>, or adjust the number of
+cycles for the <code>CycleInterpolator</code>. In order to do so, you need to
+create your own interpolator resource in an XML file.
+</p>
+<p>WHATSON? 0ecd9f88-9135-48e4-94e1-103ee5150ad9</p>
+<pre>
+&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;<em>InterpolatorName</em> xmlns:android="http://schemas.android.com/apk/res/android"
+    android:<em>attribute_name</em>="<em>value</em>"
+    /&gt;
+</pre>
+<p>If you don't apply any attributes, then your interpolator will function exactly the same as
+those provided by the platform (listed in the table above).</p>
+<p>No attributes.</p>
+<p>attributes:</p>
+<p>attributes:</p>
+<p>attributes:</p>
+<p>No attributes</p>
+<p>attributes:</p>
+<p>attributes:</p>
+<p>No attributes.</p>
+<p>attributes:</p>
+<p>XML file saved at <code>res/anim/my_overshoot_interpolator.xml</code>:</p>
+<p>WHATSON? 04cc9170-bb06-4c11-991d-3196be30f01e</p>
+<pre>
+&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;overshootInterpolator xmlns:android="http://schemas.android.com/apk/res/android"
+    android:tension="7.0"
+    /&gt;
+</pre>
+<p>This animation XML will apply the interpolator:</p>
+<p>WHATSON? 28e5b9c7-2c15-4e2c-be4d-d2074efc8abc</p>
+<pre>
+&lt;scale xmlns:android="http://schemas.android.com/apk/res/android"
+    android:interpolator="@anim/my_overshoot_interpolator"
+    android:fromXScale="1.0"
+    android:toXScale="3.0"
+    android:fromYScale="1.0"
+    android:toYScale="3.0"
+    android:pivotX="50%"
+    android:pivotY="50%"
+    android:duration="700" /&gt;
+</pre>
+<h3>Frame animation</h3>
+<p>An animation defined in XML that shows a sequence of images in order (like a film).
+</p>
+<p>WHATSON? 3fa20a30-20f4-44b7-89ce-34312ed8c503</p>
+<pre>
+&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;animation-list xmlns:android="http://schemas.android.com/apk/res/android"
+    android:oneshot=["true" | "false"] &gt;
+    &lt;item
+        android:drawable="@[package:]drawable/<em>drawable_resource_name</em>"
+        android:duration="<em>integer</em>" /&gt;
+&lt;/animation-list&gt;
+</pre>
+<p>attributes:</p>
+<p>attributes:</p>
+<p>WHATSON? a1ca37f3-c146-41f7-8bc6-c9215a24a741</p>
+<pre>
+&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;animation-list xmlns:android="http://schemas.android.com/apk/res/android"
+    android:oneshot="false"&gt;
+    &lt;item android:drawable="@drawable/rocket_thrust1" android:duration="200" /&gt;
+    &lt;item android:drawable="@drawable/rocket_thrust2" android:duration="200" /&gt;
+    &lt;item android:drawable="@drawable/rocket_thrust3" android:duration="200" /&gt;
+&lt;/animation-list&gt;
+</pre>
+<p>WHATSON? 00ca81e6-944d-443d-af50-154b0fe09633</p>
+<pre>
+ImageView rocketImage = (ImageView) findViewById(R.id.rocket_image);
+rocketImage.<code>setBackgroundResource</code>(R.drawable.rocket_thrust);
+
+rocketAnimation = (AnimationDrawable) rocketImage.<code>getBackground()</code>;
+rocketAnimation.<code>start()</code>;
+</pre>
+<ul>
+  <li>2D
+Graphics: Frame Animation</li>
+</ul>
+<h1>Animation Resources</h1>
+<h2>In this document</h2>
+<ol>
+      <li>Property Animation</li>
+      <li>View Animation
+        <ol>
+          <li>Tween animation</li>
+          <li>Frame animation</li>
+        </ol>      
+      </li>
+    </ol>
+<ol>
+          <li>Tween animation</li>
+          <li>Frame animation</li>
+        </ol>
+<h2>See also</h2>
+<ol>
+      <li>View Animation</li>
+      <li>Property Animation</li>
+    </ol>
+<p>An animation resource can define one of two types of animations:</p>
+<p>There are two types of animations that you can do with the view animation framework:</p>
+<ul>
+    <li>Tween animation: Creates an animation by performing a series of transformations on a single image
+    with an <code>Animation</code></li>
+    <li>Frame animation: or creates an animation by showing a sequence of images in order
+    with an <code>AnimationDrawable</code>.</li>
+  </ul>
+<h2>Property Animation</h2>
+<p>An animation defined in XML that modifies properties of the target object, such as
+background color or alpha value, over a set amount of time.</p>
+<p>WHATSON? dbd26e20-81eb-420f-9542-6cdf0bacf674</p>
+<pre>
+&lt;set
+  android:ordering=["together" | "sequentially"]&gt;
+
+    &lt;objectAnimator
+        android:propertyName="<em>string</em>"
+        android:duration="<em>int</em>"
+        android:valueFrom="<em>float</em> | <em>int</em> | <em>color</em>"
+        android:valueTo="<em>float</em> | <em>int</em> | <em>color</em>"
+        android:startOffset="<em>int</em>"
+        android:repeatCount="<em>int</em>"
+        android:repeatMode=["repeat" | "reverse"]
+        android:valueType=["intType" | "floatType"]/&gt;
+
+    &lt;animator
+        android:duration="<em>int</em>"
+        android:valueFrom="<em>float</em> | <em>int</em> | <em>color</em>"
+        android:valueTo="<em>float</em> | <em>int</em> | <em>color</em>"
+        android:startOffset="<em>int</em>"
+        android:repeatCount="<em>int</em>"
+        android:repeatMode=["repeat" | "reverse"]
+        android:valueType=["intType" | "floatType"]/&gt;
+
+    &lt;set&gt;
+        ...
+    &lt;/set&gt;
+&lt;/set&gt;
+</pre>
+<p>The file must have a single root element: either 
+<code>&lt;set&gt;</code>, <code>&lt;objectAnimator&gt;</code>, or <code>&lt;valueAnimator&gt;</code>. You can
+group animation elements together inside the <code>&lt;set&gt;</code> element, including other
+<code>&lt;set&gt;</code> elements.
+</p>
+<p>You can specify nested <code>&lt;set&gt;</code> tags to further
+    group animations together. Each <code>&lt;set&gt;</code> can define its own 
+    <code>ordering</code> attribute.</p>
+<p>attributes:</p>
+<p>attributes:</p>
+<p>attributes:</p>
+<p>WHATSON? 8a08e9c7-6e3b-4579-9857-d6ffd50d1b4f</p>
+<pre>
+&lt;set android:ordering="sequentially"&gt;
+    &lt;set&gt;
+        &lt;objectAnimator
+            android:propertyName="x"
+            android:duration="500"
+            android:valueTo="400"
+            android:valueType="intType"/&gt;
+        &lt;objectAnimator
+            android:propertyName="y"
+            android:duration="500"
+            android:valueTo="300"
+            android:valueType="intType"/&gt;
+    &lt;/set&gt;
+    &lt;objectAnimator
+        android:propertyName="alpha"
+        android:duration="500"
+        android:valueTo="1f"/&gt;
+&lt;/set&gt;
+</pre>
+<p>In order to run this animation, you must inflate the XML resources in your code to an <code>AnimatorSet</code> object, and then set the target objects for all of the animations
+  before starting the animation set. Calling <code>setTarget()</code> sets a single target object for all children of the <code>AnimatorSet</code> as a convenience. The following code shows how to do this:</p>
+<p>WHATSON? e1ede5e3-8ff1-4bf9-b7a3-3d8182725c6f</p>
+<pre>
+AnimatorSet set = (AnimatorSet) AnimatorInflater.loadAnimator(myContext,
+    R.anim.property_animator);
+set.setTarget(myObject);
+set.start();
+</pre>
+<ul>
+  <li>Property Animation</li>
+  <li>API Demos for examples
+  on how to use the property animation system.</li>
+</ul>
+<h2>View Animation</h2>
+<h3>Tween animation</h3>
+<p>An animation defined in XML that performs transitions such as rotating,
+fading, moving, and stretching on a graphic.
+</p>
+<p>WHATSON? 6c25e6b5-6b6c-4526-b6c6-283d286ba640</p>
+<pre>
+&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;set xmlns:android="http://schemas.android.com/apk/res/android"
+    android:interpolator="@[package:]anim/<em>interpolator_resource</em>"
+    android:shareInterpolator=["true" | "false"] &gt;
+    &lt;alpha
+        android:fromAlpha="<em>float</em>"
+        android:toAlpha="<em>float</em>" /&gt;
+    &lt;scale
+        android:fromXScale="<em>float</em>"
+        android:toXScale="<em>float</em>"
+        android:fromYScale="<em>float</em>"
+        android:toYScale="<em>float</em>"
+        android:pivotX="<em>float</em>"
+        android:pivotY="<em>float</em>" /&gt;
+    &lt;translate
+        android:fromXDelta="<em>float</em>"
+        android:toXDelta="<em>float</em>"
+        android:fromYDelta="<em>float</em>"
+        android:toYDelta="<em>float</em>" /&gt;
+    &lt;rotate
+        android:fromDegrees="<em>float</em>"
+        android:toDegrees="<em>float</em>"
+        android:pivotX="<em>float</em>"
+        android:pivotY="<em>float</em>" /&gt;
+    &lt;set&gt;
+        ...
+    &lt;/set&gt;
+&lt;/set&gt;
+</pre>
+<p>The file must have a single root element: either an
+<code>&lt;alpha&gt;</code>, <code>&lt;scale&gt;</code>, <code>&lt;translate&gt;</code>,
+<code>&lt;rotate&gt;</code>, or <code>&lt;set&gt;</code> element that holds
+a group (or groups) of other animation elements (even nested <code>&lt;set&gt;</code> elements).
+</p>
+<p>attributes:</p>
+<p>attributes:</p>
+<p>For more attributes supported by <code>&lt;alpha&gt;</code>, see the
+<code>Animation</code> class reference (of which, all XML attributes are
+inherrited by this element).</p>
+<p>attributes:</p>
+<p>For more attributes supported by <code>&lt;scale&gt;</code>, see the
+<code>Animation</code> class reference (of which, all XML attributes are
+inherrited by this element).</p>
+<p>attributes:</p>
+<p>For more attributes supported by <code>&lt;translate&gt;</code>, see the
+<code>Animation</code> class reference (of which, all XML attributes are
+inherrited by this element).</p>
+<p>attributes:</p>
+<p>For more attributes supported by <code>&lt;rotate&gt;</code>, see the
+<code>Animation</code> class reference (of which, all XML attributes are
+inherrited by this element).</p>
+<p>WHATSON? d8bb418f-7481-4232-b52f-97161fcab049</p>
+<pre>
+&lt;set xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shareInterpolator="false"&gt;
+    &lt;scale
+        android:interpolator="@android:anim/accelerate_decelerate_interpolator"
+        android:fromXScale="1.0"
+        android:toXScale="1.4"
+        android:fromYScale="1.0"
+        android:toYScale="0.6"
+        android:pivotX="50%"
+        android:pivotY="50%"
+        android:fillAfter="false"
+        android:duration="700" /&gt;
+    &lt;set
+        android:interpolator="@android:anim/accelerate_interpolator"
+        android:startOffset="700"&gt;
+        &lt;scale
+            android:fromXScale="1.4"
+            android:toXScale="0.0"
+            android:fromYScale="0.6"
+            android:toYScale="0.0"
+            android:pivotX="50%"
+            android:pivotY="50%"
+            android:duration="400" /&gt;
+        &lt;rotate
+            android:fromDegrees="0"
+            android:toDegrees="-45"
+            android:toYScale="0.0"
+            android:pivotX="50%"
+            android:pivotY="50%"
+            android:duration="400" /&gt;
+    &lt;/set&gt;
+&lt;/set&gt;
+</pre>
+<p>This application code will apply the animation to an <code>ImageView</code> and
+start the animation:</p>
+<p>WHATSON? 8ffbdaec-59b7-4b9d-90f2-ca0b9742d166</p>
+<pre>
+ImageView image = (ImageView) findViewById(R.id.image);
+Animation hyperspaceJump = AnimationUtils.<code>loadAnimation</code>(this, R.anim.hyperspace_jump);
+image.<code>startAnimation</code>(hyperspaceJump);
+</pre>
+<ul>
+  <li>2D
+Graphics: Tween Animation</li>
+</ul>
+<h4>Interpolators</h4>
+<p>An interpolator is an animation modifier defined in XML that affects the rate of change in an
+animation. This allows your existing animation effects to be accelerated, decelerated, repeated,
+bounced, etc.</p>
+<p>An interpolator is applied to an animation element with the <code>android:interpolator</code>
+attribute, the value of which is a reference to an interpolator resource.</p>
+<p>All interpolators available in Android are subclasses of the <code>Interpolator</code> class. For each interpolator class, Android
+includes a public resource you can reference in order to apply the interpolator to an animation
+using the <code>android:interpolator</code> attribute.
+The following table specifies the resource to use for each interpolator:</p>
+<p>Here's how you can apply one of these with the <code>android:interpolator</code> attribute:</p>
+<p>WHATSON? 007c8a48-99b6-4570-b235-5b661d796a1a</p>
+<pre>
+&lt;set android:interpolator="@android:anim/accelerate_interpolator"&gt;
+    ...
+&lt;/set&gt;
+</pre>
+<h4>Custom interpolators</h4>
+<p>If you're not satisfied with the interpolators provided by the platform (listed in the
+table above), you can create a custom interpolator resource with modified attributes.
+For example, you can adjust the rate of
+acceleration for the <code>AnticipateInterpolator</code>, or adjust the number of
+cycles for the <code>CycleInterpolator</code>. In order to do so, you need to
+create your own interpolator resource in an XML file.
+</p>
+<p>WHATSON? 6c3ab291-8ec6-4f4f-8069-24d9e27f55de</p>
+<pre>
+&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;<em>InterpolatorName</em> xmlns:android="http://schemas.android.com/apk/res/android"
+    android:<em>attribute_name</em>="<em>value</em>"
+    /&gt;
+</pre>
+<p>If you don't apply any attributes, then your interpolator will function exactly the same as
+those provided by the platform (listed in the table above).</p>
+<p>No attributes.</p>
+<p>attributes:</p>
+<p>attributes:</p>
+<p>attributes:</p>
+<p>No attributes</p>
+<p>attributes:</p>
+<p>attributes:</p>
+<p>No attributes.</p>
+<p>attributes:</p>
+<p>XML file saved at <code>res/anim/my_overshoot_interpolator.xml</code>:</p>
+<p>WHATSON? 5d8c8c66-ada8-48ae-8197-0ed4ee3ddb93</p>
+<pre>
+&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;overshootInterpolator xmlns:android="http://schemas.android.com/apk/res/android"
+    android:tension="7.0"
+    /&gt;
+</pre>
+<p>This animation XML will apply the interpolator:</p>
+<p>WHATSON? 785ea1f5-c8e9-4f20-ae00-3119085e971c</p>
+<pre>
+&lt;scale xmlns:android="http://schemas.android.com/apk/res/android"
+    android:interpolator="@anim/my_overshoot_interpolator"
+    android:fromXScale="1.0"
+    android:toXScale="3.0"
+    android:fromYScale="1.0"
+    android:toYScale="3.0"
+    android:pivotX="50%"
+    android:pivotY="50%"
+    android:duration="700" /&gt;
+</pre>
+<h3>Frame animation</h3>
+<p>An animation defined in XML that shows a sequence of images in order (like a film).
+</p>
+<p>WHATSON? 9426ab59-0d22-4ff2-a1c5-135bc210f954</p>
+<pre>
+&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;animation-list xmlns:android="http://schemas.android.com/apk/res/android"
+    android:oneshot=["true" | "false"] &gt;
+    &lt;item
+        android:drawable="@[package:]drawable/<em>drawable_resource_name</em>"
+        android:duration="<em>integer</em>" /&gt;
+&lt;/animation-list&gt;
+</pre>
+<p>attributes:</p>
+<p>attributes:</p>
+<p>WHATSON? 73dbe08d-520b-4791-ab0e-bf4280e87b30</p>
+<pre>
+&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;animation-list xmlns:android="http://schemas.android.com/apk/res/android"
+    android:oneshot="false"&gt;
+    &lt;item android:drawable="@drawable/rocket_thrust1" android:duration="200" /&gt;
+    &lt;item android:drawable="@drawable/rocket_thrust2" android:duration="200" /&gt;
+    &lt;item android:drawable="@drawable/rocket_thrust3" android:duration="200" /&gt;
+&lt;/animation-list&gt;
+</pre>
+<p>WHATSON? 66100c6b-c9f3-4507-a680-3d8664fc2f7c</p>
+<pre>
+ImageView rocketImage = (ImageView) findViewById(R.id.rocket_image);
+rocketImage.<code>setBackgroundResource</code>(R.drawable.rocket_thrust);
+
+rocketAnimation = (AnimationDrawable) rocketImage.<code>getBackground()</code>;
+rocketAnimation.<code>start()</code>;
+</pre>
+<ul>
+  <li>2D
+Graphics: Frame Animation</li>
+</ul>
+</body>
+</html>

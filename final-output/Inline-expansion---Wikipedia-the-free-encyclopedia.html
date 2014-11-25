@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Inline-expansion---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Inline expansion</h1>
+<p>In computing, <b>inline expansion</b>, or <b>inlining</b>, is a manual or compiler optimization that replaces a function call site with the body of the callee. This optimization typically improves time and space usage at runtime, at the cost of increasing the final size of the program (i.e. the binary file size), but in some cases may decrease runtime performance or decrease the final size of the program.</p>
+<p>Inlining is done automatically by many compilers, while in other cases it can be manually specified via compiler directives, typically using the <tt>inline</tt> keyword; typically this only hints that inlining is desired, rather than requiring inlining. Compilers use a variety of mechanisms to decide which function calls should be inlined; these can include manual hints from programmers for specific functions, together with overall control via command-line options.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Overview</li>
+<li>2 Implementation
+<ul>
+<li>2.1 Inlining by assembly macro expansion</li>
+</ul>
+</li>
+<li>3 Benefits</li>
+<li>4 Problems</li>
+<li>5 Limitations</li>
+<li>6 Selection methods</li>
+<li>7 Language support
+<ul>
+<li>7.1 C and C++</li>
+</ul>
+</li>
+<li>8 See also</li>
+<li>9 References</li>
+<li>10 External links</li>
+</ul>
+<ul>
+<li>2.1 Inlining by assembly macro expansion</li>
+</ul>
+<ul>
+<li>7.1 C and C++</li>
+</ul>
+<p></p>
+<h2>Overview</h2>
+<p>Ordinarily, when a function is invoked, control is transferred to its definition by a branch or call instruction. With inlining, control drops through directly to the code for the function, without a branch or call instruction. Inlining improves performance in several ways:</p>
+<ul>
+<li>It removes the cost of the function call and return instructions, as well as any other prologue and epilogue code injected into every function by the compiler.</li>
+<li>Eliminating branches and keeping code that is executed close together in memory improves instruction cache performance by improving locality of reference.</li>
+<li>Once inlining has been performed, additional intraprocedural optimizations become possible on the inlined function body. For example, a constant passed as an argument can often be propagated to all instances of the matching parameter, or part of the function may be "hoisted out" of a loop.</li>
+</ul>
+<p>The primary cost of inlining is that it tends to increase code size, although it does not always do so. Inlining may also decrease performance in some cases – for instance, multiple copies of a function may increase code size enough that the code no longer fits in the cache, resulting in more cache misses.</p>
+<p>Compilers usually implement statements with inlining. Loop conditions and loop bodies need lazy evaluation. This property is fulfilled when the code to compute loop conditions and loop bodies is inlined. Performance considerations are another reason to inline statements.</p>
+<p>In the context of functional programming languages, inline expansion is usually followed by the beta-reduction transformation.</p>
+<p>A programmer might inline a function manually through copy and paste programming, as a one-time operation on the source code. However, other methods of controlling inlining (see below) are preferable, because they do not precipitate bugs arising when the programmer overlooks a (possibly modified) duplicated version of the original function body, while fixing a bug in the inlined function.</p>
+<h2>Implementation</h2>
+<p>Once the compiler has decided to inline a particular function, performing the inlining operation itself is usually simple. Depending on whether the compiler inlines functions across code in different languages, the compiler can do inlining on either a high-level intermediate representation (like abstract syntax trees) or a low-level intermediate representation. In either case, the compiler simply computes the arguments, stores them in variables corresponding to the function's arguments, and then inserts the body of the function at the call site.</p>
+<p>Linkers, as well as compilers, can also do function inlining. When a linker inlines functions, it may inline functions whose source is not available, such as library functions (see link-time optimization). A run-time system can inline function as well. Run-time inlining can use dynamic profiling information to make better decisions about which functions to inline, as in the Java Hotspot compiler.</p>
+<p>Here is a simple example of inline expansion performed "by hand" at the source level in the C programming language:</p>
+<p>WHATSON? f62e54e7-ae63-4eba-86d1-150eac309663</p>
+<pre>
+int pred(int x) {
+    if (x == 0)
+       return 0;
+    else
+       return x - 1;
+}
+</pre>
+<p><i>Before inlining:</i></p>
+<p>WHATSON? 05aa940f-6d7e-49d4-9b21-e8f7236b83c0</p>
+<pre>
+ int f(int y) {
+     return pred(y) + pred(0) + pred(y+1);
+ }
+</pre>
+<p><i>After inlining:</i></p>
+<p>WHATSON? ce92e678-8fe0-44df-ab65-b48234f33485</p>
+<pre>
+int f(int y) {
+    int temp;
+    if (y   == 0) temp  = 0; else temp  = y       - 1; /* (1) */
+    if (0   == 0) temp += 0; else temp += 0       - 1; /* (2) */
+    if (y+1 == 0) temp += 0; else temp += (y + 1) - 1; /* (3) */
+    return temp;
+}
+</pre>
+<p>Note that this is only an example. In an actual C application, it would be preferable to use an inlining language feature such as parameterized macros or inline functions to tell the compiler to transform the code in this way. The next section lists ways to optimize this code.</p>
+<h3>Inlining by assembly macro expansion</h3>
+<p>Assembler macros provide an alternative approach to inlining whereby a sequence of instructions can normally be generated inline by macro expansion from a single macro source statement (with zero or more parameters). One of the parameters might be an option to alternatively generate a one-time separate subroutine containing the sequence and processed instead by an inlined call to the function. Example:</p>
+<p>WHATSON? 0e7b4c0e-6202-4050-812f-0945bcff1a83</p>
+<pre>
+MOVE FROM=array1,TO=array2,INLINE=NO
+</pre>
+<h2>Benefits</h2>
+<p>Inline expansion itself is an optimization, since it eliminates overhead from calls, but it is much more important as an enabling transformation. That is, once the compiler expands a function body in the context of its call site—often with arguments that may be fixed constants -- it may be able to do a variety of transformations that were not possible before. For example, a conditional branch may turn out to be always true or always false at this particular call site. This in turn may enable dead code elimination, loop-invariant code motion, or induction variable elimination.</p>
+<p>In the C example in the previous section, optimization opportunities abound. The compiler may follow this sequence of steps:</p>
+<ul>
+<li>The <code>temp += 0</code> statements in the lines marked (2) and (3) do nothing. The compiler can remove them.</li>
+<li>The condition <code>0 == 0</code> is always true, so the compiler can replace the line marked (2) with the consequent, <code>temp += 0</code> (which does nothing).</li>
+<li>The compiler can rewrite the condition <code>y+1 == 0</code> to <code>y == -1</code>.</li>
+<li>The compiler can reduce the expression <code>(y + 1) - 1</code> to <code>y</code> (assuming wraparound overflow semantics)</li>
+<li>The expressions <code>y</code> and <code>y+1</code> cannot both equal zero. This lets the compiler eliminate one test.</li>
+</ul>
+<p>The new function looks like:</p>
+<p>WHATSON? f51c8a39-2e78-453d-a297-2fccf5193d83</p>
+<pre>
+int f(int y) {
+    if (y == 0)
+        return y;            /* or return 0 */
+    else if (y == -1)
+        return y - 1;        /* or return -2 */
+    else
+        return y + y - 1;
+}
+</pre>
+<h2>Problems</h2>
+<p>Replacing a call site with an expanded function body can worsen performance in several ways :</p>
+<ul>
+<li>In applications where code size is more important than speed, such as many embedded systems, inlining is usually disadvantageous except for very small functions, such as trivial mutator methods.</li>
+<li>The increase in code size may cause a small, critical section of code to no longer fit in the cache, causing cache misses and slowdown.</li>
+<li>A language specification may allow a program to make additional assumptions about arguments to procedures that it can no longer make after the procedure is inlined.</li>
+<li>If code size is increased too much, resource constraints such as RAM size may be exceeded, leading to programs that either cannot be run or that cause thrashing. Today, this is unlikely to be an issue with desktop or server computers except with very aggressive inlining, but it can still be an issue for embedded systems.</li>
+</ul>
+<p>Typically, compiler developers keep these issues in mind, and incorporate heuristics into their compilers that choose which functions to inline so as to improve performance, rather than worsening it, in most cases.</p>
+<h2>Limitations</h2>
+<p>It is not always possible to inline a subroutine. Consider the case of a subroutine that calls itself recursively until it receives a particular piece of input data from a peripheral. The compiler cannot generally determine when this process will end, so it would never finish inlining if it was designed to inline every single subroutine invocation. Thus, compilers for languages which support recursion must have restrictions on what they will automatically choose to inline.</p>
+<h2>Selection methods</h2>
+<p>Many compilers aggressively inline functions wherever it is beneficial to do so. Although it can lead to larger executables, aggressive inlining has nevertheless become more and more desirable as memory capacity has increased faster than CPU speed. Inlining is a critical optimization in functional languages and object-oriented programming languages, which rely on it to provide enough context for their typically small functions to make classical optimizations effective.</p>
+<h2>Language support</h2>
+<p>Many languages, including Java and functional languages, do not provide language constructs for inline functions, but their compilers or interpreters often do perform aggressive <strong class="selflink">inline expansion</strong>. Other languages provide constructs for explicit hints, generally as compiler directives (pragmas).</p>
+<p>In the Ada programming language, there exists a pragma for inline functions.</p>
+<p>Functions in Common Lisp may be defined as inline by the <code>inline</code> declaration as such:</p>
+<p>WHATSON? 19416215-8131-493c-ba3f-8a812d4becfe</p>
+<pre>
+ (declaim (inline dispatch))
+ (defun dispatch (x)
+   (funcall
+     (get (car x) 'dispatch) x))
+</pre>
+<p>The Haskell compiler GHC tries to inline functions or values that are small enough but inlining may be noted explicitly using a language pragma:</p>
+<p>WHATSON? 44fa1f72-c694-4aed-8c55-9cabf9cb611c</p>
+<pre>
+key_function :: Int -&gt; String -&gt; (Bool, Double)
+{-# INLINE key_function #-}
+</pre>
+<h3>C and C++</h3>
+<p>C and C++ have an <code>inline</code> keyword, which functions both as a compiler directive – specifying that inlining is <i>desired</i> but not <i>required</i> – and also changes the visibility and linking behavior. The visibility change is necessary to allow the function to be inlined via the standard C toolchain, where compilation of individual files (rather, translation units) is followed by linking: for the linker to be able to inline functions, they must be specified in the header (to be visible) and marked <code>inline</code> (to avoid ambiguity from multiple definitions).</p>
+<h2>See also</h2>
+<ul>
+<li>Macro</li>
+<li>Partial evaluation</li>
+<li>Tail-call elimination</li>
+</ul>
+</body>
+</html>

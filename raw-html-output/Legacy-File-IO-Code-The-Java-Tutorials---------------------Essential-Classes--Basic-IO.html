@@ -1,0 +1,37 @@
+<h1>Legacy File I/O Code</h1>
+<h2><a name="interop" id="interop">Interoperability With Legacy Code</a></h2>
+<p>Prior to the Java SE 7 release, the <code>java.io.File</code> class was the mechanism used for file I/O, but it had several drawbacks.</p>
+<ul>
+<li>Many methods didn't throw exceptions when they failed, so it was impossible to obtain a useful error message. For example, if a file deletion failed, the program would receive a "delete fail" but wouldn't know if it was because the file didn't exist, the user didn't have permissions, or there was some other problem.</li>
+<li>The <code>rename</code> method didn't work consistently across platforms.</li>
+<li>There was no real support for symbolic links.</li>
+<li>More support for metadata was desired, such as file permissions, file owner, and other security attributes.</li>
+<li>Accessing file metadata was inefficient.</li>
+<li>Many of the <code>File</code> methods didn't scale. Requesting a large directory listing over a server could result in a hang. Large directories could also cause memory resource problems, resulting in a denial of service.</li>
+<li>It was not possible to write reliable code that could recursively walk a file tree and respond appropriately if there were circular symbolic links.</li>
+</ul>
+<p>Perhaps you have legacy code that uses <code>java.io.File</code> and would like to take advantage of the <code>java.nio.file.Path</code> functionality with minimal impact to your code.</p>
+<p>The <code>java.io.File</code> class provides the 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/io/File.html#toPath--"><code>toPath</code></a> method, which converts an old style <code>File</code> instance to a <code>java.nio.file.Path</code> instance, as follows:</p>
+<p>WHATSON? 597b61b8-4884-4326-a8c7-68e91853fd90</p>
+<pre>
+Path input = file.toPath();
+</pre>
+<p>You can then take advantage of the rich feature set available to the <code>Path</code> class.</p>
+<p>For example, assume you had some code that deleted a file:</p>
+<p>WHATSON? 6f3c837c-b441-47db-b90c-6a2c263bca74</p>
+<pre>
+file.delete();
+</pre>
+<p>You could modify this code to use the <code>Files.delete</code> method, as follows:</p>
+<p>WHATSON? 2290cb9d-309c-4ce6-ae20-700dae1c7cf3</p>
+<pre>
+Path fp = file.toPath();
+Files.delete(fp);
+</pre>
+<p>Conversely, the 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/nio/file/Path.html#toFile--"><code>Path.toFile</code></a> method constructs a <code>java.io.File</code> object for a <code>Path</code> object.</p>
+<h2><a name="mapping" id="mapping">Mapping java.io.File Functionality to java.nio.file</a></h2>
+<p>Because the Java implementation of file I/O has been completely re-architected in the Java SE 7 release, you cannot swap one method for another method. If you want to use the rich functionality offered by the <code>java.nio.file</code> package, your easiest solution is to use the 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/io/File.html#toPath--"><code>File.toPath</code></a> method as suggested in the previous section. However, if you do not want to use that approach or it is not sufficient for your needs, you must rewrite your file I/O code.</p>
+<p>There is no one-to-one correspondence between the two APIs, but the following table gives you a general idea of what functionality in the <code>java.io.File</code> API maps to in the <code>java.nio.file</code> API and tells you where you can obtain more information.</p>

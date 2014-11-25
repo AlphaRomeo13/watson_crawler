@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Callback-computer-programming---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Callback (computer programming)</h1>
+<p>In computer programming, a <b>callback</b> is a piece of executable code that is passed as an argument to other code, which is expected to <i>call back</i> (execute) the argument at some convenient time. The invocation may be immediate as in a <b>synchronous callback</b> or it might happen at later time, as in an <b>asynchronous callback</b>. In all cases, the intention is to specify a function or subroutine as an entity that is, depending on the language, more or less similar to a variable.</p>
+<p>The ways that callbacks are supported in programming languages differ, but they are often implemented with subroutines, lambda expressions, blocks, or function pointers.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Design</li>
+<li>2 Implementation</li>
+<li>3 Use
+<ul>
+<li>3.1 JavaScript</li>
+<li>3.2 C</li>
+<li>3.3 Python</li>
+</ul>
+</li>
+<li>4 See also</li>
+<li>5 References</li>
+<li>6 External links</li>
+</ul>
+<ul>
+<li>3.1 JavaScript</li>
+<li>3.2 C</li>
+<li>3.3 Python</li>
+</ul>
+<p></p>
+<h2>Design</h2>
+<p>There are two types of callbacks: <i>blocking callbacks</i> (also known as <i>synchronous callbacks</i> or just <i>callbacks</i>) and <i>deferred callbacks</i> (also known as <i>asynchronous callbacks</i>). These two design choices differ in how they control data flow at runtime. While blocking callbacks are invoked before a function returns (in the C example below: main), deferred callbacks may be invoked after a function returns. The C example below is a blocking callback. Deferred callbacks are often used in the context of I/O operations or event handling. While deferred callbacks imply the existence of multiple threads, blocking callbacks often rely on a single thread. This means that blocking callbacks are not commonly used for synchronization or delegating work to another thread.</p>
+<p>Callbacks are used to program applications in windowing systems. In this case, the application supplies (a reference to) a specific custom callback function for the operating system to call. The OS then calls this application-specific function in response to events like mouse clicks or key presses. A major concern here is the management of privilege and security: whilst the function is called from the OS, it should not run with the same privilege as the system. A solution to this problem is using rings of protection.</p>
+<h2>Implementation</h2>
+<p>The form of a callback varies among programming languages:</p>
+<ul>
+<li>In assembly, C, C++, Pascal, Modula2 and similar languages, a machine-level pointer to a function may be passed as an argument to another (internal or external) function. This is supported by most compilers and provides the advantage of using different languages together without special wrapper libraries or classes. One example may be the Windows API which is directly (more or less) accessible by many different languages, compilers and assemblers. The downside is that some machine-level knowledge is needed and most of the type control is not in effect.</li>
+<li>C++ allows objects to provide their own implementation of the function call operation. The Standard Template Library accepts these objects (called <i>functors</i>), as well as function pointers, as parameters to various polymorphic algorithms.</li>
+<li>Many interpreted languages, such as JavaScript, Lua, Python, Perl and PHP, simply allow a function object to be passed through.</li>
+<li>CLI languages such as C# and VB.NET provide a type-safe encapsulating reference, a 'delegate', to define well-typed function pointers. These can be used as callbacks.</li>
+<li>Events and event handlers, as used in .NET languages, provide generalized syntax for callbacks.</li>
+<li>Functional languages generally support first-class functions, which can be passed as callbacks to other functions, stored as data or returned from functions.</li>
+<li>Some languages, such as Algol 68, Perl, Python, Ruby, Smalltalk, newer versions of C# and VB.NET as well as most functional languages, allow unnamed blocks of code (lambda expressions) to be supplied instead of references to functions defined elsewhere.</li>
+<li>In some languages, e.g. Scheme, ML, JavaScript, Perl, Smalltalk, PHP (since 5.3.0), and many others, such functions can be closures, i.e. they can access and modify variables locally defined in the context in which the function was defined.</li>
+<li>In object-oriented programming languages without function-valued arguments, such as in Java before its 1.7 version, callbacks can be simulated by passing an instance of an abstract class or interface, of which the receiver will call one or more methods, while the calling end provides a concrete implementation. Such objects are effectively a bundle of callbacks, plus the data they need to manipulate. They are useful in implementing various design patterns such as Visitor, Observer, and Strategy.</li>
+</ul>
+<h2>Use</h2>
+<h3>JavaScript</h3>
+<p>Callbacks are used in the implementation of languages such as JavaScript, including support of JavaScript functions as callbacks through js-ctypes and in components such as addEventListener. However, a naive example of a callback can be written without any complex code:</p>
+<p>WHATSON? 20cf4a27-d60b-4a31-9b8d-b4e9b6c318ee</p>
+<pre>
+function someAction(x, y, someCallback) {
+    return someCallback(x, y);
+}
+ 
+function calcProduct(x, y) {
+    return x * y;
+}
+ 
+function calcSum(x, y) {
+    return x + y;
+}
+// alerts 75, the product of 5 and 15
+alert(someAction(5, 15, calcProduct));
+// alerts 20, the sum of 5 and 15
+alert(someAction(5, 15, calcSum));
+</pre>
+<p>First a function <code>someAction</code> is defined with a parameter intended for callback: <code>someCallback</code>. Then a function that can be used as a callback to <code>someAction</code> is defined, <code>calcProduct</code>. Other functions may be used for <code>someCallback</code>, like <code>calcSum</code>. In this example, <code>someAction()</code> is invoked twice, once with <code>calcProduct</code> as a callback and once with <code>calcSum</code>. The functions return the product and sum, respectively, and then the alert will display them to the screen.</p>
+<p>In this primitive example, the use of a callback is primarily a demonstration of principle. One could simply call the callbacks as regular functions, <code>calcProduct(x, y)</code>. Callbacks are generally useful when the function needs to perform actions before the callback is executed, or when the function does not (or cannot) have meaningful return values to act on, as is the case for Asynchronous JavaScript (based on timers) or XMLHttpRequest requests. Useful examples can be found in JavaScript libraries such as jQuery where the .each() method iterates over an array-like object, the first argument being a callback which is performed on each iteration.</p>
+<h3>C</h3>
+<p>Callbacks have a wide variety of uses. For example, imagine a function that reads a configuration file and associates values with options. If the options are identified by a hash, then writing the function so that it takes a callback makes it more flexible: its user can choose whatever hashing algorithm is desired and the function will continue to work, since it uses the callback to turn option names into hashes; thus, callbacks allow the user of a function to fine-tune it at runtime. Another use is in error signaling. A Unix program, for example, might not want to terminate immediately when it receives SIGTERM; to make sure things get taken care of, it would register the cleanup function as a callback.</p>
+<p>Callbacks may also be used to control whether a function acts or not: Xlib allows custom predicates to be specified to determine whether a program wishes to handle an event. The following code in C demonstrates the use of callbacks to display two numbers.</p>
+<p>WHATSON? ee78f2ed-1152-414f-84a6-6c39c084ba61</p>
+<pre>
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+ 
+/* The calling function takes a single callback as a parameter. */
+void PrintTwoNumbers(int (*numberSource)(void)) {
+    printf("%d and %d\n", numberSource(), numberSource());
+}
+ 
+/* A possible callback */
+int overNineThousand(void) {
+    return (rand() % 1000) + 9001;
+}
+ 
+/* Another possible callback. */
+int meaningOfLife(void) {
+    return 42;
+}
+ 
+/* Here we call PrintTwoNumbers() with three different callbacks. */
+int main(void) {
+    PrintTwoNumbers(&amp;rand);
+    PrintTwoNumbers(&amp;overNineThousand);
+    PrintTwoNumbers(&amp;meaningOfLife);
+    return 0;
+}
+</pre>
+<p>This should provide output similar to:</p>
+<p>WHATSON? e6b317b8-8d6d-43a9-b5db-b582001a3305</p>
+<pre>
+125185 and 89187225
+ 9084 and 9441
+ 42 and 42
+</pre>
+<p>Note how this is different from simply passing the output of the callback function to the calling function, PrintTwoNumbers() - rather than printing the same value twice, the PrintTwoNumbers calls the callback as many times as it requires. This is one of the two main advantages of callbacks.</p>
+<p>The other advantage is that the calling function can pass whatever parameters it wishes to the called functions (not shown in the above example). This allows correct information hiding: the code that passes a callback to a calling function does not need to know the parameter values that will be passed to the function. If it only passed the return value, then the parameters would need to be exposed publicly.</p>
+<p>Another example:</p>
+<p>WHATSON? ea90b834-3440-4dce-b03f-01c0ddb312ff</p>
+<pre>
+/*
+ * This is a simple C program to demonstrate the usage of callbacks
+ * The callback function is in the same file as the calling code.
+ * The callback function can later be put into external library like
+ * e.g. a shared object to increase flexibility.
+ *
+ */
+ 
+#include &lt;stdio.h&gt;
+#include &lt;string.h&gt;
+ 
+typedef struct _MyMsg {
+        int appId;
+        char msgbody[32];
+} MyMsg;
+ 
+void myfunc(MyMsg *msg)
+{
+        if (strlen(msg-&gt;msgbody) &gt; 0 )
+                printf("App Id = %d \nMsg = %s \n",msg-&gt;appId, msg-&gt;msgbody);
+        else
+                printf("App Id = %d \nMsg = No Msg\n",msg-&gt;appId);
+}
+ 
+/*
+ * Prototype declaration
+ */
+void (*callback)(MyMsg *);
+ 
+int main(void)
+{
+        MyMsg msg1;
+        msg1.appId = 100;
+        strcpy(msg1.msgbody, "This is a test\n");
+ 
+        /*
+         * Assign the address of the function 'myfunc' to the function
+         * pointer 'callback'
+         */
+        callback = myfunc;
+ 
+        /*
+         * Call the function
+         */
+        callback(&amp;msg1);
+ 
+        return 0;
+}
+</pre>
+<p>The output after compilation:</p>
+<p>WHATSON? 5d989c6a-1b8b-4eaf-866e-bf83afc3acf8</p>
+<pre>
+$ gcc cbtest.c
+$ ./a.out
+App Id = 100
+Msg = This is a test
+
+</pre>
+<p>This information hiding means that callbacks can be used when communicating between processes or threads, or through serialised communications and tabular data. </p>
+<h3>Python</h3>
+<p>A classic usage of callbacks in Python (and other languages) is to assign events to UI elements.</p>
+<p>Here is a very trivial example of the use of a callback in Python. First define two functions, the callback and the calling code, then pass the callback function into the calling code.</p>
+<p>WHATSON? eaae342d-8d6e-4788-bc63-aed115ddbaa6</p>
+<pre>
+def my_callback(input):
+    print ("function my_callback was called with %s input" %input)
+ 
+def caller(input, func):
+    func(input)
+ 
+for i in range(5):
+    caller(i, my_callback)
+</pre>
+<p>This results in the following output on standard out.</p>
+<p>WHATSON? b20e870b-7e77-41ab-8153-cc032c60faab</p>
+<pre>
+function my_callback was called with 0 input
+function my_callback was called with 1 input
+function my_callback was called with 2 input
+function my_callback was called with 3 input
+function my_callback was called with 4 input
+</pre>
+<h2>See also</h2>
+<ul>
+<li>Continuation-passing style</li>
+<li>Signals and slots</li>
+<li>Event loop</li>
+<li>Event-driven programming</li>
+<li>libsigc++, a callback library for C++</li>
+<li>Implicit invocation</li>
+<li>User exit</li>
+<li>Inversion of control</li>
+</ul>
+</body>
+</html>

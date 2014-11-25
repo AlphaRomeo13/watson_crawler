@@ -1,0 +1,164 @@
+<h1>Guarded Blocks</h1>
+<p>Threads often have to coordinate their actions. The most common coordination idiom is the <i>guarded block</i>. Such a block begins by polling a condition that must be true before the block can proceed. There are a number of steps to follow in order to do this correctly.</p>
+<p>Suppose, for example <code>guardedJoy</code> is a method that must not proceed until a shared variable <code>joy</code> has been set by another thread. Such a method could, in theory, simply loop until the condition is satisfied, but that loop is wasteful, since it executes continuously while waiting.</p>
+<p>WHATSON? 49cb11db-80b2-4feb-9f2f-9e6f7c22859c</p>
+<pre>
+public void guardedJoy() {
+    // Simple loop guard. Wastes
+    // processor time. Don't do this!
+    while(!joy) {}
+    System.out.println("Joy has been achieved!");
+}
+</pre>
+<p>A more efficient guard invokes 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/lang/Object.html#wait--"><code>Object.wait</code></a> to suspend the current thread. The invocation of <code>wait</code> does not return until another thread has issued a notification that some special event may have occurred  though not necessarily the event this thread is waiting for:</p>
+<p>WHATSON? 532b931f-6916-4161-b467-dceea2cc887a</p>
+<pre>
+public synchronized void guardedJoy() {
+    // This guard only loops once for each special event, which may not
+    // be the event we're waiting for.
+    while(!joy) {
+        try {
+            wait();
+        } catch (InterruptedException e) {}
+    }
+    System.out.println("Joy and efficiency have been achieved!");
+}
+</pre>
+<p>Like many methods that suspend execution, <code>wait</code> can throw <code>InterruptedException</code>. In this example, we can just ignore that exception  we only care about the value of <code>joy</code>.</p>
+<p>Why is this version of <code>guardedJoy</code> synchronized? Suppose <code>d</code> is the object we're using to invoke <code>wait</code>. When a thread invokes <code>d.wait</code>, it must own the intrinsic lock for <code>d</code>  otherwise an error is thrown. Invoking <code>wait</code> inside a synchronized method is a simple way to acquire the intrinsic lock.</p>
+<p>When <code>wait</code> is invoked, the thread releases the lock and suspends execution. At some future time, another thread will acquire the same lock and invoke 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/lang/Object.html#notifyAll--"><code>Object.notifyAll</code></a>, informing all threads waiting on that lock that something important has happened:</p>
+<p>WHATSON? d11b1c4c-87d5-484c-a292-08051b76f389</p>
+<pre>
+public synchronized notifyJoy() {
+    joy = true;
+    notifyAll();
+}
+</pre>
+<p>Some time after the second thread has released the lock, the first thread reacquires the lock and resumes by returning from the invocation of <code>wait</code>.</p>
+<p>Let's use guarded blocks to create a <i>Producer-Consumer</i> application. This kind of application shares data between two threads: the <i>producer</i>, that creates the data, and the <i>consumer</i>, that does something with it. The two threads communicate using a shared object. Coordination is essential: the consumer thread must not attempt to retrieve the data before the producer thread has delivered it, and the producer thread must not attempt to deliver new data if the consumer hasn't retrieved the old data.</p>
+<p>In this example, the data is a series of text messages, which are shared through an object of type 
+<a class="SourceLink" target="_blank" href="examples/Drop.java" onclick="showCode('../../displayCode.html', 'examples/Drop.java'); return false;"><code><code>Drop</code></code></a>:</p>
+<p>WHATSON? f0da3224-6a47-4b49-b530-510ca8bc9921</p>
+<pre>
+
+public class Drop {
+    // Message sent from producer
+    // to consumer.
+    private String message;
+    // True if consumer should wait
+    // for producer to send message,
+    // false if producer should wait for
+    // consumer to retrieve message.
+    private boolean empty = true;
+
+    public synchronized String take() {
+        // Wait until message is
+        // available.
+        while (empty) {
+            try {
+                wait();
+            } catch (InterruptedException e) {}
+        }
+        // Toggle status.
+        empty = true;
+        // Notify producer that
+        // status has changed.
+        notifyAll();
+        return message;
+    }
+
+    public synchronized void put(String message) {
+        // Wait until message has
+        // been retrieved.
+        while (!empty) {
+            try { 
+                wait();
+            } catch (InterruptedException e) {}
+        }
+        // Toggle status.
+        empty = false;
+        // Store message.
+        this.message = message;
+        // Notify consumer that status
+        // has changed.
+        notifyAll();
+    }
+}
+</pre>
+<p>The producer thread, defined in 
+<a class="SourceLink" target="_blank" href="examples/Producer.java" onclick="showCode('../../displayCode.html', 'examples/Producer.java'); return false;"><code><code>Producer</code></code></a>, sends a series of familiar messages. The string "DONE" indicates that all messages have been sent. To simulate the unpredictable nature of real-world applications, the producer thread pauses for random intervals between messages.</p>
+<p>WHATSON? 35106934-ba48-43fd-a3ab-adb23f3b77b2</p>
+<pre>
+
+import java.util.Random;
+
+public class Producer implements Runnable {
+    private Drop drop;
+
+    public Producer(Drop drop) {
+        this.drop = drop;
+    }
+
+    public void run() {
+        String importantInfo[] = {
+            "Mares eat oats",
+            "Does eat oats",
+            "Little lambs eat ivy",
+            "A kid will eat ivy too"
+        };
+        Random random = new Random();
+
+        for (int i = 0;
+             i &lt; importantInfo.length;
+             i++) {
+            drop.put(importantInfo[i]);
+            try {
+                Thread.sleep(random.nextInt(5000));
+            } catch (InterruptedException e) {}
+        }
+        drop.put("DONE");
+    }
+}
+</pre>
+<p>The consumer thread, defined in 
+<a class="SourceLink" target="_blank" href="examples/Consumer.java" onclick="showCode('../../displayCode.html', 'examples/Consumer.java'); return false;"><code><code>Consumer</code></code></a>, simply retrieves the messages and prints them out, until it retrieves the "DONE" string. This thread also pauses for random intervals.</p>
+<p>WHATSON? 8e59788b-3550-49a3-8e48-8cdb3134c5de</p>
+<pre>
+
+import java.util.Random;
+
+public class Consumer implements Runnable {
+    private Drop drop;
+
+    public Consumer(Drop drop) {
+        this.drop = drop;
+    }
+
+    public void run() {
+        Random random = new Random();
+        for (String message = drop.take();
+             ! message.equals("DONE");
+             message = drop.take()) {
+            System.out.format("MESSAGE RECEIVED: %s%n", message);
+            try {
+                Thread.sleep(random.nextInt(5000));
+            } catch (InterruptedException e) {}
+        }
+    }
+}
+</pre>
+<p>Finally, here is the main thread, defined in 
+<a class="SourceLink" target="_blank" href="examples/ProducerConsumerExample.java" onclick="showCode('../../displayCode.html', 'examples/ProducerConsumerExample.java'); return false;"><code><code>ProducerConsumerExample</code></code></a>, that launches the producer and consumer threads.</p>
+<p>WHATSON? cf92d1b5-3a75-4438-b8c7-2768cec9f667</p>
+<pre>
+
+public class ProducerConsumerExample {
+    public static void main(String[] args) {
+        Drop drop = new Drop();
+        (new Thread(new Producer(drop))).start();
+        (new Thread(new Consumer(drop))).start();
+    }
+}
+</pre>

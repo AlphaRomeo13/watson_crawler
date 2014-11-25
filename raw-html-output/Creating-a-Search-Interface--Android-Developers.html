@@ -1,0 +1,1350 @@
+<h1 itemprop="name">Creating a Search Interface</h1>
+<h2>In this document</h2>
+<ol>
+  <li><a href="#TheBasics">The Basics</a></li>
+  <li><a href="#SearchableConfiguration">Creating a Searchable Configuration</a></li>
+  <li><a href="#SearchableActivity">Creating a Searchable Activity</a>
+    <ol>
+      <li><a href="#DeclaringSearchableActivity">Declaring a searchable activity</a></li>
+      <li><a href="#PerformingSearch">Performing a search</a></li>
+    </ol>
+  </li>
+  <li><a href="#SearchDialog">Using the Search Dialog</a>
+    <ol>
+      <li><a href="#InvokingTheSearchDialog">Invoking the search dialog</a></li>
+      <li><a href="#LifeCycle">The impact of the search dialog on your activity lifecycle</a></li>
+      <li><a href="#SearchContextData">Passing search context data</a></li>
+    </ol>
+  </li>
+  <li><a href="#UsingSearchWidget">Using the Search Widget</a>
+    <ol>
+      <li><a href="#ConfiguringWidget">Configuring the search widget</a></li>
+      <li><a href="#WidgetFeatures">Other search widget features</a></li>
+      <li><a href="#UsingBoth">Using both the widget and the dialog</a></li>
+    </ol>
+  </li>
+  <li><a href="#VoiceSearch">Adding Voice Search</a></li>
+  <li><a href="#SearchSuggestions">Adding Search Suggestions</a></li>
+</ol>
+<ol>
+      <li><a href="#DeclaringSearchableActivity">Declaring a searchable activity</a></li>
+      <li><a href="#PerformingSearch">Performing a search</a></li>
+    </ol>
+<ol>
+      <li><a href="#InvokingTheSearchDialog">Invoking the search dialog</a></li>
+      <li><a href="#LifeCycle">The impact of the search dialog on your activity lifecycle</a></li>
+      <li><a href="#SearchContextData">Passing search context data</a></li>
+    </ol>
+<ol>
+      <li><a href="#ConfiguringWidget">Configuring the search widget</a></li>
+      <li><a href="#WidgetFeatures">Other search widget features</a></li>
+      <li><a href="#UsingBoth">Using both the widget and the dialog</a></li>
+    </ol>
+<h2>Key classes</h2>
+<ol>
+<li><code><a href="/reference/android/app/SearchManager.html">SearchManager</a></code></li>
+<li><code><a href="/reference/android/widget/SearchView.html">SearchView</a></code></li>
+</ol>
+<h2>Related samples</h2>
+<ol>
+<li><a href="/resources/samples/SearchableDictionary/index.html">Searchable
+Dictionary</a></li>
+<li><a href="/resources/samples/ApiDemos/src/com/example/android/apis/view/SearchViewActionBar.html">SearchView
+    in the Action Bar</a></li>
+<li><a href="/resources/samples/ApiDemos/src/com/example/android/apis/view/SearchViewFilterMode.html">SearchView
+    filter mode</a></li>
+</ol>
+<h2>Downloads</h2>
+<ol>
+<li><a href="/design/downloads/index.html#action-bar-icon-pack">Action Bar
+Icon Pack</a></li>
+</ol>
+<p>When you're ready to add search functionality to your application, Android helps you implement
+the user interface with either a search dialog that appears at the top of the activity window or a
+search widget that you can insert in your layout. Both the search dialog and the widget can deliver
+the user's search query to a specific activity in your application. This way, the user can initiate
+a search from any activity where the search dialog or widget is available, and the system starts the
+appropriate activity to perform the search and present results.</p>
+<p>Other features available for the search dialog and widget include:</p>
+<ul>
+  <li>Voice search</li>
+  <li>Search suggestions based on recent queries</li>
+  <li>Search suggestions that match actual results in your application data</li>
+</ul>
+<p>This guide shows you how to set up your application to provide a search interface
+that's assisted by the Android system to deliver search queries, using either the
+search dialog or the search widget.</p>
+<h2 id="TheBasics">The Basics</h2>
+<p class="img-caption"><strong>Figure 1.</strong> Screenshot of an application's search dialog.</p>
+<p>Before you begin, you should decide whether you'll implement your search interface using the
+search dialog or the search widget. Both provide the same search features, but in slightly different
+ways:</p>
+<ul>
+  <li>The <strong>search dialog</strong> is a UI component that's controlled by the Android system.
+When activated by the user, the search dialog appears at the top of the activity, as shown in figure
+1.
+    <p>The Android system controls all events in the search dialog. When the user
+submits a query, the system delivers the query to the activity that you specify to
+handle searches. The dialog can also provide search suggestions while the user types.</p></li>
+
+  <li>The <strong>search widget</strong> is an instance of <code><a href="/reference/android/widget/SearchView.html">SearchView</a></code> that
+you can place anywhere in your layout. By default, the search widget behaves like a standard <code><a href="/reference/android/widget/EditText.html">EditText</a></code> widget and doesn't do anything, but you can configure it so that the
+Android system handles all input events, delivers queries to the appropriate activity, and provides
+search suggestions (just like the search dialog). However, the search widget is available only in
+Android 3.0 (API Level 11) and higher.
+
+<p class="note"><strong>Note:</strong> If you want, you can handle all user input into the
+search widget yourself, using various callback methods and listeners. This document, however,
+focuses on how to integrate the search widget with the system for an assisted search
+implementation. If you want to handle all user input yourself, read the reference documentation for
+<code><a href="/reference/android/widget/SearchView.html">SearchView</a></code> and its nested interfaces. </p></li>
+</ul>
+<p>The Android system controls all events in the search dialog. When the user
+submits a query, the system delivers the query to the activity that you specify to
+handle searches. The dialog can also provide search suggestions while the user types.</p>
+<p class="note"><strong>Note:</strong> If you want, you can handle all user input into the
+search widget yourself, using various callback methods and listeners. This document, however,
+focuses on how to integrate the search widget with the system for an assisted search
+implementation. If you want to handle all user input yourself, read the reference documentation for
+<code><a href="/reference/android/widget/SearchView.html">SearchView</a></code> and its nested interfaces. </p>
+<p>When the user executes a search from the search dialog or a search widget, the system creates an
+<code><a href="/reference/android/content/Intent.html">Intent</a></code> and stores the user query in it. The system then starts the activity
+that you've declared to handle searches (the "searchable activity") and delivers it the intent. To
+set up your application for this kind of assisted search, you need the following:</p>
+<ul>
+  <li>A searchable configuration
+  <p>An XML file that configures some settings for the search dialog or widget. It includes settings
+for features such as voice search, search suggestion, and hint text for the search box.</p></li>
+  <li>A searchable activity
+  <p>The <code><a href="/reference/android/app/Activity.html">Activity</a></code> that receives the search query, searches your
+data, and displays the search results.</p></li>
+  <li>A search interface, provided by either:
+    <ul>
+      <li>The search dialog
+        <p>By default, the search dialog is hidden, but appears at the top of the screen when
+          you call <code><a href="/reference/android/app/Activity.html#onSearchRequested()">onSearchRequested()</a></code> (when the user presses your
+          Search button).</p>
+      </li>
+      <li>Or, a <code><a href="/reference/android/widget/SearchView.html">SearchView</a></code> widget
+        <p>Using the search widget allows you to put the search box anywhere in your activity.
+Instead of putting it in your activity layout, you should usually use
+<code><a href="/reference/android/widget/SearchView.html">SearchView</a></code> as an 
+<a href="/guide/topics/ui/actionbar.html#ActionView">action view in the Action Bar</a>.</p>
+      </li>
+    </ul>
+  </li>
+</ul>
+<p>An XML file that configures some settings for the search dialog or widget. It includes settings
+for features such as voice search, search suggestion, and hint text for the search box.</p>
+<p>The <code><a href="/reference/android/app/Activity.html">Activity</a></code> that receives the search query, searches your
+data, and displays the search results.</p>
+<ul>
+      <li>The search dialog
+        <p>By default, the search dialog is hidden, but appears at the top of the screen when
+          you call <code><a href="/reference/android/app/Activity.html#onSearchRequested()">onSearchRequested()</a></code> (when the user presses your
+          Search button).</p>
+      </li>
+      <li>Or, a <code><a href="/reference/android/widget/SearchView.html">SearchView</a></code> widget
+        <p>Using the search widget allows you to put the search box anywhere in your activity.
+Instead of putting it in your activity layout, you should usually use
+<code><a href="/reference/android/widget/SearchView.html">SearchView</a></code> as an 
+<a href="/guide/topics/ui/actionbar.html#ActionView">action view in the Action Bar</a>.</p>
+      </li>
+    </ul>
+<p>By default, the search dialog is hidden, but appears at the top of the screen when
+          you call <code><a href="/reference/android/app/Activity.html#onSearchRequested()">onSearchRequested()</a></code> (when the user presses your
+          Search button).</p>
+<p>Using the search widget allows you to put the search box anywhere in your activity.
+Instead of putting it in your activity layout, you should usually use
+<code><a href="/reference/android/widget/SearchView.html">SearchView</a></code> as an 
+<a href="/guide/topics/ui/actionbar.html#ActionView">action view in the Action Bar</a>.</p>
+<p>The rest of this document shows you how to create the searchable configuration, searchable
+activity, and implement a search interface with either the search dialog or search widget.</p>
+<h2 id="SearchableConfiguration">Creating a Searchable Configuration</h2>
+<p>The first thing you need is an XML file called the searchable configuration. It configures
+certain UI aspects of the search dialog or widget and defines how features such as suggestions and
+voice search behave. This file is traditionally named <code>searchable.xml</code> and must be saved in
+the <code>res/xml/</code> project directory.</p>
+<p class="note"><strong>Note:</strong> The system uses this file to instantiate a <code><a href="/reference/android/app/SearchableInfo.html">SearchableInfo</a></code> object, but you cannot create this object yourself at
+runtime—you must declare the searchable configuration in XML.</p>
+<p>The searchable configuration file must include the <a href="/guide/topics/search/searchable-config.html#searchable-element"><code>&lt;searchable&gt;</code></a> element as the root node and specify one
+or more attributes. For example:</p>
+<p>WHATSON? b4fa02c1-d2ef-42cf-91a8-0bd823266511</p>
+<pre>
+&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;searchable xmlns:android="http://schemas.android.com/apk/res/android"
+    android:label="@string/app_label"
+    android:hint="@string/search_hint" &gt;
+&lt;/searchable&gt;
+</pre>
+<p>The <code>android:label</code> attribute is the only required attribute. It points to a string
+resource, which should be the application name. This label isn't actually visible to the
+user until you enable search suggestions for Quick Search Box. At that point, this label is visible
+in the list of Searchable items in the system Settings.</p>
+<p>Though it's not required, we recommend that you always include the <code>android:hint</code>
+attribute, which provides a hint string in the search box before users
+enters a query. The hint is important because it provides important clues to users about what
+they can search.</p>
+<p class="note"><strong>Tip:</strong> For consistency among other
+Android applications, you should format the string for <code>android:hint</code> as "Search
+&lt;content-or-product&gt;". For example, "Search songs and artists" or "Search
+YouTube".</p>
+<p>The <a href="/guide/topics/search/searchable-config.html#searchable-element"><code>&lt;searchable&gt;</code></a> element accepts several other attributes. However, you don't need
+most attributes until you add features such as <a href="#SearchSuggestions">search suggestions</a>
+and <a href="#VoiceSearch">voice search</a>. For detailed information about the searchable
+configuration file, see the <a href="/guide/topics/search/searchable-config.html">Searchable Configuration</a> reference
+document.</p>
+<h2 id="SearchableActivity">Creating a Searchable Activity</h2>
+<p>A searchable activity is the <code><a href="/reference/android/app/Activity.html">Activity</a></code> in your application that performs
+searches based on a query string and presents the search results.</p>
+<p>When the user executes a search in the search dialog or widget, the system starts your
+searchable activity and delivers it the search query in an <code><a href="/reference/android/content/Intent.html">Intent</a></code> with the  <code><a href="/reference/android/content/Intent.html#ACTION_SEARCH">ACTION_SEARCH</a></code> action. Your
+searchable activity retrieves the query from the intent's <code><a href="/reference/android/app/SearchManager.html#QUERY">QUERY</a></code> extra, then searches your data and presents the results.</p>
+<p>Because you may include the search dialog or widget in any other activity in your application,
+the system must know which activity is your searchable activity, so it can properly deliver the
+search query. So, you must first declare your searchable activity in the Android manifest file.</p>
+<h3 id="DeclaringSearchableActivity">Declaring a searchable activity</h3>
+<p>If you don't have one already, create an <code><a href="/reference/android/app/Activity.html">Activity</a></code> that will perform
+searches and present results. You don't need to implement the search functionality yet—just
+create an activity that you can declare in the manifest. Inside the manifest's <a href="/guide/topics/manifest/activity-element.html"><code>&lt;activity&gt;</code></a>
+element:</p>
+<ol>
+  <li>Declare the activity to accept the <code><a href="/reference/android/content/Intent.html#ACTION_SEARCH">ACTION_SEARCH</a></code> intent, in an
+<a href="/guide/topics/manifest/intent-filter-element.html"><code>&lt;intent-filter&gt;</code></a>
+element.</li>
+  <li>Specify the searchable configuration to use, in a <a href="/guide/topics/manifest/meta-data-element.html"><code>&lt;meta-data&gt;</code></a>
+element.</li>
+</ol>
+<p>For example:</p>
+<p>WHATSON? 14b4879e-2fc4-4eea-ad7a-5758faf589b6</p>
+<pre>
+&lt;application ... &gt;
+    &lt;activity android:name=".SearchableActivity" &gt;
+        &lt;intent-filter&gt;
+            &lt;action android:name="android.intent.action.SEARCH" /&gt;
+        &lt;/intent-filter&gt;
+        &lt;meta-data android:name="android.app.searchable"
+                   android:resource="@xml/searchable"/&gt;
+    &lt;/activity&gt;
+    ...
+&lt;/application&gt;
+</pre>
+<p>The <code>&lt;meta-data&gt;</code> element must include the <code>android:name</code> attribute with a
+value of <code>"android.app.searchable"</code> and the <code>android:resource</code> attribute with a
+reference to the searchable configuration file (in this example, it
+refers to the <code>res/xml/searchable.xml</code> file).</p>
+<p class="note"><strong>Note:</strong> The <a href="/guide/topics/manifest/intent-filter-element.html"><code>&lt;intent-filter&gt;</code></a> does not need a <a href="/guide/topics/manifest/category-element.html"><code>&lt;category&gt;</code></a> with the
+<code>DEFAULT</code> value (which you usually see in <a href="/guide/topics/manifest/activity-element.html"><code>&lt;activity&gt;</code></a> elements),
+because the system delivers the <code><a href="/reference/android/content/Intent.html#ACTION_SEARCH">ACTION_SEARCH</a></code> intent explicitly to
+your searchable activity, using its component name.</p>
+<h3 id="PerformingSearch">Performing a search</h3>
+<p>Once you have declared your searchable activity in the manifest, performing a search in your
+searchable activity involves three steps:</p>
+<ol>
+  <li><a href="#ReceivingTheQuery">Receiving the query</a></li>
+  <li><a href="#SearchingYourData">Searching your data</a></li>
+  <li><a href="#PresentingTheResults">Presenting the results</a></li>
+</ol>
+<p>Traditionally, your search results should be presented in a <code><a href="/reference/android/widget/ListView.html">ListView</a></code>, so
+you might want your searchable activity to extend <code><a href="/reference/android/app/ListActivity.html">ListActivity</a></code>. It includes
+a default layout with a single <code><a href="/reference/android/widget/ListView.html">ListView</a></code> and provides several
+convenience methods for working with the <code><a href="/reference/android/widget/ListView.html">ListView</a></code>.</p>
+<h4 id="ReceivingTheQuery">Receiving the query</h4>
+<p>When a user executes a search from the search dialog or widget, the system starts your
+searchable activity and sends it a <code><a href="/reference/android/content/Intent.html#ACTION_SEARCH">ACTION_SEARCH</a></code> intent. This intent
+carries the search query in the
+<code><a href="/reference/android/app/SearchManager.html#QUERY">QUERY</a></code> string extra. You must check for
+this intent when the activity starts and extract the string. For example, here's how you can get the
+search query when your searchable activity starts:</p>
+<p>WHATSON? a1deeaf4-8db3-4f44-872c-c83ad5001802</p>
+<pre>
+@Override
+public void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    setContentView(R.layout.search);
+
+    // Get the intent, verify the action and get the query
+    Intent intent = getIntent();
+    if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
+      String query = intent.getStringExtra(SearchManager.QUERY);
+      doMySearch(query);
+    }
+}
+</pre>
+<p>The <code><a href="/reference/android/app/SearchManager.html#QUERY">QUERY</a></code> string is always included with
+the <code><a href="/reference/android/content/Intent.html#ACTION_SEARCH">ACTION_SEARCH</a></code> intent. In this example, the query is
+retrieved and passed to a local <code>doMySearch()</code> method where the actual search operation
+is done.</p>
+<h4 id="SearchingYourData">Searching your data</h4>
+<p>The process of storing and searching your data is unique to your application.
+You can store and search your data in many ways, but this guide does not show you how to store your
+data and search it. Storing and searching your data is something you should carefully consider in
+terms of your needs and your data format. However, here are some tips you might be able to
+apply:</p>
+<ul>
+    <li>If your data is stored in a SQLite database on the device, performing a full-text search
+(using FTS3, rather than a <code>LIKE</code> query) can provide a more robust search across text data and
+can produce results significantly faster. See <a href="http://sqlite.org/fts3.html">sqlite.org</a>
+for information about FTS3 and the <code><a href="/reference/android/database/sqlite/SQLiteDatabase.html">SQLiteDatabase</a></code> class for
+information about SQLite on Android. Also look at the <a href="/resources/samples/SearchableDictionary/index.html">Searchable Dictionary</a> sample
+application to see a complete SQLite implementation that performs searches with FTS3.</li>
+    <li>If your data is stored online, then the perceived search performance might be
+inhibited by the user's data connection. You might want to display a spinning progress wheel until
+your search returns. See <code><a href="/reference/android/net/package-summary.html">android.net</a></code> for a reference of network APIs and <a href="/guide/topics/ui/dialogs.html#ProgressDialog">Creating a Progress Dialog</a>
+for information about how to display a progress wheel.</li>
+  </ul>
+<h2>About Adapters</h2>
+<p>An <code><a href="/reference/android/widget/Adapter.html">Adapter</a></code> binds each item from a set of data into a
+<code><a href="/reference/android/view/View.html">View</a></code> object. When the <code><a href="/reference/android/widget/Adapter.html">Adapter</a></code>
+is applied to a <code><a href="/reference/android/widget/ListView.html">ListView</a></code>, each piece of data is inserted as an individual
+view into the list. <code><a href="/reference/android/widget/Adapter.html">Adapter</a></code> is just an interface, so implementations such as <code><a href="/reference/android/widget/CursorAdapter.html">CursorAdapter</a></code> (for binding data from a <code><a href="/reference/android/database/Cursor.html">Cursor</a></code>) are needed.
+If none of the existing implementations work for your data, then you can implement your own from
+<code><a href="/reference/android/widget/BaseAdapter.html">BaseAdapter</a></code>. Install the SDK Samples package for API Level 4 to see the
+original version of the Searchable Dictionary, which creates a custom adapter to read data from
+a file.</p>
+<p>Regardless of where your data lives and how you search it, we recommend that you return search
+results to your searchable activity with an <code><a href="/reference/android/widget/Adapter.html">Adapter</a></code>. This way, you can easily
+present all the search results in a <code><a href="/reference/android/widget/ListView.html">ListView</a></code>. If your data comes from a
+SQLite database query, you can apply your results to a <code><a href="/reference/android/widget/ListView.html">ListView</a></code>
+using a <code><a href="/reference/android/widget/CursorAdapter.html">CursorAdapter</a></code>. If your data comes in some other type of format, then
+you can create an extension of <code><a href="/reference/android/widget/BaseAdapter.html">BaseAdapter</a></code>.</p>
+<h4 id="PresentingTheResults">Presenting the results</h4>
+<p>As discussed above, the recommended UI for your search results is a <code><a href="/reference/android/widget/ListView.html">ListView</a></code>, so you might want your searchable activity to extend <code><a href="/reference/android/app/ListActivity.html">ListActivity</a></code>. You can then call <code><a href="/reference/android/app/ListActivity.html#setListAdapter(android.widget.ListAdapter)">setListAdapter()</a></code>, passing it an <code><a href="/reference/android/widget/Adapter.html">Adapter</a></code> that is bound to your data. This injects all the
+search results into the activity <code><a href="/reference/android/widget/ListView.html">ListView</a></code>.</p>
+<p>For more help presenting your results in a list, see the <code><a href="/reference/android/app/ListActivity.html">ListActivity</a></code>
+documentation.</p>
+<p>Also see the <a href="/resources/samples/SearchableDictionary/index.html">Searchable Dictionary</a> sample
+for an a complete demonstration of how to search an SQLite database and use an
+<code><a href="/reference/android/widget/Adapter.html">Adapter</a></code> to provide results in a <code><a href="/reference/android/widget/ListView.html">ListView</a></code>.</p>
+<h2 id="SearchDialog">Using the Search Dialog</h2>
+<h2>Should I use the search dialog or the widget?</h2>
+<p>The answer depends mostly on whether you are developing for Android 3.0 (API Level 11 or
+higher), because the <code><a href="/reference/android/widget/SearchView.html">SearchView</a></code> widget was introduced in Android 3.0. So,
+if you are developing your application for a version of Android lower than 3.0, the search widget is
+not an option and you should use the search dialog to implement your search interface.</p>
+<p>If you <em>are</em> developing for Android 3.0 or higher, then the decision depends more on
+your needs. In most cases, we recommend that you use the search widget as an "action view" in the
+Action Bar. However, it might not be an option for you to put the search
+widget in the Action Bar for some reason (perhaps there's not enough space or you don't use the
+Action Bar). So, you might instead want to put the search widget somewhere in your activity layout.
+And if all else fails, you can still use the search dialog if you prefer to keep the search box
+hidden. In fact, you might want to offer both the dialog and the widget in some cases. For more
+information about the widget, skip to <a href="#UsingSearchWidget">Using the Search Widget</a>.</p>
+<p>The search dialog provides a floating search box at the top of the screen, with the application
+icon on the left. The search dialog can provide search suggestions as the user types and, when
+the user executes a search, the system sends the search query to a
+searchable activity that performs the search. However, if you are developing
+your application for devices running Android 3.0, you should consider using the search widget
+instead (see the side box).</p>
+<p>The search dialog is always hidden by default, until the user activates it. Your application
+can activate the search dialog by calling <code><a href="/reference/android/app/Activity.html#onSearchRequested()">onSearchRequested()</a></code>. However, this method doesn't work
+until you enable the search dialog for the activity.</p>
+<p>To enable the search dialog, you must indicate to the system which searchable activity should
+receive search queries from the search dialog, in order to perform searches. For example, in the
+previous section about <a href="#SearchableActivity">Creating a Searchable Activity</a>, a
+searchable activity named <code>SearchableActivity</code> was created. If you want a separate activity,
+named <code>OtherActivity</code>, to show the search dialog and deliver searches to <code>SearchableActivity</code>, you must declare in the manifest that <code>SearchableActivity</code> is the
+searchable activity to use for the search dialog in <code>OtherActivity</code>.</p>
+<p>To declare the searchable activity for an activity's search dialog,
+add a <a href="/guide/topics/manifest/meta-data-element.html"><code>&lt;meta-data&gt;</code></a>
+element inside the respective activity's <a href="/guide/topics/manifest/activity-element.html"><code>&lt;activity&gt;</code></a> element.
+The <a href="/guide/topics/manifest/meta-data-element.html"><code>&lt;meta-data&gt;</code></a>
+element must include the <code>android:value</code> attribute that specifies the searchable activity's
+class name and the <code>android:name</code> attribute with a value of <code>"android.app.default_searchable"</code>.</p>
+<p>For example, here is the declaration for
+both a searchable activity, <code>SearchableActivity</code>, and another activity, <code>OtherActivity</code>, which uses <code>SearchableActivity</code> to perform searches executed from its
+search dialog:</p>
+<p>WHATSON? 39234a8a-fd40-4c3a-975e-6ffeb306996e</p>
+<pre>
+&lt;application ... &gt;
+    &lt;!-- this is the searchable activity; it performs searches --&gt;
+    &lt;activity android:name=".SearchableActivity" &gt;
+        &lt;intent-filter&gt;
+            &lt;action android:name="android.intent.action.SEARCH" /&gt;
+        &lt;/intent-filter&gt;
+        &lt;meta-data android:name="android.app.searchable"
+                   android:resource="@xml/searchable"/&gt;
+    &lt;/activity&gt;
+
+    &lt;!-- this activity enables the search dialog to initiate searches
+         in the SearchableActivity --&gt;
+    &lt;activity android:name=".OtherActivity" ... &gt;
+        &lt;!-- enable the search dialog to send searches to SearchableActivity --&gt;
+        <b>&lt;meta-data android:name="android.app.default_searchable"
+                   android:value=".SearchableActivity" /&gt;</b>
+    &lt;/activity&gt;
+    ...
+&lt;/application&gt;
+</pre>
+<p>Because the <code>OtherActivity</code> now includes a <a href="/guide/topics/manifest/meta-data-element.html"><code>&lt;meta-data&gt;</code></a>
+element to declare which searchable activity to use for searches, the activity has enabled the
+search dialog.
+While the user is in this activity, the <code><a href="/reference/android/app/Activity.html#onSearchRequested()">onSearchRequested()</a></code> method activates the search dialog.
+When the user executes the search, the system starts <code>SearchableActivity</code> and delivers it
+the <code><a href="/reference/android/content/Intent.html#ACTION_SEARCH">ACTION_SEARCH</a></code> intent.</p>
+<p class="note"><strong>Note:</strong> The searchable activity itself provides the search dialog
+by default, so you don't need to add this declaration to <code>SearchableActivity</code>.</p>
+<p>If you want every activity in your application to provide the search dialog, insert the above <a href="/guide/topics/manifest/meta-data-element.html"><code>&lt;meta-data&gt;</code></a>
+element as a child of the <a href="/guide/topics/manifest/application-element.html"><code>&lt;application&gt;</code></a>
+element, instead of each <a href="/guide/topics/manifest/activity-element.html"><code>&lt;activity&gt;</code></a>. This
+way, every activity inherits the value, provides the search dialog, and delivers searches to
+the same searchable activity. (If you have multiple searchable activities, you can override the
+default searchable activity by placing a different <a href="/guide/topics/manifest/meta-data-element.html"><code>&lt;meta-data&gt;</code></a>
+declaration inside individual activities.)</p>
+<p>With the search dialog now enabled for your activities, your application is ready to perform
+searches.</p>
+<h3 id="InvokingTheSearchDialog">Invoking the search dialog</h3>
+<p>Although some devices provide a dedicated Search button, the behavior of the button may vary
+between devices and many devices do not provide a Search button at all. So when using the search
+dialog, you <strong>must provide a search button in your UI</strong> that activates the search
+dialog by calling <code><a href="/reference/android/app/Activity.html#onSearchRequested()">onSearchRequested()</a></code>.</p>
+<p>For instance, you should add a Search button in your <a href="/guide/topics/ui/menus.html#options-menu">Options Menu</a> or UI
+layout that calls <code><a href="/reference/android/app/Activity.html#onSearchRequested()">onSearchRequested()</a></code>. For consistency with
+the Android system and other apps, you should label your button with the Android Search icon that's
+available from the <a href="/design/downloads/index.html#action-bar-icon-pack">Action Bar
+Icon Pack</a>.</p>
+<p class="note"><strong>Note:</strong> If your app uses the <a href="/guide/topics/ui/actionbar.html">action bar</a>, then you should not use
+the search dialog for your search interface. Instead, use the <a href="#UsingSearchWidget">search
+widget</a> as a collapsible view in the action bar.</p>
+<p>You can also enable "type-to-search" functionality, which activates the search dialog when the
+user starts typing on the keyboard—the keystrokes are inserted into the search dialog. You can
+enable type-to-search in your activity by calling
+<code><a href="/reference/android/app/Activity.html#setDefaultKeyMode(int)">setDefaultKeyMode</a></code>(<code><a href="/reference/android/app/Activity.html#DEFAULT_KEYS_SEARCH_LOCAL">DEFAULT_KEYS_SEARCH_LOCAL</a></code>) during your activity's
+<code><a href="/reference/android/app/Activity.html#onCreate(android.os.Bundle)">onCreate()</a></code> method.</p>
+<h3 id="LifeCycle">The impact of the search dialog on your activity lifecycle</h3>
+<p>The search dialog is a <code><a href="/reference/android/app/Dialog.html">Dialog</a></code> that floats at the top of the
+screen. It does not cause any change in the activity stack, so when the search dialog appears, no
+lifecycle methods (such as <code><a href="/reference/android/app/Activity.html#onPause()">onPause()</a></code>) are called. Your activity just
+loses input focus, as input focus is given to the search dialog.
+</p>
+<p>If you want to be notified when the search dialog is activated, override the <code><a href="/reference/android/app/Activity.html#onSearchRequested()">onSearchRequested()</a></code> method. When the system calls this method, it is an
+indication that your activity has lost input focus to the search dialog, so you can do any
+work appropriate for the event (such as pause
+a game). Unless you are <a href="#SearchContextData">passing search context data</a>
+(discussed below), you should end the method by calling the super class implementation. For
+example:</p>
+<p>WHATSON? b506a054-7a26-4f2b-be34-a3b59c6b1b08</p>
+<pre>
+@Override
+public boolean onSearchRequested() {
+    pauseSomeStuff();
+    return super.onSearchRequested();
+}
+</pre>
+<p>If the user cancels search by pressing the <em>Back</em> button, the search dialog closes and the
+activity
+regains input focus. You can register to be notified when the search dialog is
+closed with <code><a href="/reference/android/app/SearchManager.html#setOnDismissListener(android.app.SearchManager.OnDismissListener)">setOnDismissListener()</a></code>
+and/or <code><a href="/reference/android/app/SearchManager.html#setOnCancelListener(android.app.SearchManager.OnCancelListener)">setOnCancelListener()</a></code>. You
+should need to register only the <code><a href="/reference/android/app/SearchManager.OnDismissListener.html">OnDismissListener</a></code>, because it is called every time the search dialog closes. The <code><a href="/reference/android/app/SearchManager.OnCancelListener.html">OnCancelListener</a></code> only pertains to events in which the
+user explicitly exited the search dialog, so it is not called when a search is executed (in which
+case, the search dialog naturally disappears).</p>
+<p>If the current activity is not the searchable activity, then the normal activity lifecycle
+events are triggered once the user executes a search (the current activity receives <code><a href="/reference/android/app/Activity.html#onPause()">onPause()</a></code> and so forth, as
+described in the <a href="/guide/components/activities.html#Lifecycle">Activities</a>
+document). If, however, the current activity is the searchable activity, then one of two
+things happens:</p>
+<ol type="a">
+  <li>By default, the searchable activity receives the <code><a href="/reference/android/content/Intent.html#ACTION_SEARCH">ACTION_SEARCH</a></code> intent with a call to <code><a href="/reference/android/app/Activity.html#onCreate(android.os.Bundle)">onCreate()</a></code> and a new instance of the
+activity is brought to the top of the activity stack. There are now two instances of your
+searchable activity in the activity stack (so pressing the <em>Back</em> button goes back to the
+previous
+instance of the searchable activity, rather than exiting the searchable activity).</li>
+  <li>If you set <code>android:launchMode</code> to <code>"singleTop"</code>, then the
+searchable activity receives the <code><a href="/reference/android/content/Intent.html#ACTION_SEARCH">ACTION_SEARCH</a></code> intent with a call
+to <code><a href="/reference/android/app/Activity.html#onNewIntent(android.content.Intent)">onNewIntent(Intent)</a></code>, passing the new <code><a href="/reference/android/content/Intent.html#ACTION_SEARCH">ACTION_SEARCH</a></code> intent here. For example, here's how you might handle
+this case, in which the searchable activity's launch mode is <code>"singleTop"</code>:
+<pre>
+@Override
+public void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    setContentView(R.layout.search);
+    handleIntent(getIntent());
+}
+
+@Override
+protected void onNewIntent(Intent intent) {
+    setIntent(intent);
+    handleIntent(intent);
+}
+
+private void handleIntent(Intent intent) {
+    if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
+      String query = intent.getStringExtra(SearchManager.QUERY);
+      doMySearch(query);
+    }
+}
+</pre>
+
+<p>Compared to the example code in the section about <a href="#PerformingSearch">Performing a
+Search</a>, all the code to handle the
+search intent is now in the <code>handleIntent()</code> method, so that both <code><a href="/reference/android/app/Activity.html#onCreate(android.os.Bundle)">onCreate()</a></code> and <code><a href="/reference/android/app/Activity.html#onNewIntent(android.content.Intent)">onNewIntent()</a></code> can execute it.</p>
+
+<p>When the system calls <code><a href="/reference/android/app/Activity.html#onNewIntent(android.content.Intent)">onNewIntent(Intent)</a></code>, the activity has
+not been restarted, so the <code><a href="/reference/android/app/Activity.html#getIntent()">getIntent()</a></code> method
+returns the same intent that was received with <code><a href="/reference/android/app/Activity.html#onCreate(android.os.Bundle)">onCreate()</a></code>. This is why you should call <code><a href="/reference/android/app/Activity.html#setIntent(android.content.Intent)">setIntent(Intent)</a></code> inside <code><a href="/reference/android/app/Activity.html#onNewIntent(android.content.Intent)">onNewIntent(Intent)</a></code> (so that the intent saved by the activity is updated in
+case you call <code><a href="/reference/android/app/Activity.html#getIntent()">getIntent()</a></code> in the future).</p>
+
+</li>
+</ol>
+<p>WHATSON? 24f29af7-85c8-4d16-93cd-5e28920e7ae4</p>
+<pre>
+@Override
+public void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    setContentView(R.layout.search);
+    handleIntent(getIntent());
+}
+
+@Override
+protected void onNewIntent(Intent intent) {
+    setIntent(intent);
+    handleIntent(intent);
+}
+
+private void handleIntent(Intent intent) {
+    if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
+      String query = intent.getStringExtra(SearchManager.QUERY);
+      doMySearch(query);
+    }
+}
+</pre>
+<p>Compared to the example code in the section about <a href="#PerformingSearch">Performing a
+Search</a>, all the code to handle the
+search intent is now in the <code>handleIntent()</code> method, so that both <code><a href="/reference/android/app/Activity.html#onCreate(android.os.Bundle)">onCreate()</a></code> and <code><a href="/reference/android/app/Activity.html#onNewIntent(android.content.Intent)">onNewIntent()</a></code> can execute it.</p>
+<p>When the system calls <code><a href="/reference/android/app/Activity.html#onNewIntent(android.content.Intent)">onNewIntent(Intent)</a></code>, the activity has
+not been restarted, so the <code><a href="/reference/android/app/Activity.html#getIntent()">getIntent()</a></code> method
+returns the same intent that was received with <code><a href="/reference/android/app/Activity.html#onCreate(android.os.Bundle)">onCreate()</a></code>. This is why you should call <code><a href="/reference/android/app/Activity.html#setIntent(android.content.Intent)">setIntent(Intent)</a></code> inside <code><a href="/reference/android/app/Activity.html#onNewIntent(android.content.Intent)">onNewIntent(Intent)</a></code> (so that the intent saved by the activity is updated in
+case you call <code><a href="/reference/android/app/Activity.html#getIntent()">getIntent()</a></code> in the future).</p>
+<p>The second scenario using <code>"singleTop"</code> launch mode is usually ideal, because chances
+are good that once a search is done, the user will perform additional searches and it's a bad
+experience if your application creates multiple instances of the searchable activity. So, we
+recommend that you set your searchable activity to <code>"singleTop"</code> launch mode in the
+application manifest. For example:</p>
+<p>WHATSON? 47bf3402-282e-4bc2-9024-f605bb560dc9</p>
+<pre>
+&lt;activity android:name=".SearchableActivity"
+          <b>android:launchMode="singleTop"</b> &gt;
+    &lt;intent-filter&gt;
+        &lt;action android:name="android.intent.action.SEARCH" /&gt;
+    &lt;/intent-filter&gt;
+    &lt;meta-data android:name="android.app.searchable"
+                      android:resource="@xml/searchable"/&gt;
+  &lt;/activity&gt;
+</pre>
+<h3 id="SearchContextData">Passing search context data</h3>
+<p>In some cases, you can make necessary refinements to the search query inside the searchable
+activity, for every search made. However, if you want to refine your search criteria based on the
+activity from which the user is performing a search, you can provide additional data in the intent
+that the system sends to your searchable activity. You can pass the additional data in the <code><a href="/reference/android/app/SearchManager.html#APP_DATA">APP_DATA</a></code> <code><a href="/reference/android/os/Bundle.html">Bundle</a></code>, which is included in the <code><a href="/reference/android/content/Intent.html#ACTION_SEARCH">ACTION_SEARCH</a></code> intent.</p>
+<p>To pass this kind of data to your searchable activity, override the <code><a href="/reference/android/app/Activity.html#onSearchRequested()">onSearchRequested()</a></code> method for the activity from which the user can perform a
+search, create a <code><a href="/reference/android/os/Bundle.html">Bundle</a></code> with the additional data, and call <code><a href="/reference/android/app/Activity.html#startSearch(java.lang.String,%20boolean,%20android.os.Bundle,%20boolean)">startSearch()</a></code> to activate the search dialog.
+For example:</p>
+<p>WHATSON? bd54bee1-2f51-4b93-aa46-b6c1416f0323</p>
+<pre>
+@Override
+public boolean onSearchRequested() {
+     Bundle appData = new Bundle();
+     appData.putBoolean(SearchableActivity.JARGON, true);
+     startSearch(null, false, appData, false);
+     return true;
+ }
+</pre>
+<p>Returning "true" indicates that you have successfully handled this callback event and
+called <code><a href="/reference/android/app/Activity.html#startSearch(java.lang.String,%20boolean,%20android.os.Bundle,%20boolean)">startSearch()</a></code> to activate
+the search dialog. Once the user submits a query, it's delivered to your
+searchable activity along with the data you've added. You can extract the extra data from the <code><a href="/reference/android/app/SearchManager.html#APP_DATA">APP_DATA</a></code> <code><a href="/reference/android/os/Bundle.html">Bundle</a></code> to refine the search. For example:</p>
+<p>WHATSON? 9ec4e2f7-a9e2-43c3-bbc0-72a7cb056425</p>
+<pre>
+Bundle appData = getIntent().getBundleExtra(SearchManager.APP_DATA);
+if (appData != null) {
+    boolean jargon = appData.getBoolean(SearchableActivity.JARGON);
+}
+</pre>
+<p class="caution"><strong>Caution:</strong> Never call the <code><a href="/reference/android/app/Activity.html#startSearch(java.lang.String,%20boolean,%20android.os.Bundle,%20boolean)">startSearch()</a></code> method from outside
+the <code><a href="/reference/android/app/Activity.html#onSearchRequested()">onSearchRequested()</a></code> callback method. To activate the search dialog
+in your activity, always call <code><a href="/reference/android/app/Activity.html#onSearchRequested()">onSearchRequested()</a></code>. Otherwise, <code><a href="/reference/android/app/Activity.html#onSearchRequested()">onSearchRequested()</a></code> is not called and customizations (such as the addition of
+<code>appData</code> in the above example) are missed.</p>
+<h2 id="UsingSearchWidget">Using the Search Widget</h2>
+<p class="img-caption"><strong>Figure 2.</strong> The <code><a href="/reference/android/widget/SearchView.html">SearchView</a></code> widget as an "action view" in the Action Bar.</p>
+<p>The <code><a href="/reference/android/widget/SearchView.html">SearchView</a></code> widget is available in Android 3.0 and higher. If
+you're developing your application for Android 3.0 and have decided to use the search widget, we
+recommend that you insert the search widget as an <a href="/guide/topics/ui/actionbar.html#ActionView">action view in the Action Bar</a>,
+instead of using the search dialog (and instead of placing the search widget in your activity
+layout). For example, figure 2 shows the search widget in the Action Bar.</p>
+<p>The search widget provides the same functionality as the search dialog. It starts the appropriate
+activity when the user executes a search, and it can provide search suggestions and perform voice
+search.</p>
+<p class="note"><strong>Note:</strong> When you use the search widget as an action view, you
+still might need to support using the search dialog, for cases in which the search widget does
+not fit in the Action Bar. See the following section about <a href="#UsingBoth">Using both
+the widget and the dialog</a>.</p>
+<h3 id="ConfiguringWidget">Configuring the search widget</h3>
+<p>After you've created a  <a href="#SearchableConfiguration">searchable configuration</a> and a <a href="#SearchableActivity">searchable activity</a>, as discussed above, you need to enable assisted
+search for each <code><a href="/reference/android/widget/SearchView.html">SearchView</a></code>. You can do so by calling <code><a href="/reference/android/widget/SearchView.html#setSearchableInfo(android.app.SearchableInfo)">setSearchableInfo()</a></code> and passing it the <code><a href="/reference/android/app/SearchableInfo.html">SearchableInfo</a></code> object that represents your searchable configuration.</p>
+<p>You can get a reference to the <code><a href="/reference/android/app/SearchableInfo.html">SearchableInfo</a></code> by calling <code><a href="/reference/android/app/SearchManager.html#getSearchableInfo(android.content.ComponentName)">getSearchableInfo()</a></code> on <code><a href="/reference/android/app/SearchManager.html">SearchManager</a></code>.</p>
+<p>For example, if you're using a <code><a href="/reference/android/widget/SearchView.html">SearchView</a></code> as an action view in the <a href="/guide/topics/ui/actionbar.html">Action Bar</a>, you should enable the widget
+during the <code><a href="/reference/android/app/Activity.html#onCreateOptionsMenu(android.view.Menu)">onCreateOptionsMenu()</a></code> callback:</p>
+<p>WHATSON? e9333dbd-44d7-4d47-a6ab-0d6e50ae857c</p>
+<pre>
+@Override
+public boolean onCreateOptionsMenu(Menu menu) {
+    // Inflate the options menu from XML
+    MenuInflater inflater = getMenuInflater();
+    inflater.inflate(R.menu.options_menu, menu);
+
+    // Get the SearchView and set the searchable configuration
+    SearchManager searchManager = (SearchManager) <code><a href="/reference/android/app/Activity.html#getSystemService(java.lang.String)">getSystemService</a></code>(Context.SEARCH_SERVICE);
+    SearchView searchView = (SearchView) menu.findItem(R.id.menu_search).getActionView();
+    // Assumes current activity is the searchable activity
+    searchView.setSearchableInfo(searchManager.getSearchableInfo(<code><a href="/reference/android/app/Activity.html#getComponentName()">getComponentName()</a></code>));
+    searchView.setIconifiedByDefault(false); // Do not iconify the widget; expand it by default
+
+    return true;
+}
+</pre>
+<p>That's all you need. The search widget is now configured and the system will deliver search
+queries to your searchable activity. You can also enable <a href="#SearchSuggestions">search
+suggestions</a> for the search widget.</p>
+<p class="note"><strong>Note:</strong> If you want to handle all user input yourself, you can do so
+with some callback methods and event listeners. For more information, see the reference
+documentation for <code><a href="/reference/android/widget/SearchView.html">SearchView</a></code> and its nested interfaces for the
+appropriate event listeners.</p>
+<p>For more information about action views in the Action Bar, read the <a href="/guide/topics/ui/actionbar.html#ActionView">Action Bar</a> developer guide (which
+includes sample code for adding a search widget as an action view).</p>
+<h3 id="WidgetFeatures">Other search widget features</h3>
+<p>The <code><a href="/reference/android/widget/SearchView.html">SearchView</a></code> widget allows for a few additional features you might
+want:</p>
+<p>There are several other APIs in the <code><a href="/reference/android/widget/SearchView.html">SearchView</a></code> class that allow you to
+customize the search widget. However, most of them are used only when you handle all
+user input yourself, instead of using the Android system to deliver search queries and display
+search suggestions.</p>
+<h3 id="UsingBoth">Using both the widget and the dialog</h3>
+<p>If you insert the search widget in the Action Bar as an <a href="/guide/topics/ui/actionbar.html#ActionView">action view</a>, and you enable it to
+appear in the Action Bar "if there is room" (by setting <code>android:showAsAction="ifRoom"</code>), then there is a chance that the search widget will not appear
+as an action view, but the menu item will appear in the overflow menu. For example, when your
+application runs on a smaller screen, there might not be enough room in the Action Bar to display
+the search widget along with other action items or navigation elements, so the menu item will
+instead appear in the overflow menu. When placed in the overflow menu, the item works like an
+ordinary menu item and does not display the action view (the search widget).</p>
+<p>To handle this situation, the menu item to which you've attached the search widget should
+activate the search dialog when the user selects it from the overflow menu. In order for it to do
+so, you must implement <code><a href="/reference/android/app/Activity.html#onOptionsItemSelected(android.view.MenuItem)">onOptionsItemSelected()</a></code> to
+handle the "Search" menu item and open the search dialog by calling <code><a href="/reference/android/app/Activity.html#onSearchRequested()">onSearchRequested()</a></code>.</p>
+<p>For more information about how items in the Action Bar work and how to handle this situation, see
+the <a href="/guide/topics/ui/actionbar.html">Action
+Bar</a> developer guide.</p>
+<p>Also see the <a href="/resources/samples/SearchableDictionary/src/com/example/android/searchabledict/SearchableDictionary.html">Searchable Dictionary</a> for an example implementation using
+both the dialog and the widget.</p>
+<h2 id="VoiceSearch">Adding Voice Search</h2>
+<p>You can add voice search functionality to your search dialog or widget by adding the <code>android:voiceSearchMode</code> attribute to your searchable configuration. This adds a voice search
+button that launches a voice prompt. When the user
+has finished speaking, the transcribed search query is sent to your searchable
+activity.</p>
+<p>For example:</p>
+<p>WHATSON? 7afb0bc9-25a6-4415-8c72-16cda451c5b4</p>
+<pre>
+&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;searchable xmlns:android="http://schemas.android.com/apk/res/android"
+    android:label="@string/search_label"
+    android:hint="@string/search_hint"
+    <b>android:voiceSearchMode="showVoiceSearchButton|launchRecognizer"</b> &gt;
+&lt;/searchable&gt;
+</pre>
+<p>The value <code>showVoiceSearchButton</code> is required to enable voice
+search, while the second value, <code>launchRecognizer</code>, specifies that the voice search button
+should launch a recognizer that returns the transcribed text to the searchable activity.</p>
+<p>You can provide additional attributes to specify the voice search behavior, such
+as the language to be expected and the maximum number of results to return. See the <a href="searchable-config.html">Searchable Configuration</a> reference for more information about the
+available attributes.</p>
+<p class="note"><strong>Note:</strong> Carefully consider whether voice search is appropriate for
+your application. All searches performed with the voice search button are immediately sent to
+your searchable activity without a chance for the user to review the transcribed query. Sufficiently
+test the voice recognition and ensure that it understands the types of queries that
+the user might submit inside your application.</p>
+<h2 id="SearchSuggestions">Adding Search Suggestions</h2>
+<p class="img-caption"><strong>Figure 3.</strong> Screenshot of a search dialog with custom
+search suggestions.</p>
+<p>Both the search dialog and the search widget can provide search suggestions as the user
+types, with assistance from the Android system. The system manages the list of suggestions and
+handles the event when the user selects a suggestion.</p>
+<p>You can provide two kinds of search suggestions:</p>
+<p>See <a href="adding-recent-query-suggestions.html">Adding Recent Query
+Suggestions</a>.</p>
+<p>See <a href="adding-custom-suggestions.html">Adding Custom
+Suggestions</a></p>
+<h1 itemprop="name">Creating a Search Interface</h1>
+<h2>In this document</h2>
+<ol>
+  <li><a href="#TheBasics">The Basics</a></li>
+  <li><a href="#SearchableConfiguration">Creating a Searchable Configuration</a></li>
+  <li><a href="#SearchableActivity">Creating a Searchable Activity</a>
+    <ol>
+      <li><a href="#DeclaringSearchableActivity">Declaring a searchable activity</a></li>
+      <li><a href="#PerformingSearch">Performing a search</a></li>
+    </ol>
+  </li>
+  <li><a href="#SearchDialog">Using the Search Dialog</a>
+    <ol>
+      <li><a href="#InvokingTheSearchDialog">Invoking the search dialog</a></li>
+      <li><a href="#LifeCycle">The impact of the search dialog on your activity lifecycle</a></li>
+      <li><a href="#SearchContextData">Passing search context data</a></li>
+    </ol>
+  </li>
+  <li><a href="#UsingSearchWidget">Using the Search Widget</a>
+    <ol>
+      <li><a href="#ConfiguringWidget">Configuring the search widget</a></li>
+      <li><a href="#WidgetFeatures">Other search widget features</a></li>
+      <li><a href="#UsingBoth">Using both the widget and the dialog</a></li>
+    </ol>
+  </li>
+  <li><a href="#VoiceSearch">Adding Voice Search</a></li>
+  <li><a href="#SearchSuggestions">Adding Search Suggestions</a></li>
+</ol>
+<ol>
+      <li><a href="#DeclaringSearchableActivity">Declaring a searchable activity</a></li>
+      <li><a href="#PerformingSearch">Performing a search</a></li>
+    </ol>
+<ol>
+      <li><a href="#InvokingTheSearchDialog">Invoking the search dialog</a></li>
+      <li><a href="#LifeCycle">The impact of the search dialog on your activity lifecycle</a></li>
+      <li><a href="#SearchContextData">Passing search context data</a></li>
+    </ol>
+<ol>
+      <li><a href="#ConfiguringWidget">Configuring the search widget</a></li>
+      <li><a href="#WidgetFeatures">Other search widget features</a></li>
+      <li><a href="#UsingBoth">Using both the widget and the dialog</a></li>
+    </ol>
+<h2>Key classes</h2>
+<ol>
+<li><code><a href="/reference/android/app/SearchManager.html">SearchManager</a></code></li>
+<li><code><a href="/reference/android/widget/SearchView.html">SearchView</a></code></li>
+</ol>
+<h2>Related samples</h2>
+<ol>
+<li><a href="/resources/samples/SearchableDictionary/index.html">Searchable
+Dictionary</a></li>
+<li><a href="/resources/samples/ApiDemos/src/com/example/android/apis/view/SearchViewActionBar.html">SearchView
+    in the Action Bar</a></li>
+<li><a href="/resources/samples/ApiDemos/src/com/example/android/apis/view/SearchViewFilterMode.html">SearchView
+    filter mode</a></li>
+</ol>
+<h2>Downloads</h2>
+<ol>
+<li><a href="/design/downloads/index.html#action-bar-icon-pack">Action Bar
+Icon Pack</a></li>
+</ol>
+<p>When you're ready to add search functionality to your application, Android helps you implement
+the user interface with either a search dialog that appears at the top of the activity window or a
+search widget that you can insert in your layout. Both the search dialog and the widget can deliver
+the user's search query to a specific activity in your application. This way, the user can initiate
+a search from any activity where the search dialog or widget is available, and the system starts the
+appropriate activity to perform the search and present results.</p>
+<p>Other features available for the search dialog and widget include:</p>
+<ul>
+  <li>Voice search</li>
+  <li>Search suggestions based on recent queries</li>
+  <li>Search suggestions that match actual results in your application data</li>
+</ul>
+<p>This guide shows you how to set up your application to provide a search interface
+that's assisted by the Android system to deliver search queries, using either the
+search dialog or the search widget.</p>
+<h2 id="TheBasics">The Basics</h2>
+<p class="img-caption"><strong>Figure 1.</strong> Screenshot of an application's search dialog.</p>
+<p>Before you begin, you should decide whether you'll implement your search interface using the
+search dialog or the search widget. Both provide the same search features, but in slightly different
+ways:</p>
+<ul>
+  <li>The <strong>search dialog</strong> is a UI component that's controlled by the Android system.
+When activated by the user, the search dialog appears at the top of the activity, as shown in figure
+1.
+    <p>The Android system controls all events in the search dialog. When the user
+submits a query, the system delivers the query to the activity that you specify to
+handle searches. The dialog can also provide search suggestions while the user types.</p></li>
+
+  <li>The <strong>search widget</strong> is an instance of <code><a href="/reference/android/widget/SearchView.html">SearchView</a></code> that
+you can place anywhere in your layout. By default, the search widget behaves like a standard <code><a href="/reference/android/widget/EditText.html">EditText</a></code> widget and doesn't do anything, but you can configure it so that the
+Android system handles all input events, delivers queries to the appropriate activity, and provides
+search suggestions (just like the search dialog). However, the search widget is available only in
+Android 3.0 (API Level 11) and higher.
+
+<p class="note"><strong>Note:</strong> If you want, you can handle all user input into the
+search widget yourself, using various callback methods and listeners. This document, however,
+focuses on how to integrate the search widget with the system for an assisted search
+implementation. If you want to handle all user input yourself, read the reference documentation for
+<code><a href="/reference/android/widget/SearchView.html">SearchView</a></code> and its nested interfaces. </p></li>
+</ul>
+<p>The Android system controls all events in the search dialog. When the user
+submits a query, the system delivers the query to the activity that you specify to
+handle searches. The dialog can also provide search suggestions while the user types.</p>
+<p class="note"><strong>Note:</strong> If you want, you can handle all user input into the
+search widget yourself, using various callback methods and listeners. This document, however,
+focuses on how to integrate the search widget with the system for an assisted search
+implementation. If you want to handle all user input yourself, read the reference documentation for
+<code><a href="/reference/android/widget/SearchView.html">SearchView</a></code> and its nested interfaces. </p>
+<p>When the user executes a search from the search dialog or a search widget, the system creates an
+<code><a href="/reference/android/content/Intent.html">Intent</a></code> and stores the user query in it. The system then starts the activity
+that you've declared to handle searches (the "searchable activity") and delivers it the intent. To
+set up your application for this kind of assisted search, you need the following:</p>
+<ul>
+  <li>A searchable configuration
+  <p>An XML file that configures some settings for the search dialog or widget. It includes settings
+for features such as voice search, search suggestion, and hint text for the search box.</p></li>
+  <li>A searchable activity
+  <p>The <code><a href="/reference/android/app/Activity.html">Activity</a></code> that receives the search query, searches your
+data, and displays the search results.</p></li>
+  <li>A search interface, provided by either:
+    <ul>
+      <li>The search dialog
+        <p>By default, the search dialog is hidden, but appears at the top of the screen when
+          you call <code><a href="/reference/android/app/Activity.html#onSearchRequested()">onSearchRequested()</a></code> (when the user presses your
+          Search button).</p>
+      </li>
+      <li>Or, a <code><a href="/reference/android/widget/SearchView.html">SearchView</a></code> widget
+        <p>Using the search widget allows you to put the search box anywhere in your activity.
+Instead of putting it in your activity layout, you should usually use
+<code><a href="/reference/android/widget/SearchView.html">SearchView</a></code> as an 
+<a href="/guide/topics/ui/actionbar.html#ActionView">action view in the Action Bar</a>.</p>
+      </li>
+    </ul>
+  </li>
+</ul>
+<p>An XML file that configures some settings for the search dialog or widget. It includes settings
+for features such as voice search, search suggestion, and hint text for the search box.</p>
+<p>The <code><a href="/reference/android/app/Activity.html">Activity</a></code> that receives the search query, searches your
+data, and displays the search results.</p>
+<ul>
+      <li>The search dialog
+        <p>By default, the search dialog is hidden, but appears at the top of the screen when
+          you call <code><a href="/reference/android/app/Activity.html#onSearchRequested()">onSearchRequested()</a></code> (when the user presses your
+          Search button).</p>
+      </li>
+      <li>Or, a <code><a href="/reference/android/widget/SearchView.html">SearchView</a></code> widget
+        <p>Using the search widget allows you to put the search box anywhere in your activity.
+Instead of putting it in your activity layout, you should usually use
+<code><a href="/reference/android/widget/SearchView.html">SearchView</a></code> as an 
+<a href="/guide/topics/ui/actionbar.html#ActionView">action view in the Action Bar</a>.</p>
+      </li>
+    </ul>
+<p>By default, the search dialog is hidden, but appears at the top of the screen when
+          you call <code><a href="/reference/android/app/Activity.html#onSearchRequested()">onSearchRequested()</a></code> (when the user presses your
+          Search button).</p>
+<p>Using the search widget allows you to put the search box anywhere in your activity.
+Instead of putting it in your activity layout, you should usually use
+<code><a href="/reference/android/widget/SearchView.html">SearchView</a></code> as an 
+<a href="/guide/topics/ui/actionbar.html#ActionView">action view in the Action Bar</a>.</p>
+<p>The rest of this document shows you how to create the searchable configuration, searchable
+activity, and implement a search interface with either the search dialog or search widget.</p>
+<h2 id="SearchableConfiguration">Creating a Searchable Configuration</h2>
+<p>The first thing you need is an XML file called the searchable configuration. It configures
+certain UI aspects of the search dialog or widget and defines how features such as suggestions and
+voice search behave. This file is traditionally named <code>searchable.xml</code> and must be saved in
+the <code>res/xml/</code> project directory.</p>
+<p class="note"><strong>Note:</strong> The system uses this file to instantiate a <code><a href="/reference/android/app/SearchableInfo.html">SearchableInfo</a></code> object, but you cannot create this object yourself at
+runtime—you must declare the searchable configuration in XML.</p>
+<p>The searchable configuration file must include the <a href="/guide/topics/search/searchable-config.html#searchable-element"><code>&lt;searchable&gt;</code></a> element as the root node and specify one
+or more attributes. For example:</p>
+<p>WHATSON? 821d9d8f-dfd7-491a-beca-ea93eb7b4337</p>
+<pre>
+&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;searchable xmlns:android="http://schemas.android.com/apk/res/android"
+    android:label="@string/app_label"
+    android:hint="@string/search_hint" &gt;
+&lt;/searchable&gt;
+</pre>
+<p>The <code>android:label</code> attribute is the only required attribute. It points to a string
+resource, which should be the application name. This label isn't actually visible to the
+user until you enable search suggestions for Quick Search Box. At that point, this label is visible
+in the list of Searchable items in the system Settings.</p>
+<p>Though it's not required, we recommend that you always include the <code>android:hint</code>
+attribute, which provides a hint string in the search box before users
+enters a query. The hint is important because it provides important clues to users about what
+they can search.</p>
+<p class="note"><strong>Tip:</strong> For consistency among other
+Android applications, you should format the string for <code>android:hint</code> as "Search
+&lt;content-or-product&gt;". For example, "Search songs and artists" or "Search
+YouTube".</p>
+<p>The <a href="/guide/topics/search/searchable-config.html#searchable-element"><code>&lt;searchable&gt;</code></a> element accepts several other attributes. However, you don't need
+most attributes until you add features such as <a href="#SearchSuggestions">search suggestions</a>
+and <a href="#VoiceSearch">voice search</a>. For detailed information about the searchable
+configuration file, see the <a href="/guide/topics/search/searchable-config.html">Searchable Configuration</a> reference
+document.</p>
+<h2 id="SearchableActivity">Creating a Searchable Activity</h2>
+<p>A searchable activity is the <code><a href="/reference/android/app/Activity.html">Activity</a></code> in your application that performs
+searches based on a query string and presents the search results.</p>
+<p>When the user executes a search in the search dialog or widget, the system starts your
+searchable activity and delivers it the search query in an <code><a href="/reference/android/content/Intent.html">Intent</a></code> with the  <code><a href="/reference/android/content/Intent.html#ACTION_SEARCH">ACTION_SEARCH</a></code> action. Your
+searchable activity retrieves the query from the intent's <code><a href="/reference/android/app/SearchManager.html#QUERY">QUERY</a></code> extra, then searches your data and presents the results.</p>
+<p>Because you may include the search dialog or widget in any other activity in your application,
+the system must know which activity is your searchable activity, so it can properly deliver the
+search query. So, you must first declare your searchable activity in the Android manifest file.</p>
+<h3 id="DeclaringSearchableActivity">Declaring a searchable activity</h3>
+<p>If you don't have one already, create an <code><a href="/reference/android/app/Activity.html">Activity</a></code> that will perform
+searches and present results. You don't need to implement the search functionality yet—just
+create an activity that you can declare in the manifest. Inside the manifest's <a href="/guide/topics/manifest/activity-element.html"><code>&lt;activity&gt;</code></a>
+element:</p>
+<ol>
+  <li>Declare the activity to accept the <code><a href="/reference/android/content/Intent.html#ACTION_SEARCH">ACTION_SEARCH</a></code> intent, in an
+<a href="/guide/topics/manifest/intent-filter-element.html"><code>&lt;intent-filter&gt;</code></a>
+element.</li>
+  <li>Specify the searchable configuration to use, in a <a href="/guide/topics/manifest/meta-data-element.html"><code>&lt;meta-data&gt;</code></a>
+element.</li>
+</ol>
+<p>For example:</p>
+<p>WHATSON? 53e6611a-29fb-438c-9002-dca9eb2bfc30</p>
+<pre>
+&lt;application ... &gt;
+    &lt;activity android:name=".SearchableActivity" &gt;
+        &lt;intent-filter&gt;
+            &lt;action android:name="android.intent.action.SEARCH" /&gt;
+        &lt;/intent-filter&gt;
+        &lt;meta-data android:name="android.app.searchable"
+                   android:resource="@xml/searchable"/&gt;
+    &lt;/activity&gt;
+    ...
+&lt;/application&gt;
+</pre>
+<p>The <code>&lt;meta-data&gt;</code> element must include the <code>android:name</code> attribute with a
+value of <code>"android.app.searchable"</code> and the <code>android:resource</code> attribute with a
+reference to the searchable configuration file (in this example, it
+refers to the <code>res/xml/searchable.xml</code> file).</p>
+<p class="note"><strong>Note:</strong> The <a href="/guide/topics/manifest/intent-filter-element.html"><code>&lt;intent-filter&gt;</code></a> does not need a <a href="/guide/topics/manifest/category-element.html"><code>&lt;category&gt;</code></a> with the
+<code>DEFAULT</code> value (which you usually see in <a href="/guide/topics/manifest/activity-element.html"><code>&lt;activity&gt;</code></a> elements),
+because the system delivers the <code><a href="/reference/android/content/Intent.html#ACTION_SEARCH">ACTION_SEARCH</a></code> intent explicitly to
+your searchable activity, using its component name.</p>
+<h3 id="PerformingSearch">Performing a search</h3>
+<p>Once you have declared your searchable activity in the manifest, performing a search in your
+searchable activity involves three steps:</p>
+<ol>
+  <li><a href="#ReceivingTheQuery">Receiving the query</a></li>
+  <li><a href="#SearchingYourData">Searching your data</a></li>
+  <li><a href="#PresentingTheResults">Presenting the results</a></li>
+</ol>
+<p>Traditionally, your search results should be presented in a <code><a href="/reference/android/widget/ListView.html">ListView</a></code>, so
+you might want your searchable activity to extend <code><a href="/reference/android/app/ListActivity.html">ListActivity</a></code>. It includes
+a default layout with a single <code><a href="/reference/android/widget/ListView.html">ListView</a></code> and provides several
+convenience methods for working with the <code><a href="/reference/android/widget/ListView.html">ListView</a></code>.</p>
+<h4 id="ReceivingTheQuery">Receiving the query</h4>
+<p>When a user executes a search from the search dialog or widget, the system starts your
+searchable activity and sends it a <code><a href="/reference/android/content/Intent.html#ACTION_SEARCH">ACTION_SEARCH</a></code> intent. This intent
+carries the search query in the
+<code><a href="/reference/android/app/SearchManager.html#QUERY">QUERY</a></code> string extra. You must check for
+this intent when the activity starts and extract the string. For example, here's how you can get the
+search query when your searchable activity starts:</p>
+<p>WHATSON? f5a1cf53-cea5-48c1-9c0b-857d0129b183</p>
+<pre>
+@Override
+public void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    setContentView(R.layout.search);
+
+    // Get the intent, verify the action and get the query
+    Intent intent = getIntent();
+    if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
+      String query = intent.getStringExtra(SearchManager.QUERY);
+      doMySearch(query);
+    }
+}
+</pre>
+<p>The <code><a href="/reference/android/app/SearchManager.html#QUERY">QUERY</a></code> string is always included with
+the <code><a href="/reference/android/content/Intent.html#ACTION_SEARCH">ACTION_SEARCH</a></code> intent. In this example, the query is
+retrieved and passed to a local <code>doMySearch()</code> method where the actual search operation
+is done.</p>
+<h4 id="SearchingYourData">Searching your data</h4>
+<p>The process of storing and searching your data is unique to your application.
+You can store and search your data in many ways, but this guide does not show you how to store your
+data and search it. Storing and searching your data is something you should carefully consider in
+terms of your needs and your data format. However, here are some tips you might be able to
+apply:</p>
+<ul>
+    <li>If your data is stored in a SQLite database on the device, performing a full-text search
+(using FTS3, rather than a <code>LIKE</code> query) can provide a more robust search across text data and
+can produce results significantly faster. See <a href="http://sqlite.org/fts3.html">sqlite.org</a>
+for information about FTS3 and the <code><a href="/reference/android/database/sqlite/SQLiteDatabase.html">SQLiteDatabase</a></code> class for
+information about SQLite on Android. Also look at the <a href="/resources/samples/SearchableDictionary/index.html">Searchable Dictionary</a> sample
+application to see a complete SQLite implementation that performs searches with FTS3.</li>
+    <li>If your data is stored online, then the perceived search performance might be
+inhibited by the user's data connection. You might want to display a spinning progress wheel until
+your search returns. See <code><a href="/reference/android/net/package-summary.html">android.net</a></code> for a reference of network APIs and <a href="/guide/topics/ui/dialogs.html#ProgressDialog">Creating a Progress Dialog</a>
+for information about how to display a progress wheel.</li>
+  </ul>
+<h2>About Adapters</h2>
+<p>An <code><a href="/reference/android/widget/Adapter.html">Adapter</a></code> binds each item from a set of data into a
+<code><a href="/reference/android/view/View.html">View</a></code> object. When the <code><a href="/reference/android/widget/Adapter.html">Adapter</a></code>
+is applied to a <code><a href="/reference/android/widget/ListView.html">ListView</a></code>, each piece of data is inserted as an individual
+view into the list. <code><a href="/reference/android/widget/Adapter.html">Adapter</a></code> is just an interface, so implementations such as <code><a href="/reference/android/widget/CursorAdapter.html">CursorAdapter</a></code> (for binding data from a <code><a href="/reference/android/database/Cursor.html">Cursor</a></code>) are needed.
+If none of the existing implementations work for your data, then you can implement your own from
+<code><a href="/reference/android/widget/BaseAdapter.html">BaseAdapter</a></code>. Install the SDK Samples package for API Level 4 to see the
+original version of the Searchable Dictionary, which creates a custom adapter to read data from
+a file.</p>
+<p>Regardless of where your data lives and how you search it, we recommend that you return search
+results to your searchable activity with an <code><a href="/reference/android/widget/Adapter.html">Adapter</a></code>. This way, you can easily
+present all the search results in a <code><a href="/reference/android/widget/ListView.html">ListView</a></code>. If your data comes from a
+SQLite database query, you can apply your results to a <code><a href="/reference/android/widget/ListView.html">ListView</a></code>
+using a <code><a href="/reference/android/widget/CursorAdapter.html">CursorAdapter</a></code>. If your data comes in some other type of format, then
+you can create an extension of <code><a href="/reference/android/widget/BaseAdapter.html">BaseAdapter</a></code>.</p>
+<h4 id="PresentingTheResults">Presenting the results</h4>
+<p>As discussed above, the recommended UI for your search results is a <code><a href="/reference/android/widget/ListView.html">ListView</a></code>, so you might want your searchable activity to extend <code><a href="/reference/android/app/ListActivity.html">ListActivity</a></code>. You can then call <code><a href="/reference/android/app/ListActivity.html#setListAdapter(android.widget.ListAdapter)">setListAdapter()</a></code>, passing it an <code><a href="/reference/android/widget/Adapter.html">Adapter</a></code> that is bound to your data. This injects all the
+search results into the activity <code><a href="/reference/android/widget/ListView.html">ListView</a></code>.</p>
+<p>For more help presenting your results in a list, see the <code><a href="/reference/android/app/ListActivity.html">ListActivity</a></code>
+documentation.</p>
+<p>Also see the <a href="/resources/samples/SearchableDictionary/index.html">Searchable Dictionary</a> sample
+for an a complete demonstration of how to search an SQLite database and use an
+<code><a href="/reference/android/widget/Adapter.html">Adapter</a></code> to provide results in a <code><a href="/reference/android/widget/ListView.html">ListView</a></code>.</p>
+<h2 id="SearchDialog">Using the Search Dialog</h2>
+<h2>Should I use the search dialog or the widget?</h2>
+<p>The answer depends mostly on whether you are developing for Android 3.0 (API Level 11 or
+higher), because the <code><a href="/reference/android/widget/SearchView.html">SearchView</a></code> widget was introduced in Android 3.0. So,
+if you are developing your application for a version of Android lower than 3.0, the search widget is
+not an option and you should use the search dialog to implement your search interface.</p>
+<p>If you <em>are</em> developing for Android 3.0 or higher, then the decision depends more on
+your needs. In most cases, we recommend that you use the search widget as an "action view" in the
+Action Bar. However, it might not be an option for you to put the search
+widget in the Action Bar for some reason (perhaps there's not enough space or you don't use the
+Action Bar). So, you might instead want to put the search widget somewhere in your activity layout.
+And if all else fails, you can still use the search dialog if you prefer to keep the search box
+hidden. In fact, you might want to offer both the dialog and the widget in some cases. For more
+information about the widget, skip to <a href="#UsingSearchWidget">Using the Search Widget</a>.</p>
+<p>The search dialog provides a floating search box at the top of the screen, with the application
+icon on the left. The search dialog can provide search suggestions as the user types and, when
+the user executes a search, the system sends the search query to a
+searchable activity that performs the search. However, if you are developing
+your application for devices running Android 3.0, you should consider using the search widget
+instead (see the side box).</p>
+<p>The search dialog is always hidden by default, until the user activates it. Your application
+can activate the search dialog by calling <code><a href="/reference/android/app/Activity.html#onSearchRequested()">onSearchRequested()</a></code>. However, this method doesn't work
+until you enable the search dialog for the activity.</p>
+<p>To enable the search dialog, you must indicate to the system which searchable activity should
+receive search queries from the search dialog, in order to perform searches. For example, in the
+previous section about <a href="#SearchableActivity">Creating a Searchable Activity</a>, a
+searchable activity named <code>SearchableActivity</code> was created. If you want a separate activity,
+named <code>OtherActivity</code>, to show the search dialog and deliver searches to <code>SearchableActivity</code>, you must declare in the manifest that <code>SearchableActivity</code> is the
+searchable activity to use for the search dialog in <code>OtherActivity</code>.</p>
+<p>To declare the searchable activity for an activity's search dialog,
+add a <a href="/guide/topics/manifest/meta-data-element.html"><code>&lt;meta-data&gt;</code></a>
+element inside the respective activity's <a href="/guide/topics/manifest/activity-element.html"><code>&lt;activity&gt;</code></a> element.
+The <a href="/guide/topics/manifest/meta-data-element.html"><code>&lt;meta-data&gt;</code></a>
+element must include the <code>android:value</code> attribute that specifies the searchable activity's
+class name and the <code>android:name</code> attribute with a value of <code>"android.app.default_searchable"</code>.</p>
+<p>For example, here is the declaration for
+both a searchable activity, <code>SearchableActivity</code>, and another activity, <code>OtherActivity</code>, which uses <code>SearchableActivity</code> to perform searches executed from its
+search dialog:</p>
+<p>WHATSON? e86f09f6-0290-46f1-a6d9-077ab58eef05</p>
+<pre>
+&lt;application ... &gt;
+    &lt;!-- this is the searchable activity; it performs searches --&gt;
+    &lt;activity android:name=".SearchableActivity" &gt;
+        &lt;intent-filter&gt;
+            &lt;action android:name="android.intent.action.SEARCH" /&gt;
+        &lt;/intent-filter&gt;
+        &lt;meta-data android:name="android.app.searchable"
+                   android:resource="@xml/searchable"/&gt;
+    &lt;/activity&gt;
+
+    &lt;!-- this activity enables the search dialog to initiate searches
+         in the SearchableActivity --&gt;
+    &lt;activity android:name=".OtherActivity" ... &gt;
+        &lt;!-- enable the search dialog to send searches to SearchableActivity --&gt;
+        <b>&lt;meta-data android:name="android.app.default_searchable"
+                   android:value=".SearchableActivity" /&gt;</b>
+    &lt;/activity&gt;
+    ...
+&lt;/application&gt;
+</pre>
+<p>Because the <code>OtherActivity</code> now includes a <a href="/guide/topics/manifest/meta-data-element.html"><code>&lt;meta-data&gt;</code></a>
+element to declare which searchable activity to use for searches, the activity has enabled the
+search dialog.
+While the user is in this activity, the <code><a href="/reference/android/app/Activity.html#onSearchRequested()">onSearchRequested()</a></code> method activates the search dialog.
+When the user executes the search, the system starts <code>SearchableActivity</code> and delivers it
+the <code><a href="/reference/android/content/Intent.html#ACTION_SEARCH">ACTION_SEARCH</a></code> intent.</p>
+<p class="note"><strong>Note:</strong> The searchable activity itself provides the search dialog
+by default, so you don't need to add this declaration to <code>SearchableActivity</code>.</p>
+<p>If you want every activity in your application to provide the search dialog, insert the above <a href="/guide/topics/manifest/meta-data-element.html"><code>&lt;meta-data&gt;</code></a>
+element as a child of the <a href="/guide/topics/manifest/application-element.html"><code>&lt;application&gt;</code></a>
+element, instead of each <a href="/guide/topics/manifest/activity-element.html"><code>&lt;activity&gt;</code></a>. This
+way, every activity inherits the value, provides the search dialog, and delivers searches to
+the same searchable activity. (If you have multiple searchable activities, you can override the
+default searchable activity by placing a different <a href="/guide/topics/manifest/meta-data-element.html"><code>&lt;meta-data&gt;</code></a>
+declaration inside individual activities.)</p>
+<p>With the search dialog now enabled for your activities, your application is ready to perform
+searches.</p>
+<h3 id="InvokingTheSearchDialog">Invoking the search dialog</h3>
+<p>Although some devices provide a dedicated Search button, the behavior of the button may vary
+between devices and many devices do not provide a Search button at all. So when using the search
+dialog, you <strong>must provide a search button in your UI</strong> that activates the search
+dialog by calling <code><a href="/reference/android/app/Activity.html#onSearchRequested()">onSearchRequested()</a></code>.</p>
+<p>For instance, you should add a Search button in your <a href="/guide/topics/ui/menus.html#options-menu">Options Menu</a> or UI
+layout that calls <code><a href="/reference/android/app/Activity.html#onSearchRequested()">onSearchRequested()</a></code>. For consistency with
+the Android system and other apps, you should label your button with the Android Search icon that's
+available from the <a href="/design/downloads/index.html#action-bar-icon-pack">Action Bar
+Icon Pack</a>.</p>
+<p class="note"><strong>Note:</strong> If your app uses the <a href="/guide/topics/ui/actionbar.html">action bar</a>, then you should not use
+the search dialog for your search interface. Instead, use the <a href="#UsingSearchWidget">search
+widget</a> as a collapsible view in the action bar.</p>
+<p>You can also enable "type-to-search" functionality, which activates the search dialog when the
+user starts typing on the keyboard—the keystrokes are inserted into the search dialog. You can
+enable type-to-search in your activity by calling
+<code><a href="/reference/android/app/Activity.html#setDefaultKeyMode(int)">setDefaultKeyMode</a></code>(<code><a href="/reference/android/app/Activity.html#DEFAULT_KEYS_SEARCH_LOCAL">DEFAULT_KEYS_SEARCH_LOCAL</a></code>) during your activity's
+<code><a href="/reference/android/app/Activity.html#onCreate(android.os.Bundle)">onCreate()</a></code> method.</p>
+<h3 id="LifeCycle">The impact of the search dialog on your activity lifecycle</h3>
+<p>The search dialog is a <code><a href="/reference/android/app/Dialog.html">Dialog</a></code> that floats at the top of the
+screen. It does not cause any change in the activity stack, so when the search dialog appears, no
+lifecycle methods (such as <code><a href="/reference/android/app/Activity.html#onPause()">onPause()</a></code>) are called. Your activity just
+loses input focus, as input focus is given to the search dialog.
+</p>
+<p>If you want to be notified when the search dialog is activated, override the <code><a href="/reference/android/app/Activity.html#onSearchRequested()">onSearchRequested()</a></code> method. When the system calls this method, it is an
+indication that your activity has lost input focus to the search dialog, so you can do any
+work appropriate for the event (such as pause
+a game). Unless you are <a href="#SearchContextData">passing search context data</a>
+(discussed below), you should end the method by calling the super class implementation. For
+example:</p>
+<p>WHATSON? e842108d-7910-4b96-8563-ac7ce55acc1e</p>
+<pre>
+@Override
+public boolean onSearchRequested() {
+    pauseSomeStuff();
+    return super.onSearchRequested();
+}
+</pre>
+<p>If the user cancels search by pressing the <em>Back</em> button, the search dialog closes and the
+activity
+regains input focus. You can register to be notified when the search dialog is
+closed with <code><a href="/reference/android/app/SearchManager.html#setOnDismissListener(android.app.SearchManager.OnDismissListener)">setOnDismissListener()</a></code>
+and/or <code><a href="/reference/android/app/SearchManager.html#setOnCancelListener(android.app.SearchManager.OnCancelListener)">setOnCancelListener()</a></code>. You
+should need to register only the <code><a href="/reference/android/app/SearchManager.OnDismissListener.html">OnDismissListener</a></code>, because it is called every time the search dialog closes. The <code><a href="/reference/android/app/SearchManager.OnCancelListener.html">OnCancelListener</a></code> only pertains to events in which the
+user explicitly exited the search dialog, so it is not called when a search is executed (in which
+case, the search dialog naturally disappears).</p>
+<p>If the current activity is not the searchable activity, then the normal activity lifecycle
+events are triggered once the user executes a search (the current activity receives <code><a href="/reference/android/app/Activity.html#onPause()">onPause()</a></code> and so forth, as
+described in the <a href="/guide/components/activities.html#Lifecycle">Activities</a>
+document). If, however, the current activity is the searchable activity, then one of two
+things happens:</p>
+<ol type="a">
+  <li>By default, the searchable activity receives the <code><a href="/reference/android/content/Intent.html#ACTION_SEARCH">ACTION_SEARCH</a></code> intent with a call to <code><a href="/reference/android/app/Activity.html#onCreate(android.os.Bundle)">onCreate()</a></code> and a new instance of the
+activity is brought to the top of the activity stack. There are now two instances of your
+searchable activity in the activity stack (so pressing the <em>Back</em> button goes back to the
+previous
+instance of the searchable activity, rather than exiting the searchable activity).</li>
+  <li>If you set <code>android:launchMode</code> to <code>"singleTop"</code>, then the
+searchable activity receives the <code><a href="/reference/android/content/Intent.html#ACTION_SEARCH">ACTION_SEARCH</a></code> intent with a call
+to <code><a href="/reference/android/app/Activity.html#onNewIntent(android.content.Intent)">onNewIntent(Intent)</a></code>, passing the new <code><a href="/reference/android/content/Intent.html#ACTION_SEARCH">ACTION_SEARCH</a></code> intent here. For example, here's how you might handle
+this case, in which the searchable activity's launch mode is <code>"singleTop"</code>:
+<pre>
+@Override
+public void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    setContentView(R.layout.search);
+    handleIntent(getIntent());
+}
+
+@Override
+protected void onNewIntent(Intent intent) {
+    setIntent(intent);
+    handleIntent(intent);
+}
+
+private void handleIntent(Intent intent) {
+    if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
+      String query = intent.getStringExtra(SearchManager.QUERY);
+      doMySearch(query);
+    }
+}
+</pre>
+
+<p>Compared to the example code in the section about <a href="#PerformingSearch">Performing a
+Search</a>, all the code to handle the
+search intent is now in the <code>handleIntent()</code> method, so that both <code><a href="/reference/android/app/Activity.html#onCreate(android.os.Bundle)">onCreate()</a></code> and <code><a href="/reference/android/app/Activity.html#onNewIntent(android.content.Intent)">onNewIntent()</a></code> can execute it.</p>
+
+<p>When the system calls <code><a href="/reference/android/app/Activity.html#onNewIntent(android.content.Intent)">onNewIntent(Intent)</a></code>, the activity has
+not been restarted, so the <code><a href="/reference/android/app/Activity.html#getIntent()">getIntent()</a></code> method
+returns the same intent that was received with <code><a href="/reference/android/app/Activity.html#onCreate(android.os.Bundle)">onCreate()</a></code>. This is why you should call <code><a href="/reference/android/app/Activity.html#setIntent(android.content.Intent)">setIntent(Intent)</a></code> inside <code><a href="/reference/android/app/Activity.html#onNewIntent(android.content.Intent)">onNewIntent(Intent)</a></code> (so that the intent saved by the activity is updated in
+case you call <code><a href="/reference/android/app/Activity.html#getIntent()">getIntent()</a></code> in the future).</p>
+
+</li>
+</ol>
+<p>WHATSON? 4075ce45-d837-4930-a60a-18e079e9a951</p>
+<pre>
+@Override
+public void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    setContentView(R.layout.search);
+    handleIntent(getIntent());
+}
+
+@Override
+protected void onNewIntent(Intent intent) {
+    setIntent(intent);
+    handleIntent(intent);
+}
+
+private void handleIntent(Intent intent) {
+    if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
+      String query = intent.getStringExtra(SearchManager.QUERY);
+      doMySearch(query);
+    }
+}
+</pre>
+<p>Compared to the example code in the section about <a href="#PerformingSearch">Performing a
+Search</a>, all the code to handle the
+search intent is now in the <code>handleIntent()</code> method, so that both <code><a href="/reference/android/app/Activity.html#onCreate(android.os.Bundle)">onCreate()</a></code> and <code><a href="/reference/android/app/Activity.html#onNewIntent(android.content.Intent)">onNewIntent()</a></code> can execute it.</p>
+<p>When the system calls <code><a href="/reference/android/app/Activity.html#onNewIntent(android.content.Intent)">onNewIntent(Intent)</a></code>, the activity has
+not been restarted, so the <code><a href="/reference/android/app/Activity.html#getIntent()">getIntent()</a></code> method
+returns the same intent that was received with <code><a href="/reference/android/app/Activity.html#onCreate(android.os.Bundle)">onCreate()</a></code>. This is why you should call <code><a href="/reference/android/app/Activity.html#setIntent(android.content.Intent)">setIntent(Intent)</a></code> inside <code><a href="/reference/android/app/Activity.html#onNewIntent(android.content.Intent)">onNewIntent(Intent)</a></code> (so that the intent saved by the activity is updated in
+case you call <code><a href="/reference/android/app/Activity.html#getIntent()">getIntent()</a></code> in the future).</p>
+<p>The second scenario using <code>"singleTop"</code> launch mode is usually ideal, because chances
+are good that once a search is done, the user will perform additional searches and it's a bad
+experience if your application creates multiple instances of the searchable activity. So, we
+recommend that you set your searchable activity to <code>"singleTop"</code> launch mode in the
+application manifest. For example:</p>
+<p>WHATSON? ff560f9e-2963-4cc3-ab02-89c382a6a21a</p>
+<pre>
+&lt;activity android:name=".SearchableActivity"
+          <b>android:launchMode="singleTop"</b> &gt;
+    &lt;intent-filter&gt;
+        &lt;action android:name="android.intent.action.SEARCH" /&gt;
+    &lt;/intent-filter&gt;
+    &lt;meta-data android:name="android.app.searchable"
+                      android:resource="@xml/searchable"/&gt;
+  &lt;/activity&gt;
+</pre>
+<h3 id="SearchContextData">Passing search context data</h3>
+<p>In some cases, you can make necessary refinements to the search query inside the searchable
+activity, for every search made. However, if you want to refine your search criteria based on the
+activity from which the user is performing a search, you can provide additional data in the intent
+that the system sends to your searchable activity. You can pass the additional data in the <code><a href="/reference/android/app/SearchManager.html#APP_DATA">APP_DATA</a></code> <code><a href="/reference/android/os/Bundle.html">Bundle</a></code>, which is included in the <code><a href="/reference/android/content/Intent.html#ACTION_SEARCH">ACTION_SEARCH</a></code> intent.</p>
+<p>To pass this kind of data to your searchable activity, override the <code><a href="/reference/android/app/Activity.html#onSearchRequested()">onSearchRequested()</a></code> method for the activity from which the user can perform a
+search, create a <code><a href="/reference/android/os/Bundle.html">Bundle</a></code> with the additional data, and call <code><a href="/reference/android/app/Activity.html#startSearch(java.lang.String,%20boolean,%20android.os.Bundle,%20boolean)">startSearch()</a></code> to activate the search dialog.
+For example:</p>
+<p>WHATSON? 2e45e9fa-6fb8-4c41-9075-61db8ce32b74</p>
+<pre>
+@Override
+public boolean onSearchRequested() {
+     Bundle appData = new Bundle();
+     appData.putBoolean(SearchableActivity.JARGON, true);
+     startSearch(null, false, appData, false);
+     return true;
+ }
+</pre>
+<p>Returning "true" indicates that you have successfully handled this callback event and
+called <code><a href="/reference/android/app/Activity.html#startSearch(java.lang.String,%20boolean,%20android.os.Bundle,%20boolean)">startSearch()</a></code> to activate
+the search dialog. Once the user submits a query, it's delivered to your
+searchable activity along with the data you've added. You can extract the extra data from the <code><a href="/reference/android/app/SearchManager.html#APP_DATA">APP_DATA</a></code> <code><a href="/reference/android/os/Bundle.html">Bundle</a></code> to refine the search. For example:</p>
+<p>WHATSON? 015dd73e-9060-4041-9986-116b4afb3f4d</p>
+<pre>
+Bundle appData = getIntent().getBundleExtra(SearchManager.APP_DATA);
+if (appData != null) {
+    boolean jargon = appData.getBoolean(SearchableActivity.JARGON);
+}
+</pre>
+<p class="caution"><strong>Caution:</strong> Never call the <code><a href="/reference/android/app/Activity.html#startSearch(java.lang.String,%20boolean,%20android.os.Bundle,%20boolean)">startSearch()</a></code> method from outside
+the <code><a href="/reference/android/app/Activity.html#onSearchRequested()">onSearchRequested()</a></code> callback method. To activate the search dialog
+in your activity, always call <code><a href="/reference/android/app/Activity.html#onSearchRequested()">onSearchRequested()</a></code>. Otherwise, <code><a href="/reference/android/app/Activity.html#onSearchRequested()">onSearchRequested()</a></code> is not called and customizations (such as the addition of
+<code>appData</code> in the above example) are missed.</p>
+<h2 id="UsingSearchWidget">Using the Search Widget</h2>
+<p class="img-caption"><strong>Figure 2.</strong> The <code><a href="/reference/android/widget/SearchView.html">SearchView</a></code> widget as an "action view" in the Action Bar.</p>
+<p>The <code><a href="/reference/android/widget/SearchView.html">SearchView</a></code> widget is available in Android 3.0 and higher. If
+you're developing your application for Android 3.0 and have decided to use the search widget, we
+recommend that you insert the search widget as an <a href="/guide/topics/ui/actionbar.html#ActionView">action view in the Action Bar</a>,
+instead of using the search dialog (and instead of placing the search widget in your activity
+layout). For example, figure 2 shows the search widget in the Action Bar.</p>
+<p>The search widget provides the same functionality as the search dialog. It starts the appropriate
+activity when the user executes a search, and it can provide search suggestions and perform voice
+search.</p>
+<p class="note"><strong>Note:</strong> When you use the search widget as an action view, you
+still might need to support using the search dialog, for cases in which the search widget does
+not fit in the Action Bar. See the following section about <a href="#UsingBoth">Using both
+the widget and the dialog</a>.</p>
+<h3 id="ConfiguringWidget">Configuring the search widget</h3>
+<p>After you've created a  <a href="#SearchableConfiguration">searchable configuration</a> and a <a href="#SearchableActivity">searchable activity</a>, as discussed above, you need to enable assisted
+search for each <code><a href="/reference/android/widget/SearchView.html">SearchView</a></code>. You can do so by calling <code><a href="/reference/android/widget/SearchView.html#setSearchableInfo(android.app.SearchableInfo)">setSearchableInfo()</a></code> and passing it the <code><a href="/reference/android/app/SearchableInfo.html">SearchableInfo</a></code> object that represents your searchable configuration.</p>
+<p>You can get a reference to the <code><a href="/reference/android/app/SearchableInfo.html">SearchableInfo</a></code> by calling <code><a href="/reference/android/app/SearchManager.html#getSearchableInfo(android.content.ComponentName)">getSearchableInfo()</a></code> on <code><a href="/reference/android/app/SearchManager.html">SearchManager</a></code>.</p>
+<p>For example, if you're using a <code><a href="/reference/android/widget/SearchView.html">SearchView</a></code> as an action view in the <a href="/guide/topics/ui/actionbar.html">Action Bar</a>, you should enable the widget
+during the <code><a href="/reference/android/app/Activity.html#onCreateOptionsMenu(android.view.Menu)">onCreateOptionsMenu()</a></code> callback:</p>
+<p>WHATSON? 01791513-280e-4a07-b443-539cb94364df</p>
+<pre>
+@Override
+public boolean onCreateOptionsMenu(Menu menu) {
+    // Inflate the options menu from XML
+    MenuInflater inflater = getMenuInflater();
+    inflater.inflate(R.menu.options_menu, menu);
+
+    // Get the SearchView and set the searchable configuration
+    SearchManager searchManager = (SearchManager) <code><a href="/reference/android/app/Activity.html#getSystemService(java.lang.String)">getSystemService</a></code>(Context.SEARCH_SERVICE);
+    SearchView searchView = (SearchView) menu.findItem(R.id.menu_search).getActionView();
+    // Assumes current activity is the searchable activity
+    searchView.setSearchableInfo(searchManager.getSearchableInfo(<code><a href="/reference/android/app/Activity.html#getComponentName()">getComponentName()</a></code>));
+    searchView.setIconifiedByDefault(false); // Do not iconify the widget; expand it by default
+
+    return true;
+}
+</pre>
+<p>That's all you need. The search widget is now configured and the system will deliver search
+queries to your searchable activity. You can also enable <a href="#SearchSuggestions">search
+suggestions</a> for the search widget.</p>
+<p class="note"><strong>Note:</strong> If you want to handle all user input yourself, you can do so
+with some callback methods and event listeners. For more information, see the reference
+documentation for <code><a href="/reference/android/widget/SearchView.html">SearchView</a></code> and its nested interfaces for the
+appropriate event listeners.</p>
+<p>For more information about action views in the Action Bar, read the <a href="/guide/topics/ui/actionbar.html#ActionView">Action Bar</a> developer guide (which
+includes sample code for adding a search widget as an action view).</p>
+<h3 id="WidgetFeatures">Other search widget features</h3>
+<p>The <code><a href="/reference/android/widget/SearchView.html">SearchView</a></code> widget allows for a few additional features you might
+want:</p>
+<p>There are several other APIs in the <code><a href="/reference/android/widget/SearchView.html">SearchView</a></code> class that allow you to
+customize the search widget. However, most of them are used only when you handle all
+user input yourself, instead of using the Android system to deliver search queries and display
+search suggestions.</p>
+<h3 id="UsingBoth">Using both the widget and the dialog</h3>
+<p>If you insert the search widget in the Action Bar as an <a href="/guide/topics/ui/actionbar.html#ActionView">action view</a>, and you enable it to
+appear in the Action Bar "if there is room" (by setting <code>android:showAsAction="ifRoom"</code>), then there is a chance that the search widget will not appear
+as an action view, but the menu item will appear in the overflow menu. For example, when your
+application runs on a smaller screen, there might not be enough room in the Action Bar to display
+the search widget along with other action items or navigation elements, so the menu item will
+instead appear in the overflow menu. When placed in the overflow menu, the item works like an
+ordinary menu item and does not display the action view (the search widget).</p>
+<p>To handle this situation, the menu item to which you've attached the search widget should
+activate the search dialog when the user selects it from the overflow menu. In order for it to do
+so, you must implement <code><a href="/reference/android/app/Activity.html#onOptionsItemSelected(android.view.MenuItem)">onOptionsItemSelected()</a></code> to
+handle the "Search" menu item and open the search dialog by calling <code><a href="/reference/android/app/Activity.html#onSearchRequested()">onSearchRequested()</a></code>.</p>
+<p>For more information about how items in the Action Bar work and how to handle this situation, see
+the <a href="/guide/topics/ui/actionbar.html">Action
+Bar</a> developer guide.</p>
+<p>Also see the <a href="/resources/samples/SearchableDictionary/src/com/example/android/searchabledict/SearchableDictionary.html">Searchable Dictionary</a> for an example implementation using
+both the dialog and the widget.</p>
+<h2 id="VoiceSearch">Adding Voice Search</h2>
+<p>You can add voice search functionality to your search dialog or widget by adding the <code>android:voiceSearchMode</code> attribute to your searchable configuration. This adds a voice search
+button that launches a voice prompt. When the user
+has finished speaking, the transcribed search query is sent to your searchable
+activity.</p>
+<p>For example:</p>
+<p>WHATSON? 2dc4e0fe-4504-4bbe-9b6e-58f32e17ef70</p>
+<pre>
+&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;searchable xmlns:android="http://schemas.android.com/apk/res/android"
+    android:label="@string/search_label"
+    android:hint="@string/search_hint"
+    <b>android:voiceSearchMode="showVoiceSearchButton|launchRecognizer"</b> &gt;
+&lt;/searchable&gt;
+</pre>
+<p>The value <code>showVoiceSearchButton</code> is required to enable voice
+search, while the second value, <code>launchRecognizer</code>, specifies that the voice search button
+should launch a recognizer that returns the transcribed text to the searchable activity.</p>
+<p>You can provide additional attributes to specify the voice search behavior, such
+as the language to be expected and the maximum number of results to return. See the <a href="searchable-config.html">Searchable Configuration</a> reference for more information about the
+available attributes.</p>
+<p class="note"><strong>Note:</strong> Carefully consider whether voice search is appropriate for
+your application. All searches performed with the voice search button are immediately sent to
+your searchable activity without a chance for the user to review the transcribed query. Sufficiently
+test the voice recognition and ensure that it understands the types of queries that
+the user might submit inside your application.</p>
+<h2 id="SearchSuggestions">Adding Search Suggestions</h2>
+<p class="img-caption"><strong>Figure 3.</strong> Screenshot of a search dialog with custom
+search suggestions.</p>
+<p>Both the search dialog and the search widget can provide search suggestions as the user
+types, with assistance from the Android system. The system manages the list of suggestions and
+handles the event when the user selects a suggestion.</p>
+<p>You can provide two kinds of search suggestions:</p>
+<p>See <a href="adding-recent-query-suggestions.html">Adding Recent Query
+Suggestions</a>.</p>
+<p>See <a href="adding-custom-suggestions.html">Adding Custom
+Suggestions</a></p>

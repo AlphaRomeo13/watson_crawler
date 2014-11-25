@@ -1,0 +1,74 @@
+<h1>Legacy Date-Time Code</h1>
+<p>
+Prior to the Java SE 8 release, the Java date and time mechanism was provided by the
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/util/Date.html"><code>java.util.Date</code></a>,
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/util/Calendar.html"><code>java.util.Calendar</code></a>, and
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/util/TimeZone.html"><code>java.util.TimeZone</code></a> classes, as well as their subclasses, such as
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/util/GregorianCalendar.html"><tt>java.util.GregorianCalendar</tt></a>. These classes had several drawbacks, including:</p>
+<ul>
+<li>The <tt>Calendar</tt> class was not type safe.</li>
+<li>Because the classes were mutable, they could not be used in multithreaded applications.</li>
+<li>Bugs in application code were common due to the unusual numbering of months and the lack of type safety.</li>
+</ul>
+<h2>Interoperability with Legacy Code</h2>
+<p>
+Perhaps you have legacy code that uses the <tt>java.util</tt> date and time classes and you would like to take advantage of the <tt>java.time</tt> functionality with minimal changes to your code.</p>
+<p>
+Added to the JDK 8 release are several methods that allow conversion between <tt>java.util</tt> and <tt>java.time</tt> objects:</p>
+<ul>
+<li>
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/util/Calendar.html#toInstant--"><tt>Calendar.toInstant()</tt></a> converts the <tt>Calendar</tt> object to an <tt>Instant</tt>.</li>
+<li>
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/util/GregorianCalendar.html#toZonedDateTime--"><tt>GregorianCalendar.toZonedDateTime()</tt></a> converts a <tt>GregorianCalendar</tt> instance to a <tt>ZonedDateTime</tt>.</li>
+<li>
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/util/GregorianCalendar.html#from-java.time.ZonedDateTime-"><tt>GregorianCalendar.from(ZonedDateTime)</tt></a> creates a <tt>GregorianCalendar</tt> object using the default locale from a <tt>ZonedDateTime</tt> instance.</li>
+<li>
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/util/Date.html#from-java.time.Instant-"><tt>Date.from(Instant)</tt></a> creates a <tt>Date</tt> object from an <tt>Instant</tt>.</li>
+<li>
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/util/Date.html#toInstant--"><tt>Date.toInstant()</tt></a> converts a <tt>Date</tt> object to an <tt>Instant</tt>.</li>
+<li>
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/util/TimeZone.html#toZoneId--"><tt>TimeZone.toZoneId()</tt></a> converts a <tt>TimeZone</tt> object to a <tt>ZoneId</tt>.</li>
+</ul>
+<p>
+The following example converts a <tt>Calendar</tt> instance to a <tt>ZonedDateTime</tt> instance. Note that a time zone must be supplied to convert from an <tt>Instant</tt> to a <tt>ZonedDateTime</tt>:</p>
+<p>WHATSON? c04e5ac0-3b27-4240-85bc-5be7813ccc88</p>
+<pre>
+Calendar now = Calendar.getInstance();
+ZonedDateTime zdt = ZonedDateTime.ofInstant(now.toInstant(), ZoneId.systemDefault()));
+</pre>
+<p>
+The following example shows conversion between a <tt>Date</tt> and an <tt>Instant</tt>:</p>
+<p>WHATSON? 5bc4c362-ee0c-4d11-9903-11ea3519e840</p>
+<pre>
+Instant inst = date.toInstant();
+
+Date newDate = Date.from(inst);
+</pre>
+<p>
+The following example converts from a <tt>GregorianCalendar</tt> to a <tt>ZonedDateTime</tt>, and then from a <tt>ZonedDateTime</tt> to a <tt>GregorianCalendar</tt>. Other temporal-based classes are created using the <tt>ZonedDateTime</tt> instance:</p>
+<p>WHATSON? 9520dde0-3073-42c0-beef-7893482ecab4</p>
+<pre>
+GregorianCalendar cal = ...;
+
+TimeZone tz = cal.getTimeZone();
+int tzoffset = cal.get(Calendar.ZONE_OFFSET);
+
+ZonedDateTime zdt = cal.toZonedDateTime();
+
+GregorianCalendar newCal = GregorianCalendar.from(zdt);
+
+LocalDateTime ldt = zdt.toLocalDateTime();
+LocalDate date = zdt.toLocalDate();
+LocalTime time = zdt.toLocalTime();
+</pre>
+<h2>Mapping java.util Date and Time Functionality to java.time</h2>
+<p>
+Because the Java implementation of date and time has been completely redesigned in the Java SE 8 release, you cannot swap one method for another method. If you want to use the rich functionality offered by the <tt>java.time</tt> package,  your easiest solution is to use the <tt>toInstant</tt> or <tt>toZonedDateTime</tt> methods listed in the previous section. However, if you do not want to use that approach or it is not sufficient for your needs, then you must rewrite your date-time code.</p>
+<p>
+The table introduced on the
+<a class="TutorialLink" target="_top" href="overview.html">Overview</a> page is a good place to begin evaluating which <tt>java.time</tt> classes meet your needs.</p>
+<p>
+There is no one-to-one mapping correspondence between the two APIs, but the following table gives you a general idea of which functionality in the <tt>java.util</tt> date and time classes maps to the <tt>java.time</tt> APIs.</p>
+<h2>Date and Time Formatting</h2>
+<p>
+Although the <tt>java.time.format.DateTimeFormatter</tt> provides a powerful mechanism for formatting date and time values, you can also use the <tt>java.time</tt> temporal-based classes directly with <tt>java.util.Formatter</tt> and <tt>String.format</tt>, using the same pattern-based formatting that you use with the <tt>java.util</tt> date and time classes.</p>

@@ -1,0 +1,143 @@
+<h1>A GroupLayout Example</h1>
+<p>If you are interested in using JavaFX to create your GUI, see
+<a class="OutsideLink" target="_blank" href="http://docs.oracle.com/javase/8/javafx/layout-tutorial/index.html">Working With Layouts in JavaFX</a>.</p>
+<p>As an example of GUI creation with <code>GroupLayout</code>, let us create a layout for this "Find" dialog box:</p>
+<h2>Horizontal layout</h2>
+<p>Examining the horizontal dimension <i>from left to right</i>, we can see there are 3 groups in a sequence. The first one is actually not a group, just a component -- the label. The second one is a group containing the text field and the check boxes (we will decompose it later). And the third is a group of the two buttons. As illustrated here:</p>
+<p>Let us sketch out the sequential group in code. Note that <code>GroupLayout.Alignment.LEADING</code> corresponds to left alignment in the horizontal dimension. Also note we do not specify gaps, assuming the <i>gap auto-insertion</i> feature is turned on.</p>
+<p>WHATSON? 2a2dcc28-4bc6-455c-9f0f-e33dd6963323</p>
+<pre>
+layout.setHorizontalGroup(layout.createSequentialGroup()
+    .addComponent(label)
+    .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING))
+    .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING))
+);
+</pre>
+<p>Now let us decompose the group in the middle. This is the hardest one. There is a text field in parallel with a sequence of two parallel groups each containing two check boxes. See the following illustration:</p>
+<p>Let us add the corresponding code:</p>
+<p>WHATSON? 45c28e09-c474-4cb9-a08d-f72d01dd09e8</p>
+<pre>
+layout.setHorizontalGroup(layout.createSequentialGroup()
+    .addComponent(label)
+    .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+         .addComponent(textField)
+         .addGroup(layout.createSequentialGroup()
+              .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                  .addComponent(caseCheckBox)
+                  .addComponent(wholeCheckBox))
+              .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                  .addComponent(wrapCheckBox)
+                  .addComponent(backCheckBox))))
+     .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING))
+);
+</pre>
+<p>We want the text field to be resizable, but that happens automatically since <code>JTextField</code> returns the right maximum size by default.</p>
+<p>The remaining group on the right is trivial: it contains just two buttons. Here is the code:</p>
+<p>WHATSON? f63753d7-1884-4cad-a41c-59f096c915f3</p>
+<pre>
+layout.setHorizontalGroup(layout.createSequentialGroup()
+    .addComponent(label)
+    .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+        .addComponent(textField)
+        .addGroup(layout.createSequentialGroup()
+            .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                .addComponent(caseCheckBox)
+                .addComponent(wholeCheckBox))
+            .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                .addComponent(wrapCheckBox)
+                .addComponent(backCheckBox))))
+    .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+        .addComponent(findButton)
+        .addComponent(cancelButton))
+);
+</pre>
+<p>And finally, we would like the buttons to be always the same size, so let us link them:</p>
+<p>WHATSON? cc0dfc5e-2535-4663-93ca-9d022b0c42ec</p>
+<pre>
+layout.linkSize(SwingConstants.HORIZONTAL, findButton, cancelButton);
+</pre>
+<p>Now we are done with the horizontal dimension. Let us switch to the vertical dimension. From now, we will only need to think about the y axis.</p>
+<h2>Vertical layout</h2>
+<p>In the vertical dimension, we examine the layout from <i>top to bottom</i>. We definitely want all the components on the first line aligned on the baseline. So along the vertical axis there is a sequence of the baseline group, followed by a group of the remaining components. See the following picture.</p>
+<p>Let us sketch out the code. First, we need to define two parallel groups. Note that <code>GroupLayout.Alignment.LEADING</code> corresponds to the top alignment in the vertical dimension.</p>
+<p>WHATSON? bc708738-4b36-4c25-9a22-64d35f8bb8f0</p>
+<pre>
+layout.setVerticalGroup(layout.createSequentialGroup()
+    .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE))
+    .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING))
+);
+</pre>
+<p>We can fill the baseline group right away:</p>
+<p>WHATSON? ce3f4532-6b6d-4099-8422-aafad6491805</p>
+<pre>
+layout.setVerticalGroup(layout.createSequentialGroup()
+    .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+        .addComponent(label)
+        .addComponent(textField)
+        .addComponent(findButton))
+    .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING))
+);
+</pre>
+<p>Now let us look at the bottom group. Note the Cancel button is not on a shared baseline with the check boxes; it is aligned at the top. So the second parallel group comprises the button and a sequential group of two baseline groups with check boxes:</p>
+<p>The corresponding code looks as follows:</p>
+<p>WHATSON? edb39a87-1c48-4d57-815a-1cbb16a0c673</p>
+<pre>
+layout.setVerticalGroup(layout.createSequentialGroup()
+    .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+        .addComponent(label)
+        .addComponent(textField)
+        .addComponent(findButton))
+    .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+        .addGroup(layout.createSequentialGroup()
+            .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                .addComponent(caseCheckBox)
+                .addComponent(wrapCheckBox))
+            .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                .addComponent(wholeCheckBox)
+                .addComponent(backCheckBox)))
+        .addComponent(cancelButton))
+);
+</pre>
+<p>So, we have created a complete layout, including resize behavior, without specifying a single number in pixels—a true cross platform layout. Note that we do not need to specify gaps between components, we get correct spacing automatically and according to the look and feel guidelines. Here is the complete code for the Find dialog's layout:</p>
+<p>WHATSON? 5c998815-8698-4d5f-9c81-9cb62d728cdb</p>
+<pre>
+GroupLayout layout = new GroupLayout(getContentPane());
+getContentPane().setLayout(layout);
+layout.setAutoCreateGaps(true);
+layout.setAutoCreateContainerGaps(true);
+
+layout.setHorizontalGroup(layout.createSequentialGroup()
+    .addComponent(label)
+    .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+        .addComponent(textField)
+        .addGroup(layout.createSequentialGroup()
+            .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                .addComponent(caseCheckBox)
+                .addComponent(wholeCheckBox))
+            .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+                .addComponent(wrapCheckBox)
+                .addComponent(backCheckBox))))
+    .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+        .addComponent(findButton)
+        .addComponent(cancelButton))
+);
+layout.linkSize(SwingConstants.HORIZONTAL, findButton, cancelButton);
+
+layout.setVerticalGroup(layout.createSequentialGroup()
+    .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+        .addComponent(label)
+        .addComponent(textField)
+        .addComponent(findButton))
+    .addGroup(layout.createParallelGroup(GroupLayout.Alignment.LEADING)
+        .addGroup(layout.createSequentialGroup()
+            .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                .addComponent(caseCheckBox)
+                .addComponent(wrapCheckBox))
+            .addGroup(layout.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                .addComponent(wholeCheckBox)
+                .addComponent(backCheckBox)))
+        .addComponent(cancelButton))
+);
+</pre>
+<p>Here is the complete 
+<a class="SourceLink" target="_blank" href="../examples/layout/FindProject/src/layout/Find.java" onclick="showCode('../../displayCode.html', '../examples/layout/FindProject/src/layout/Find.java'); return false;"><code>Find.java </code></a> file. You can compile and run it. Try resizing the dialog horizontally to see how the layout automatically adjusts to the new size.</p>

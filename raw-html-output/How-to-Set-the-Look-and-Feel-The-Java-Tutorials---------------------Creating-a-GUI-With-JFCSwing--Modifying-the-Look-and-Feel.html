@@ -1,0 +1,423 @@
+<h1>How to Set the Look and Feel</h1>
+<p>The architecture of Swing is designed so that you may change the "look and feel" (L&amp;F) of your application's GUI (see 
+<a class="OutsideLink" target="_blank" href="http://www.oracle.com/technetwork/java/architecture-142923.html">A Swing Architecture Overview</a>). "Look" refers to the appearance of GUI widgets (more formally, <code>JComponents</code>) and "feel" refers to the way the widgets behave.</p>
+<p>Swing's architecture enables multiple L&amp;Fs by separating every component into two distinct classes: a <code>JComponent</code> subclass and a corresponding <code>ComponentUI</code> subclass. For example, every <code>JList</code> instance has a concrete implementation of <code>ListUI</code> (<code>ListUI</code> extends <code>ComponentUI</code>). The <code>ComponentUI</code> subclass is referred to by various names in Swing's documentation—"the UI," "component UI," "UI delegate," and "look and feel delegate" are all used to identify the <code>ComponentUI</code> subclass.</p>
+<p>Most developers never need to interact with the UI delegate directly. For the most part, the UI delegate is used internally by the <code>JComponent</code> subclass for crucial functionality, with cover methods provided by the <code>JComponent</code> subclass for all access to the UI delegate. For example, all painting in <code>JComponent</code> subclasses is delegated to the UI delegate. By delegating painting, the 'look' can vary depending upon the L&amp;F.</p>
+<p>It is the responsibility of each L&amp;F to provide a concrete implementation for each of the <code>ComponentUI</code> subclasses defined by Swing. For example, the Java Look and Feel creates an instance of <code>MetalTabbedPaneUI</code> to provide the L&amp;F for <code>JTabbedPane</code>. The actual creation of the UI delegate is handled by Swing for you—for the most part you never need to interact directly with the UI delegate. <!--
+In Swing, a JComponent object is an interacting combination of a Model object and a 
+UI delegate object. The division of functionality between these two entities can be fuzzy, but in general:
+<ul>
+<li>
+The Model object for a Swing component contains information on the current state of the component.
+</li>
+<p>
+<li>
+The UI delegate object for a Swing component is responsible for implementing the aspects of the component that depend on the look (painting) 
+and feel (handling user interaction). 
+</li>
+</ul> 
+<p>
+The base classes for the Model objects are found in the <code>javax.swing</code> package&mdash;for example, 
+<code>DefaultButtonModel</code> or <code>JToggleButton.ToggleButtonModel.</code> The Model objects are independent of the 
+L&amp;F installed.
+<p>
+The <code>ComponentUI</code> class in the <code>javax.swing.plaf</code> package is the base class for all UI delegate objects in the Swing pluggable 
+look and feel architecture. The JComponent class invokes methods from this class in order to delegate operations (painting, event handling, etc.) 
+that vary depending on the L&amp;F installed. 
+<p>
+A Look and Feel, then, is a set of coordinated UI delegate objects, one for each JComponent used in the GUI.--></p>
+<p>The rest of this section discusses the following subjects:</p>
+<ul>
+<li><a href="#available">Available Look and Feels</a></li>
+<li><a href="#programmatic">Programatically Setting the Look and Feel</a></li>
+<li><a href="#commandLine">Specifying the Look and Feel: Command Line</a></li>
+<li><a href="#properties">Specifying the Look and Feel: swing.properties</a></li>
+<li><a href="#steps">How the UI Manager Chooses the Look and Feel</a></li>
+<li><a href="#dynamic">Changing the Look and Feel After Startup</a></li>
+<li><a href="#example">An Example</a></li>
+<li><a href="#themes">Themes</a></li>
+<li><a href="#swingset2">The SwingSet2 Demonstration Program</a></li>
+</ul>
+<h2><a name="available" id="available">Available Look and Feels</a></h2>
+<p>Sun's JRE provides the following L&amp;Fs:</p>
+<ol>
+<li>
+<p><code>CrossPlatformLookAndFeel</code>—this is the "Java L&amp;F" (also called "Metal") that looks the same on all platforms. It is part of the Java API (<code>javax.swing.plaf.metal</code>) and is the default that will be used if you do nothing in your code to set a different L&amp;F.</p>
+</li>
+<li>
+<p><code>SystemLookAndFeel</code>—here, the application uses the L&amp;F that is native to the system it is running on. The System L&amp;F is determined at runtime, where the application asks the system to return the name of the appropriate L&amp;F.</p>
+</li>
+<li>
+<p>Synth—the basis for creating your own look and feel with an XML file.</p>
+</li>
+<li>
+<p>Multiplexing— a way to have the UI methods delegate to a number of different look and feel implementations at the same time.</p>
+</li>
+</ol>
+<p><code>CrossPlatformLookAndFeel</code>—this is the "Java L&amp;F" (also called "Metal") that looks the same on all platforms. It is part of the Java API (<code>javax.swing.plaf.metal</code>) and is the default that will be used if you do nothing in your code to set a different L&amp;F.</p>
+<p><code>SystemLookAndFeel</code>—here, the application uses the L&amp;F that is native to the system it is running on. The System L&amp;F is determined at runtime, where the application asks the system to return the name of the appropriate L&amp;F.</p>
+<p>Synth—the basis for creating your own look and feel with an XML file.</p>
+<p>Multiplexing— a way to have the UI methods delegate to a number of different look and feel implementations at the same time.</p>
+<p>For Linux and Solaris, the System L&amp;Fs are "GTK+" if GTK+ 2.2 or later is installed, "Motif" otherwise. For Windows, the System L&amp;F is "Windows," which mimics the L&amp;F of the particular Windows OS that is running—classic Windows, XP, or Vista. The GTK+, Motif, and Windows L&amp;Fs are provided by Sun and shipped with the Java SDK and JRE, although they are not part of the Java API.</p>
+<p>Apple provides its own JVM which includes their proprietary L&amp;F.</p>
+<p>In summary, when you use the <code>SystemLookAndFeel</code>, this is what you will see:</p>
+<p>* Supplied by the system vendor.</p>
+<p>You don't see the System L&amp;F in the API. The GTK+, Motif, and Windows packages that it requires are shipped with the Java SDK as:</p>
+<p>WHATSON? 29fae2e8-3808-4b01-b228-7b76b528e209</p>
+<pre>
+com.sun.java.swing.plaf.gtk.GTKLookAndFeel
+com.sun.java.swing.plaf.motif.MotifLookAndFeel
+com.sun.java.swing.plaf.windows.WindowsLookAndFeel
+</pre>
+<p>Note that the path includes <code>java</code>, and not <code>javax</code>.</p>
+<p>All of Sun's L&amp;Fs have a great deal of commonality. This commonality is defined in the <code>Basic</code> look and feel in the API (<code>javax.swing.plaf.basic</code>). The Motif and Windows L&amp;Fs are each built by extending the UI delegate classes in <code>javax.swing.plaf.basic</code> (a custom L&amp;F can be built by doing the same thing). The "Basic" L&amp;F is not used without being extended.</p>
+<p>In the API you will see four L&amp;F packages:</p>
+<ul>
+<li>
+<p><code>javax.swing.plaf.basic</code>—basic UI Delegates to be extended when creating a custom L&amp;F</p>
+</li>
+<li>
+<p><code>javax.swing.plaf.metal</code>—the Java L&amp;F, also known as the CrossPlatform L&amp;F ("Metal" was the Sun project name for this L&amp;F) The current default "theme" (discussed below) for this L&amp;F is "Ocean, so this is often referred to as the Ocean L&amp;F.</p>
+</li>
+<li>
+<p><code>javax.swing.plaf.multi</code>—a multiplexing look and feel that allows the UI methods to delegate to a number of look and feel implementations at the same time. It can be used to augment the behavior of a particular look and feel, for example with a L&amp;F that provides audio cues on top of the Windows look and feel. This is a way of creating a handicapped-accessible look and feel.</p>
+</li>
+<li>
+<p><code>javax.swing.plaf.synth</code>—an easily configured L&amp;F using XML files (discussed in the next section of this lesson)</p>
+</li>
+</ul>
+<p><code>javax.swing.plaf.basic</code>—basic UI Delegates to be extended when creating a custom L&amp;F</p>
+<p><code>javax.swing.plaf.metal</code>—the Java L&amp;F, also known as the CrossPlatform L&amp;F ("Metal" was the Sun project name for this L&amp;F) The current default "theme" (discussed below) for this L&amp;F is "Ocean, so this is often referred to as the Ocean L&amp;F.</p>
+<p><code>javax.swing.plaf.multi</code>—a multiplexing look and feel that allows the UI methods to delegate to a number of look and feel implementations at the same time. It can be used to augment the behavior of a particular look and feel, for example with a L&amp;F that provides audio cues on top of the Windows look and feel. This is a way of creating a handicapped-accessible look and feel.</p>
+<p><code>javax.swing.plaf.synth</code>—an easily configured L&amp;F using XML files (discussed in the next section of this lesson)</p>
+<p><!-- Synth works by using XML files to create UI Delegates. Instead of writing code, you create an XML file that follows the Synth 
+DVD. Synth then creates the UI Delegate classes for each JComponent based on your XML element for that widget.
+<p> -->
+You aren't limited to the L&amp;Fs supplied with the Java platform. You can use any L&amp;F that is in your program's class path. External L&amp;Fs are usually provided in one or more JAR files that you add to your program's class path at runtime. For example:</p>
+<p>WHATSON? 2997802f-c574-4a74-9c58-bf042a6fcdc9</p>
+<pre>
+java -classpath .;C:\java\lafdir\customlaf.jar YourSwingApplication
+</pre>
+<p>Once an external L&amp;F is in your program's class path, your program can use it just like any of the L&amp;Fs shipped with the Java platform.</p>
+<h2><a name="programmatic" id="programmatic">Programatically Setting the Look and Feel</a></h2>
+<p>The L&amp;F that Swing components use is specified by way of the <code>UIManager</code> class in the <code>javax.swing</code> package. Whenever a Swing component is created,the component asks the UI manager for the UI delegate that implements the component's L&amp;F. For example, each <code>JLabel</code> constructor queries the UI manager for the UI delegate object appropriate for the label. It then uses that UI delegate object to implement all of its drawing and event handling.</p>
+<p>To programatically specify a L&amp;F, use the <code>UIManager.setLookAndFeel()</code> method with the fully qualified name of the appropriate subclass of <code>LookAndFeel</code> as its argument. For example, the bold code in the following snippet makes the program use the cross-platform Java L&amp;F:</p>
+<p>WHATSON? c287c9b1-fe59-400e-96b0-df6d5a81efcd</p>
+<pre>
+public static void main(String[] args) {
+    try {
+            // Set cross-platform Java L&amp;F (also called "Metal")
+        <b>UIManager.setLookAndFeel(
+            UIManager.getCrossPlatformLookAndFeelClassName());</b>
+    } 
+    catch (UnsupportedLookAndFeelException e) {
+       // handle exception
+    }
+    catch (ClassNotFoundException e) {
+       // handle exception
+    }
+    catch (InstantiationException e) {
+       // handle exception
+    }
+    catch (IllegalAccessException e) {
+       // handle exception
+    }
+        
+    new SwingApplication(); //Create and show the GUI.
+}
+</pre>
+<p>Alternatively, this code makes the program use the System L&amp;F:</p>
+<p>WHATSON? f88d1601-8630-45f0-b886-e25fb81721ce</p>
+<pre>
+public static void main(String[] args) {
+    try {
+            // Set System L&amp;F
+        <b>UIManager.setLookAndFeel(
+            UIManager.getSystemLookAndFeelClassName());</b>
+    } 
+    catch (UnsupportedLookAndFeelException e) {
+       // handle exception
+    }
+    catch (ClassNotFoundException e) {
+       // handle exception
+    }
+    catch (InstantiationException e) {
+       // handle exception
+    }
+    catch (IllegalAccessException e) {
+       // handle exception
+    }
+
+    new SwingApplication(); //Create and show the GUI.
+}
+</pre>
+<p>You can also use the actual class name of a Look and Feel as the argument to <code>UIManager.setLookAndFeel()</code>. For example,</p>
+<p>WHATSON? ec7118bd-83c2-43b0-b3ae-0d3e53fdac92</p>
+<pre>
+// Set cross-platform Java L&amp;F (also called "Metal")
+UIManager.setLookAndFeel("javax.swing.plaf.metal.MetalLookAndFeel");
+</pre>
+<p>or</p>
+<p>WHATSON? 809fcd3b-086b-4b0e-b303-fc08550333d0</p>
+<pre>
+// Set Motif L&amp;F on any platform
+UIManager.setLookAndFeel("com.sun.java.swing.plaf.motif.MotifLookAndFeel");
+</pre>
+<p>You aren't limited to the preceding arguments. You can specify the name for any L&amp;F that is in your program's class path.</p>
+<h2><a name="commandLine" id="commandLine">Specifying the Look and Feel: Command Line</a></h2>
+<p>You can specify the L&amp;F at the command line by using the <code>-D</code> flag to set the <code>swing.defaultlaf</code> property. For example:</p>
+<p>WHATSON? c0f9ea05-92d5-4191-a5d7-5a9542883302</p>
+<pre>
+java -Dswing.defaultlaf=com.sun.java.swing.plaf.gtk.GTKLookAndFeel MyApp
+
+java -Dswing.defaultlaf=com.sun.java.swing.plaf.windows.WindowsLookAndFeel MyApp
+</pre>
+<h2><a name="properties" id="properties">Specifying the Look and Feel: swing.properties File</a></h2>
+<p>Yet another way to specify the current L&amp;F is to use the <code>swing.properties</code> file to set the <code>swing.defaultlaf</code> property. This file, which you may need to create, is located in the <code>lib</code> directory of Sun's Java release (other vendors of Java may use a different location). For example, if you're using the Java interpreter in <code><em>javaHomeDirectory</em>\bin</code>, then the <code>swing.properties</code> file (if it exists) is in <code><em>javaHomeDirectory</em>\lib</code>. Here is an example of the contents of a <a href="swing.properties"><code>swing.properties</code></a> file: <!--
+<div class="codeblock"><pre>
+# Swing properties
+
+swing.defaultlaf=com.sun.java.swing.plaf.windows.WindowsLookAndFeel
+
+</pre></div>
+--></p>
+<p>WHATSON? 1ad53794-36f1-4fb2-8d46-1476253c263f</p>
+<pre>
+# Swing properties
+swing.defaultlaf=com.sun.java.swing.plaf.windows.WindowsLookAndFeel
+</pre>
+<h2><a name="steps" id="steps">How the UI Manager Chooses the Look and Feel</a></h2>
+<p>Here are the look-and-feel determination steps that occur when the UI manager needs to set a L&amp;F:</p>
+<ol>
+<li>If the program sets the L&amp;F before a look and feel is needed, the UI manager tries to create an instance of the specified look-and-feel class. If successful, all components use that L&amp;F.</li>
+<li>If the program hasn't successfully specified a L&amp;F, then the UI manager uses the L&amp;F specified by the <code>swing.defaultlaf</code> property. If the property is specified in both the <code>swing.properties</code> file <em>and</em> on the command line, the command-line definition takes precedence.</li>
+<li>If none of these steps has resulted in a valid L&amp;F, Sun's JRE uses the Java L&amp;F. Other vendors, such as Apple, will use their default L&amp;F.</li>
+</ol>
+<h2><a name="dynamic" id="dynamic">Changing the Look and Feel After Startup</a></h2>
+<p>You can change the L&amp;F with <code>setLookAndFeel</code> even after the program's GUI is visible. To make existing components reflect the new L&amp;F, invoke the <code>SwingUtilities</code> <code>updateComponentTreeUI</code> method once per top-level container. Then you might wish to resize each top-level container to reflect the new sizes of its contained components. For example:</p>
+<p>WHATSON? a7830a77-4083-4000-a42a-73d709f00c3c</p>
+<pre>
+UIManager.setLookAndFeel(lnfName);
+SwingUtilities.updateComponentTreeUI(frame);
+frame.pack();
+</pre>
+<h2><a name="example" id="example">An Example</a></h2>
+<p>In the following example, <code>LookAndFeelDemo.java</code>, you can experiment with different Look and Feels. The program creates a simple GUI with a button and a label. Every time you click the button, the label increments.</p>
+<p>You can change the L&amp;F by changing the <code>LOOKANDFEEL</code> constant on line 18. The comments on the preceding lines tell you what values are acceptable:</p>
+<p>WHATSON? f3714f3e-1dcb-4328-acd6-36243ed9c623</p>
+<pre>
+    // Specify the look and feel to use by defining the LOOKANDFEEL constant
+    // Valid values are: null (use the default), "Metal", "System", "Motif",
+    // and "GTK"
+    final static String LOOKANDFEEL = "Motif";
+</pre>
+<p>Here the constant is set to "Motif", which is a L&amp;F that will run on any platform (as will the default, "Metal"). "GTK+" will not run on Windows, and "Windows" will run only on Windows. If you choose a L&amp;F that will not run, you will get the Java, or Metal, L&amp;F.</p>
+<p>In the section of the code where the L&amp;F is actually set, you will see several different ways to set it, as discussed above:</p>
+<p>WHATSON? 6a26c6a1-bb10-47ae-ba5a-84efe7611f4c</p>
+<pre>
+if (LOOKANDFEEL.equals("Metal")) {
+   lookAndFeel = UIManager.getCrossPlatformLookAndFeelClassName();
+   //  an alternative way to set the Metal L&amp;F is to replace the 
+   // previous line with:
+   // lookAndFeel = "javax.swing.plaf.metal.MetalLookAndFeel";
+</pre>
+<p>You can verify that both arguments work by commenting/un-commenting the two alternatives.</p>
+<p>Here is a listing of the 
+<a class="SourceLink" target="_blank" href="../examples/lookandfeel/LookAndFeelDemoProject/src/lookandfeel/LookAndFeelDemo.java" onclick="showCode('../../displayCode.html', '../examples/lookandfeel/LookAndFeelDemoProject/src/lookandfeel/LookAndFeelDemo.java'); return false;"><code>LookAndFeelDemo</code></a> source file:</p>
+<p>WHATSON? d8c7bafc-9783-4027-8d70-afe9b16faeec</p>
+<pre>
+
+package lookandfeel;
+
+import javax.swing.*;          
+import java.awt.*;
+import java.awt.event.*;
+import javax.swing.plaf.metal.*;
+
+public class LookAndFeelDemo implements ActionListener {
+    private static String labelPrefix = "Number of button clicks: ";
+    private int numClicks = 0;
+    final JLabel label = new JLabel(labelPrefix + "0    ");
+
+    // Specify the look and feel to use by defining the LOOKANDFEEL constant
+    // Valid values are: null (use the default), "Metal", "System", "Motif",
+    // and "GTK"
+    final static String LOOKANDFEEL = "Metal";
+    
+    // If you choose the Metal L&amp;F, you can also choose a theme.
+    // Specify the theme to use by defining the THEME constant
+    // Valid values are: "DefaultMetal", "Ocean",  and "Test"
+    final static String THEME = "Test";
+    
+
+    public Component createComponents() {
+        JButton button = new JButton("I'm a Swing button!");
+        button.setMnemonic(KeyEvent.VK_I);
+        button.addActionListener(this);
+        label.setLabelFor(button);
+
+        JPanel pane = new JPanel(new GridLayout(0, 1));
+        pane.add(button);
+        pane.add(label);
+        pane.setBorder(BorderFactory.createEmptyBorder(
+                                        30, //top
+                                        30, //left
+                                        10, //bottom
+                                        30) //right
+                                        );
+
+        return pane;
+    }
+
+    public void actionPerformed(ActionEvent e) {
+        numClicks++;
+        label.setText(labelPrefix + numClicks);
+    }
+
+    private static void initLookAndFeel() {
+        String lookAndFeel = null;
+       
+        if (LOOKANDFEEL != null) {
+            if (LOOKANDFEEL.equals("Metal")) {
+                lookAndFeel = UIManager.getCrossPlatformLookAndFeelClassName();
+              //  an alternative way to set the Metal L&amp;F is to replace the 
+              // previous line with:
+              // lookAndFeel = "javax.swing.plaf.metal.MetalLookAndFeel";
+                
+            }
+            
+            else if (LOOKANDFEEL.equals("System")) {
+                lookAndFeel = UIManager.getSystemLookAndFeelClassName();
+            } 
+            
+            else if (LOOKANDFEEL.equals("Motif")) {
+                lookAndFeel = "com.sun.java.swing.plaf.motif.MotifLookAndFeel";
+            } 
+            
+            else if (LOOKANDFEEL.equals("GTK")) { 
+                lookAndFeel = "com.sun.java.swing.plaf.gtk.GTKLookAndFeel";
+            } 
+            
+            else {
+                System.err.println("Unexpected value of LOOKANDFEEL specified: "
+                                   + LOOKANDFEEL);
+                lookAndFeel = UIManager.getCrossPlatformLookAndFeelClassName();
+            }
+
+            try {
+            	
+            	
+                UIManager.setLookAndFeel(lookAndFeel);
+                
+                // If L&amp;F = "Metal", set the theme
+                
+                if (LOOKANDFEEL.equals("Metal")) {
+                  if (THEME.equals("DefaultMetal"))
+                     MetalLookAndFeel.setCurrentTheme(new DefaultMetalTheme());
+                  else if (THEME.equals("Ocean"))
+                     MetalLookAndFeel.setCurrentTheme(new OceanTheme());
+                  else
+                     MetalLookAndFeel.setCurrentTheme(new TestTheme());
+                     
+                  UIManager.setLookAndFeel(new MetalLookAndFeel()); 
+                }	
+                	
+                	
+                  
+                
+            } 
+            
+            catch (ClassNotFoundException e) {
+                System.err.println("Couldn't find class for specified look and feel:"
+                                   + lookAndFeel);
+                System.err.println("Did you include the L&amp;F library in the class path?");
+                System.err.println("Using the default look and feel.");
+            } 
+            
+            catch (UnsupportedLookAndFeelException e) {
+                System.err.println("Can't use the specified look and feel ("
+                                   + lookAndFeel
+                                   + ") on this platform.");
+                System.err.println("Using the default look and feel.");
+            } 
+            
+            catch (Exception e) {
+                System.err.println("Couldn't get specified look and feel ("
+                                   + lookAndFeel
+                                   + "), for some reason.");
+                System.err.println("Using the default look and feel.");
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private static void createAndShowGUI() {
+        //Set the look and feel.
+        initLookAndFeel();
+
+        //Make sure we have nice window decorations.
+        JFrame.setDefaultLookAndFeelDecorated(true);
+
+        //Create and set up the window.
+        JFrame frame = new JFrame("SwingApplication");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        LookAndFeelDemo app = new LookAndFeelDemo();
+        Component contents = app.createComponents();
+        frame.getContentPane().add(contents, BorderLayout.CENTER);
+
+        //Display the window.
+        frame.pack();
+        frame.setVisible(true);
+    }
+
+    public static void main(String[] args) {
+        //Schedule a job for the event dispatch thread:
+        //creating and showing this application's GUI.
+        javax.swing.SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                createAndShowGUI();
+            }
+        });
+    }
+}
+</pre>
+<h2><a name="themes" id="themes">Themes</a></h2>
+<p>Themes were introduced as a way of easily changing the colors and fonts of the cross-platform Java (Metal) Look and Feel. In the sample program, <code>LookAndfeelDemo.java</code>, listed above, you can change the theme of the Metal L&amp;F by setting the <code>THEME</code> constant on line 23 to one of three values:</p>
+<ul>
+<li><code>DefaultMetal</code></li>
+<li><code>Ocean</code></li>
+<li><code>Test</code></li>
+</ul>
+<p><code>Ocean</code>, which is a bit softer than the pure Metal look, has been the default theme for the Metal (Java) L&amp;F since Java SE 5. Despite its name, <code>DefaultMetal</code> is not the default theme for Metal (it was before Java SE 5, which explains its name). The <code>Test</code> theme is a theme defined in 
+<a class="SourceLink" target="_blank" href="../examples/lookandfeel/LookAndFeelDemoProject/src/lookandfeel/TestTheme.java" onclick="showCode('../../displayCode.html', '../examples/lookandfeel/LookAndFeelDemoProject/src/lookandfeel/TestTheme.java'); return false;"><code><code>TestTheme.java</code></code></a>, which you must compile with <code>LookAndfeelDemo.java</code>. As it is written, <code>TestTheme.java</code> sets the three primary colors (with somewhat bizarre results). You can modify <code>TestTheme.java</code> to test any colors you like.</p>
+<p>The section of code where the theme is set is found beginning on line 92 of <code>LookAndfeelDemo.java</code>. Note that you must be using the Metal L&amp;F to set a theme.</p>
+<p>WHATSON? adcbd355-a772-4342-b19a-7ca44bd06a36</p>
+<pre>
+ if (LOOKANDFEEL.equals("Metal")) {
+    if (THEME.equals("DefaultMetal"))
+       MetalLookAndFeel.setCurrentTheme(new DefaultMetalTheme());
+    else if (THEME.equals("Ocean"))
+       MetalLookAndFeel.setCurrentTheme(new OceanTheme());
+    else
+       MetalLookAndFeel.setCurrentTheme(new TestTheme());
+                     
+    UIManager.setLookAndFeel(new MetalLookAndFeel()); 
+ }      
+</pre>
+<h2><a name="swingset2" id="swingset2">The SwingSet2 Demonstration Program</a></h2>
+<p>When you download the
+<a class="OutsideLink" target="_blank" href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">JDK and JavaFX Demos and Samples</a> bundle and open it up, there is a <code>demo\jfc</code> folder that contains a demonstration program called <code>SwingSet2</code>. This program has a graphically rich GUI and allows you to change the Look and Feel from the menu. Further, if you are using the Java (Metal) Look and Feel, you can choose a variety of different themes. The files for the various themes (for example, <code>RubyTheme.java</code>) are found in the <code>SwingSet2\src</code> folder.</p>
+<p>This is the "Ocean" theme, which is the default for the cross-platform Java (Metal) Look and Feel:</p>
+<p>This is the "Steel" theme, which was the original theme for the cross-platform Java (Metal) Look and Feel:</p>
+<p>To run the <code>SwingSet2</code> demo program on a system that has the JDK installed, use this command:</p>
+<p>WHATSON? dcb5d03a-2ea3-4054-9928-daeef98f5fe0</p>
+<pre>
+java -jar SwingSet2.jar
+</pre>
+<p>This will give you the default theme of Ocean.</p>
+<p>To get the metal L&amp;F, run this:</p>
+<p>WHATSON? 4194345e-52c2-4985-a19f-cea026ba4cfa</p>
+<pre>
+java -Dswing.metalTheme=steel -jar SwingSet2.jar
+</pre>

@@ -1,0 +1,49 @@
+<h1>Doing Without a Layout Manager (Absolute Positioning)</h1>
+<p>Although it is possible to do without a layout manager, you should use a layout manager if at all possible. A layout manager makes it easier to adjust to look-and-feel-dependent component appearances, to different font sizes, to a container's changing size, and to different locales. Layout managers also can be reused easily by other containers, as well as other programs.</p>
+<p>If you are interested in using JavaFX to create your GUI, see
+<a class="OutsideLink" target="_blank" href="http://docs.oracle.com/javase/8/javafx/layout-tutorial/index.html">Working With Layouts in JavaFX</a>.</p>
+<p>If a container holds components whose size is not affected by the container's size or by font, look-and-feel, or language changes, then absolute positioning might make sense. Desktop panes, which contain 
+<a class="TutorialLink" target="_top" href="../components/internalframe.html">internal frames</a>, are in this category. The size and position of internal frames does not depend directly on the desktop pane's size. The programmer determines the initial size and placement of internal frames within the desktop pane, and then the user can move or resize the frames. A layout manager is unnecessary in this situation.</p>
+<p>Another situation in which absolute positioning might make sense is that of a custom container that performs size and position calculations that are particular to the container, and perhaps require knowledge of the container's specialized state. This is the situation with 
+<a class="TutorialLink" target="_top" href="../components/splitpane.html">split panes</a>.</p>
+<p>Creating a container without a layout manager involves the following steps.</p>
+<ol>
+<li>Set the container's layout manager to null by calling <code>setLayout(null)</code>.</li>
+<li>Call the <code>Component</code> class's <code>setbounds</code> method for each of the container's children.</li>
+<li>Call the <code>Component</code> class's <code>repaint</code> method.</li>
+</ol>
+<p>However, creating containers with absolutely positioned containers can cause problems if the window containing the container is resized.</p>
+<p>Here is a snapshot of a frame whose content pane uses absolute positioning.</p>
+<p>Click the Launch button to run AbsoluteLayoutDemo using 
+<a class="OutsideLink" target="_blank" href="http://www.oracle.com/technetwork/java/javase/javawebstart/index.html">Java™ Web Start</a> (<a href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">download JDK 7 or later</a>). Alternatively, to compile and run the example yourself, consult the <a href="../examples/layout/index.html#AbsoluteLayoutDemo">example index</a>.</p>
+<p>Its code is in 
+<a class="SourceLink" target="_blank" href="../examples/layout/AbsoluteLayoutDemoProject/src/layout/AbsoluteLayoutDemo.java" onclick="showCode('../../displayCode.html', '../examples/layout/AbsoluteLayoutDemoProject/src/layout/AbsoluteLayoutDemo.java'); return false;"><code>AbsoluteLayoutDemo.java</code></a>. The following code snippet shows how the components in the content pane are created and laid out.</p>
+<p>WHATSON? eddc37f0-2f24-4808-90de-3a0fccee41ce</p>
+<pre>
+pane.setLayout(null);
+
+JButton b1 = new JButton("one");
+JButton b2 = new JButton("two");
+JButton b3 = new JButton("three");
+
+pane.add(b1);
+pane.add(b2);
+pane.add(b3);
+
+Insets insets = pane.getInsets();
+Dimension size = b1.getPreferredSize();
+b1.setBounds(25 + insets.left, 5 + insets.top,
+             size.width, size.height);
+size = b2.getPreferredSize();
+b2.setBounds(55 + insets.left, 40 + insets.top,
+             size.width, size.height);
+size = b3.getPreferredSize();
+b3.setBounds(150 + insets.left, 15 + insets.top,
+             size.width + 50, size.height + 20);
+
+...<em>//In the main method:</em>
+Insets insets = frame.getInsets();
+frame.setSize(300 + insets.left + insets.right,
+              125 + insets.top + insets.bottom);
+
+</pre>

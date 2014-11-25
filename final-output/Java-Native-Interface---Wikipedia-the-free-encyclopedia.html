@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Java-Native-Interface---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Java Native Interface</h1>
+<p>In computing, the <b>Java Native Interface</b> (<b>JNI</b>) is a programming framework that enables Java code running in a Java Virtual Machine (JVM) to call and be called by native applications (programs specific to a hardware and operating system platform) and libraries written in other languages such as C, C++ and assembly.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Purpose and features</li>
+<li>2 Pitfalls</li>
+<li>3 How the JNI works
+<ul>
+<li>3.1 Mapping types</li>
+<li>3.2 JNIEnv*</li>
+</ul>
+</li>
+<li>4 Advanced uses
+<ul>
+<li>4.1 Native AWT painting</li>
+<li>4.2 Access to assembly code</li>
+</ul>
+</li>
+<li>5 Microsoft's RNI</li>
+<li>6 Examples
+<ul>
+<li>6.1 HelloWorld</li>
+</ul>
+</li>
+<li>7 See also</li>
+<li>8 References</li>
+<li>9 Bibliography</li>
+<li>10 External links</li>
+</ul>
+<ul>
+<li>3.1 Mapping types</li>
+<li>3.2 JNIEnv*</li>
+</ul>
+<ul>
+<li>4.1 Native AWT painting</li>
+<li>4.2 Access to assembly code</li>
+</ul>
+<ul>
+<li>6.1 HelloWorld</li>
+</ul>
+<p></p>
+<h2>Purpose and features</h2>
+<p>JNI enables programmers to write native methods to handle situations when an application cannot be written entirely in the Java programming language, e.g. when the standard Java class library does not support the platform-specific features or program library. It is also used to modify an existing application—written in another programming language—to be accessible to Java applications. Many of the standard library classes depend on JNI to provide functionality to the developer and the user, e.g. file I/O and sound capabilities. Including performance- and platform-sensitive API implementations in the standard library allows all Java applications to access this functionality in a safe and platform-independent manner.</p>
+<p>The JNI framework lets a native method use Java objects in the same way that Java code uses these objects. A native method can create Java objects and then inspect and use these objects to perform its tasks. A native method can also inspect and use objects created by Java application code.</p>
+<p>JNI is sometimes referred to as the "escape hatch" for Java developers because it enables them to add functionality to their Java application that the standard Java APIs cannot otherwise provide. It can be used to interface with code written in other languages, such as C and C++. It is also used for time-critical calculations or operations like solving complicated mathematical equations, because for some classes of problems native code may run faster than JVM code.</p>
+<h2>Pitfalls</h2>
+<ul>
+<li>Subtle errors in the use of JNI can destabilize the entire JVM in ways that are very difficult to reproduce and debug.</li>
+<li>Only applications and signed applets can invoke JNI.</li>
+<li>An application that relies on JNI loses the platform portability Java offers (a partial workaround is to write a separate implementation of JNI code for each platform and have Java detect the operating system and load the correct one at runtime).</li>
+<li>The JNI framework does not provide any automatic garbage collection for non-JVM memory resources allocated by code executing on the native side. Consequently, native side code (such as assembly language) assumes the responsibility for explicitly releasing any such memory resources that the native code acquires.</li>
+<li>On Linux and Solaris platforms, if the native code registers itself as a signal handler, it could intercept signals intended for the JVM. A chain of responsibility can be used to allow native code to better inter-operate with the JVM.</li>
+<li>On Windows platforms, Structured Exception Handling (SEH) may be employed to wrap native code in SEH try/catch blocks so as to capture machine (CPU/FPU) generated software interrupts (such as NULL pointer access violations and divide-by-zero operations), and to handle these situations before the interrupt is propagated back up into the JVM (i.e. Java side code), in all likelihood resulting in an unhandled exception.</li>
+<li>The encoding used for the NewStringUTF, GetStringUTFLength, GetStringUTFChars, ReleaseStringUTFChars and GetStringUTFRegion functions is not standard UTF-8, but modified UTF-8. The null character (U+0000) and codepoints greater than or equal to U+10000 are encoded differently in modified UTF-8. Many programs actually use these functions incorrectly and treat the UTF-8 strings returned or passed into the functions as standard UTF-8 strings instead of modified UTF-8 strings. Programs should use the NewString, GetStringLength, GetStringChars, ReleaseStringChars, GetStringRegion, GetStringCritical and ReleaseStringCritical functions, which use UTF-16LE encoding on little-endian architectures and UTF-16BE on big-endian architectures, and then use a UTF-16 to standard UTF-8 conversion routine.</li>
+</ul>
+<h2>How the JNI works</h2>
+<p>In the JNI framework, native functions are implemented in separate .c or .cpp files. (C++ provides a slightly simpler interface with JNI.) When the JVM invokes the function, it passes a <code>JNIEnv</code> pointer, a <code>jobject</code> pointer, and any Java arguments declared by the Java method. A JNI function may look like this:</p>
+<p>WHATSON? a9ac0cf6-485d-4fbe-ae8b-b6358fa27dd0</p>
+<pre>
+JNIEXPORT void JNICALL Java_ClassName_MethodName
+  (JNIEnv *env, jobject obj)
+{
+    /*Implement Native Method Here*/
+}
+</pre>
+<p>The <i><code>env</code></i> pointer is a structure that contains the interface to the JVM. It includes all of the functions necessary to interact with the JVM and to work with Java objects. Example JNI functions are converting native arrays to/from Java arrays, converting native strings to/from Java strings, instantiating objects, throwing exceptions, etc. Basically, anything that Java code can do can be done using <code>JNIEnv</code>, albeit with considerably less ease.</p>
+<p>The argument <i><code>obj</code></i> is a reference to the Java object inside which this native method has been declared.</p>
+<p>For example, the following converts a Java string to a native string:</p>
+<p>WHATSON? a360afee-60e4-44f8-b33b-68753d010c10</p>
+<pre>
+//C++ code
+extern "C"
+JNIEXPORT void JNICALL Java_ClassName_MethodName
+  (JNIEnv *env, jobject obj, jstring javaString)
+{
+    //Get the native string from javaString
+    const char *nativeString = env-&gt;GetStringUTFChars(javaString, 0);
+ 
+    //Do something with the nativeString
+ 
+    //DON'T FORGET THIS LINE!!!
+    env-&gt;ReleaseStringUTFChars(javaString, nativeString);
+}
+</pre>
+<p>WHATSON? d8ae6aa9-4fbd-4ab0-ae9a-a40b31936ab5</p>
+<pre>
+/*C code*/
+JNIEXPORT void JNICALL Java_ClassName_MethodName
+  (JNIEnv *env, jobject obj, jstring javaString)
+{
+    /*Get the native string from javaString*/
+    const char *nativeString = (*env)-&gt;GetStringUTFChars(env, javaString, 0);
+ 
+    /*Do something with the nativeString*/
+ 
+    /*DON'T FORGET THIS LINE!!!*/
+    (*env)-&gt;ReleaseStringUTFChars(env, javaString, nativeString);
+}
+</pre>
+<p>WHATSON? 8d8e3ab7-e7c5-4c4e-b1b5-078c0ca7441c</p>
+<pre>
+/*Objective-C code*/
+JNIEXPORT void JNICALL Java_ClassName_MethodName
+  (JNIEnv *env, jobject obj, jstring javaString)
+{
+    /*DON'T FORGET THIS LINE!!!*/
+    JNF_COCOA_ENTER(env);
+ 
+    /*Get the native string from javaString*/
+    NSString* nativeString = JNFJavaToNSString(env, javaString);
+ 
+    /*Do something with the nativeString*/
+ 
+    /*DON'T FORGET THIS LINE!!!*/
+    JNF_COCOA_EXIT(env);
+}
+</pre>
+<p>Native data types can be mapped to/from Java data types. For compound types such as objects, arrays and strings the native code must explicitly convert the data by calling methods in the <code>JNIEnv</code>.</p>
+<h3>Mapping types</h3>
+<p>The following table shows the mapping of types between Java (JNI) and native code.</p>
+<p>long long<br>
+__int64</p>
+<p>In addition, the signature <code>"L fully-qualified-class ;"</code> would mean the class uniquely specified by that name; e.g., the signature <code>"Ljava/lang/String;"</code> refers to the class <code>java.lang.String</code>. Also, prefixing <code>[</code> to the signature makes the array of that type; for example, <code>[I</code> means the int array type. Finally, a <code>void</code> signature uses the <code>V</code> code.</p>
+<p>Here, these types are interchangeable. You can use <code>jint</code> where you normally use an <code>int</code>, and vice-versa, without any typecasting required.</p>
+<p>However, mapping between Java Strings and arrays to native strings and arrays is different. If you use a <code>jstring</code> in where a <code>char *</code> would be, your code could crash the JVM.</p>
+<p>WHATSON? 42fd5acd-de10-4acc-abcb-58dfe851201d</p>
+<pre>
+/*C code*/
+JNIEXPORT void JNICALL Java_ClassName_MethodName
+        (JNIEnv *env, jobject obj, jstring javaString) {
+    // printf("%s", javaString);        // INCORRECT: Could crash VM!
+ 
+    // Correct way: Create and release native string from Java string
+    const char *nativeString = (*env)-&gt;GetStringUTFChars(env, javaString, 0);
+    printf("%s", nativeString);
+    (*env)-&gt;ReleaseStringUTFChars(env, javaString, nativeString);
+}
+</pre>
+<p>This is similar with Java arrays, as illustrated in the example below that takes the sum of all the elements in an array.</p>
+<p>WHATSON? 3cfe2b4f-e5d6-4207-8d4e-bdedf1feff4c</p>
+<pre>
+JNIEXPORT jint JNICALL Java_IntArray_sumArray
+        (JNIEnv *env, jobject obj, jintArray arr) {
+    jint buf[10];
+    jint i, sum = 0;
+    // This line is necessary, since Java arrays are not guaranteed
+    // to have a continuous memory layout like C arrays.
+    env-&gt;GetIntArrayRegion(arr, 0, 10, buf);
+    for (i = 0; i &lt; 10; i++) {
+        sum += buf[i];
+    }
+    return sum;
+}
+</pre>
+<p>Of course, there is much more to it than this. Look for links below for more information.</p>
+<h3>JNIEnv*</h3>
+<p>A JNI environment pointer (<tt>JNIEnv*</tt>) is passed as an argument for each native function mapped to a Java method, allowing for interaction with the JNI environment within the native method. This JNI interface pointer can be stored, but remains valid only in the current thread. Other threads must first call <tt>AttachCurrentThread()</tt> to attach themselves to the VM and obtain a JNI interface pointer. Once attached, a native thread works like a regular Java thread running within a native method. The native thread remains attached to the VM until it calls <tt>DetachCurrentThread()</tt> to detach itself.</p>
+<p>To attach to the current thread and get a JNI interface pointer:</p>
+<p>WHATSON? 0dbe570b-cfd3-4349-95ef-02a9e9f09faa</p>
+<pre>
+JNIEnv *env;
+(*g_vm)-&gt;AttachCurrentThread (g_vm, (void **) &amp;env, NULL);
+</pre>
+<p>To detach from the current thread:</p>
+<p>WHATSON? 3f4cb6e6-b3a9-4d38-930f-a6c0e81aafeb</p>
+<pre>
+(*g_vm)-&gt;DetachCurrentThread (g_vm);
+</pre>
+<h2>Advanced uses</h2>
+<h3>Native AWT painting</h3>
+<p>Not only can native code interface with Java, it can also draw on a Java <code>Canvas</code>, which is possible with the Java AWT Native Interface. The process is almost the same, with just a few changes. The Java AWT Native Interface is only available since J2SE 1.3.</p>
+<h3>Access to assembly code</h3>
+<p>JNI also allows direct access to assembly code, without even going through a C bridge. Accessing Java applications from assembly is also possible in the same way.</p>
+<h2>Microsoft's RNI</h2>
+<p>Microsoft's proprietary implementation of a Java Virtual Machine (Visual J++) had a similar mechanism for calling native Windows code from Java, called the <b>Raw Native Interface</b> (<b>RNI</b>). However, following the Sun - Microsoft litigation about this implementation, Visual J++ is no longer maintained.</p>
+<h2>Examples</h2>
+<h3>HelloWorld</h3>
+<p>make.sh</p>
+<p>WHATSON? 55c41a1c-cb05-4f45-bcf2-425d9441cf6b</p>
+<pre>
+#!/bin/sh
+ 
+# openbsd 4.9
+# gcc 4.2.1
+# openjdk 1.7.0
+ 
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:.
+javac HelloWorld.java
+javah HelloWorld
+gcc -shared HelloWorld.c -o libHelloWorld.so
+java HelloWorld
+</pre>
+<p>build.bat</p>
+<p>WHATSON? 46345ee8-993e-45cc-953b-ba381310eba6</p>
+<pre>
+:: Microsoft Visual Studio 2012 Visual C++ compiler
+SET VC="C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC"
+:: Microsoft Windows SDK for Windows 7 and .NET Framework 4 
+SET MSDK="C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A"
+:: Java 1.7.0 update 21
+SET JAVA_HOME="C:\Program Files (x86)\Java\jdk1.7.0_21"
+ 
+call %VC%\vcvarsall.bat
+ 
+javac HelloWorld.java
+javah HelloWorld
+%VC%\bin\cl /I%JAVA_HOME%\include /I%JAVA_HOME%\include\win32 /I%VC%\include /I%VC%\lib /I%MSDK%\Lib libHelloWorld.c /FelibHelloWorld.dll /LD
+java HelloWorld
+</pre>
+<p>HelloWorld.java</p>
+<p>WHATSON? 8fa86258-e7e3-4d34-8561-1d71edb7b55d</p>
+<pre>
+class HelloWorld
+{
+	private native void print();
+	public static void main(String[] args)
+	{
+		new HelloWorld().print();
+	}
+	static{
+		System.loadLibrary("HelloWorld");
+	}
+}
+</pre>
+<p>HelloWorld.h</p>
+<p>WHATSON? 671d440e-ddb4-4de8-816f-a2ebb098251f</p>
+<pre>
+/* DO NOT EDIT THIS FILE - it is machine generated */
+#include &lt;jni.h&gt;
+/* Header for class HelloWorld */
+ 
+#ifndef _Included_HelloWorld
+#define _Included_HelloWorld
+#ifdef __cplusplus
+extern "C" {
+#endif
+/*
+ * Class:     HelloWorld
+ * Method:    print
+ * Signature: ()V
+ */
+JNIEXPORT void JNICALL Java_HelloWorld_print
+  (JNIEnv *, jobject);
+ 
+#ifdef __cplusplus
+}
+#endif
+#endif
+</pre>
+<p>libHelloWorld.c</p>
+<p>WHATSON? 74414bd4-9355-4069-9cb6-581b98255c33</p>
+<pre>
+ #include &lt;stdio.h&gt;
+ #include "HelloWorld.h"
+ 
+ JNIEXPORT void JNICALL
+ Java_HelloWorld_print(JNIEnv *env, jobject obj)
+ {
+     printf("Hello World!\n");
+     return;
+ }
+</pre>
+<p>Invocation:</p>
+<p>WHATSON? e24c8193-045c-481c-9c8f-d2e0eee44093</p>
+<pre>
+$ chmod +x make.sh
+$ ./make.sh
+</pre>
+<h2>See also</h2>
+<ul>
+<li>Java AWT Native Interface</li>
+<li>Gluegen, a Java tool which automatically generates the Java and JNI code necessary to call C libraries from Java code</li>
+<li>P/Invoke, the .NET Framework method of calling native applications</li>
+<li>SWIG, a multilanguage interface-generator for C and C++ libraries that can generate JNI code</li>
+<li>Java Native Access provides Java programs easy access to native shared libraries without writing boilerplate code</li>
+</ul>
+</body>
+</html>

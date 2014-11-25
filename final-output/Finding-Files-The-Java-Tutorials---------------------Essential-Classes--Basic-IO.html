@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Finding-Files-The-Java-Tutorials---------------------Essential-Classes--Basic-IO.html</title></head>
+<body>
+<h1>Finding Files</h1>
+<p>If you have ever used a shell script, you have most likely used pattern matching to locate files. In fact, you have probably used it extensively. If you haven't used it, pattern matching uses special characters to create a pattern and then file names can be compared against that pattern. For example, in most shell scripts, the asterisk, <code>*</code>, matches any number of characters. For example, the following command lists all the files in the current directory that end in <code>.html</code>:</p>
+<p>WHATSON? 66e5739c-9ca1-4f68-ab36-68d06f567746</p>
+<pre>
+% ls *.html
+</pre>
+<p>The <code>java.nio.file</code> package provides programmatic support for this useful feature. Each file system implementation provides a 
+<code>PathMatcher</code>. You can retrieve a file system's <code>PathMatcher</code> by using the 
+<code>getPathMatcher(String)</code> method in the <code>FileSystem</code> class. The following code snippet fetches the path matcher for the default file system:</p>
+<p>WHATSON? 47147862-ccb5-4221-a4b1-1ae55aa1f716</p>
+<pre>
+String pattern = ...;
+PathMatcher matcher =
+    FileSystems.getDefault().getPathMatcher("glob:" + pattern);
+</pre>
+<p>The string argument passed to <code>getPathMatcher</code> specifies the syntax flavor and the pattern to be matched. This example specifies <em>glob</em> syntax. If you are unfamiliar with glob syntax, see 
+What is a Glob.</p>
+<p>Glob syntax is easy to use and flexible but, if you prefer, you can also use regular expressions, or <em>regex</em>, syntax. For further information about regex, see the 
+Regular Expressions lesson. Some file system implementations might support other syntaxes.</p>
+<p>If you want to use some other form of string-based pattern matching, you can create your own <code>PathMatcher</code> class. The examples in this page use glob syntax.</p>
+<p>Once you have created your <code>PathMatcher</code> instance, you are ready to match files against it. The <code>PathMatcher</code> interface has a single method, 
+<code>matches</code>, that takes a <code>Path</code> argument and returns a boolean: It either matches the pattern, or it does not. The following code snippet looks for files that end in <code>.java</code> or <code>.class</code> and prints those files to standard output:</p>
+<p>WHATSON? cea6d61b-42eb-4e71-bb6a-679752d6b98a</p>
+<pre>
+PathMatcher matcher =
+    FileSystems.getDefault().getPathMatcher("glob:*.{java,class}");
+
+Path filename = ...;
+if (matcher.matches(filename)) {
+    System.out.println(filename);
+}
+</pre>
+<h2>Recursive Pattern Matching</h2>
+<p>Searching for files that match a particular pattern goes hand-in-hand with walking a file tree. How many times do you know a file is <em>somewhere</em> on the file system, but where? Or perhaps you need to find all files in a file tree that have a particular file extension.</p>
+<p>The 
+<code>Find</code> example does precisely that. <code>Find</code> is similar to the UNIX <code>find</code> utility, but has pared down functionally. You can extend this example to include other functionality. For example, the <code>find</code> utility supports the <code>-prune</code> flag to exclude an entire subtree from the search. You could implement that functionality by returning <code>SKIP_SUBTREE</code> in the <code>preVisitDirectory</code> method. To implement the <code>-L</code> option, which follows symbolic links, you could use the four-argument <code>walkFileTree</code> method and pass in the <code>FOLLOW_LINKS</code> enum (but make sure that you test for circular links in the <code>visitFile</code> method).</p>
+<p>To run the Find application, use the following format:</p>
+<p>WHATSON? 2b157d8b-5026-4339-9ba0-9d4d4c667308</p>
+<pre>
+% java Find &lt;path&gt; -name "&lt;glob_pattern&gt;"
+</pre>
+<p>The pattern is placed inside quotation marks so any wildcards are not interpreted by the shell. For example:</p>
+<p>WHATSON? 82591e4e-b9e7-43cd-a8bf-b42250c1c062</p>
+<pre>
+% java Find . -name "*.html"
+</pre>
+<p>Here is the source code for the <code>Find</code> example:</p>
+<p>WHATSON? 522187eb-39bd-45bf-b8a8-53af588195bb</p>
+<pre>
+/**
+ * Sample code that finds files that match the specified glob pattern.
+ * For more information on what constitutes a glob pattern, see
+ * http://docs.oracle.com/javase/tutorial/essential/io/fileOps.html#glob
+ *
+ * The file or directories that match the pattern are printed to
+ * standard out.  The number of matches is also printed.
+ *
+ * When executing this application, you must put the glob pattern
+ * in quotes, so the shell will not expand any wild cards:
+ *              java Find . -name "*.java"
+ */
+
+import java.io.*;
+import java.nio.file.*;
+import java.nio.file.attribute.*;
+import static java.nio.file.FileVisitResult.*;
+import static java.nio.file.FileVisitOption.*;
+import java.util.*;
+
+
+public class Find {
+
+    public static class Finder
+        extends SimpleFileVisitor&lt;Path&gt; {
+
+        private final PathMatcher matcher;
+        private int numMatches = 0;
+
+        Finder(String pattern) {
+            matcher = FileSystems.getDefault()
+                    .getPathMatcher("glob:" + pattern);
+        }
+
+        // Compares the glob pattern against
+        // the file or directory name.
+        void find(Path file) {
+            Path name = file.getFileName();
+            if (name != null &amp;&amp; matcher.matches(name)) {
+                numMatches++;
+                System.out.println(file);
+            }
+        }
+
+        // Prints the total number of
+        // matches to standard out.
+        void done() {
+            System.out.println("Matched: "
+                + numMatches);
+        }
+
+        // Invoke the pattern matching
+        // method on each file.
+        @Override
+        public FileVisitResult visitFile(Path file,
+                BasicFileAttributes attrs) {
+            find(file);
+            return CONTINUE;
+        }
+
+        // Invoke the pattern matching
+        // method on each directory.
+        @Override
+        public FileVisitResult preVisitDirectory(Path dir,
+                BasicFileAttributes attrs) {
+            find(dir);
+            return CONTINUE;
+        }
+
+        @Override
+        public FileVisitResult visitFileFailed(Path file,
+                IOException exc) {
+            System.err.println(exc);
+            return CONTINUE;
+        }
+    }
+
+    static void usage() {
+        System.err.println("java Find &lt;path&gt;" +
+            " -name \"&lt;glob_pattern&gt;\"");
+        System.exit(-1);
+    }
+
+    public static void main(String[] args)
+        throws IOException {
+
+        if (args.length &lt; 3 || !args[1].equals("-name"))
+            usage();
+
+        Path startingDir = Paths.get(args[0]);
+        String pattern = args[2];
+
+        Finder finder = new Finder(pattern);
+        Files.walkFileTree(startingDir, finder);
+        finder.done();
+    }
+}
+</pre>
+<p>Recursively walking a file tree is covered in 
+Walking the File Tree.</p>
+</body>
+</html>

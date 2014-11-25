@@ -1,0 +1,282 @@
+<h1 itemprop="name">Supporting Different Screens in Web Apps</h1>
+<h2>In this document</h2>
+<ol>
+<li><a href="#Metadata">Using Viewport Metadata</a>
+  <ol>
+    <li><a href="#ViewportSize">Defining the viewport size</a></li>
+    <li><a href="#ViewportScale">Defining the viewport scale</a></li>
+    <li><a href="#ViewportDensity">Defining the viewport target density</a></li>
+  </ol>
+</li>
+<li><a href="#DensityCSS">Targeting Device Density with CSS</a></li>
+<li><a href="#DensityJS">targeting Device Density with JavaScript</a></li>
+</ol>
+<ol>
+    <li><a href="#ViewportSize">Defining the viewport size</a></li>
+    <li><a href="#ViewportScale">Defining the viewport scale</a></li>
+    <li><a href="#ViewportDensity">Defining the viewport target density</a></li>
+  </ol>
+<h2>See also</h2>
+<ul>
+  <li><a href="https://developers.google.com/chrome/mobile/docs/webview/pixelperfect">Pixel-Perfect UI in the WebView</a></li>
+  <li><a href="http://www.html5rocks.com/en/mobile/responsivedesign/" class="external-link">Creating
+  a Mobile-First Responsive Web Design</a></li>
+  <li><a href="http://www.html5rocks.com/en/mobile/high-dpi/" class="external-link">High
+  DPI Images for Variable Pixel Densities</a></li>
+</ul>
+<p>Because Android is available on devices with a variety of screen sizes and pixel densities, you
+should account for these factors in your web design so your web pages always appear at the
+appropriate size.</p>
+<p>When targeting your web pages for Android devices, there are two major factors that you
+should account for:</p>
+<h2 id="Viewport">Specifying Viewport Properties</h2>
+<p>The viewport is the area in which your web page is drawn. Although the viewport's total visible
+area matches the size of the screen when zoomed all the way out, the viewport has its own pixel
+dimensions that it makes available to a web page. For example, although a device screen might
+have physical a width
+of 480 pixels, the viewport can have a width of 800 pixels. This allows a web page designed at 800
+pixels wide to be completely visible on the screen when the viewport scale is 1.0. Most web browsers on
+Android (including Chrome) set the viewport to a large size by default (known as "wide viewport
+mode" at about 980px wide). Many browsers also zoom out as far as possible, by default, to
+show the full viewport width (known as "overview mode").</p>
+<p class="note"><strong>Note:</strong>
+When your page is rendered in a <code><a href="/reference/android/webkit/WebView.html">WebView</a></code>, it does not use wide viewport mode
+(the page appears at full zoom) by default. You can enable wide viewport mode
+with <code><a href="/reference/android/webkit/WebSettings.html#setUseWideViewPort(boolean)">setUseWideViewPort()</a></code>.</p>
+<p>You can define properties of the viewport for your web page, such as the width and initial zoom
+level, using the <code>&lt;meta name="viewport" ...&gt;</code> tag in your document
+<code>&lt;head&gt;</code>.</p>
+<p>The following syntax shows all of the
+supported viewport properties and the types of values accepted by each one:</p>
+<p>WHATSON? f0e1d3d8-b548-4788-a038-e07130863517</p>
+<pre>
+&lt;meta name="viewport"
+      content="
+          <b>height</b> = [<em>pixel_value</em> | "device-height"] ,
+          <b>width</b> = [<em>pixel_value</em> | "device-width"] ,
+          <b>initial-scale</b> = <em>float_value</em> ,
+          <b>minimum-scale</b> = <em>float_value</em> ,
+          <b>maximum-scale</b> = <em>float_value</em> ,
+          <b>user-scalable</b> = ["yes" | "no"]
+          " /&gt;
+</pre>
+<p>For example, the following <code>&lt;meta&gt;</code> tag specifies that the viewport width
+should exactly match the device screen's width and that the ability to zoom should be disabled:</p>
+<p>WHATSON? d57e3cb1-c708-4d69-befd-0a2649dae527</p>
+<pre>
+&lt;head&gt;
+    &lt;title&gt;Example&lt;/title&gt;
+    &lt;meta name="viewport" content="width=device-width, user-scalable=no" /&gt;
+&lt;/head&gt;
+</pre>
+<p>When optimizing your site for mobile devices, you should usually set the width to
+<code>"device-width"</code> so the size fits exactly on all devices, then use CSS media queries to 
+flexibly adapt layouts to suit different screen sizes.
+
+</p>
+<p class="note"><strong>Note:</strong> You should disable user scaling only when you're certain
+that your web page layout is flexible and the content will fit the width of small screens.</p>
+<h2 id="DensityCSS">Targeting Device Density with CSS</h2>
+<p>The Android Browser and <code><a href="/reference/android/webkit/WebView.html">WebView</a></code> support a CSS media feature that allows
+you to create styles for specific
+screen densities—the <code>-webkit-device-pixel-ratio</code> CSS media feature. The
+value you apply to this feature should be either
+"0.75", "1", or "1.5", to indicate that the styles are for devices with low density, medium density,
+or high density screens, respectively.</p>
+<p>For example, you can create separate stylesheets for each density:</p>
+<p>WHATSON? 75b293cc-315d-4885-b3af-b6824f108696</p>
+<pre>
+&lt;link rel="stylesheet" media="screen and (-webkit-device-pixel-ratio: 1.5)" href="hdpi.css" /&gt;
+&lt;link rel="stylesheet" media="screen and (-webkit-device-pixel-ratio: 1.0)" href="mdpi.css" /&gt;
+</pre>
+<p>Or, specify the different styles in one stylesheet:</p>
+<p>WHATSON? 0e4cbc5d-7283-4381-8e27-aeac31551136</p>
+<pre class="no-pretty-print">
+#header {
+    background:url(medium-density-image.png);
+}
+
+@media screen and (-webkit-device-pixel-ratio: 1.5) {
+    /* CSS for high-density screens */
+    #header {
+        background:url(high-density-image.png);
+    }
+}
+
+@media screen and (-webkit-device-pixel-ratio: 0.75) {
+    /* CSS for low-density screens */
+    #header {
+        background:url(low-density-image.png);
+    }
+}
+</pre>
+<p>For more information about handling different screen densities, especially images, see
+<a href="http://www.html5rocks.com/en/mobile/high-dpi/" class="external-link">High
+  DPI Images for Variable Pixel Densities</a>.
+
+
+</p>
+<h2 id="DensityJS">Targeting Device Density with JavaScript</h2>
+<p>The Android Browser and <code><a href="/reference/android/webkit/WebView.html">WebView</a></code> support a DOM property that allows you to
+query the density of the current
+device—the <code>window.devicePixelRatio</code> DOM property. The value of this property
+specifies the scaling factor used for the current device. For example, if the value
+of <code>window.devicePixelRatio</code> is "1.0", then the device is considered a medium density
+device and no scaling is applied by default; if the value is "1.5", then the device is
+considered a high density device and the page is scaled 1.5x by default; if the value
+is "0.75", then the device is considered a low density device and the page is scaled
+0.75x by default. Of course, the scaling that the Android Browser and <code><a href="/reference/android/webkit/WebView.html">WebView</a></code>
+apply is based on the web page's
+target density—as described in the section about <a href="#ViewportDensity">Defining the
+viewport target density</a>, the default target is medium-density, but you can change the
+target to affect how your web page is scaled for different screen densities.</p>
+<p>For example, here's how you can query the device density with JavaScript:</p>
+<p>WHATSON? 27c7702f-ff2d-48f1-a439-7a319f25c2ef</p>
+<pre>
+if (window.devicePixelRatio == 1.5) {
+  alert("This is a high-density screen");
+} else if (window.devicePixelRatio == 0.75) {
+  alert("This is a low-density screen");
+}
+</pre>
+<h1 itemprop="name">Supporting Different Screens in Web Apps</h1>
+<h2>In this document</h2>
+<ol>
+<li><a href="#Metadata">Using Viewport Metadata</a>
+  <ol>
+    <li><a href="#ViewportSize">Defining the viewport size</a></li>
+    <li><a href="#ViewportScale">Defining the viewport scale</a></li>
+    <li><a href="#ViewportDensity">Defining the viewport target density</a></li>
+  </ol>
+</li>
+<li><a href="#DensityCSS">Targeting Device Density with CSS</a></li>
+<li><a href="#DensityJS">targeting Device Density with JavaScript</a></li>
+</ol>
+<ol>
+    <li><a href="#ViewportSize">Defining the viewport size</a></li>
+    <li><a href="#ViewportScale">Defining the viewport scale</a></li>
+    <li><a href="#ViewportDensity">Defining the viewport target density</a></li>
+  </ol>
+<h2>See also</h2>
+<ul>
+  <li><a href="https://developers.google.com/chrome/mobile/docs/webview/pixelperfect">Pixel-Perfect UI in the WebView</a></li>
+  <li><a href="http://www.html5rocks.com/en/mobile/responsivedesign/" class="external-link">Creating
+  a Mobile-First Responsive Web Design</a></li>
+  <li><a href="http://www.html5rocks.com/en/mobile/high-dpi/" class="external-link">High
+  DPI Images for Variable Pixel Densities</a></li>
+</ul>
+<p>Because Android is available on devices with a variety of screen sizes and pixel densities, you
+should account for these factors in your web design so your web pages always appear at the
+appropriate size.</p>
+<p>When targeting your web pages for Android devices, there are two major factors that you
+should account for:</p>
+<h2 id="Viewport">Specifying Viewport Properties</h2>
+<p>The viewport is the area in which your web page is drawn. Although the viewport's total visible
+area matches the size of the screen when zoomed all the way out, the viewport has its own pixel
+dimensions that it makes available to a web page. For example, although a device screen might
+have physical a width
+of 480 pixels, the viewport can have a width of 800 pixels. This allows a web page designed at 800
+pixels wide to be completely visible on the screen when the viewport scale is 1.0. Most web browsers on
+Android (including Chrome) set the viewport to a large size by default (known as "wide viewport
+mode" at about 980px wide). Many browsers also zoom out as far as possible, by default, to
+show the full viewport width (known as "overview mode").</p>
+<p class="note"><strong>Note:</strong>
+When your page is rendered in a <code><a href="/reference/android/webkit/WebView.html">WebView</a></code>, it does not use wide viewport mode
+(the page appears at full zoom) by default. You can enable wide viewport mode
+with <code><a href="/reference/android/webkit/WebSettings.html#setUseWideViewPort(boolean)">setUseWideViewPort()</a></code>.</p>
+<p>You can define properties of the viewport for your web page, such as the width and initial zoom
+level, using the <code>&lt;meta name="viewport" ...&gt;</code> tag in your document
+<code>&lt;head&gt;</code>.</p>
+<p>The following syntax shows all of the
+supported viewport properties and the types of values accepted by each one:</p>
+<p>WHATSON? 8994f93a-27ca-42f7-ad89-d04d1fe09d42</p>
+<pre>
+&lt;meta name="viewport"
+      content="
+          <b>height</b> = [<em>pixel_value</em> | "device-height"] ,
+          <b>width</b> = [<em>pixel_value</em> | "device-width"] ,
+          <b>initial-scale</b> = <em>float_value</em> ,
+          <b>minimum-scale</b> = <em>float_value</em> ,
+          <b>maximum-scale</b> = <em>float_value</em> ,
+          <b>user-scalable</b> = ["yes" | "no"]
+          " /&gt;
+</pre>
+<p>For example, the following <code>&lt;meta&gt;</code> tag specifies that the viewport width
+should exactly match the device screen's width and that the ability to zoom should be disabled:</p>
+<p>WHATSON? 9bd8d836-de3a-4678-bc7a-a2c58160416d</p>
+<pre>
+&lt;head&gt;
+    &lt;title&gt;Example&lt;/title&gt;
+    &lt;meta name="viewport" content="width=device-width, user-scalable=no" /&gt;
+&lt;/head&gt;
+</pre>
+<p>When optimizing your site for mobile devices, you should usually set the width to
+<code>"device-width"</code> so the size fits exactly on all devices, then use CSS media queries to 
+flexibly adapt layouts to suit different screen sizes.
+
+</p>
+<p class="note"><strong>Note:</strong> You should disable user scaling only when you're certain
+that your web page layout is flexible and the content will fit the width of small screens.</p>
+<h2 id="DensityCSS">Targeting Device Density with CSS</h2>
+<p>The Android Browser and <code><a href="/reference/android/webkit/WebView.html">WebView</a></code> support a CSS media feature that allows
+you to create styles for specific
+screen densities—the <code>-webkit-device-pixel-ratio</code> CSS media feature. The
+value you apply to this feature should be either
+"0.75", "1", or "1.5", to indicate that the styles are for devices with low density, medium density,
+or high density screens, respectively.</p>
+<p>For example, you can create separate stylesheets for each density:</p>
+<p>WHATSON? 0bcc32ea-0408-4a4a-af4b-cb87ab5b3927</p>
+<pre>
+&lt;link rel="stylesheet" media="screen and (-webkit-device-pixel-ratio: 1.5)" href="hdpi.css" /&gt;
+&lt;link rel="stylesheet" media="screen and (-webkit-device-pixel-ratio: 1.0)" href="mdpi.css" /&gt;
+</pre>
+<p>Or, specify the different styles in one stylesheet:</p>
+<p>WHATSON? 97d2f42d-fecf-4b1f-a821-bce07ec56eea</p>
+<pre class="no-pretty-print">
+#header {
+    background:url(medium-density-image.png);
+}
+
+@media screen and (-webkit-device-pixel-ratio: 1.5) {
+    /* CSS for high-density screens */
+    #header {
+        background:url(high-density-image.png);
+    }
+}
+
+@media screen and (-webkit-device-pixel-ratio: 0.75) {
+    /* CSS for low-density screens */
+    #header {
+        background:url(low-density-image.png);
+    }
+}
+</pre>
+<p>For more information about handling different screen densities, especially images, see
+<a href="http://www.html5rocks.com/en/mobile/high-dpi/" class="external-link">High
+  DPI Images for Variable Pixel Densities</a>.
+
+
+</p>
+<h2 id="DensityJS">Targeting Device Density with JavaScript</h2>
+<p>The Android Browser and <code><a href="/reference/android/webkit/WebView.html">WebView</a></code> support a DOM property that allows you to
+query the density of the current
+device—the <code>window.devicePixelRatio</code> DOM property. The value of this property
+specifies the scaling factor used for the current device. For example, if the value
+of <code>window.devicePixelRatio</code> is "1.0", then the device is considered a medium density
+device and no scaling is applied by default; if the value is "1.5", then the device is
+considered a high density device and the page is scaled 1.5x by default; if the value
+is "0.75", then the device is considered a low density device and the page is scaled
+0.75x by default. Of course, the scaling that the Android Browser and <code><a href="/reference/android/webkit/WebView.html">WebView</a></code>
+apply is based on the web page's
+target density—as described in the section about <a href="#ViewportDensity">Defining the
+viewport target density</a>, the default target is medium-density, but you can change the
+target to affect how your web page is scaled for different screen densities.</p>
+<p>For example, here's how you can query the device density with JavaScript:</p>
+<p>WHATSON? f42a0bb3-7325-4fae-827b-99904aeb33ab</p>
+<pre>
+if (window.devicePixelRatio == 1.5) {
+  alert("This is a high-density screen");
+} else if (window.devicePixelRatio == 0.75) {
+  alert("This is a low-density screen");
+}
+</pre>

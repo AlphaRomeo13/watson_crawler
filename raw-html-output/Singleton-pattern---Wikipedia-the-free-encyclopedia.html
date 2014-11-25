@@ -1,0 +1,310 @@
+<h1 id="firstHeading" class="firstHeading" lang="en"><span dir="auto">Singleton pattern</span></h1>
+<p>In <a href="/wiki/Software_engineering" title="Software engineering">software engineering</a>, the <b>singleton pattern</b> is a <a href="/wiki/Design_pattern_(computer_science)" title="Design pattern (computer science)" class="mw-redirect">design pattern</a> that restricts the <a href="/wiki/Instantiation_(computer_science)" title="Instantiation (computer science)" class="mw-redirect">instantiation</a> of a class to one <a href="/wiki/Object-oriented_programming" title="Object-oriented programming">object</a>. This is useful when exactly one object is needed to coordinate actions across the system. The concept is sometimes generalized to systems that operate more efficiently when only one object exists, or that restrict the instantiation to a certain number of objects. The term comes from the <a href="/wiki/Singleton_(mathematics)" title="Singleton (mathematics)">mathematical concept of a singleton</a>.</p>
+<p>There is criticism of the use of the singleton pattern, as some consider it an <a href="/wiki/Anti-pattern" title="Anti-pattern">anti-pattern</a>, judging that it is overused, introduces unnecessary restrictions in situations where a sole instance of a class is not actually required, and introduces <a href="/wiki/Global_variables" title="Global variables" class="mw-redirect">global state</a> into an application.<sup id="cite_ref-1" class="reference"><a href="#cite_note-1"><span>[</span>1<span>]</span></a></sup><sup id="cite_ref-2" class="reference"><a href="#cite_note-2"><span>[</span>2<span>]</span></a></sup><sup id="cite_ref-3" class="reference"><a href="#cite_note-3"><span>[</span>3<span>]</span></a></sup><sup id="cite_ref-googletesting.blogspot.com_4-0" class="reference"><a href="#cite_note-googletesting.blogspot.com-4"><span>[</span>4<span>]</span></a></sup></p>
+<p>In <a href="/wiki/C%2B%2B" title="C++">C++</a> it also serves to isolate from the unpredictability of the order of dynamic initialization, returning control to the programmer.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Common_uses"><span class="tocnumber">1</span> <span class="toctext">Common uses</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#UML"><span class="tocnumber">2</span> <span class="toctext">UML</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#Implementation"><span class="tocnumber">3</span> <span class="toctext">Implementation</span></a></li>
+<li class="toclevel-1 tocsection-4"><a href="#Example"><span class="tocnumber">4</span> <span class="toctext">Example</span></a>
+<ul>
+<li class="toclevel-2 tocsection-5"><a href="#Lazy_initialization"><span class="tocnumber">4.1</span> <span class="toctext">Lazy initialization</span></a></li>
+<li class="toclevel-2 tocsection-6"><a href="#Eager_initialization"><span class="tocnumber">4.2</span> <span class="toctext">Eager initialization</span></a></li>
+<li class="toclevel-2 tocsection-7"><a href="#Static_block_initialization"><span class="tocnumber">4.3</span> <span class="toctext">Static block initialization</span></a></li>
+<li class="toclevel-2 tocsection-8"><a href="#Initialization-on-demand_holder_idiom"><span class="tocnumber">4.4</span> <span class="toctext">Initialization-on-demand holder idiom</span></a></li>
+<li class="toclevel-2 tocsection-9"><a href="#The_enum_way"><span class="tocnumber">4.5</span> <span class="toctext">The enum way</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-10"><a href="#Prototype-based_singleton"><span class="tocnumber">5</span> <span class="toctext">Prototype-based singleton</span></a></li>
+<li class="toclevel-1 tocsection-11"><a href="#Example_of_use_with_the_Abstract_Factory_pattern"><span class="tocnumber">6</span> <span class="toctext">Example of use with the Abstract Factory pattern</span></a></li>
+<li class="toclevel-1 tocsection-12"><a href="#References"><span class="tocnumber">7</span> <span class="toctext">References</span></a></li>
+<li class="toclevel-1 tocsection-13"><a href="#External_links"><span class="tocnumber">8</span> <span class="toctext">External links</span></a></li>
+</ul>
+<ul>
+<li class="toclevel-2 tocsection-5"><a href="#Lazy_initialization"><span class="tocnumber">4.1</span> <span class="toctext">Lazy initialization</span></a></li>
+<li class="toclevel-2 tocsection-6"><a href="#Eager_initialization"><span class="tocnumber">4.2</span> <span class="toctext">Eager initialization</span></a></li>
+<li class="toclevel-2 tocsection-7"><a href="#Static_block_initialization"><span class="tocnumber">4.3</span> <span class="toctext">Static block initialization</span></a></li>
+<li class="toclevel-2 tocsection-8"><a href="#Initialization-on-demand_holder_idiom"><span class="tocnumber">4.4</span> <span class="toctext">Initialization-on-demand holder idiom</span></a></li>
+<li class="toclevel-2 tocsection-9"><a href="#The_enum_way"><span class="tocnumber">4.5</span> <span class="toctext">The enum way</span></a></li>
+</ul>
+<p></p>
+<h2><span class="mw-headline" id="Common_uses">Common uses</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Singleton_pattern&amp;action=edit&amp;section=1" title="Edit section: Common uses">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul>
+<li>The <a href="/wiki/Abstract_factory_pattern" title="Abstract factory pattern">Abstract Factory</a>, <a href="/wiki/Builder_pattern" title="Builder pattern">Builder</a>, and <a href="/wiki/Prototype_pattern" title="Prototype pattern">Prototype</a> patterns can use Singletons in their implementation.</li>
+<li><a href="/wiki/Facade_pattern" title="Facade pattern">Facade</a> objects are often singletons because only one Facade object is required.</li>
+<li><a href="/wiki/State_pattern" title="State pattern">State objects</a> are often singletons.</li>
+<li>Singletons are often preferred to global variables because:
+<ul>
+<li>They do not pollute the global namespace (or, in languages with namespaces, their containing namespace) with unnecessary variables.<sup id="cite_ref-5" class="reference"><a href="#cite_note-5"><span>[</span>5<span>]</span></a></sup></li>
+<li>They permit <a href="/wiki/Lazy_evaluation" title="Lazy evaluation">lazy</a> allocation and initialization, whereas global variables in many languages will always consume resources.</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li>They do not pollute the global namespace (or, in languages with namespaces, their containing namespace) with unnecessary variables.<sup id="cite_ref-5" class="reference"><a href="#cite_note-5"><span>[</span>5<span>]</span></a></sup></li>
+<li>They permit <a href="/wiki/Lazy_evaluation" title="Lazy evaluation">lazy</a> allocation and initialization, whereas global variables in many languages will always consume resources.</li>
+</ul>
+<h2><span class="mw-headline" id="UML"><a href="/wiki/Unified_Modeling_Language" title="Unified Modeling Language">UML</a></span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Singleton_pattern&amp;action=edit&amp;section=2" title="Edit section: UML">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><a href="/wiki/File:Singleton.png" class="image"><img alt="Singleton.png" src="//upload.wikimedia.org/wikipedia/commons/b/bd/Singleton.png" width="241" height="82" data-file-width="241" data-file-height="82"></a></p>
+<h2><span class="mw-headline" id="Implementation">Implementation</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Singleton_pattern&amp;action=edit&amp;section=3" title="Edit section: Implementation">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><b>Implementation</b> of a singleton pattern must satisfy the single instance and global access principles. It requires a mechanism to access the singleton class member without creating a class object and a mechanism to persist the value of class members among class objects. The singleton pattern is implemented by creating a <a href="/wiki/Class_(computer_science)" title="Class (computer science)" class="mw-redirect">class</a> with a method that creates a new instance of the class if one does not exist. If an instance already exists, it simply returns a reference to that object. To make sure that the object cannot be instantiated any other way, the <a href="/wiki/Constructor_(computer_science)" title="Constructor (computer science)" class="mw-redirect">constructor</a> is made <a href="/wiki/Private_member" title="Private member" class="mw-redirect">private</a>. Note the <b>distinction</b> between a simple static instance of a class and a singleton: although a singleton can be implemented as a static instance, it can also be lazily constructed, requiring no memory or resources until needed.</p>
+<p>The singleton pattern must be carefully constructed in <a href="/wiki/Thread_(computer_science)" title="Thread (computer science)" class="mw-redirect">multi-threaded</a> applications. If two threads are to execute the creation method at the same time when a singleton does not yet exist, they both must check for an instance of the singleton and then only one should create the new one. If the programming language has concurrent processing capabilities the method should be constructed to execute as a mutually exclusive operation. The classic solution to this problem is to use <a href="/wiki/Mutual_exclusion" title="Mutual exclusion">mutual exclusion</a> on the class that indicates that the object is being <b>instantiated</b>.</p>
+<h2><span class="mw-headline" id="Example">Example</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Singleton_pattern&amp;action=edit&amp;section=4" title="Edit section: Example">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>The <a href="/wiki/Java_(programming_language)" title="Java (programming language)">Java programming language</a> solutions provided here are all <a href="/wiki/Thread-safe" title="Thread-safe" class="mw-redirect">thread-safe</a> but differ in supported language versions and <a href="/wiki/Lazy_initialization" title="Lazy initialization">lazy-loading</a>. Since Java 5.0, the easiest way to create a Singleton is the enum type approach, given at the end of this section.</p>
+<h3><span class="mw-headline" id="Lazy_initialization">Lazy initialization</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Singleton_pattern&amp;action=edit&amp;section=5" title="Edit section: Lazy initialization">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>This method uses <a href="/wiki/Double_checked_locking_pattern#Usage_in_Java" title="Double checked locking pattern" class="mw-redirect">double-checked locking</a>, which should not be used prior to <a href="/wiki/Java_Platform,_Standard_Edition" title="Java Platform, Standard Edition">J2SE 5.0</a>, as it is vulnerable to subtle bugs. The problem is that an out-of-order write may allow the <code>instance</code> reference to be returned before the <code>Singleton</code> constructor is executed.<sup id="cite_ref-IBM_6-0" class="reference"><a href="#cite_note-IBM-6"><span>[</span>6<span>]</span></a></sup></p>
+<p>WHATSON? 398e76cd-51c7-4faa-9687-626f37a71b9d</p>
+<pre class="de1">
+<span class="kw1">public</span> <span class="kw1">class</span> SingletonDemo <span class="br0">{</span>
+    <span class="kw1">private</span> <span class="kw1">static</span> <span class="kw1">volatile</span> SingletonDemo instance <span class="sy0">=</span> <span class="kw2">null</span><span class="sy0">;</span>
+    <span class="kw1">private</span> SingletonDemo<span class="br0">(</span><span class="br0">)</span> <span class="br0">{</span> <span class="br0">}</span>
+ 
+    <span class="kw1">public</span> <span class="kw1">static</span> SingletonDemo getInstance<span class="br0">(</span><span class="br0">)</span> <span class="br0">{</span>
+        <span class="kw1">if</span> <span class="br0">(</span>instance <span class="sy0">==</span> <span class="kw2">null</span><span class="br0">)</span> <span class="br0">{</span>
+            <span class="kw1">synchronized</span> <span class="br0">(</span>SingletonDemo.<span class="kw1">class</span><span class="br0">)</span> <span class="br0">{</span>
+                <span class="kw1">if</span> <span class="br0">(</span>instance <span class="sy0">==</span> <span class="kw2">null</span><span class="br0">)</span> <span class="br0">{</span>
+                    instance <span class="sy0">=</span> <span class="kw1">new</span> SingletonDemo<span class="br0">(</span><span class="br0">)</span><span class="sy0">;</span>
+                <span class="br0">}</span>
+            <span class="br0">}</span>
+        <span class="br0">}</span>
+ 
+        <span class="kw1">return</span> instance<span class="sy0">;</span>
+    <span class="br0">}</span>
+<span class="br0">}</span>
+</pre>
+<p>An alternate simpler and cleaner version may be used at the expense of potentially lower concurrency in a multithreaded environment:</p>
+<p>WHATSON? 2bc5c146-f688-4d35-ae9c-a846f05090d9</p>
+<pre class="de1">
+<span class="kw1">public</span> <span class="kw1">class</span> SingletonDemo <span class="br0">{</span>
+    <span class="kw1">private</span> <span class="kw1">static</span> SingletonDemo instance <span class="sy0">=</span> <span class="kw2">null</span><span class="sy0">;</span>
+    <span class="kw1">private</span> SingletonDemo<span class="br0">(</span><span class="br0">)</span> <span class="br0">{</span> <span class="br0">}</span>
+ 
+    <span class="kw1">public</span> <span class="kw1">static</span> <span class="kw1">synchronized</span> SingletonDemo getInstance<span class="br0">(</span><span class="br0">)</span> <span class="br0">{</span>
+        <span class="kw1">if</span> <span class="br0">(</span>instance <span class="sy0">==</span> <span class="kw2">null</span><span class="br0">)</span> <span class="br0">{</span>
+            instance <span class="sy0">=</span> <span class="kw1">new</span> SingletonDemo<span class="br0">(</span><span class="br0">)</span><span class="sy0">;</span>
+        <span class="br0">}</span>
+ 
+        <span class="kw1">return</span> instance<span class="sy0">;</span>
+    <span class="br0">}</span>
+<span class="br0">}</span>
+</pre>
+<h3><span class="mw-headline" id="Eager_initialization">Eager initialization</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Singleton_pattern&amp;action=edit&amp;section=6" title="Edit section: Eager initialization">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>If the program will always need an instance, or if the cost of creating the instance is not too large in terms of time/resources, the programmer can switch to eager initialization, which always creates an instance:</p>
+<p>WHATSON? 92ff9518-8da8-4626-a489-b488716072fc</p>
+<pre class="de1">
+<span class="kw1">public</span> <span class="kw1">class</span> Singleton <span class="br0">{</span>
+    <span class="kw1">private</span> <span class="kw1">static</span> <span class="kw1">final</span> Singleton INSTANCE <span class="sy0">=</span> <span class="kw1">new</span> Singleton<span class="br0">(</span><span class="br0">)</span><span class="sy0">;</span>
+ 
+    <span class="kw1">private</span> Singleton<span class="br0">(</span><span class="br0">)</span> <span class="br0">{</span><span class="br0">}</span>
+ 
+    <span class="kw1">public</span> <span class="kw1">static</span> Singleton getInstance<span class="br0">(</span><span class="br0">)</span> <span class="br0">{</span>
+        <span class="kw1">return</span> INSTANCE<span class="sy0">;</span>
+    <span class="br0">}</span>
+<span class="br0">}</span>
+</pre>
+<p>This method has a number of advantages:</p>
+<ul>
+<li>The instance is not constructed until the class is used.</li>
+<li>There is no need to <code>synchronize</code> the <code>getInstance()</code> method, meaning all threads will see the same instance and no (expensive) locking is required.</li>
+<li>The <code>final</code> keyword means that the instance cannot be redefined, ensuring that one (and only one) instance ever exists.</li>
+</ul>
+<h3><span class="mw-headline" id="Static_block_initialization">Static block initialization</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Singleton_pattern&amp;action=edit&amp;section=7" title="Edit section: Static block initialization">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Some authors refer to a similar solution allowing some pre-processing (e.g. for error-checking).<sup id="cite_ref-7" class="reference"><a href="#cite_note-7"><span>[</span>7<span>]</span></a></sup> In this sense, the traditional approach could be seen as a particular case of this one, as the class loader would do exactly the same processing.</p>
+<p>WHATSON? a82599ef-0092-44fd-b6c1-1fe9d13c8859</p>
+<pre class="de1">
+<span class="kw1">public</span> <span class="kw1">class</span> Singleton <span class="br0">{</span>
+    <span class="kw1">private</span> <span class="kw1">static</span> <span class="kw1">final</span> Singleton instance<span class="sy0">;</span>
+ 
+    <span class="kw1">static</span> <span class="br0">{</span>
+        <span class="kw1">try</span> <span class="br0">{</span>
+            instance <span class="sy0">=</span> <span class="kw1">new</span> Singleton<span class="br0">(</span><span class="br0">)</span><span class="sy0">;</span>
+        <span class="br0">}</span> <span class="kw1">catch</span> <span class="br0">(</span><span class="kw3">Exception</span> e<span class="br0">)</span> <span class="br0">{</span>
+            <span class="kw1">throw</span> <span class="kw1">new</span> <span class="kw3">RuntimeException</span><span class="br0">(</span><span class="st0">"Darn, an error occurred!"</span>, e<span class="br0">)</span><span class="sy0">;</span>
+        <span class="br0">}</span>
+    <span class="br0">}</span>
+ 
+    <span class="kw1">public</span> <span class="kw1">static</span> Singleton getInstance<span class="br0">(</span><span class="br0">)</span> <span class="br0">{</span>
+        <span class="kw1">return</span> instance<span class="sy0">;</span>
+    <span class="br0">}</span>
+ 
+    <span class="kw1">private</span> Singleton<span class="br0">(</span><span class="br0">)</span> <span class="br0">{</span>
+        <span class="co1">// ...</span>
+    <span class="br0">}</span>
+<span class="br0">}</span>
+</pre>
+<h3><span class="mw-headline" id="Initialization-on-demand_holder_idiom">Initialization-on-demand holder idiom</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Singleton_pattern&amp;action=edit&amp;section=8" title="Edit section: Initialization-on-demand holder idiom">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p><a href="/wiki/University_of_Maryland,_College_Park" title="University of Maryland, College Park">University of Maryland</a> Computer Science researcher <a href="/wiki/William_Pugh" title="William Pugh">Bill Pugh</a> has written about the code issues underlying the Singleton pattern when implemented in Java.<sup id="cite_ref-8" class="reference"><a href="#cite_note-8"><span>[</span>8<span>]</span></a></sup> Pugh's efforts on the "<a href="/wiki/Double-checked_locking" title="Double-checked locking">Double-checked locking</a>" idiom led to changes in the Java memory model in Java 5 and to what is generally regarded as the standard method to implement Singletons in Java. The technique known as the <a href="/wiki/Initialization-on-demand_holder_idiom" title="Initialization-on-demand holder idiom">initialization-on-demand holder idiom</a> is as lazy as possible, and works in all known versions of Java. It takes advantage of language guarantees about class initialization, and will therefore work correctly in all Java-compliant compilers and virtual machines.</p>
+<p>The nested class is referenced no earlier (and therefore loaded no earlier by the class loader) than the moment that getInstance() is called. Thus, this solution is <a href="/wiki/Thread_safety" title="Thread safety">thread-safe</a> without requiring special language constructs (<i>i.e.</i> <code>volatile</code> or <code>synchronized</code>).</p>
+<p>WHATSON? dec3e690-a867-4154-8982-da08439381cc</p>
+<pre class="de1">
+<span class="kw1">public</span> <span class="kw1">class</span> Singleton <span class="br0">{</span>
+        <span class="co1">// Private constructor. Prevents instantiation from other classes.</span>
+        <span class="kw1">private</span> Singleton<span class="br0">(</span><span class="br0">)</span> <span class="br0">{</span> <span class="br0">}</span>
+ 
+        <span class="co3">/**
+         * Initializes singleton.
+         *
+         * SingletonHolder is loaded on the first execution of Singleton.getInstance()
+         * or the first access to SingletonHolder.INSTANCE, not before.
+         */</span>
+        <span class="kw1">private</span> <span class="kw1">static</span> <span class="kw1">class</span> SingletonHolder <span class="br0">{</span>
+                <span class="kw1">private</span> <span class="kw1">static</span> <span class="kw1">final</span> Singleton INSTANCE <span class="sy0">=</span> <span class="kw1">new</span> Singleton<span class="br0">(</span><span class="br0">)</span><span class="sy0">;</span>
+        <span class="br0">}</span>
+ 
+        <span class="kw1">public</span> <span class="kw1">static</span> Singleton getInstance<span class="br0">(</span><span class="br0">)</span> <span class="br0">{</span>
+                <span class="kw1">return</span> SingletonHolder.<span class="me1">INSTANCE</span><span class="sy0">;</span>
+        <span class="br0">}</span>
+<span class="br0">}</span>
+</pre>
+<p>Alternatively, the inner class SingletonHolder can also be substituted by implementing a Property which provides also access to the static final/read-only class members. Just like the lazy object in C#, whenever the Singleton.INSTANCE property is called, this singleton is instantiated for the very first time.</p>
+<h3><span class="mw-headline" id="The_enum_way">The enum way</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Singleton_pattern&amp;action=edit&amp;section=9" title="Edit section: The enum way">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>In the second edition of his book <i>Effective Java</i>, <a href="/wiki/Joshua_Bloch" title="Joshua Bloch">Joshua Bloch</a> claims that "a single-element enum type is the best way to implement a singleton"<sup id="cite_ref-9" class="reference"><a href="#cite_note-9"><span>[</span>9<span>]</span></a></sup> for any Java that supports <a href="/wiki/Enums" title="Enums" class="mw-redirect">enums</a>. The use of an enum is very easy to implement and has no drawbacks regarding serializable objects, which have to be circumvented in the other ways.</p>
+<p>WHATSON? fc12fae4-0a2d-4ca2-9d2d-bc084fdb7761</p>
+<pre class="de1">
+<span class="kw1">public</span> <span class="kw1">enum</span> Singleton <span class="br0">{</span>
+    INSTANCE<span class="sy0">;</span>
+    <span class="kw1">public</span> <span class="kw4">void</span> execute <span class="br0">(</span><span class="kw3">String</span> arg<span class="br0">)</span> <span class="br0">{</span>
+        <span class="co1">// Perform operation here </span>
+    <span class="br0">}</span>
+<span class="br0">}</span>
+</pre>
+<p>The public method can be written to take any desired types of arguments; a single String argument is used here as an example.</p>
+<p>This approach implements the singleton by taking advantage of Java's guarantee that any enum value is instantiated only once in a Java program. Since Java enum values are globally accessible, so is the singleton, initialized lazily by the class loader. The drawback is that the enum type is somewhat inflexible.</p>
+<h2><span class="mw-headline" id="Prototype-based_singleton">Prototype-based singleton</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Singleton_pattern&amp;action=edit&amp;section=10" title="Edit section: Prototype-based singleton">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>In a <a href="/wiki/Prototype-based_programming" title="Prototype-based programming">prototype-based programming</a> language, where objects but not classes are used, a "singleton" simply refers to an object without copies or that is not used as the prototype for any other object. Example in <a href="/wiki/Io_(programming_language)" title="Io (programming language)">Io</a>:</p>
+<p>WHATSON? 17b91385-aeb1-4c04-8c2b-f2598b0d1bb4</p>
+<pre>
+Foo := Object clone
+Foo clone := Foo
+</pre>
+<h2><span class="mw-headline" id="Example_of_use_with_the_Abstract_Factory_pattern">Example of use with the Abstract Factory pattern</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Singleton_pattern&amp;action=edit&amp;section=11" title="Edit section: Example of use with the Abstract Factory pattern">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>The singleton pattern is often used in conjunction with the <a href="/wiki/Abstract_Factory_pattern" title="Abstract Factory pattern" class="mw-redirect">Abstract Factory pattern</a> to create a system-wide resource whose specific type is not known to the code that uses it. An example of using these two patterns together is the Java <a href="/wiki/Abstract_Window_Toolkit" title="Abstract Window Toolkit">Abstract Window Toolkit</a> (AWT).</p>
+<p><code><a rel="nofollow" class="external text" href="http://docs.oracle.com/javase/8/docs/api/java/awt/Toolkit.html">java.awt.Toolkit</a></code> is an <a href="/wiki/Abstract_class" title="Abstract class" class="mw-redirect">abstract class</a> that <a href="/wiki/Name_binding" title="Name binding">binds</a> the various AWT components to particular native toolkit implementations. The <code>Toolkit</code> class has a <code><a rel="nofollow" class="external text" href="http://docs.oracle.com/javase/8/docs/api/java/awt/Toolkit.html#getDefaultToolkit()">Toolkit.getDefaultToolkit()</a></code> factory method that returns the <a href="/wiki/Platform-specific_model" title="Platform-specific model">platform-specific</a> <a href="/wiki/Subclass_(computer_science)" title="Subclass (computer science)" class="mw-redirect">subclass</a> of <code>Toolkit</code>. The <code>Toolkit</code> object is a singleton because the AWT needs only a single object to perform the binding and the object is relatively expensive to create. The toolkit methods must be implemented in an object and not as <a href="/wiki/Static_method" title="Static method" class="mw-redirect">static methods</a> of a class because the specific implementation is not known by the platform-independent components. The name of the specific <code>Toolkit</code> subclass used is specified by the "<tt>awt.toolkit</tt>" <a href="/w/index.php?title=Environment_property&amp;action=edit&amp;redlink=1" class="new" title="Environment property (page does not exist)">environment property</a> accessed through <code><a rel="nofollow" class="external text" href="http://docs.oracle.com/javase/8/docs/api/java/lang/System.html#getProperties()">System.getProperties()</a></code>.</p>
+<p>The binding performed by the toolkit allows, for example, the backing implementation of a <code><a rel="nofollow" class="external text" href="http://docs.oracle.com/javase/8/docs/api/java/awt/Window.html">java.awt.Window</a></code> to bind to the platform-specific <code>java.awt.peer.WindowPeer</code> implementation. Neither the <code>Window</code> class nor the application using the window needs to be aware of which platform-specific subclass of the peer is used.</p>
+<h2><span class="mw-headline" id="References">References</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Singleton_pattern&amp;action=edit&amp;section=12" title="Edit section: References">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ol class="references">
+<li id="cite_note-1"><span class="mw-cite-backlink"><b><a href="#cite_ref-1">^</a></b></span> <span class="reference-text">Alex Miller. <a rel="nofollow" class="external text" href="http://tech.puredanger.com/2007/07/03/pattern-hate-singleton/">Patterns I hate #1: Singleton</a>, July 2007</span></li>
+<li id="cite_note-2"><span class="mw-cite-backlink"><b><a href="#cite_ref-2">^</a></b></span> <span class="reference-text">Scott Densmore. <a rel="nofollow" class="external text" href="http://blogs.msdn.com/scottdensmore/archive/2004/05/25/140827.aspx">Why singletons are evil</a>, May 2004</span></li>
+<li id="cite_note-3"><span class="mw-cite-backlink"><b><a href="#cite_ref-3">^</a></b></span> <span class="reference-text">Steve Yegge. <a rel="nofollow" class="external text" href="http://steve.yegge.googlepages.com/singleton-considered-stupid">Singletons considered stupid</a>, September 2004</span></li>
+<li id="cite_note-googletesting.blogspot.com-4"><span class="mw-cite-backlink"><b><a href="#cite_ref-googletesting.blogspot.com_4-0">^</a></b></span> <span class="reference-text"><a rel="nofollow" class="external text" href="http://googletesting.blogspot.com/2008/11/clean-code-talks-global-state-and.html">Clean Code Talks - Global State and Singletons</a></span></li>
+<li id="cite_note-5"><span class="mw-cite-backlink"><b><a href="#cite_ref-5">^</a></b></span> <span class="reference-text">Gamma, E, Helm, R, Johnson, R, Vlissides, J: "Design Patterns", page 128. Addison-Wesley, 1995</span></li>
+<li id="cite_note-IBM-6"><span class="mw-cite-backlink"><b><a href="#cite_ref-IBM_6-0">^</a></b></span> <span class="reference-text"><span class="citation web">Haggar, Peter (1 May 2002). <a rel="nofollow" class="external text" href="http://www.ibm.com/developerworks/java/library/j-dcl/index.html">"Double-checked locking and the Singleton pattern"</a>. IBM.</span><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3ASingleton+pattern&amp;rft.aufirst=Peter&amp;rft.au=Haggar%2C+Peter&amp;rft.aulast=Haggar&amp;rft.btitle=Double-checked+locking+and+the+Singleton+pattern&amp;rft.date=1+May+2002&amp;rft.genre=book&amp;rft_id=http%3A%2F%2Fwww.ibm.com%2Fdeveloperworks%2Fjava%2Flibrary%2Fj-dcl%2Findex.html&amp;rft.pub=IBM&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook" class="Z3988"><span style="display:none;"> </span></span></span></li>
+<li id="cite_note-7"><span class="mw-cite-backlink"><b><a href="#cite_ref-7">^</a></b></span> <span class="reference-text"><span class="citation web">Coffey, Neil (November 16, 2008). <a rel="nofollow" class="external text" href="http://www.javamex.com/tutorials/double_checked_locking_fixing.shtml">"JavaMex tutorials"</a><span class="reference-accessdate">. Retrieved April 10, 2012</span>.</span><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3ASingleton+pattern&amp;rft.au=Coffey%2C+Neil&amp;rft.aufirst=Neil&amp;rft.aulast=Coffey&amp;rft.btitle=JavaMex+tutorials&amp;rft.date=November+16%2C+2008&amp;rft.genre=book&amp;rft_id=http%3A%2F%2Fwww.javamex.com%2Ftutorials%2Fdouble_checked_locking_fixing.shtml&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook" class="Z3988"><span style="display:none;"> </span></span></span></li>
+<li id="cite_note-8"><span class="mw-cite-backlink"><b><a href="#cite_ref-8">^</a></b></span> <span class="reference-text"><span class="citation web"><a href="/wiki/William_Pugh" title="William Pugh">Pugh, Bill</a> (November 16, 2008). <a rel="nofollow" class="external text" href="http://www.cs.umd.edu/~pugh/java/memoryModel/">"The Java Memory Model"</a><span class="reference-accessdate">. Retrieved April 27, 2009</span>.</span><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3ASingleton+pattern&amp;rft.aufirst=Bill&amp;rft.aulast=Pugh&amp;rft.au=Pugh%2C+Bill&amp;rft.btitle=The+Java+Memory+Model&amp;rft.date=November+16%2C+2008&amp;rft.genre=book&amp;rft_id=http%3A%2F%2Fwww.cs.umd.edu%2F~pugh%2Fjava%2FmemoryModel%2F&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook" class="Z3988"><span style="display:none;"> </span></span></span></li>
+<li id="cite_note-9"><span class="mw-cite-backlink"><b><a href="#cite_ref-9">^</a></b></span> <span class="reference-text">Joshua Bloch: <i>Effective Java</i> 2nd edition, <a href="/wiki/Special:BookSources/9780321356680" class="internal mw-magiclink-isbn">ISBN 978-0-321-35668-0</a>, 2008, p. 18</span></li>
+</ol>
+<ul>
+<li><a rel="nofollow" class="external text" href="http://www.aristeia.com/Papers/DDJ_Jul_Aug_2004_revised.pdf#search=%22meyers%20double%20checked%20locking%22">"C++ and the Perils of Double-Checked Locking"</a> Meyers, Scott and Alexandrescu, Andrei, September 2004.</li>
+<li><a rel="nofollow" class="external text" href="http://www.ddj.com/dept/cpp/184401518">"The Boost.Threads Library"</a> Kempf, B., Dr. Dobb's Portal, April 2003.</li>
+</ul>
+<h2><span class="mw-headline" id="External_links">External links</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Singleton_pattern&amp;action=edit&amp;section=13" title="Edit section: External links">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul>
+<li>Complete article "<a rel="nofollow" class="external text" href="http://howtodoinjava.com/2012/10/22/singleton-design-pattern-in-java/">Singleton Design Pattern techniques</a>"</li>
+<li>4 different ways to implement singleton in Java "<a rel="nofollow" class="external text" href="http://www.javaexperience.com/design-patterns-singleton-design-pattern/">Ways to implement singleton in Java</a>"</li>
+<li>Book extract: <a rel="nofollow" class="external text" href="http://csharpindepth.com/Articles/General/Singleton.aspx">Implementing the Singleton Pattern in C#</a> by Jon Skeet</li>
+<li><a rel="nofollow" class="external text" href="http://msdn.microsoft.com/en-us/library/ms998426.aspx">Singleton at Microsoft patterns &amp; practices Developer Center</a></li>
+<li><a rel="nofollow" class="external text" href="http://ruby-doc.org/stdlib/libdoc/singleton/rdoc/index.html">Ruby standard library documentation for Singleton</a></li>
+<li>IBM article "<a rel="nofollow" class="external text" href="http://www-128.ibm.com/developerworks/java/library/j-dcl.html?loc=j">Double-checked locking and the Singleton pattern</a>" by Peter Haggar</li>
+<li>IBM article "<a rel="nofollow" class="external text" href="http://www.ibm.com/developerworks/library/co-single/">Use your singletons wisely</a>" by <a href="/wiki/J._B._Rainsberger" title="J. B. Rainsberger">J. B. Rainsberger</a></li>
+<li>Javaworld article "<a rel="nofollow" class="external text" href="http://www.javaworld.com/javaworld/jw-04-2003/jw-0425-designpatterns.html">Simply Singleton</a>" by David Geary</li>
+<li>Google article "<a rel="nofollow" class="external text" href="http://code.google.com/p/google-singleton-detector/wiki/WhySingletonsAreControversial">Why Singletons Are Controversial</a>"</li>
+<li><a rel="nofollow" class="external text" href="http://code.google.com/p/google-singleton-detector/">Google Singleton Detector</a> (analyzes <a href="/wiki/Java_bytecode" title="Java bytecode">Java bytecode</a> to detect singletons)</li>
+<li><a rel="nofollow" class="external text" href="http://idiotechie.com/singleton-design-pattern-an-introspection-and-best-practices/">Singleton Design Pattern -An introspection with Best practices</a></li>
+</ul>
+<ul>
+<li class="nv-view"><a href="/wiki/Template:Design_Patterns_patterns" title="Template:Design Patterns patterns"><span title="View this template" style=";;background:none transparent;border:none;;">v</span></a></li>
+<li class="nv-talk"><a href="/w/index.php?title=Template_talk:Design_Patterns_patterns&amp;action=edit&amp;redlink=1" class="new" title="Template talk:Design Patterns patterns (page does not exist)"><span title="Discuss this template" style=";;background:none transparent;border:none;;">t</span></a></li>
+<li class="nv-edit"><a class="external text" href="//en.wikipedia.org/w/index.php?title=Template:Design_Patterns_patterns&amp;action=edit"><span title="Edit this template" style=";;background:none transparent;border:none;;">e</span></a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Abstract_factory_pattern" title="Abstract factory pattern">Abstract factory</a></li>
+<li><a href="/wiki/Builder_pattern" title="Builder pattern">Builder</a></li>
+<li><a href="/wiki/Factory_method_pattern" title="Factory method pattern">Factory method</a></li>
+<li><a href="/wiki/Prototype_pattern" title="Prototype pattern">Prototype</a></li>
+<li><strong class="selflink">Singleton</strong></li>
+</ul>
+<ul>
+<li><a href="/wiki/Adapter_pattern" title="Adapter pattern">Adapter</a></li>
+<li><a href="/wiki/Bridge_pattern" title="Bridge pattern">Bridge</a></li>
+<li><a href="/wiki/Composite_pattern" title="Composite pattern">Composite</a></li>
+<li><a href="/wiki/Decorator_pattern" title="Decorator pattern">Decorator</a></li>
+<li><a href="/wiki/Facade_pattern" title="Facade pattern">Facade</a></li>
+<li><a href="/wiki/Flyweight_pattern" title="Flyweight pattern">Flyweight</a></li>
+<li><a href="/wiki/Proxy_pattern" title="Proxy pattern">Proxy</a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Chain-of-responsibility_pattern" title="Chain-of-responsibility pattern">Chain of responsibility</a></li>
+<li><a href="/wiki/Command_pattern" title="Command pattern">Command</a></li>
+<li><a href="/wiki/Interpreter_pattern" title="Interpreter pattern">Interpreter</a></li>
+<li><a href="/wiki/Iterator_pattern" title="Iterator pattern">Iterator</a></li>
+<li><a href="/wiki/Mediator_pattern" title="Mediator pattern">Mediator</a></li>
+<li><a href="/wiki/Memento_pattern" title="Memento pattern">Memento</a></li>
+<li><a href="/wiki/Observer_pattern" title="Observer pattern">Observer</a></li>
+<li><a href="/wiki/State_pattern" title="State pattern">State</a></li>
+<li><a href="/wiki/Strategy_pattern" title="Strategy pattern">Strategy</a></li>
+<li><a href="/wiki/Template_method_pattern" title="Template method pattern">Template method</a></li>
+<li><a href="/wiki/Visitor_pattern" title="Visitor pattern">Visitor</a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Active_object" title="Active object">Active object</a></li>
+<li><a href="/wiki/Balking_pattern" title="Balking pattern">Balking</a></li>
+<li><a href="/wiki/Double-checked_locking" title="Double-checked locking">Double-checked locking</a></li>
+<li><a href="/wiki/Asynchronous_method_invocation" title="Asynchronous method invocation">Event-based asynchronous</a></li>
+<li><a href="/wiki/Guarded_suspension" title="Guarded suspension">Guarded suspension</a></li>
+<li><a href="/wiki/Join-pattern" title="Join-pattern">Join</a></li>
+<li><a href="/wiki/Lock_pattern" title="Lock pattern" class="mw-redirect">Lock</a></li>
+<li><a href="/wiki/Monitor_(synchronization)" title="Monitor (synchronization)">Monitor</a></li>
+<li><a href="/wiki/Proactor_pattern" title="Proactor pattern">Proactor</a></li>
+<li><a href="/wiki/Reactor_pattern" title="Reactor pattern">Reactor</a></li>
+<li><a href="/wiki/Readers%E2%80%93writer_lock" title="Readers–writer lock">Read write lock</a></li>
+<li><a href="/wiki/Scheduler_pattern" title="Scheduler pattern">Scheduler</a></li>
+<li><a href="/wiki/Thread_pool_pattern" title="Thread pool pattern">Thread pool</a></li>
+<li><a href="/wiki/Thread-local_storage" title="Thread-local storage">Thread-local storage</a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Front_controller" title="Front controller" class="mw-redirect">Front controller</a></li>
+<li><a href="/wiki/Interceptor_pattern" title="Interceptor pattern">Interceptor</a></li>
+<li><a href="/wiki/Model%E2%80%93view%E2%80%93controller" title="Model–view–controller">MVC</a></li>
+<li><a href="/wiki/Multitier_architecture" title="Multitier architecture"><i>n</i>-tier</a></li>
+<li><a href="/wiki/Specification_pattern" title="Specification pattern">Specification</a></li>
+<li><a href="/wiki/Publish%E2%80%93subscribe_pattern" title="Publish–subscribe pattern">Publish-subscribe</a></li>
+<li><a href="/wiki/Naked_objects" title="Naked objects">Naked objects</a></li>
+<li><a href="/wiki/Service_locator_pattern" title="Service locator pattern">Service Locator</a></li>
+<li><a href="/wiki/Active_record" title="Active record" class="mw-redirect">Active record</a></li>
+<li><a href="/wiki/Identity_map_pattern" title="Identity map pattern">Identity map</a></li>
+<li><a href="/wiki/Data_access_object" title="Data access object">Data access object</a></li>
+<li><a href="/wiki/Data_transfer_object" title="Data transfer object">Data transfer object</a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Dependency_injection" title="Dependency injection">Dependency injection</a></li>
+<li><a href="/wiki/Lazy_loading" title="Lazy loading">Lazy loading</a></li>
+<li><a href="/wiki/Mock_object" title="Mock object">Mock object</a></li>
+<li><a href="/wiki/Null_object_pattern" title="Null object pattern" class="mw-redirect">Null object</a></li>
+<li><a href="/wiki/Object_pool_pattern" title="Object pool pattern">Object pool</a></li>
+<li><a href="/wiki/Servant_(design_pattern)" title="Servant (design pattern)">Servant</a></li>
+<li><a href="/wiki/Type_Tunnel_pattern" title="Type Tunnel pattern">Type tunnel</a></li>
+</ul>
+<ul>
+<li><i><a href="/wiki/Design_Patterns" title="Design Patterns">Design Patterns</a></i></li>
+<li><i><a href="/wiki/Enterprise_Integration_Patterns" title="Enterprise Integration Patterns">Enterprise Integration Patterns</a></i></li>
+</ul>
+<ul>
+<li><a href="/wiki/Christopher_Alexander" title="Christopher Alexander">Christopher Alexander</a></li>
+<li><a href="/wiki/Erich_Gamma" title="Erich Gamma">Erich Gamma</a></li>
+<li><a href="/wiki/Ralph_Johnson_(computer_scientist)" title="Ralph Johnson (computer scientist)">Ralph Johnson</a></li>
+<li><a href="/wiki/John_Vlissides" title="John Vlissides">John Vlissides</a></li>
+<li><a href="/wiki/Grady_Booch" title="Grady Booch">Grady Booch</a></li>
+<li><a href="/wiki/Kent_Beck" title="Kent Beck">Kent Beck</a></li>
+<li><a href="/wiki/Ward_Cunningham" title="Ward Cunningham">Ward Cunningham</a></li>
+<li><a href="/wiki/Martin_Fowler" title="Martin Fowler">Martin Fowler</a></li>
+<li><a href="/wiki/Robert_Cecil_Martin" title="Robert Cecil Martin">Robert Martin</a></li>
+<li><a href="/wiki/Jim_Coplien" title="Jim Coplien">Jim Coplien</a></li>
+<li><a href="/wiki/Douglas_C._Schmidt" title="Douglas C. Schmidt">Douglas Schmidt</a></li>
+<li><a href="/wiki/Linda_Rising" title="Linda Rising">Linda Rising</a></li>
+</ul>
+<ul>
+<li><a href="/wiki/The_Hillside_Group" title="The Hillside Group">The Hillside Group</a></li>
+<li><a href="/wiki/Portland_Pattern_Repository" title="Portland Pattern Repository">The Portland Pattern Repository</a></li>
+</ul>

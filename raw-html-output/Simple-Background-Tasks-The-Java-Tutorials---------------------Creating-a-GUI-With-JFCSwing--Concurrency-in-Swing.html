@@ -1,0 +1,56 @@
+<h1>Simple Background Tasks</h1>
+<p>Let's start with a task that is very simple, but potentially time-consuming. The 
+<a class="SourceLink" target="_blank" href="../examples/components/TumbleItemProject/src/components/TumbleItem.java" onclick="showCode('../../displayCode.html', '../examples/components/TumbleItemProject/src/components/TumbleItem.java'); return false;"><code><code>TumbleItem</code></code></a> applet loads a set of graphic files used in an animation. If the graphic files are loaded from an initial thread, there may be a delay before the GUI appears. If the graphic files are loaded from the event dispatch thread, the GUI may be temporarily unresponsive.</p>
+<p>To avoid these problems, <code>TumbleItem</code> creates and executes an instance of <code>SwingWorker</code> from its initial threads. The object's <code>doInBackground</code> method, executing in a worker thread, loads the images into an <code>ImageIcon</code> array, and returns a reference to it. Then the <code>done</code> method, executing in the event dispatch thread, invokes <code>get</code> to retrieve this reference, which it assigns to an applet class field named <code>imgs</code>. This allows <code>TumbleItem</code> to construct the GUI immediately, without waiting for the images to finish loading.</p>
+<p>Here is the code that defines and executes the <code>SwingWorker</code> object.</p>
+<p>WHATSON? 8b10cd94-3fb3-48d6-bc08-0eea62f900c5</p>
+<pre>
+SwingWorker worker = new SwingWorker&lt;ImageIcon[], Void&gt;() {
+    @Override
+    public ImageIcon[] doInBackground() {
+        final ImageIcon[] innerImgs = new ImageIcon[nimgs];
+        for (int i = 0; i &lt; nimgs; i++) {
+            innerImgs[i] = loadImage(i+1);
+        }
+        return innerImgs;
+    }
+
+    @Override
+    public void done() {
+        //Remove the "Loading images" label.
+        animator.removeAll();
+        loopslot = -1;
+        try {
+            imgs = get();
+        } catch (InterruptedException ignore) {}
+        catch (java.util.concurrent.ExecutionException e) {
+            String why = null;
+            Throwable cause = e.getCause();
+            if (cause != null) {
+                why = cause.getMessage();
+            } else {
+                why = e.getMessage();
+            }
+            System.err.println("Error retrieving file: " + why);
+        }
+    }
+};
+
+</pre>
+<p>All concrete subclasses of <code>SwingWorker</code> implement <code>doInBackground</code>; implementation of <code>done</code> is optional.</p>
+<p>Notice that <code>SwingWorker</code> is a generic class, with two type parameters. The first type parameter specifies a return type for <code>doInBackground</code>, and also for the <code>get</code> method, which is invoked by other threads to retrieve the object returned by <code>doInBackground</code>. <code>SwingWorker</code>'s second type parameter specifies a type for interim results returned while the background task is still active. Since this example doesn't return interim results, 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/lang/Void.html"><code>Void</code> </a> is used as a placeholder.</p>
+<p>You may wonder if the code that sets <code>imgs</code> is unnecessarily complicated. Why make <code>doInBackground</code> return an object and use <code>done</code> to retrieve it? Why not just have <code>doInBackground</code> set <code>imgs</code> directly? The problem is that the object <code>imgs</code> refers to is created in the worker thread and used in the event dispatch thread. When objects are shared between threads in this way, you must make sure that changes made in one thread are visible to the other. Using <code>get</code> guarantees this, because using <code>get</code> creates a <i>happens before</i> relationship between the code that creates <code>imgs</code> and the code that uses it. For more on the happens before relationship, refer to 
+<a class="TutorialLink" target="_top" href="../../essential/concurrency/memconsist.html">Memory Consistency Errors</a> in the 
+<a class="TutorialLink" target="_top" href="../../essential/concurrency/index.html">Concurrency</a> lesson.</p>
+<p>There are actually two ways to retrieve the object returned by <code>doInBackground</code>.</p>
+<ul>
+<li>Invoke 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/javax/swing/SwingWorker.html#get--"><code>SwingWorker.get</code> with no arguments</a>. If the background task is not finished, <code>get</code> blocks until it is.</li>
+<li>Invoke 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/javax/swing/SwingWorker.html#get-long-java.util.concurrent.TimeUnit-"><code>SwingWorker.get</code> with arguments indicating a timeout</a>. If the background task is not finished, <code>get</code> blocks until it is — unless the timeout expires first, in which case <code>get</code> throws <code>java.util.concurrent.TimeoutException</code>.</li>
+</ul>
+<p>Be careful when invoking either overload of <code>get</code> from the event dispatch thread; until <code>get</code> returns, no GUI events are being processed, and the GUI is "frozen". Don't invoke <code>get</code> without arguments unless you are confident that the background task is complete or close to completion.</p>
+<p>For more on the <code>TumbleItem</code> example, refer to 
+<a class="TutorialLink" target="_top" href="../misc/timer.html">How to Use Swing Timers</a> in the lesson 
+<a class="TutorialLink" target="_top" href="../misc/index.html">Using Other Swing Features</a>.</p>

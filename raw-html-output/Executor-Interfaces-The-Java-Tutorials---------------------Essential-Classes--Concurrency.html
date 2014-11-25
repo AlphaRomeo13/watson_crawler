@@ -1,0 +1,31 @@
+<h1>Executor Interfaces</h1>
+<p>The <code>java.util.concurrent</code> package defines three executor interfaces:</p>
+<ul>
+<li><code>Executor</code>, a simple interface that supports launching new tasks.</li>
+<li><code>ExecutorService</code>, a subinterface of <code>Executor</code>, which adds features that help manage the lifecycle, both of the individual tasks and of the executor itself.</li>
+<li><code>ScheduledExecutorService</code>, a subinterface of <code>ExecutorService</code>, supports future and/or periodic execution of tasks.</li>
+</ul>
+<p>Typically, variables that refer to executor objects are declared as one of these three interface types, not with an executor class type.</p>
+<h2>The <code>Executor</code> Interface</h2>
+<p>The 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/util/concurrent/Executor.html"><code>Executor</code></a> interface provides a single method, <code>execute</code>, designed to be a drop-in replacement for a common thread-creation idiom. If <code>r</code> is a <code>Runnable</code> object, and <code>e</code> is an <code>Executor</code> object you can replace</p>
+<p>WHATSON? 0898769a-7bdd-42f5-b1f5-a251e9c63f00</p>
+<pre>
+(new Thread(r)).start();
+</pre>
+<p>with</p>
+<p>WHATSON? e11e563f-671f-4d8d-88d4-2fb9145da7bc</p>
+<pre>
+e.execute(r);
+</pre>
+<p>However, the definition of <code>execute</code> is less specific. The low-level idiom creates a new thread and launches it immediately. Depending on the <code>Executor</code> implementation, <code>execute</code> may do the same thing, but is more likely to use an existing worker thread to run <code>r</code>, or to place <code>r</code> in a queue to wait for a worker thread to become available. (We'll describe worker threads in the section on <a href="pools.html">Thread Pools</a>.)</p>
+<p>The executor implementations in <code>java.util.concurrent</code> are designed to make full use of the more advanced <code>ExecutorService</code> and <code>ScheduledExecutorService</code> interfaces, although they also work with the base <code>Executor</code> interface.</p>
+<h2>The <code>ExecutorService</code> Interface</h2>
+<p>The 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html"><code>ExecutorService</code></a> interface supplements <code>execute</code> with a similar, but more versatile <code>submit</code> method. Like <code>execute</code>, <code>submit</code> accepts <code>Runnable</code> objects, but also accepts 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/util/concurrent/Callable.html"><code>Callable</code></a> objects, which allow the task to return a value. The <code>submit</code> method returns a 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/util/concurrent/Future.html"><code>Future</code></a> object, which is used to retrieve the <code>Callable</code> return value and to manage the status of both <code>Callable</code> and <code>Runnable</code> tasks.</p>
+<p><code>ExecutorService</code> also provides methods for submitting large collections of <code>Callable</code> objects. Finally, <code>ExecutorService</code> provides a number of methods for managing the shutdown of the executor. To support immediate shutdown, tasks should handle <a href="interrupt.html">interrupts</a> correctly.</p>
+<h2>The <code>ScheduledExecutorService</code> Interface</h2>
+<p>The 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ScheduledExecutorService.html"><code>ScheduledExecutorService</code></a> interface supplements the methods of its parent <code>ExecutorService</code> with <code>schedule</code>, which executes a <code>Runnable</code> or <code>Callable</code> task after a specified delay. In addition, the interface defines <code>scheduleAtFixedRate</code> and <code>scheduleWithFixedDelay</code>, which executes specified tasks repeatedly, at defined intervals.</p>

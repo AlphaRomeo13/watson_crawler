@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>How-to-Write-a-Property-Change-Listener-The-Java-Tutorials---------------------Creating-a-GUI-With-JFCSwing--Writing-Event-Listeners.html</title></head>
+<body>
+<h1>How to Write a Property Change Listener</h1>
+<p>Property-change events occur whenever the value of a <em>bound property</em> changes for a <em>bean</em> ??? a component that conforms to the JavaBeans™ specification. You can find out more about beans from the 
+JavaBeans trail of the Java Tutorial. All Swing components are also beans.</p>
+<p>A JavaBeans property is accessed through its <em>get</em> and <em>set</em> methods. For example, <code>JComponent</code> has the property <em>font</em> which is accessible through the <code>getFont</code> and <code>setFont</code> methods.</p>
+<p>Besides the <em>get</em> and <em>set</em> methods, a bound property fires a property-change event when its value changes. For more information, see the 
+Bound Properties page in the JavaBeans trail.</p>
+<p>Some scenarios that commonly require property-change listeners include:</p>
+<ul>
+<li>You have implemented a formatted text field and need a way to detect when the user has entered a new value. You can register a property-change listener on the formatted text field to listen to changes on the <em>value</em> property. See <code>FormattedTextFieldDemo</code> in 
+How to Use Formatted Text Fields for an example of this.</li>
+<li>You have implemented a dialog and need to know when a user has clicked one of the dialog's buttons or changed a selection in the dialog. See <code>DialogDemo</code> in 
+How to Make Dialogs for an example of registering a property-change listener on an option pane to listen to changes to the <em>value</em> property. You can also check out <code>FileChooserDemo2</code> in 
+How to Use File Choosers for an example of how to register a property-change listener to listen to changes to the <em>directoryChanged</em> and <em>selectedFileChanged</em> properties.</li>
+<li>You need to be notified when the component that has the focus changes. You can register a property-change listener on the keyboard focus manager to listen to changes to the <em>focusOwner</em> property. See <code>TrackFocusDemo</code> and <code>DragPictureDemo</code> in 
+How to Use the Focus Subsystem for examples of this.</li>
+</ul>
+<p>Although these are some of the more common uses for property-change listeners, you can register a property-change listener on the bound property of any component that conforms to the JavaBeans specification.</p>
+<p>You can register a property change listener in two ways. The first uses the method <code>addPropertyChangeListener(PropertyChangeListener)</code>. When you register a listener this way, you are notified of every change to every bound property for that object. In the <code>propertyChange</code> method, you can get the name of the property that has changed using the <code>PropertyChangeEvent</code> <code>getPropertyName</code> method, as in the following code snippet:</p>
+<p>WHATSON? 1aa8131b-2284-4a07-b055-7f04ed28a5c9</p>
+<pre>
+KeyboardFocusManager focusManager =
+   KeyboardFocusManager.getCurrentKeyboardFocusManager();
+focusManager.addPropertyChangeListener(new FocusManagerListener());
+...
+public FocusManagerListener implements PropertyChangeListener {
+    public void propertyChange(PropertyChangeEvent e) {
+        String propertyName = e.getPropertyName();
+        if ("focusOwner".equals(propertyName) {
+            ...
+        } else if ("focusedWindow".equals(propertyName) {
+            ...
+        }
+    }
+    ...
+}
+</pre>
+<p>The second way to register a property change listener uses the method <code>addPropertyChangeListener(String, PropertyChangeListener)</code>. The <code>String</code> argument is the name of a property. Using this method means that you only receive notification when a change occurs to that particular property. So, for example, if you registered a property change listener like this:</p>
+<p>WHATSON? d096e56b-4bd2-405d-83c3-a8e89398b9be</p>
+<pre>
+aComponent.addPropertyChangeListener("font",
+                                     new FontListener());
+</pre>
+<p><code>FontListener</code> only receives notification when the value of the component's <em>font</em> property changes. It does <em>not</em> receive notification when the value changes for <em>transferHandler</em>, <em>opaque</em>, <em>border</em>, or any other property.</p>
+<p>The following example shows how to register a property change listener on the <em>value</em> property of a formatted text field using the two-argument version of <code>addPropertyChangeListener</code>:</p>
+<p>WHATSON? 30cdd875-f462-4a95-916e-fc8639c63318</p>
+<pre>
+<em>//...where initialization occurs:</em>
+double amount;
+JFormattedTextField amountField;
+...
+amountField.addPropertyChangeListener("value",
+                                      new FormattedTextFieldListener());
+...
+class FormattedTextFieldListener implements PropertyChangeListener {
+    public void propertyChanged(PropertyChangeEvent e) {
+        Object source = e.getSource();
+        if (source == amountField) {
+            amount = ((Number)amountField.getValue()).doubleValue();
+            ...
+        }
+        <em>...//re-compute payment and update field...</em>
+    }
+}
+</pre>
+<h2>The Property Change Listener API</h2>
+<p>Registering a PropertyChangeListener</p>
+<p>The PropertyChangeListener Interface</p>
+<p><em>Because <code>PropertyChangeListener</code> has only one method, it has no corresponding adapter class.</em></p>
+<p>The PropertyChangeEvent Class</p>
+<p>
+</p>
+<h2>Examples that Use Property Change Listeners</h2>
+<p>The following table lists the examples that use property-change listeners.</p>
+</body>
+</html>

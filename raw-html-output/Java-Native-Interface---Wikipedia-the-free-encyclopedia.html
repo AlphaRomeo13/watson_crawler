@@ -1,0 +1,323 @@
+<h1 id="firstHeading" class="firstHeading" lang="en"><span dir="auto">Java Native Interface</span></h1>
+<p>In <a href="/wiki/Computing" title="Computing">computing</a>, the <b>Java Native Interface</b> (<b>JNI</b>) is a <a href="/wiki/Software_framework" title="Software framework">programming framework</a> that enables <a href="/wiki/Java_(programming_language)" title="Java (programming language)">Java</a> code running in a <a href="/wiki/Java_Virtual_Machine" title="Java Virtual Machine" class="mw-redirect">Java Virtual Machine</a> (JVM) to call and be called by<sup id="cite_ref-role_1-0" class="reference"><a href="#cite_note-role-1"><span>[</span>1<span>]</span></a></sup> native applications (programs specific to a hardware and <a href="/wiki/Operating_system" title="Operating system">operating system</a> platform) and libraries written in other languages such as <a href="/wiki/C_(programming_language)" title="C (programming language)">C</a>, <a href="/wiki/C%2B%2B" title="C++">C++</a> and <a href="/wiki/Assembly_language" title="Assembly language">assembly</a>.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Purpose_and_features"><span class="tocnumber">1</span> <span class="toctext">Purpose and features</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Pitfalls"><span class="tocnumber">2</span> <span class="toctext">Pitfalls</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#How_the_JNI_works"><span class="tocnumber">3</span> <span class="toctext">How the JNI works</span></a>
+<ul>
+<li class="toclevel-2 tocsection-4"><a href="#Mapping_types"><span class="tocnumber">3.1</span> <span class="toctext">Mapping types</span></a></li>
+<li class="toclevel-2 tocsection-5"><a href="#JNIEnv.2A"><span class="tocnumber">3.2</span> <span class="toctext">JNIEnv*</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-6"><a href="#Advanced_uses"><span class="tocnumber">4</span> <span class="toctext">Advanced uses</span></a>
+<ul>
+<li class="toclevel-2 tocsection-7"><a href="#Native_AWT_painting"><span class="tocnumber">4.1</span> <span class="toctext">Native AWT painting</span></a></li>
+<li class="toclevel-2 tocsection-8"><a href="#Access_to_assembly_code"><span class="tocnumber">4.2</span> <span class="toctext">Access to assembly code</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-9"><a href="#Microsoft.27s_RNI"><span class="tocnumber">5</span> <span class="toctext">Microsoft's RNI</span></a></li>
+<li class="toclevel-1 tocsection-10"><a href="#Examples"><span class="tocnumber">6</span> <span class="toctext">Examples</span></a>
+<ul>
+<li class="toclevel-2 tocsection-11"><a href="#HelloWorld"><span class="tocnumber">6.1</span> <span class="toctext">HelloWorld</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-12"><a href="#See_also"><span class="tocnumber">7</span> <span class="toctext">See also</span></a></li>
+<li class="toclevel-1 tocsection-13"><a href="#References"><span class="tocnumber">8</span> <span class="toctext">References</span></a></li>
+<li class="toclevel-1 tocsection-14"><a href="#Bibliography"><span class="tocnumber">9</span> <span class="toctext">Bibliography</span></a></li>
+<li class="toclevel-1 tocsection-15"><a href="#External_links"><span class="tocnumber">10</span> <span class="toctext">External links</span></a></li>
+</ul>
+<ul>
+<li class="toclevel-2 tocsection-4"><a href="#Mapping_types"><span class="tocnumber">3.1</span> <span class="toctext">Mapping types</span></a></li>
+<li class="toclevel-2 tocsection-5"><a href="#JNIEnv.2A"><span class="tocnumber">3.2</span> <span class="toctext">JNIEnv*</span></a></li>
+</ul>
+<ul>
+<li class="toclevel-2 tocsection-7"><a href="#Native_AWT_painting"><span class="tocnumber">4.1</span> <span class="toctext">Native AWT painting</span></a></li>
+<li class="toclevel-2 tocsection-8"><a href="#Access_to_assembly_code"><span class="tocnumber">4.2</span> <span class="toctext">Access to assembly code</span></a></li>
+</ul>
+<ul>
+<li class="toclevel-2 tocsection-11"><a href="#HelloWorld"><span class="tocnumber">6.1</span> <span class="toctext">HelloWorld</span></a></li>
+</ul>
+<p></p>
+<h2><span class="mw-headline" id="Purpose_and_features">Purpose and features</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Java_Native_Interface&amp;action=edit&amp;section=1" title="Edit section: Purpose and features">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>JNI enables programmers to write native methods to handle situations when an application cannot be written entirely in the Java programming language, e.g. when the standard Java <a href="/wiki/Class_(computer_science)" title="Class (computer science)" class="mw-redirect">class</a> <a href="/wiki/Library_(computer_science)" title="Library (computer science)" class="mw-redirect">library</a> does not support the platform-specific features or program library. It is also used to modify an existing application—written in another programming language—to be accessible to Java applications. Many of the standard library classes depend on JNI to provide functionality to the developer and the user, e.g. file I/O and sound capabilities. Including performance- and platform-sensitive API implementations in the standard library allows all Java applications to access this functionality in a safe and platform-independent manner.</p>
+<p>The JNI framework lets a native method use Java <a href="/wiki/Object_(computer_science)" title="Object (computer science)">objects</a> in the same way that Java code uses these objects. A native method can create Java objects and then inspect and use these objects to perform its tasks. A native method can also inspect and use objects created by Java application code.</p>
+<p>JNI is sometimes referred to as the "escape hatch" for Java developers because it enables them to add functionality to their Java application that the standard Java APIs cannot otherwise provide. It can be used to interface with code written in other languages, such as C and C++. It is also used for time-critical calculations or operations like solving complicated mathematical equations, because for some classes of problems native code may run faster than JVM code.<sup id="cite_ref-2" class="reference"><a href="#cite_note-2"><span>[</span>2<span>]</span></a></sup></p>
+<h2><span class="mw-headline" id="Pitfalls">Pitfalls</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Java_Native_Interface&amp;action=edit&amp;section=2" title="Edit section: Pitfalls">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul>
+<li>Subtle errors in the use of JNI can destabilize the entire <a href="/wiki/JVM" title="JVM" class="mw-redirect">JVM</a> in ways that are very difficult to reproduce and debug.</li>
+<li>Only applications and signed applets can invoke JNI.</li>
+<li>An application that relies on JNI loses the platform portability Java offers (a partial workaround is to write a separate implementation of JNI code for each platform and have Java detect the operating system and load the correct one at runtime).</li>
+<li>The JNI framework does not provide any automatic garbage collection for non-JVM memory resources allocated by code executing on the native side. Consequently, native side code (such as <a href="/wiki/Assembly_language" title="Assembly language">assembly language</a>) assumes the responsibility for explicitly releasing any such memory resources that the native code acquires.</li>
+<li>On Linux and Solaris platforms, if the native code registers itself as a signal handler, it could intercept signals intended for the JVM. A <a href="/wiki/Chain-of-responsibility_pattern" title="Chain-of-responsibility pattern">chain of responsibility</a> can be used to allow native code to better inter-operate with the JVM.<sup id="cite_ref-jniSignal_3-0" class="reference"><a href="#cite_note-jniSignal-3"><span>[</span>3<span>]</span></a></sup></li>
+<li>On Windows platforms, <a href="/wiki/Microsoft-specific_exception_handling_mechanisms#Structured_Exception_Handling" title="Microsoft-specific exception handling mechanisms">Structured Exception Handling (SEH)</a> may be employed to wrap native code in SEH try/catch blocks so as to capture machine (CPU/FPU) generated software interrupts (such as NULL pointer access violations and divide-by-zero operations), and to handle these situations before the interrupt is propagated back up into the JVM (i.e. Java side code), in all likelihood resulting in an unhandled exception.</li>
+<li>The encoding used for the NewStringUTF, GetStringUTFLength, GetStringUTFChars, ReleaseStringUTFChars and GetStringUTFRegion functions is not standard UTF-8, but modified UTF-8.<sup id="cite_ref-jniModifiedUtf_4-0" class="reference"><a href="#cite_note-jniModifiedUtf-4"><span>[</span>4<span>]</span></a></sup> The null character (U+0000) and codepoints greater than or equal to U+10000 are encoded differently in modified UTF-8. Many programs actually use these functions incorrectly and treat the UTF-8 strings returned or passed into the functions as standard UTF-8 strings instead of modified UTF-8 strings. Programs should use the NewString, GetStringLength, GetStringChars, ReleaseStringChars, GetStringRegion, GetStringCritical and ReleaseStringCritical functions, which use UTF-16LE encoding on little-endian architectures and UTF-16BE on big-endian architectures, and then use a UTF-16 to standard UTF-8 conversion routine.</li>
+</ul>
+<h2><span class="mw-headline" id="How_the_JNI_works">How the JNI works</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Java_Native_Interface&amp;action=edit&amp;section=3" title="Edit section: How the JNI works">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>In the JNI framework, native functions are implemented in separate .c or .cpp files. (C++ provides a slightly simpler interface with JNI.) When the JVM invokes the function, it passes a <code>JNIEnv</code> pointer, a <code>jobject</code> pointer, and any Java arguments declared by the Java method. A JNI function may look like this:</p>
+<p>WHATSON? a9ac0cf6-485d-4fbe-ae8b-b6358fa27dd0</p>
+<pre class="de1">
+JNIEXPORT <span class="kw4">void</span> JNICALL Java_ClassName_MethodName
+  <span class="br0">(</span>JNIEnv <span class="sy0">*</span>env<span class="sy0">,</span> jobject obj<span class="br0">)</span>
+<span class="br0">{</span>
+    <span class="coMULTI">/*Implement Native Method Here*/</span>
+<span class="br0">}</span>
+</pre>
+<p>The <i><code>env</code></i> pointer is a structure that contains the interface to the JVM. It includes all of the functions necessary to interact with the JVM and to work with Java objects. Example JNI functions are converting native arrays to/from Java arrays, converting native strings to/from Java strings, instantiating objects, throwing exceptions, etc. Basically, anything that Java code can do can be done using <code>JNIEnv</code>, albeit with considerably less ease.</p>
+<p>The argument <i><code>obj</code></i> is a reference to the Java object inside which this native method has been declared.</p>
+<p>For example, the following converts a Java string to a native string:</p>
+<p>WHATSON? a360afee-60e4-44f8-b33b-68753d010c10</p>
+<pre class="de1">
+<span class="co1">//C++ code</span>
+<span class="kw4">extern</span> <span class="st0">"C"</span>
+JNIEXPORT <span class="kw4">void</span> JNICALL Java_ClassName_MethodName
+  <span class="br0">(</span>JNIEnv <span class="sy2">*</span>env, jobject obj, jstring javaString<span class="br0">)</span>
+<span class="br0">{</span>
+    <span class="co1">//Get the native string from javaString</span>
+    <span class="kw4">const</span> <span class="kw4">char</span> <span class="sy2">*</span>nativeString <span class="sy1">=</span> env<span class="sy2">-</span><span class="sy1">&gt;</span>GetStringUTFChars<span class="br0">(</span>javaString, <span class="nu0">0</span><span class="br0">)</span><span class="sy4">;</span>
+ 
+    <span class="co1">//Do something with the nativeString</span>
+ 
+    <span class="co1">//DON'T FORGET THIS LINE!!!</span>
+    env<span class="sy2">-</span><span class="sy1">&gt;</span>ReleaseStringUTFChars<span class="br0">(</span>javaString, nativeString<span class="br0">)</span><span class="sy4">;</span>
+<span class="br0">}</span>
+</pre>
+<p>WHATSON? d8ae6aa9-4fbd-4ab0-ae9a-a40b31936ab5</p>
+<pre class="de1">
+<span class="coMULTI">/*C code*/</span>
+JNIEXPORT <span class="kw4">void</span> JNICALL Java_ClassName_MethodName
+  <span class="br0">(</span>JNIEnv <span class="sy0">*</span>env<span class="sy0">,</span> jobject obj<span class="sy0">,</span> jstring javaString<span class="br0">)</span>
+<span class="br0">{</span>
+    <span class="coMULTI">/*Get the native string from javaString*/</span>
+    <span class="kw4">const</span> <span class="kw4">char</span> <span class="sy0">*</span>nativeString <span class="sy0">=</span> <span class="br0">(</span><span class="sy0">*</span>env<span class="br0">)</span><span class="sy0">-&gt;</span>GetStringUTFChars<span class="br0">(</span>env<span class="sy0">,</span> javaString<span class="sy0">,</span> <span class="nu0">0</span><span class="br0">)</span><span class="sy0">;</span>
+ 
+    <span class="coMULTI">/*Do something with the nativeString*/</span>
+ 
+    <span class="coMULTI">/*DON'T FORGET THIS LINE!!!*/</span>
+    <span class="br0">(</span><span class="sy0">*</span>env<span class="br0">)</span><span class="sy0">-&gt;</span>ReleaseStringUTFChars<span class="br0">(</span>env<span class="sy0">,</span> javaString<span class="sy0">,</span> nativeString<span class="br0">)</span><span class="sy0">;</span>
+<span class="br0">}</span>
+</pre>
+<p>WHATSON? 8d8e3ab7-e7c5-4c4e-b1b5-078c0ca7441c</p>
+<pre class="de1">
+<span class="coMULTI">/*Objective-C code*/</span>
+JNIEXPORT <span class="kw4">void</span> JNICALL Java_ClassName_MethodName
+  <span class="br0">(</span>JNIEnv <span class="sy0">*</span>env, jobject obj, jstring javaString<span class="br0">)</span>
+<span class="br0">{</span>
+    <span class="coMULTI">/*DON'T FORGET THIS LINE!!!*/</span>
+    JNF_COCOA_ENTER<span class="br0">(</span>env<span class="br0">)</span>;
+ 
+    <span class="coMULTI">/*Get the native string from javaString*/</span>
+    <span class="kw5">NSString</span><span class="sy0">*</span> nativeString <span class="sy0">=</span> JNFJavaToNSString<span class="br0">(</span>env, javaString<span class="br0">)</span>;
+ 
+    <span class="coMULTI">/*Do something with the nativeString*/</span>
+ 
+    <span class="coMULTI">/*DON'T FORGET THIS LINE!!!*/</span>
+    JNF_COCOA_EXIT<span class="br0">(</span>env<span class="br0">)</span>;
+<span class="br0">}</span>
+</pre>
+<p>Native <a href="/wiki/Data_type" title="Data type">data types</a> can be mapped to/from Java data types. For compound types such as objects, <a href="/wiki/Array_data_structure" title="Array data structure">arrays</a> and <a href="/wiki/String_(computer_science)" title="String (computer science)">strings</a> the native code must explicitly convert the data by calling methods in the <code>JNIEnv</code>.</p>
+<h3><span class="mw-headline" id="Mapping_types">Mapping types</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Java_Native_Interface&amp;action=edit&amp;section=4" title="Edit section: Mapping types">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>The following table shows the mapping of types between Java (JNI) and native code.</p>
+<p>long long<br>
+__int64</p>
+<p>In addition, the signature <code>"L fully-qualified-class ;"</code> would mean the class uniquely specified by that name; e.g., the signature <code>"Ljava/lang/String;"</code> refers to the class <code>java.lang.String</code>. Also, prefixing <code>[</code> to the signature makes the array of that type; for example, <code>[I</code> means the int array type. Finally, a <code>void</code> signature uses the <code>V</code> code.</p>
+<p>Here, these types are interchangeable. You can use <code>jint</code> where you normally use an <code>int</code>, and vice-versa, without any <a href="/wiki/Type_conversion" title="Type conversion">typecasting</a> required.</p>
+<p>However, mapping between Java Strings and arrays to native strings and arrays is different. If you use a <code>jstring</code> in where a <code>char *</code> would be, your code could crash the JVM.</p>
+<p>WHATSON? 42fd5acd-de10-4acc-abcb-58dfe851201d</p>
+<pre class="de1">
+<span class="coMULTI">/*C code*/</span>
+JNIEXPORT <span class="kw4">void</span> JNICALL Java_ClassName_MethodName
+        <span class="br0">(</span>JNIEnv <span class="sy2">*</span>env, jobject obj, jstring javaString<span class="br0">)</span> <span class="br0">{</span>
+    <span class="co1">// printf("%s", javaString);        // INCORRECT: Could crash VM!</span>
+ 
+    <span class="co1">// Correct way: Create and release native string from Java string</span>
+    <span class="kw4">const</span> <span class="kw4">char</span> <span class="sy2">*</span>nativeString <span class="sy1">=</span> <span class="br0">(</span><span class="sy2">*</span>env<span class="br0">)</span><span class="sy2">-</span><span class="sy1">&gt;</span>GetStringUTFChars<span class="br0">(</span>env, javaString, <span class="nu0">0</span><span class="br0">)</span><span class="sy4">;</span>
+    <span class="kw3">printf</span><span class="br0">(</span><span class="st0">"%s"</span>, nativeString<span class="br0">)</span><span class="sy4">;</span>
+    <span class="br0">(</span><span class="sy2">*</span>env<span class="br0">)</span><span class="sy2">-</span><span class="sy1">&gt;</span>ReleaseStringUTFChars<span class="br0">(</span>env, javaString, nativeString<span class="br0">)</span><span class="sy4">;</span>
+<span class="br0">}</span>
+</pre>
+<p>This is similar with Java arrays, as illustrated in the example below that takes the sum of all the elements in an array.</p>
+<p>WHATSON? 3cfe2b4f-e5d6-4207-8d4e-bdedf1feff4c</p>
+<pre class="de1">
+JNIEXPORT jint JNICALL Java_IntArray_sumArray
+        <span class="br0">(</span>JNIEnv <span class="sy2">*</span>env, jobject obj, jintArray arr<span class="br0">)</span> <span class="br0">{</span>
+    jint buf<span class="br0">[</span><span class="nu0">10</span><span class="br0">]</span><span class="sy4">;</span>
+    jint i, sum <span class="sy1">=</span> <span class="nu0">0</span><span class="sy4">;</span>
+    <span class="co1">// This line is necessary, since Java arrays are not guaranteed</span>
+    <span class="co1">// to have a continuous memory layout like C arrays.</span>
+    env<span class="sy2">-</span><span class="sy1">&gt;</span>GetIntArrayRegion<span class="br0">(</span>arr, <span class="nu0">0</span>, <span class="nu0">10</span>, buf<span class="br0">)</span><span class="sy4">;</span>
+    <span class="kw1">for</span> <span class="br0">(</span>i <span class="sy1">=</span> <span class="nu0">0</span><span class="sy4">;</span> i <span class="sy1">&lt;</span> <span class="nu0">10</span><span class="sy4">;</span> i<span class="sy2">++</span><span class="br0">)</span> <span class="br0">{</span>
+        sum <span class="sy2">+</span><span class="sy1">=</span> buf<span class="br0">[</span>i<span class="br0">]</span><span class="sy4">;</span>
+    <span class="br0">}</span>
+    <span class="kw1">return</span> sum<span class="sy4">;</span>
+<span class="br0">}</span>
+</pre>
+<p>Of course, there is much more to it than this. Look for links below for more information.</p>
+<h3><span class="mw-headline" id="JNIEnv.2A">JNIEnv*</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Java_Native_Interface&amp;action=edit&amp;section=5" title="Edit section: JNIEnv*">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>A JNI environment pointer (<tt>JNIEnv*</tt>) is passed as an argument for each native function mapped to a Java method, allowing for interaction with the JNI environment within the native method. This JNI interface pointer can be stored, but remains valid only in the current thread. Other threads must first call <tt>AttachCurrentThread()</tt> to attach themselves to the VM and obtain a JNI interface pointer. Once attached, a native thread works like a regular Java thread running within a native method. The native thread remains attached to the VM until it calls <tt>DetachCurrentThread()</tt> to detach itself.<sup id="cite_ref-5" class="reference"><a href="#cite_note-5"><span>[</span>5<span>]</span></a></sup></p>
+<p>To attach to the current thread and get a JNI interface pointer:</p>
+<p>WHATSON? 0dbe570b-cfd3-4349-95ef-02a9e9f09faa</p>
+<pre>
+JNIEnv *env;
+(*g_vm)-&gt;AttachCurrentThread (g_vm, (void **) &amp;env, NULL);
+</pre>
+<p>To detach from the current thread:</p>
+<p>WHATSON? 3f4cb6e6-b3a9-4d38-930f-a6c0e81aafeb</p>
+<pre>
+(*g_vm)-&gt;DetachCurrentThread (g_vm);
+</pre>
+<h2><span class="mw-headline" id="Advanced_uses">Advanced uses</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Java_Native_Interface&amp;action=edit&amp;section=6" title="Edit section: Advanced uses">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<h3><span class="mw-headline" id="Native_AWT_painting">Native AWT painting</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Java_Native_Interface&amp;action=edit&amp;section=7" title="Edit section: Native AWT painting">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Not only can native code interface with Java, it can also draw on a Java <code><a rel="nofollow" class="external text" href="http://docs.oracle.com/javase/8/docs/api/java/awt/Canvas.html">Canvas</a></code>, which is possible with the <a href="/wiki/Java_AWT_Native_Interface" title="Java AWT Native Interface">Java AWT Native Interface</a>. The process is almost the same, with just a few changes. The Java AWT Native Interface is only available since <a href="/wiki/Java_Platform,_Standard_Edition" title="Java Platform, Standard Edition">J2SE</a> 1.3.</p>
+<h3><span class="mw-headline" id="Access_to_assembly_code">Access to assembly code</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Java_Native_Interface&amp;action=edit&amp;section=8" title="Edit section: Access to assembly code">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>JNI also allows direct access to <a href="/wiki/Assembly_language" title="Assembly language">assembly code</a>, without even going through a <a href="/wiki/C_(programming_language)" title="C (programming language)">C</a> bridge.<sup id="cite_ref-6" class="reference"><a href="#cite_note-6"><span>[</span>6<span>]</span></a></sup> Accessing Java applications from assembly is also possible in the same way.<sup id="cite_ref-7" class="reference"><a href="#cite_note-7"><span>[</span>7<span>]</span></a></sup></p>
+<h2><span class="mw-headline" id="Microsoft.27s_RNI">Microsoft's RNI</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Java_Native_Interface&amp;action=edit&amp;section=9" title="Edit section: Microsoft's RNI">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Microsoft's proprietary implementation of a Java Virtual Machine (<a href="/wiki/Visual_J%2B%2B" title="Visual J++">Visual J++</a>) had a similar mechanism for calling native Windows code from Java, called the <b>Raw Native Interface</b> (<b>RNI</b>). However, following the <a href="/wiki/Visual_J%2B%2B#Litigation_against_J.2B.2B" title="Visual J++">Sun - Microsoft litigation</a> about this implementation, <a href="/wiki/Visual_J%2B%2B" title="Visual J++">Visual J++</a> is no longer maintained.</p>
+<h2><span class="mw-headline" id="Examples">Examples</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Java_Native_Interface&amp;action=edit&amp;section=10" title="Edit section: Examples">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<h3><span class="mw-headline" id="HelloWorld">HelloWorld</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Java_Native_Interface&amp;action=edit&amp;section=11" title="Edit section: HelloWorld">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>make.sh</p>
+<p>WHATSON? 55c41a1c-cb05-4f45-bcf2-425d9441cf6b</p>
+<pre class="de1">
+<span class="co0">#!/bin/sh</span>
+ 
+<span class="co0"># openbsd 4.9</span>
+<span class="co0"># gcc 4.2.1</span>
+<span class="co0"># openjdk 1.7.0</span>
+ 
+<span class="kw3">export</span> <span class="re2">LD_LIBRARY_PATH</span>=<span class="re1">$LD_LIBRARY_PATH</span>:.
+javac HelloWorld.java
+javah HelloWorld
+<span class="kw2">gcc</span> <span class="re5">-shared</span> HelloWorld.c <span class="re5">-o</span> libHelloWorld.so
+java HelloWorld
+</pre>
+<p>build.bat</p>
+<p>WHATSON? 46345ee8-993e-45cc-953b-ba381310eba6</p>
+<pre class="de1">
+<span class="co2">:: Microsoft Visual Studio 2012 Visual C++ compiler</span>
+<span class="kw3">SET</span> VC="C:\Program Files <span class="sy0">(</span>x86<span class="sy0">)</span>\Microsoft Visual Studio 11.0\VC"
+<span class="co2">:: Microsoft Windows SDK for Windows 7 and .NET Framework 4 </span>
+<span class="kw3">SET</span> MSDK="C:\Program Files <span class="sy0">(</span>x86<span class="sy0">)</span>\Microsoft SDKs\Windows\v7.1A"
+<span class="co2">:: Java 1.7.0 update 21</span>
+<span class="kw3">SET</span> JAVA_HOME="C:\Program Files <span class="sy0">(</span>x86<span class="sy0">)</span>\Java\jdk1.7.0_21"
+ 
+<span class="kw1">call</span> <span class="sy0">%</span><span class="re3">VC</span><span class="sy0">%</span>\vcvarsall.bat
+ 
+javac HelloWorld.java
+javah HelloWorld
+<span class="sy0">%</span><span class="re3">VC</span><span class="sy0">%</span>\bin\cl /I<span class="sy0">%</span><span class="re3">JAVA_HOME</span><span class="sy0">%</span>\include /I<span class="sy0">%</span><span class="re3">JAVA_HOME</span><span class="sy0">%</span>\include\win32 /I<span class="sy0">%</span><span class="re3">VC</span><span class="sy0">%</span>\include /I<span class="sy0">%</span><span class="re3">VC</span><span class="sy0">%</span>\lib /I<span class="sy0">%</span><span class="re3">MSDK</span><span class="sy0">%</span>\Lib libHelloWorld.c /FelibHelloWorld.dll /LD
+java HelloWorld
+</pre>
+<p>HelloWorld.java</p>
+<p>WHATSON? 8fa86258-e7e3-4d34-8561-1d71edb7b55d</p>
+<pre class="de1">
+<span class="kw1">class</span> HelloWorld
+<span class="br0">{</span>
+	<span class="kw1">private</span> <span class="kw1">native</span> <span class="kw4">void</span> print<span class="br0">(</span><span class="br0">)</span><span class="sy0">;</span>
+	<span class="kw1">public</span> <span class="kw1">static</span> <span class="kw4">void</span> main<span class="br0">(</span><span class="kw3">String</span><span class="br0">[</span><span class="br0">]</span> args<span class="br0">)</span>
+	<span class="br0">{</span>
+		<span class="kw1">new</span> HelloWorld<span class="br0">(</span><span class="br0">)</span>.<span class="me1">print</span><span class="br0">(</span><span class="br0">)</span><span class="sy0">;</span>
+	<span class="br0">}</span>
+	<span class="kw1">static</span><span class="br0">{</span>
+		<span class="kw3">System</span>.<span class="me1">loadLibrary</span><span class="br0">(</span><span class="st0">"HelloWorld"</span><span class="br0">)</span><span class="sy0">;</span>
+	<span class="br0">}</span>
+<span class="br0">}</span>
+</pre>
+<p>HelloWorld.h</p>
+<p>WHATSON? 671d440e-ddb4-4de8-816f-a2ebb098251f</p>
+<pre class="de1">
+<span class="coMULTI">/* DO NOT EDIT THIS FILE - it is machine generated */</span>
+<span class="co2">#include &lt;jni.h&gt;</span>
+<span class="coMULTI">/* Header for class HelloWorld */</span>
+ 
+<span class="co2">#ifndef _Included_HelloWorld</span>
+<span class="co2">#define _Included_HelloWorld</span>
+<span class="co2">#ifdef __cplusplus</span>
+<span class="kw2">extern</span> <span class="st0">"C"</span> <span class="br0">{</span>
+<span class="co2">#endif</span>
+<span class="coMULTI">/*
+ * Class:     HelloWorld
+ * Method:    print
+ * Signature: ()V
+ */</span>
+JNIEXPORT <span class="kw4">void</span> JNICALL Java_HelloWorld_print
+  <span class="br0">(</span>JNIEnv <span class="sy0">*,</span> jobject<span class="br0">)</span><span class="sy0">;</span>
+ 
+<span class="co2">#ifdef __cplusplus</span>
+<span class="br0">}</span>
+<span class="co2">#endif</span>
+<span class="co2">#endif</span>
+</pre>
+<p>libHelloWorld.c</p>
+<p>WHATSON? 74414bd4-9355-4069-9cb6-581b98255c33</p>
+<pre class="de1">
+ <span class="co2">#include &lt;stdio.h&gt;</span>
+ <span class="co2">#include "HelloWorld.h"</span>
+ 
+ JNIEXPORT <span class="kw4">void</span> JNICALL
+ Java_HelloWorld_print<span class="br0">(</span>JNIEnv <span class="sy0">*</span>env<span class="sy0">,</span> jobject obj<span class="br0">)</span>
+ <span class="br0">{</span>
+     <span class="kw3">printf</span><span class="br0">(</span><span class="st0">"Hello World!<span class="es1">\n</span>"</span><span class="br0">)</span><span class="sy0">;</span>
+     <span class="kw1">return</span><span class="sy0">;</span>
+ <span class="br0">}</span>
+</pre>
+<p>Invocation:</p>
+<p>WHATSON? e24c8193-045c-481c-9c8f-d2e0eee44093</p>
+<pre class="de1">
+$ <span class="kw2">chmod</span> +x make.sh
+$ .<span class="sy0">/</span>make.sh
+</pre>
+<h2><span class="mw-headline" id="See_also">See also</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Java_Native_Interface&amp;action=edit&amp;section=12" title="Edit section: See also">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul>
+<li><a href="/wiki/Java_AWT_Native_Interface" title="Java AWT Native Interface">Java AWT Native Interface</a></li>
+<li><a href="/wiki/Gluegen" title="Gluegen" class="mw-redirect">Gluegen</a>, a Java tool which automatically generates the Java and JNI code necessary to call C libraries from Java code</li>
+<li><a href="/wiki/Platform_Invocation_Services" title="Platform Invocation Services">P/Invoke</a>, the .NET Framework method of calling native applications</li>
+<li><a href="/wiki/SWIG" title="SWIG">SWIG</a>, a multilanguage interface-generator for C and C++ libraries that can generate JNI code</li>
+<li><a href="/wiki/Java_Native_Access" title="Java Native Access">Java Native Access</a> provides Java programs easy access to native shared libraries without writing boilerplate code</li>
+</ul>
+<h2><span class="mw-headline" id="References">References</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Java_Native_Interface&amp;action=edit&amp;section=13" title="Edit section: References">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ol class="references">
+<li id="cite_note-role-1"><span class="mw-cite-backlink"><b><a href="#cite_ref-role_1-0">^</a></b></span> <span class="reference-text"><span class="citation web"><a rel="nofollow" class="external text" href="http://java.sun.com/docs/books/jni/html/intro.html#1811">"Role of the JNI"</a>. <i>The Java Native Interface Programmer's Guide and Specification</i><span class="reference-accessdate">. Retrieved 2008-02-27</span>.</span><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AJava+Native+Interface&amp;rft.atitle=Role+of+the+JNI&amp;rft.genre=article&amp;rft_id=http%3A%2F%2Fjava.sun.com%2Fdocs%2Fbooks%2Fjni%2Fhtml%2Fintro.html%231811&amp;rft.jtitle=The+Java+Native+Interface+Programmer%27s+Guide+and+Specification&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Ajournal" class="Z3988"><span style="display:none;"> </span></span></span></li>
+<li id="cite_note-2"><span class="mw-cite-backlink"><b><a href="#cite_ref-2">^</a></b></span> <span class="reference-text"><a rel="nofollow" class="external free" href="http://benchmarksgame.alioth.debian.org/u64/benchmark.php?test=all&amp;lang=java&amp;lang2=gcc&amp;data=u64">http://benchmarksgame.alioth.debian.org/u64/benchmark.php?test=all&amp;lang=java&amp;lang2=gcc&amp;data=u64</a></span></li>
+<li id="cite_note-jniSignal-3"><span class="mw-cite-backlink"><b><a href="#cite_ref-jniSignal_3-0">^</a></b></span> <span class="reference-text"><a rel="nofollow" class="external text" href="http://javajiggle.com/2008/01/06/if-jni-based-application-is-crashing-check-signal-handling/">If JNI based application is crashing, check signal handling!</a></span></li>
+<li id="cite_note-jniModifiedUtf-4"><span class="mw-cite-backlink"><b><a href="#cite_ref-jniModifiedUtf_4-0">^</a></b></span> <span class="reference-text"><a rel="nofollow" class="external text" href="http://docs.oracle.com/javase/1.5.0/docs/guide/jni/spec/types.html#wp16542">Modified UTF-8 Strings</a></span></li>
+<li id="cite_note-5"><span class="mw-cite-backlink"><b><a href="#cite_ref-5">^</a></b></span> <span class="reference-text">The Invocation API. Sun Microsystems. <a rel="nofollow" class="external free" href="http://java.sun.com/j2se/1.5.0/docs/guide/jni/spec/invocation.html">http://java.sun.com/j2se/1.5.0/docs/guide/jni/spec/invocation.html</a></span></li>
+<li id="cite_note-6"><span class="mw-cite-backlink"><b><a href="#cite_ref-6">^</a></b></span> <span class="reference-text"><span class="citation web"><a rel="nofollow" class="external text" href="http://today.java.net/pub/a/today/2006/10/19/invoking-assembly-language-from-java.html">"Invoking Assembly Language Programs from Java"</a>. Java.net. 2006-10-19<span class="reference-accessdate">. Retrieved 2007-10-06</span>.</span><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AJava+Native+Interface&amp;rft.btitle=Invoking+Assembly+Language+Programs+from+Java&amp;rft.date=2006-10-19&amp;rft.genre=book&amp;rft_id=http%3A%2F%2Ftoday.java.net%2Fpub%2Fa%2Ftoday%2F2006%2F10%2F19%2Finvoking-assembly-language-from-java.html&amp;rft.pub=Java.net&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook" class="Z3988"><span style="display:none;"> </span></span></span></li>
+<li id="cite_note-7"><span class="mw-cite-backlink"><b><a href="#cite_ref-7">^</a></b></span> <span class="reference-text"><span class="citation web"><a rel="nofollow" class="external text" href="http://today.java.net/pub/a/today/2007/10/04/launch-java-applications-from-assembly-language-programs.html">"Launch Java Applications from Assembly Language Programs"</a>. Java.net. 2006-10-19<span class="reference-accessdate">. Retrieved 2007-10-04</span>.</span><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AJava+Native+Interface&amp;rft.btitle=Launch+Java+Applications+from+Assembly+Language+Programs&amp;rft.date=2006-10-19&amp;rft.genre=book&amp;rft_id=http%3A%2F%2Ftoday.java.net%2Fpub%2Fa%2Ftoday%2F2007%2F10%2F04%2Flaunch-java-applications-from-assembly-language-programs.html&amp;rft.pub=Java.net&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook" class="Z3988"><span style="display:none;"> </span></span></span></li>
+</ol>
+<h2><span class="mw-headline" id="Bibliography">Bibliography</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Java_Native_Interface&amp;action=edit&amp;section=14" title="Edit section: Bibliography">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul>
+<li><span class="citation book">Gordon, Rob (March 1998). <a rel="nofollow" class="external text" href="http://www.informit.com/store/product.aspx?isbn=9780136798958"><i>Essential Jni: Java Native Interface</i></a> (1st ed.). <a href="/wiki/Prentice_Hall" title="Prentice Hall">Prentice Hall</a>. p. 498. <a href="/wiki/International_Standard_Book_Number" title="International Standard Book Number">ISBN</a> <a href="/wiki/Special:BookSources/0-13-679895-0" title="Special:BookSources/0-13-679895-0">0-13-679895-0</a>.</span><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AJava+Native+Interface&amp;rft.aufirst=Rob&amp;rft.au=Gordon%2C+Rob&amp;rft.aulast=Gordon&amp;rft.btitle=Essential+Jni%3A+Java+Native+Interface&amp;rft.date=March+1998&amp;rft.edition=1st&amp;rft.genre=book&amp;rft_id=http%3A%2F%2Fwww.informit.com%2Fstore%2Fproduct.aspx%3Fisbn%3D9780136798958&amp;rft.isbn=0-13-679895-0&amp;rft.pages=498&amp;rft.pub=Prentice+Hall&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook" class="Z3988"><span style="display:none;"> </span></span></li>
+<li><span class="citation book">Liang, Sheng (June 20, 1999). <a rel="nofollow" class="external text" href="http://www.informit.com/store/product.aspx?isbn=9780201325775"><i>Java(TM) Native Interface: Programmer's Guide and Specification</i></a> (1st ed.). <a href="/wiki/Prentice_Hall" title="Prentice Hall">Prentice Hall</a>. p. 320. <a href="/wiki/International_Standard_Book_Number" title="International Standard Book Number">ISBN</a> <a href="/wiki/Special:BookSources/0-201-32577-2" title="Special:BookSources/0-201-32577-2">0-201-32577-2</a>.</span><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AJava+Native+Interface&amp;rft.aufirst=Sheng&amp;rft.aulast=Liang&amp;rft.au=Liang%2C+Sheng&amp;rft.btitle=Java%28TM%29+Native+Interface%3A+Programmer%27s+Guide+and+Specification&amp;rft.date=June+20%2C+1999&amp;rft.edition=1st&amp;rft.genre=book&amp;rft_id=http%3A%2F%2Fwww.informit.com%2Fstore%2Fproduct.aspx%3Fisbn%3D9780201325775&amp;rft.isbn=0-201-32577-2&amp;rft.pages=320&amp;rft.pub=Prentice+Hall&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook" class="Z3988"><span style="display:none;"> </span></span></li>
+</ul>
+<h2><span class="mw-headline" id="External_links">External links</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Java_Native_Interface&amp;action=edit&amp;section=15" title="Edit section: External links">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul>
+<li><a rel="nofollow" class="external text" href="http://java.sun.com/javase/7/docs/technotes/guides/jni/index.html">Oracle's JNI page for Java 6, including the JNI Specification</a></li>
+<li><a rel="nofollow" class="external text" href="http://java.sun.com/docs/books/jni/">Java Native Interface: Programmer's Guide and Specification</a> - Book, copyright 2002.</li>
+<li><a rel="nofollow" class="external text" href="http://www.ibm.com/developerworks/java/library/j-jni/index.html">Best practices for using the Java Native Interface</a></li>
+<li><a rel="nofollow" class="external text" href="http://electrofriends.com/articles/jni/jni-part1-java-native-interface/">JNI Complete tutorial with examples</a></li>
+<li><a rel="nofollow" class="external text" href="http://gcc.gnu.org/onlinedocs/gcj/About-CNI.html">GNU CNI Tutorial</a></li>
+<li><a rel="nofollow" class="external text" href="http://www.think-techie.com/2009/08/java-native-interface-jni.html">Multi-platform JNI Tutorial at Think-Techie.com</a></li>
+<li><a rel="nofollow" class="external text" href="http://www.codeproject.com/java/jnibasics1.asp">A JNI Tutorial at CodeProject.com (Microsoft specific)</a></li>
+<li><a rel="nofollow" class="external text" href="http://www.codetoad.com/java_simpleJNI.asp">JNI Tutorial at CodeToad.com</a></li>
+<li><a rel="nofollow" class="external text" href="http://java.sun.com/developer/onlineTraining/Programming/JDCBook/jniexamp.html">Larger JNI example from Sun</a></li>
+<li><a rel="nofollow" class="external text" href="http://codebazaar.blogspot.com/2010/08/package-codebazaar.html">JNI video tutorial with Eclipse and Visual Studio</a></li>
+<li><a rel="nofollow" class="external text" href="http://developer.apple.com/java/jniuniversal.html">JNI in XCode from Apple</a></li>
+<li><a rel="nofollow" class="external text" href="http://www.codeproject.com/KB/debug/jni_ex.aspx">Exception handling in JNI</a></li>
+<li><a rel="nofollow" class="external text" href="http://hawtjni.fusesource.org/documentation/index.html">HawtJNI</a> Simplifies creating JNI libraries by code generating the JNI implementations using declarative annotations placed on your Java code.</li>
+<li><a rel="nofollow" class="external text" href="http://reference.wolfram.com/mathematica/JLink/tutorial/Overview.html">J/Link</a> lets you call Java from Mathematica in a completely transparent way, and it also lets you use and control the Mathematica kernel from a Java program (Commercial)</li>
+<li><a rel="nofollow" class="external text" href="http://code.google.com/p/jace/">Jace</a> is a toolkit designed to make it easy to write JNI-based programs</li>
+<li><a rel="nofollow" class="external text" href="http://www.teamdev.com/jniwrapper/">JNIWrapper</a> provides simplified access to native code from Java applications without using Java Native Interface.</li>
+<li><a rel="nofollow" class="external text" href="http://jnative.sf.net">Java to Native Interface</a> LGPL library to call native functions from Java</li>
+<li><a rel="nofollow" class="external text" href="http://jna.dev.java.net">Java Native Access</a> Access to native libraries from Java without JNI</li>
+<li><a rel="nofollow" class="external text" href="http://nlink.dev.java.net">NLink</a> Another library for access to native libraries without JNI</li>
+<li><a rel="nofollow" class="external text" href="http://johannburkard.de/software/nativecall/">NativeCall – call native methods from Java without JNI</a> Library to access native code without JNI</li>
+<li><a rel="nofollow" class="external text" href="http://www.innowhere.com">JNIEasy</a> Transparent Native Programming for C/C++, pure Java alternative to JNI using POJOS and JDO/JPA development style</li>
+<li><a rel="nofollow" class="external text" href="http://jni4net.sf.net/">jni4net</a> bridge between Java and .NET (intraprocess, fast, object oriented, open-source)</li>
+<li><a rel="nofollow" class="external text" href="http://www.simtel.net/product/view/id/93174">Object-Oriented JNI Advanced Add-in for VC6</a> Object-Oriented JNI with a number of helpers that includes the standard JNI SDK for regular C++ (Commercial)</li>
+<li><a rel="nofollow" class="external text" href="http://www.simtel.net/product/view/id/95126">Object-Oriented JNI for .NET1.1 (low-level)</a> Object-Oriented JNI with a number of helpers that includes the standard JNI SDK for C#, Managed C++, VB#, J# (Commercial)</li>
+<li><a rel="nofollow" class="external text" href="http://www.simtel.net/product/view/id/353400">Object-Oriented JNI for .NET2.0 (low-level)</a> Object-Oriented JNI with a number of helpers that includes the standard JNI SDK for C#, Managed C++, VB#, J# (Commercial)</li>
+<li><a rel="nofollow" class="external text" href="http://www.simtel.net/product/view/id/348550">OOJNI Add-in (C#,VB#) for VS2005/2008</a> Generates object-oriented JNI code in C# or VB# for Java classes selected, implements Java interfaces and Java native methods in VB# and C#. Java Class methods and fields (which are represented as .NET Class properties) to be wrapped can be filtered. (Commercial)</li>
+<li><a rel="nofollow" class="external text" href="http://www.mcobject.com/extremedb-jni"><i>e</i>X<i>treme</i>DB JNI</a> uses Java <a href="/wiki/Annotations" title="Annotations" class="mw-redirect">annotations</a> and <a href="/wiki/Reflection_(computer_science)" title="Reflection (computer science)" class="mw-redirect">reflection</a> to enable Java applications to call the <a href="/wiki/EXtremeDB" title="EXtremeDB"><i>e</i>X<i>treme</i>DB</a> database (written in C) without reliance on an external database definition language</li>
+<li><a rel="nofollow" class="external text" href="http://home.pacifier.com/~mmead/jni/delphi/JavaToDPR/">JavaToDPR</a>, a Delphi Project (.dpr) Stub File Generator that allows one to write an <a href="/wiki/Embarcadero_Delphi" title="Embarcadero Delphi" class="mw-redirect">Embarcadero Delphi</a> DLL to handle the native methods declared in a Java .class file</li>
+</ul>

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Run-time-type-information---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Run-time type information</h1>
+<p>In computer programming, <b>RTTI</b> (<b>Run-Time Type Information</b>, or <b>Run-Time Type Identification</b>) refers to a C++ mechanism that exposes information about an object's data type at runtime. Run-time type information can apply to simple data types, such as integers and characters, or to generic types. This is a C++ specialization of a more general concept called type introspection. Similar mechanisms are also known in other programming languages, such as Delphi (Object Pascal).</p>
+<p>In the original C++ design, Bjarne Stroustrup did not include run-time type information, because he thought this mechanism was frequently misused.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Features</li>
+<li>2 C++ Example</li>
+<li>3 See also</li>
+<li>4 References</li>
+</ul>
+<p></p>
+<h2>Features</h2>
+<p>The <code>dynamic_cast&lt;&gt;</code> operation and <code>typeid</code> operator in C++ are part of RTTI.</p>
+<p>The C++ run-time type information permits performing safe typecasts and manipulate type information at run time.</p>
+<p>RTTI is available only for classes which are polymorphic, which means they have at least one virtual method. In practice, this is not a limitation because base classes must have a virtual destructor to allow objects of derived classes to perform proper cleanup if they are deleted from a base pointer.</p>
+<p>RTTI is optional with some compilers; the programmer can choose at compile time whether to include the function. There may be a resource cost to making RTTI available even if the program does not use it.</p>
+<h2>C++ Example</h2>
+<p>WHATSON? 4b584f54-9853-4420-a403-dadeed185339</p>
+<pre>
+/* A base class pointer can point to objects of any class which is derived 
+ * from it. RTTI is useful to identify which type (derived class) of object is 
+ * pointed to by a base class pointer.
+ */
+ 
+#include &lt;iostream&gt;
+ 
+class Base
+{
+public:
+    Base() { } 
+    virtual ~Base() { } 
+ 
+    virtual void hello() 
+    {
+        std::cout &lt;&lt; "in Base";
+    }
+};
+ 
+class Derived : public Base
+{
+public:
+    void hello() 
+    {
+        std::cout &lt;&lt; "in Derived";
+    }
+};
+ 
+int main()
+{
+    Base* basePointer = new Derived();
+    Derived* derivedPointer = NULL;
+ 
+    //To find whether basePointer is pointing to Derived type of object
+    derivedPointer = dynamic_cast&lt;Derived*&gt;(basePointer);
+ 
+    if (derivedPointer != NULL)
+    {
+        std::cout &lt;&lt; "basePointer is pointing to a Derived class object"; //Identified
+    }
+    else
+    {
+        std::cout &lt;&lt; "basePointer is NOT pointing to a Derived class object";
+    }
+ 
+    //Requires virtual destructor 
+    delete basePointer;
+    basePointer = NULL;
+ 
+    return 0;
+}
+</pre>
+<p>An instance where RTTI is used is illustrated below:</p>
+<p>WHATSON? 0bede1a9-ff5c-4051-9cf8-e1b0b6b404ab</p>
+<pre>
+class Base
+{
+public:  
+    virtual ~Base(){}
+};
+ 
+class Derived : public Base
+{
+public:
+    Derived() {}
+    virtual ~Derived() {}
+ 
+    int compare (Derived&amp; ref);
+};
+ 
+int myComparisonMethodForGenericSort (Base&amp; ref1, Base&amp; ref2)
+{
+    Derived&amp; d = dynamic_cast&lt;Derived&amp;&gt;(ref1); //RTTI used here
+    //Note: If the cast is not successful, RTTI enables the process to throw a bad_cast exception
+ 
+    return d.compare (dynamic_cast&lt;Derived&amp;&gt;(ref2));
+}
+</pre>
+<h2>See also</h2>
+<ul>
+<li>Reflection</li>
+</ul>
+</body>
+</html>

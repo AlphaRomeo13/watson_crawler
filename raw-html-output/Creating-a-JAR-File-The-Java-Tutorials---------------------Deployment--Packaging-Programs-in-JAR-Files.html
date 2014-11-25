@@ -1,0 +1,97 @@
+<h1>Creating a JAR File</h1>
+<p>The basic format of the command for creating a JAR file is:</p>
+<p>WHATSON? f0ab27dc-76cc-4a14-90e3-969ac58b73b9</p>
+<pre>
+jar cf <i>jar-file input-file(s)</i>
+</pre>
+<p>The options and arguments used in this command are:</p>
+<ul>
+<li>The <tt>c</tt> option indicates that you want to <em>create</em> a JAR file.</li>
+<li>The <tt>f</tt> option indicates that you want the output to go to a <em>file</em> rather than to <tt>stdout</tt>.</li>
+<li><tt>jar-file</tt> is the name that you want the resulting JAR file to have. You can use any filename for a JAR file. By convention, JAR filenames are given a <tt>.jar</tt> extension, though this is not required.</li>
+<li>The <tt>input-file(s)</tt> argument is a space-separated list of one or more files that you want to include in your JAR file. The <tt>input-file(s)</tt> argument can contain the wildcard <tt>*</tt> symbol. If any of the "input-files" are directories, the contents of those directories are added to the JAR archive recursively.</li>
+</ul>
+<p>The <tt>c</tt> and <tt>f</tt> options can appear in either order, but there must not be any space between them.</p>
+<p>This command will generate a compressed JAR file and place it in the current directory. The command will also generate a 
+<a class="TutorialLink" target="_top" href="defman.html">default manifest file</a> for the JAR archive.</p>
+<p>The metadata in the JAR file, such as the entry names, comments, and contents of the manifest, must be encoded in UTF8.</p>
+<p>You can add any of these additional options to the <tt>cf</tt> options of the basic command:</p>
+<p>WHATSON? c4532c04-f46b-4272-a4cb-2444d923c2e1</p>
+<pre>
+jar cmf existing-manifest jar-file input-file(s)
+</pre>
+<p>When you create a JAR file, the time of creation is stored in the JAR file. Therefore, even if the contents of the JAR file do not change, when you create a JAR file multiple times, the resulting files are not exactly identical. You should be aware of this when you are using JAR files in a build environment. It is recommended that you use versioning information in the manifest file, rather than creation time, to control versions of a JAR file. See the 
+<a class="TutorialLink" target="_top" href="packageman.html">Setting Package Version Information</a> section.</p>
+<p><a name="example" id="example"></a></p>
+<h2>An Example</h2>
+<p>Let us look at an example. A simple <tt>TicTacToe</tt> applet. You can see the source code of this applet by downloading the JDK Demos and Samples bundle from 
+<a class="OutsideLink" target="_blank" href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">Java SE Downloads</a>. This demo contains class files, audio files, and images having this structure:</p>
+<p class="FigureCaption"></p>
+<p>The <tt>audio</tt> and <tt>images</tt> subdirectories contain sound files and GIF images used by the applet.</p>
+<p>You can obtain all these files from <i>jar/examples</i> directory when you download the entire Tutorial online. To package this demo into a single JAR file named <tt>TicTacToe.jar</tt>, you would run this command from inside the <tt>TicTacToe</tt> directory:</p>
+<p>WHATSON? 18d90c01-fde6-4261-a899-de08c6b6f7a0</p>
+<pre>
+jar cvf TicTacToe.jar TicTacToe.class audio images
+</pre>
+<p>The <tt>audio</tt> and <tt>images</tt> arguments represent directories, so the Jar tool will recursively place them and their contents in the JAR file. The generated JAR file <tt>TicTacToe.jar</tt> will be placed in the current directory. Because the command used the <tt>v</tt> option for verbose output, you would see something similar to this output when you run the command:</p>
+<p>WHATSON? 8ce10342-8fcb-4298-93c3-34ba44bd2aae</p>
+<pre>
+adding: TicTacToe.class (in=3825) (out=2222) (deflated 41%)
+adding: audio/ (in=0) (out=0) (stored 0%)
+adding: audio/beep.au (in=4032) (out=3572) (deflated 11%)
+adding: audio/ding.au (in=2566) (out=2055) (deflated 19%)
+adding: audio/return.au (in=6558) (out=4401) (deflated 32%)
+adding: audio/yahoo1.au (in=7834) (out=6985) (deflated 10%)
+adding: audio/yahoo2.au (in=7463) (out=4607) (deflated 38%)
+adding: images/ (in=0) (out=0) (stored 0%)
+adding: images/cross.gif (in=157) (out=160) (deflated -1%)
+adding: images/not.gif (in=158) (out=161) (deflated -1%)
+</pre>
+<p>You can see from this output that the JAR file <tt>TicTacToe.jar</tt> is compressed. The Jar tool compresses files by default. You can turn off the compression feature by using the <tt>0</tt> (zero) option, so that the command would look like:</p>
+<p>WHATSON? ae204925-b524-4260-bd81-1aad609c96ea</p>
+<pre>
+jar cvf0 TicTacToe.jar TicTacToe.class audio images
+</pre>
+<p>You might want to avoid compression, for example, to increase the speed with which a JAR file could be loaded by a browser. Uncompressed JAR files can generally be loaded more quickly than compressed files because the need to decompress the files during loading is eliminated. However, there is a tradeoff in that download time over a network may be longer for larger, uncompressed files.</p>
+<p>The Jar tool will accept arguments that use the wildcard <tt>*</tt> symbol. As long as there weren't any unwanted files in the <tt>TicTacToe</tt> directory, you could have used this alternative command to construct the JAR file:</p>
+<p>WHATSON? 17bcd00d-049e-4db3-ba49-6a0a00316fac</p>
+<pre>
+jar cvf TicTacToe.jar *
+</pre>
+<p>Though the verbose output doesn't indicate it, the Jar tool automatically adds a manifest file to the JAR archive with path name <tt>META-INF/MANIFEST.MF</tt>. See the 
+<a class="TutorialLink" target="_top" href="manifestindex.html">Working with Manifest Files: The Basics</a> section for information about manifest files.</p>
+<p>In the above example, the files in the archive retained their relative path names and directory structure. The Jar tool provides the <tt>-C</tt> option that you can use to create a JAR file in which the relative paths of the archived files are not preserved. It's modeled after TAR's <tt>-C</tt> option.</p>
+<p>As an example, suppose you wanted to put audio files and gif images used by the TicTacToe demo into a JAR file, and that you wanted all the files to be on the top level, with no directory hierarchy. You could accomplish that by issuing this command from the parent directory of the <tt>images</tt> and <tt>audio</tt> directories:</p>
+<p>WHATSON? 608d66e3-b52e-4272-9c51-a9e3f50d705d</p>
+<pre>
+jar cf ImageAudio.jar -C images . -C audio .
+</pre>
+<p>The <tt>-C images</tt> part of this command directs the Jar tool to go to the <tt>images</tt> directory, and the <tt>.</tt> following <tt>-C images</tt> directs the Jar tool to archive all the contents of that directory. The <tt>-C audio .</tt> part of the command then does the same with the <tt>audio</tt> directory. The resulting JAR file would have this table of contents:</p>
+<p>WHATSON? 15e6ea73-8aef-42c5-ae63-a97f4f2096c7</p>
+<pre>
+META-INF/MANIFEST.MF
+cross.gif
+not.gif
+beep.au
+ding.au
+return.au
+yahoo1.au
+yahoo2.au
+</pre>
+<p>By contrast, suppose that you used a command that did not employ the <tt>-C</tt> option:</p>
+<p>WHATSON? ac40149f-a907-43a4-8fe9-692856766e9d</p>
+<pre>
+jar cf ImageAudio.jar images audio
+</pre>
+<p>The resulting JAR file would have this table of contents:</p>
+<p>WHATSON? e7a12f68-31ad-4b67-8ae5-98db0b187706</p>
+<pre>
+META-INF/MANIFEST.MF
+images/cross.gif
+images/not.gif
+audio/beep.au
+audio/ding.au
+audio/return.au
+audio/yahoo1.au
+audio/yahoo2.au
+</pre>

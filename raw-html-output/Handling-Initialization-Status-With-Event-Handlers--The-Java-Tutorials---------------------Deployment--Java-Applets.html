@@ -1,0 +1,109 @@
+<h1>Handling Initialization Status With Event Handlers </h1>
+<p>An applet cannot handle requests from JavaScript code in the web page until the applet has been initialized. A call to an applet method or access to an applet variable from JavaScript code will be blocked until the applet's <code>init()</code> method is complete or the applet first invokes JavaScript code from the web page in which it is deployed. As the JavaScript implementation is single-threaded in many browsers, the web page may appear to be frozen during applet startup.</p>
+<p>Beginning in the JDK 7 release, you can check the <code>status</code> variable of the applet while it is loading to determine if the applet is ready to handle requests from JavaScript code. You can also register event handlers that will automatically be invoked during various stages of applet initialization. To leverage this functionality, the applet should be deployed with the <code>java_status_events</code> parameter set to <code>"true"</code>.</p>
+<p>In the Status and Event Handler example, JavaScript code registers an <code>onLoad</code> handler with the applet. The <code>onLoad</code> handler is automatically invoked by the Java Plug-in software when the applet has been initialized. The <code>onLoad</code> handler invokes other methods of the applet to draw the graph on the web page. The <code>init</code> method of the 
+<a class="SourceLink" target="_blank" href="examples/applet_StatusAndCallback/src/DrawingApplet.java" onclick="showCode('../../displayCode.html', 'examples/applet_StatusAndCallback/src/DrawingApplet.java'); return false;"><code><code>DrawingApplet</code></code></a> class sleeps for two seconds to simulate a long applet initialization period.</p>
+<p>The following steps describe how to register event handlers and check an applet's status. See 
+<a class="OutsideLink" target="_blank" href="http://docs.oracle.com/javase/8/docs/technotes/guides/deploy/applet_dev_guide.html#JSDPG719">Applet Status and Event Handlers</a> for a complete list of applet status values and applet events for which event handlers can be registered.</p>
+<ol>
+<li>Create a JavaScript function to register event handlers. The following code snippet shows the <code>registerAppletStateHandler</code> function that registers an <code>onLoad</code> event handler if the applet has not already loaded.
+<div class="codeblock"><pre>
+&lt;script&gt;
+&lt;!-- ... --&gt;
+    var READY = 2;
+    function <b>registerAppletStateHandler()</b> {
+        // register onLoad handler if applet has
+        // not loaded yet
+        if (drawApplet.status &lt; READY)  {                 
+            drawApplet.onLoad = onLoadHandler;
+        } else if (drawApplet.status &gt;= READY) {
+            // applet has already loaded or there
+            // was an error
+            document.getElementById("mydiv").innerHTML = 
+              "Applet event handler not registered because applet status is: "
+               + drawApplet.status;    
+        }
+    }
+    
+    function <b>onLoadHandler()</b> {
+        // event handler for ready state
+        document.getElementById("mydiv").innerHTML =
+            "Applet has loaded";
+        draw();
+    }
+&lt;!-- ... --&gt;
+&lt;/script&gt;        
+</pre></div>
+</li>
+<li>Invoke the previously created <code>registerAppletStateHandler</code> function in the <code>body</code> tag's onload method. This ensures that the HTML tag for the applet has been created in the Document Object Model (DOM) tree of the web page before the applet's event handlers are registered.
+<div class="codeblock"><pre>
+&lt;body onload="registerAppletStateHandler()"&gt;
+</pre></div>
+</li>
+<li>Deploy the applet with the <code>java_status_events</code> parameter set to <code>"true"</code>.
+<div class="codeblock"><pre>
+&lt;script src=
+  "https://www.java.com/js/deployJava.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+    // set java_status_events parameter to true 
+    var attributes = { id:'drawApplet',
+        code:'DrawingApplet.class',
+        archive: 'applet_StatusAndCallback.jar',
+        width:600, height:400} ;
+    var parameters = {<b>java_status_events: 'true'</b>, permissions:'sandbox' } ;
+    deployJava.runApplet(attributes, parameters, '1.7');
+&lt;/script&gt;
+</pre></div>
+</li>
+</ol>
+<p>WHATSON? f3dd225e-41b5-4dd7-acd4-034862d02d5f</p>
+<pre>
+&lt;script&gt;
+&lt;!-- ... --&gt;
+    var READY = 2;
+    function <b>registerAppletStateHandler()</b> {
+        // register onLoad handler if applet has
+        // not loaded yet
+        if (drawApplet.status &lt; READY)  {                 
+            drawApplet.onLoad = onLoadHandler;
+        } else if (drawApplet.status &gt;= READY) {
+            // applet has already loaded or there
+            // was an error
+            document.getElementById("mydiv").innerHTML = 
+              "Applet event handler not registered because applet status is: "
+               + drawApplet.status;    
+        }
+    }
+    
+    function <b>onLoadHandler()</b> {
+        // event handler for ready state
+        document.getElementById("mydiv").innerHTML =
+            "Applet has loaded";
+        draw();
+    }
+&lt;!-- ... --&gt;
+&lt;/script&gt;        
+</pre>
+<p>WHATSON? a2b93e57-2522-4b19-bffb-5b3edf911b99</p>
+<pre>
+&lt;body onload="registerAppletStateHandler()"&gt;
+</pre>
+<p>WHATSON? aa13165e-1281-411f-b956-8cb2c70d1693</p>
+<pre>
+&lt;script src=
+  "https://www.java.com/js/deployJava.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+    // set java_status_events parameter to true 
+    var attributes = { id:'drawApplet',
+        code:'DrawingApplet.class',
+        archive: 'applet_StatusAndCallback.jar',
+        width:600, height:400} ;
+    var parameters = {<b>java_status_events: 'true'</b>, permissions:'sandbox' } ;
+    deployJava.runApplet(attributes, parameters, '1.7');
+&lt;/script&gt;
+</pre>
+<p>Open 
+<a class="SourceLink" target="_blank" href="examples/dist/applet_StatusAndCallback/AppletPage.html" onclick="showCode('../../displayCode.html', 'examples/dist/applet_StatusAndCallback/AppletPage.html'); return false;"><code><code>AppletPage.html</code></code></a> in a browser to view the behavior of applet event handlers. In the 
+<a class="SourceLink" target="_blank" href="examples/dist/applet_StatusAndCallback/AppletPageUpdatedDuringLoading.html" onclick="showCode('../../displayCode.html', 'examples/dist/applet_StatusAndCallback/AppletPageUpdatedDuringLoading.html'); return false;"><code><code>AppletPageUpdatedDuringLoading.html</code></code></a> page, the <code>status</code> variable of the applet is checked to determine if the applet has been loaded. Based on the status, the web page is continuously updated while the applet is being loaded.</p>
+<p>
+<a class="TutorialLink" target="_top" href="examplesIndex.html#StatusEventHandler">Download source code</a> for the <em>Status and Event Handler</em> example to experiment further.</p>

@@ -1,0 +1,60 @@
+<h1>TransferSupport Class</h1>
+<p>The 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/javax/swing/TransferHandler.TransferSupport.html"><code>TransferSupport</code></a> class serves two functions. As the name suggests, its first function is to support the transfer process and for that purpose it provides several utility methods used to access the details of the data transfer. The following list shows the methods that can be used to obtain information from the <code>TransferHandler</code>. Several of these methods are related to drop actions, which will be discussed in 
+<a class="TutorialLink" target="_top" href="dropmodes.html">Setting the Drop Mode</a>.</p>
+<ul>
+<li>
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/javax/swing/TransferHandler.TransferSupport.html#getComponent--"><code>Component getComponent()</code></a>— This method returns the target component of the transfer.</li>
+<li>
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/javax/swing/TransferHandler.TransferSupport.html#getDropAction--"><code>int getDropAction()</code></a> — This method returns the chosen action (<code>COPY</code>, <code>MOVE</code> or <code>LINK</code>) when the transfer is a drop. If the transfer is not a drop, this method throws an exception.</li>
+<li>
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/javax/swing/TransferHandler.TransferSupport.html#getUserDropAction--"><code>int getUserDropAction()</code></a> — This method returns the user's chosen drop action. For example, if the user simultaneously holds Control and Shift during the drag gesture, this indicates an <code>ACTION_LINK</code> action. For more information on user drop actions, see the API for 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/awt/dnd/DropTargetDragEvent.html"><code>DropTargetDragEvent</code></a>. If the transfer is not a drop, this method throws an exception.</li>
+<li>
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/javax/swing/TransferHandler.TransferSupport.html#getSourceDropActions--"><code>int getSourceDropActions()</code></a> — This method returns the set of actions supported by the source component. If the transfer is not a drop, this method throws an exception.</li>
+<li>
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/javax/swing/TransferHandler.TransferSupport.html#getDataFlavors--"><code>DataFlavor[] getDataFlavors()</code></a> — This method returns all the data flavors supported by this component. For example, a component might support files and text, or text and color. If the transfer is not a drop, this method throws an exception.</li>
+<li>
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/javax/swing/TransferHandler.TransferSupport.html#isDataFlavorSupported-java.awt.datatransfer.DataFlavor-"><code>boolean isDataFlavorSupported(DataFlavor)</code></a> — This method returns true if the specified <code>DataFlavor</code> is supported. The 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/awt/datatransfer/DataFlavor.html"><code>DataFlavor</code></a> indicates the type of data represented, such as an image (<code>imageFlavor</code>), a string (<code>stringFlavor</code>), a list of files (<code>javaFileListFlavor</code>), and so on.</li>
+<li>
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/javax/swing/TransferHandler.TransferSupport.html#getTransferable--"><code>Transferable getTransferable()</code></a> — This method returns the <code>Transferable</code> data for this transfer. It is more efficient to use one of these methods to query information about the transfer than to fetch the transferable and query it, so this method is not recommended unless you cannot get the information another way.</li>
+<li>
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/javax/swing/TransferHandler.TransferSupport.html#getDropLocation--"><code>DropLocation getDropLocation()</code></a> — This method returns the drop location in the component. Components with built-in drop support, such as list, table and tree, override this method to return more useful data. For example, the version of this method for the <code>JList</code> component returns the index in the list where the drop occurred. If the transfer is not a drop, this method throws an exception.</li>
+</ul>
+<h2>Sample Import Methods</h2>
+<p>Now that you are familiar with the <code>TransferSupport</code> utility methods, let us look at sample <code>canImport</code> and <code>importData</code> methods:</p>
+<p>WHATSON? dff31d26-89f8-4d6a-9d71-e1b338bcad30</p>
+<pre>
+public boolean canImport(TransferSupport supp) {
+    // Check for String flavor
+    if (!supp.isDataFlavorSupported(stringFlavor)) {
+        return false;
+    }
+
+    // Fetch the drop location
+    DropLocation loc = supp.getDropLocation();
+
+    // Return whether we accept the location
+    return shouldAcceptDropLocation(loc);
+}
+
+public boolean importData(TransferSupport supp) {
+    if (!canImport(sup)) {
+        return false;
+    }
+
+    // Fetch the Transferable and its data
+    Transferable t = supp.getTransferable();
+    String data = t.getTransferData(stringFlavor);
+
+    // Fetch the drop location
+    DropLocation loc = supp.getDropLocation();
+
+    // Insert the data at this location
+    insertAt(loc, data);
+
+    return true;
+}
+</pre>
+<p>Next we look at how you can set the drop mode for selected components.</p>

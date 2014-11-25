@@ -1,0 +1,190 @@
+<h1>How to Make Applets</h1>
+<p>This section covers <code>JApplet</code>  a class that enables applets to use Swing components. <code>JApplet</code> is a subclass of 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/applet/Applet.html"><code>java.applet.Applet</code></a>, which is covered in the 
+<a class="TutorialLink" target="_top" href="../../deployment/applet/index.html">Java Applets</a> trail. If you've never written a regular applet before, we urge you to read that trail before proceeding with this section. The information provided in that trail applies to Swing applets, with a few exceptions that this section explains.</p>
+<p><a name="applet" id="applet"></a> Any applet that contains Swing components must be implemented with a subclass of 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/javax/swing/JApplet.html"><code>JApplet</code></a>. Here's a Swing version of one of the applets that helped make Java famous  an animation applet that (in its most well known configuration) shows our mascot Duke doing cartwheels:</p>
+<p>You can find the main source code for this applet in 
+<a class="SourceLink" target="_blank" href="../examples/components/TumbleItemProject/src/components/TumbleItem.java" onclick="showCode('../../displayCode.html', '../examples/components/TumbleItemProject/src/components/TumbleItem.java'); return false;"><code>TumbleItem.java</code></a>.</p>
+<p>This section discusses the following topics:</p>
+<ul>
+<li><a href="#features">Features Provided by JApplet</a></li>
+<li><a href="#thread">Threads in Applets</a></li>
+<li><a href="#images">Using Images in a Swing Applet</a></li>
+<li><a href="#plugin">Embedding an Applet in an HTML Page</a></li>
+<li><a href="#api">The JApplet API</a></li>
+<li><a href="#eg">Applet Examples</a></li>
+</ul>
+<h2><a name="features" id="features">Features Provided by JApplet</a></h2>
+<p>Because <code>JApplet</code> is a top-level Swing container, each Swing applet has a root pane. The most noticeable effects of the root pane's presence are support for adding a <a href="menu.html">menu bar</a> and the need to use a content pane.</p>
+<p>As described in <a href="toplevel.html">Using Top-Level Containers</a>, each top-level container such as a <code>JApplet</code> has a single content pane. The content pane makes Swing applets different from regular applets in the following ways:</p>
+<ul>
+<li>You add components to a Swing applet's content pane, not directly to the applet. <a href="toplevel.html#contentpane">Adding Components to the Content Pane</a> shows you how.</li>
+<li>You set the layout manager on a Swing applet's content pane, not directly on the applet.</li>
+<li>The default layout manager for a Swing applet's content pane is <code>BorderLayout</code>. This differs from the default layout manager for <code>Applet</code>, which is <code>FlowLayout</code>.</li>
+<li>You should not put painting code directly in a <code>JApplet</code> object. See 
+<a class="TutorialLink" target="_top" href="../painting/index.html">Performing Custom Painting</a> for examples of how to perform custom painting in applets.</li>
+</ul>
+<h2><a name="thread" id="thread">Threads in Applets</a></h2>
+<p>Swing components should be created, queried, and manipulated on the event-dispatching thread, but browsers don't invoke applet "milestone" methods from that thread. For this reason, the milestone methods  <code>init</code>, <code>start</code>, <code>stop</code>, and <code>destroy</code>  should use the <code>SwingUtilities</code> method <code>invokeAndWait</code> (or, if appropriate, <code>invokeLater</code>) so that code that refers to the Swing components is executed on the event-dispatching thread. More information about these methods and the event-dispatching thread is in 
+<a class="TutorialLink" target="_top" href="../concurrency/index.html">Concurrency in Swing</a>.</p>
+<p>Here is an example of an <code>init</code> method:</p>
+<p>WHATSON? 0d33dab2-5b9e-4799-8c68-c6f02b6b5525</p>
+<pre>
+public void init() {
+    //Execute a job on the event-dispatching thread:
+    //creating this applet's GUI.
+    try {
+        javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            public void run() {
+                createGUI();
+            }
+        });
+    } catch (Exception e) {
+        System.err.println("createGUI didn't successfully complete");
+    }
+}
+
+private void createGUI() {
+    JLabel label = new JLabel(
+                       "You are successfully running a Swing applet!");
+    label.setHorizontalAlignment(JLabel.CENTER);
+    label.setBorder(BorderFactory.createMatteBorder(1,1,1,1,Color.black));
+    getContentPane().add(label, BorderLayout.CENTER);
+}
+</pre>
+<p>The <code>invokeLater</code> method is not appropriate for this implementation because it allows <code>init</code> to return before initialization is complete, which can cause applet problems that are difficult to debug.</p>
+<p>The <code>init</code> method in <code>TumbleItem</code> is more complex, as the following code shows. Like the first example, this <code>init</code> method implementation uses <code>SwingUtilities.invokeAndWait</code> to execute the GUI creation code on the event-dispatching thread. This <code>init</code> method sets up a 
+<a class="TutorialLink" target="_top" href="../misc/timer.html">Swing timer</a> to fire action events the update the animation. Also, <code>init</code> uses 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/javax/swing/SwingWorker.html"><code>javax.swing.SwingWorker</code></a> to create a background task that loads the animation image files, letting the applet present a GUI right away, without waiting for all resources to be loaded.</p>
+<p>WHATSON? 55421547-122b-43ce-b02d-85f92a43baf5</p>
+<pre>
+private void createGUI() {
+    ...
+    animator = new Animator();
+    animator.setOpaque(true);
+    animator.setBackground(Color.white);
+    setContentPane(animator);
+    ...
+}
+
+public void init() {
+    loadAppletParameters();
+
+    //Execute a job on the event-dispatching thread:
+    //creating this applet's GUI.
+    try {
+        <b>javax.swing.SwingUtilities.invokeAndWait(new Runnable() {
+            public void run() {
+                createGUI();
+            }
+        });</b>
+    } catch (Exception e) { 
+        System.err.println("createGUI didn't successfully complete");
+    }
+
+    //Set up the timer that will perform the animation.
+    timer = new javax.swing.Timer(speed, this);
+    timer.setInitialDelay(pause);
+    timer.setCoalesce(false);
+    timer.start(); //Start the animation.
+
+    //Background task for loading images.
+    SwingWorker worker = (new SwingWorker&lt;ImageIcon[], Object&gt;() {
+            public ImageIcon[] doInBackground() {
+                final ImageIcon[] innerImgs = new ImageIcon[nimgs];
+            <em>...//Load all the images...</em>
+            return imgs;
+        }
+        public void done() {
+            //Remove the "Loading images" label.
+            animator.removeAll();
+            loopslot = -1;
+            try {
+                imgs = get();
+            } <em>...//Handle possible exceptions</em>
+        }
+
+    }).execute();
+}
+</pre>
+<p>You can find the applet's source code in 
+<a class="SourceLink" target="_blank" href="../examples/components/TumbleItemProject/src/components/TumbleItem.java" onclick="showCode('../../displayCode.html', '../examples/components/TumbleItemProject/src/components/TumbleItem.java'); return false;"><code>TumbleItem.java</code></a>. To find all the files required for the applet, see the <a href="../examples/components/index.html#TumbleItem">example index</a>.</p>
+<h2><a name="images" id="images">Using Images in a Swing Applet</a></h2>
+<p>The <code>Applet</code> class provides the <code>getImage</code> method for loading images into an applet. The <code>getImage</code> method creates and returns an <code>Image</code> object that represents the loaded image. Because Swing components use <code>Icon</code>s rather than <code>Image</code>s to refer to pictures, Swing applets tend not to use <code>getImage</code>. Instead Swing applets create instances of <code>ImageIcon</code>  an icon loaded from an image file. <code>ImageIcon</code> comes with a code-saving benefit: it handles image tracking automatically. Refer to 
+<a class="TutorialLink" target="_top" href="../components/icon.html">How to Use Icons</a> for more information.</p>
+<p>The animation of Duke doing cartwheels requires 17 different pictures. The applet uses one <code>ImageIcon</code> per picture and loads them in its <code>init</code> method. Because images can take a long time to load, the icons are loaded in a separate thread implemented by a <code>SwingWorker</code> object. Here's the code:</p>
+<p>WHATSON? 68092ed3-652e-4e2f-8b48-85d5641bb717</p>
+<pre>
+public void init() {
+    ...
+    imgs = new ImageIcon[nimgs];
+    (new SwingWorker&lt;ImageIcon[], Object&gt;() {
+        public ImageIcon[] doInBackground() {
+            //Images are numbered 1 to nimgs,
+            //but fill array from 0 to nimgs-1.
+            for (int i = 0; i &lt; nimgs; i++) {
+                imgs[i] = loadImage(i+1);
+            }
+            return imgs;
+        }
+        ...
+    }).execute();
+
+}
+...
+protected ImageIcon loadImage(int imageNum) {
+    String path = dir + "/T" + imageNum + ".gif";
+    int MAX_IMAGE_SIZE = 2400;  //Change this to the size of
+                                 //your biggest image, in bytes.
+    int count = 0;
+    BufferedInputStream imgStream = new BufferedInputStream(
+       this.getClass().getResourceAsStream(path));
+    if (imgStream != null) {
+        byte buf[] = new byte[MAX_IMAGE_SIZE];
+        try {
+            count = imgStream.read(buf);
+            imgStream.close();
+        } catch (java.io.IOException ioe) {
+            System.err.println("Couldn't read stream from file: " + path);
+            return null;
+        }
+        if (count &lt;= 0) {
+            System.err.println("Empty file: " + path);
+            return null;
+        }
+        return new ImageIcon(Toolkit.getDefaultToolkit().createImage(buf));
+    } else {
+        System.err.println("Couldn't find file: " + path);
+        return null;
+    }
+}
+</pre>
+<p>The <code>loadImage</code> method loads the image for the specified frame of animation. It uses the <code>getResourceAsStream</code> method rather than the usual <code>getResource</code> method to get the images. The resulting code isn't pretty, but <code>getResourceAsStream</code> is more efficient than <code>getResource</code> for loading images from JAR files into applets that are executed using Java Plug-in™ software. For further details, see 
+<a class="TutorialLink" target="_top" href="../components/icon.html#applet">Loading Images Into Applets</a>.</p>
+<h2><a name="plugin" id="plugin">Embedding an Applet in an HTML Page</a></h2>
+<p>You can deploy a simple applet by using the <code>applet</code> tag. Or, you can use the Deployment Toolkit. Here is the code for the cartwheeling Duke applet:</p>
+<p>WHATSON? 1301417f-4f27-4b98-9910-0da8e0f7c229</p>
+<pre>
+&lt;script src="https://www.java.com/js/deployJava.js" type="text/javascript"&gt;
+&lt;/script&gt;&lt;script type="text/javascript"&gt;
+//&lt;![CDATA[
+    var attributes = { archive: 'http://docs.oracle.com/javase/tutorialJWS/samples/uiswing/TumbleItemProject/TumbleItem.jar',
+                       codebase: 'http://docs.oracle.com/javase/tutorialJWS/samples/uiswing/TumbleItemProject',
+                       code:'components.TumbleItem', width:'600', height:'95' };
+    var parameters = { permissions:'sandbox', nimgs:'17', offset:'-57',
+                       img: 'images/tumble', maxwidth:'120' };
+    deployJava.runApplet(attributes, parameters, '1.7');
+//]]&gt;
+&lt;/script&gt;&lt;noscript&gt;A browser with Javascript enabled is required for this page to operate properly.&lt;/noscript&gt;
+</pre>
+<p>For more information, see 
+<a class="TutorialLink" target="_top" href="../../deployment/applet/deployingApplet.html">Deploying an Applet</a> in the 
+<a class="TutorialLink" target="_top" href="../../deployment/applet/index.html">Java Applets</a> lesson.</p>
+<h2><a name="api" id="api">The JApplet API</a></h2>
+<p>The next table lists the interesting methods that <code>JApplet</code> adds to the applet API. They give you access to features provided by the root pane. Other methods you might use are defined by the 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/awt/Component.html"><code>Component</code></a> and 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/applet/Applet.html"><code>Applet</code></a> classes. See <a href="jcomponent.html#complookapi">Component Methods</a> for a list of commonly used <code>Component</code> methods, and 
+<a class="TutorialLink" target="_top" href="../../deployment/applet/index.html">Java Applets</a> for help in using <code>Applet</code> methods.</p>
+<h2><a name="eg" id="eg">Applet Example</a></h2>
+<p>This table shows examples of Swing applets and where those examples are described.</p>

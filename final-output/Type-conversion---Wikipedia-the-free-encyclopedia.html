@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Type-conversion---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Type conversion</h1>
+<p>In computer science, <b>type conversion</b>, <b>typecasting</b>, and <b>coercion</b> are different ways of, implicitly or explicitly, changing an entity of one data type into another. This is done to take advantage of certain features of type hierarchies or type representations. One example would be small integers, which can be stored in a compact format and converted to a larger representation when used in arithmetic computations. In object-oriented programming, type conversion allows programs to treat objects of one type as one of their ancestor types to simplify interacting with them.</p>
+<p>Each programming language has its own rules on how types can be converted. In general, both objects and fundamental data types can be converted. In most languages, the word <i>coercion</i> is used to denote an <i>implicit</i> conversion, either during compilation or during run time. A typical example would be an expression mixing integer and floating point numbers (like 5 + 0.1), where the integers are normally converted into the latter. Explicit type conversions can either be performed via built-in routines (or a special syntax) or via separately defined conversion routines such as an overloaded object constructor.</p>
+<p>In most ALGOL-based languages with nested function definitions, such as Ada, Delphi, Modula 2 and Pascal, <i>conversion</i> and <i>casting</i> are distinctly different concepts. In these languages, <i>conversion</i> refers to either implicitly or explicitly changing a value from one data type to another, e.g. a 16-bit integer to a 32-bit integer. The storage requirements may change as a result of the conversion. A loss of precision or truncation may also occur. The word <i>cast</i>, on the other hand, refers to explicitly changing the <i>interpretation</i> of the <i>bit pattern</i> representing a value from one type to another. For example 32 contiguous bits may be treated as an array of 32 booleans, a 4-byte string, an unsigned 32-bit integer or an IEEE single precision floating point value. While the storage requirements are never changed, it still requires knowledge of low level details such as representation format, byte order, and alignment requirements in order to be meaningful.</p>
+<p>In the C family of languages and ALGOL 68, the word <i>cast</i> typically refers to an <i>explicit</i> type conversion (as opposed to an implicit conversion), regardless of whether this is a re-interpretation of a bit-pattern or a real conversion.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 C-like languages
+<ul>
+<li>1.1 Implicit type conversion
+<ul>
+<li>1.1.1 Type promotion</li>
+</ul>
+</li>
+<li>1.2 Explicit type conversion
+<ul>
+<li>1.2.1 Using overloaded object constructor</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>2 C#</li>
+<li>3 Eiffel
+<ul>
+<li>3.1 Definition of type conversion in Eiffel</li>
+<li>3.2 Example</li>
+</ul>
+</li>
+<li>4 See also</li>
+<li>5 References</li>
+<li>6 External links</li>
+</ul>
+<ul>
+<li>1.1 Implicit type conversion
+<ul>
+<li>1.1.1 Type promotion</li>
+</ul>
+</li>
+<li>1.2 Explicit type conversion
+<ul>
+<li>1.2.1 Using overloaded object constructor</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li>1.1.1 Type promotion</li>
+</ul>
+<ul>
+<li>1.2.1 Using overloaded object constructor</li>
+</ul>
+<ul>
+<li>3.1 Definition of type conversion in Eiffel</li>
+<li>3.2 Example</li>
+</ul>
+<p></p>
+<h2>C-like languages</h2>
+<h3>Implicit type conversion</h3>
+<p>Implicit type conversion, also known as <i>coercion</i>, is an automatic type conversion by the compiler. Some languages allow compilers to provide coercion; others require it.</p>
+<p>In a mixed-type expression, data of one or more subtypes can be converted to a supertype as needed at runtime so that the program will run correctly. For example, the following is legal C language code:</p>
+<p>WHATSON? a7f5a5d6-45ad-47f8-9dc7-fccd7dc4db69</p>
+<pre>
+double  d;
+long    l;
+int     i;
+ 
+if (d &gt; i)   d = i;
+if (i &gt; l)   l = i;
+if (d == l)  d *= 2;
+</pre>
+<p>Although d, l and i belong to different data types, they will be automatically converted to equal data types each time a comparison or assignment is executed. This behavior should be used with caution, as unintended consequences can arise. Data can be lost when floating-point representations are converted to integer representations as the fractional components of the floating-point values will be truncated (rounded towards zero). Conversely, converting from an integer representation to a floating-point one can also lose precision, since the floating-point type may be unable to represent the integer exactly (for example, float might be an IEEE 754 single precision type, which cannot represent the integer 16777217 exactly, while a 32-bit integer type can). This can lead to unintuitive behavior, as demonstrated by the following code:</p>
+<p>WHATSON? e86963a6-8562-4f33-a48c-e7d85296e212</p>
+<pre>
+#include &lt;stdio.h&gt;
+ 
+int main(void)
+{
+    int i_value   = 16777217;
+    float f_value = 16777216.0;
+    printf("The integer is: %d\n", i_value);
+    printf("The float is:   %f\n", f_value);
+    printf("Their equality: %d\n", i_value == f_value);
+}
+</pre>
+<p>On compilers that implement floats as IEEE single precision, and ints as at least 32 bits, this code will give this peculiar print-out:</p>
+<p>WHATSON? 8d810af3-b040-4529-a94a-57e10cba6fd7</p>
+<pre>
+    The integer is: 16777217
+    The float is: 16777216.000000
+    Their equality: 1
+</pre>
+<p>Note that 1 represents equality in the last line of the print-out. This odd behavior is caused by an implicit conversion of i_value to float when it is compared with f_value. The conversion causes loss of precision, which makes the values equal before the comparison.</p>
+<p>Important takeaways:</p>
+<ol>
+<li>float to int causes truncation, i.e. removal of the fractional part;</li>
+<li>double to float causes rounding of digit;</li>
+<li>long long to int causes dropping of excess higher order bits.</li>
+</ol>
+<h4>Type promotion</h4>
+<p>One special case of implicit type conversion is type promotion, where the compiler automatically expands the binary representation of objects of integer or floating-point types. Promotions are commonly used with types smaller than the native type of the target platform's ALU prior to arithmetic and logical operations in order to make such operations possible, or more efficient if the ALU can work with more than one type. C and C++ perform such promotion for objects of boolean, character, wide character, enumeration, and short integer types which are promoted to int, and for objects of type float, which are promoted to double. Unlike some other type conversions, promotions never lose precision or modify the value stored in the object.</p>
+<p>In Java:</p>
+<p>WHATSON? fcd2b40f-d93a-4fdf-b4df-92475d774e5b</p>
+<pre>
+int x = 3;
+double y = 3.5;
+System.out.println(x+y); //The output will be 6.5
+</pre>
+<h3>Explicit type conversion</h3>
+<p>Explicit type conversion is a type conversion which is explicitly defined within a program (instead of being done by a compiler for implicit type conversion).</p>
+<p>WHATSON? d8532d9d-67c5-484c-a48e-aacd8d4a3693</p>
+<pre>
+double da = 3.3;
+double db = 3.3;
+double dc = 3.4;
+int result = (int)da + (int)db + (int)dc; //result == 9
+//if implicit conversion would be used (as with "result = da + db + dc"), result would be equal to 10
+</pre>
+<p>There are several kinds of explicit conversion.</p>
+<p>In object-oriented programming languages, objects can also be downcast : a reference of a base class is cast to one of its derived classes.</p>
+<h4>Using overloaded object constructor</h4>
+<p>WHATSON? c0d46783-9d61-4d87-a9f7-87097b02e43c</p>
+<pre>
+class Myclass {
+public:
+    double myD;
+    Myclass(double d) : myD(d) {};
+};
+ 
+int main(int argc, char *argv[])
+{
+    Myclass obj = 5.2; // here is the type conversion
+    return 0;
+}
+</pre>
+<h2>C#</h2>
+<p>In C#, type conversion can be made in a safe or unsafe (i.e. C-like) manner, the former called <i>checked type cast</i>.</p>
+<p>WHATSON? 020eb18d-c2f7-4529-af61-64f7907ffd9d</p>
+<pre>
+Animal animal = new Cat();
+ 
+Bulldog b = (Bulldog) animal;   // if (animal is Bulldog), stat.type(animal) is Bulldog, else an exception
+b = animal as Bulldog;          // if (animal is Bulldog), b = (Bulldog) animal, else b = null
+ 
+animal = null;
+b = animal as Bulldog;          // b == null
+</pre>
+<h2>Eiffel</h2>
+<p>In Eiffel the notion of type conversion is integrated into the rules of the type system. The Assignment Rule says that an assignment, such as:</p>
+<p>WHATSON? e2db51dd-09bb-430f-b69d-624d50c4806b</p>
+<pre>
+ x := y
+</pre>
+<p>is valid if and only if the type of its source expression, <code lang="eiffel" xml:lang="eiffel">y</code> in this case, is <i>compatible with</i> the type of its target entity, <code lang="eiffel" xml:lang="eiffel">x</code> in this case. In this rule, <i>compatible with</i> means that the type of the source expression either <i>conforms to</i> or <i>converts to</i> that of the target. Conformance of types is defined by the familiar rules for polymorphism in object-oriented programming. For example, in the assignment above, the type of <code lang="eiffel" xml:lang="eiffel">y</code> conforms to the type of <code lang="eiffel" xml:lang="eiffel">x</code> if the class upon which <code lang="eiffel" xml:lang="eiffel">y</code> is based is a descendant of that upon which <code lang="eiffel" xml:lang="eiffel">x</code> is based.</p>
+<h3>Definition of type conversion in Eiffel</h3>
+<p>The actions of type conversion in Eiffel, specifically <i>converts to</i> and <i>converts from</i> are defined as:</p>
+<p>A type based on a class CU <i>converts to</i> a type T based on a class CT (and T <i>converts from</i> U) if either</p>
+<h3>Example</h3>
+<p>Eiffel is a fully compliant language for Microsoft .Net. Prior to the development of .Net, Eiffel was already equipped with an extensive class libraries. Using the .Net type libraries, particularly with commonly used types such as strings, poses a conversion problem. Existing Eiffel software uses the string classes (such as <code lang="eiffel" xml:lang="eiffel">STRING_8</code>) from the Eiffel libraries, but Eiffel software written for .Net must use the .Net string class (<code lang="eiffel" xml:lang="eiffel">System.String</code>) in many cases, for example when calling .Net methods which expect items of the .Net type to be passed as arguments. So, the conversion of these types back and forth needs to be as seamless as possible.</p>
+<p>WHATSON? 3ed2e21f-b9ce-49d7-8d93-d43caa59768b</p>
+<pre>
+    my_string: STRING_8                 -- Native Eiffel string
+    my_system_string: SYSTEM_STRING     -- Native Microsoft .Net string
+ 
+        …
+ 
+            my_string := my_system_string
+</pre>
+<p>In the code above, two strings are declared, one of each different type (<code lang="eiffel" xml:lang="eiffel">SYSTEM_STRING</code> is the Eiffel compliant alias for System.String). Because <code lang="eiffel" xml:lang="eiffel">System.String</code> does not conform to <code lang="eiffel" xml:lang="eiffel">STRING_8</code>, then the assignment above is valid only if <code lang="eiffel" xml:lang="eiffel">System.String</code> converts to <code lang="eiffel" xml:lang="eiffel">STRING_8</code>.</p>
+<p>The Eiffel class <code lang="eiffel" xml:lang="eiffel">STRING_8</code> has a conversion procedure <code lang="eiffel" xml:lang="eiffel">make_from_cil</code> for objects of type <code lang="eiffel" xml:lang="eiffel">System.String</code>. Conversion procedures are also always designated as creation procedures (similar to constructors). The following is an excerpt from the <code lang="eiffel" xml:lang="eiffel">STRING_8</code> class:</p>
+<p>WHATSON? 6d651012-fa3b-44e7-a60a-0b13d62db4f9</p>
+<pre>
+    class STRING_8
+        …
+    create
+        make_from_cil
+        …
+    convert
+        make_from_cil ({SYSTEM_STRING})
+        …
+</pre>
+<p>The presence of the conversion procedure makes the assignment:</p>
+<p>WHATSON? df6d0606-6e8a-4afe-ad6d-63f39bf6e15e</p>
+<pre>
+            my_string := my_system_string
+</pre>
+<p>semantically equivalent to:</p>
+<p>WHATSON? fb0cf4cf-47eb-47af-8deb-89bb8db6a051</p>
+<pre>
+            create my_string.make_from_cil (my_system_string)
+</pre>
+<p>in which <code lang="eiffel" xml:lang="eiffel">my_string</code> is constructed as a new object of type <code lang="eiffel" xml:lang="eiffel">STRING_8</code> with content equivalent to that of <code lang="eiffel" xml:lang="eiffel">my_system_string</code>.</p>
+<p>To handle an assignment with original source and target reversed:</p>
+<p>WHATSON? 9204d76e-99a5-42b1-b526-622cce9f9910</p>
+<pre>
+            my_system_string := my_string
+</pre>
+<p>the class <code lang="eiffel" xml:lang="eiffel">STRING_8</code> also contains a conversion query <code lang="eiffel" xml:lang="eiffel">to_cil</code> which will produce a <code lang="eiffel" xml:lang="eiffel">System.String</code> from an instance of <code lang="eiffel" xml:lang="eiffel">STRING_8</code>.</p>
+<p>WHATSON? d26184e1-666e-4890-83b8-5de2fb4abfb5</p>
+<pre>
+    class STRING_8
+        …
+    create
+        make_from_cil
+        …
+    convert
+        make_from_cil ({SYSTEM_STRING})
+        to_cil: {SYSTEM_STRING}
+        …
+</pre>
+<p>The assignment:</p>
+<p>WHATSON? 9ea05b92-e4e1-49d7-8b7d-e1016a3bb91c</p>
+<pre>
+            my_system_string := my_string
+</pre>
+<p>then, becomes equivalent to:</p>
+<p>WHATSON? 64031b85-e566-4e77-a42e-dc25f96cb115</p>
+<pre>
+            my_system_string := my_string.to_cil
+</pre>
+<p>In Eiffel, the setup for type conversion is included in the class code, but then appears to happen as automatically as explicit type conversion in client code. The includes not just assignments but other types of attachments as well, such as argument (parameter) substitution.</p>
+<h2>See also</h2>
+<ul>
+<li>Downcasting</li>
+<li>dynamic_cast</li>
+<li>Type punning</li>
+</ul>
+</body>
+</html>

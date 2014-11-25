@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Differential-dynamic-programming---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Differential dynamic programming</h1>
+<p><b>Differential dynamic programming (DDP)</b> is an optimal control algorithm of the trajectory optimization class. The algorithm was introduced in 1966 by Mayne and subsequently analysed in Jacobson and Mayne's eponymous book. The algorithm uses locally-quadratic models of the dynamics and cost functions, and displays quadratic convergence. It is closely related to Pantoja's step-wise Newton's method.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Finite-horizon discrete-time problems</li>
+<li>2 Dynamic programming</li>
+<li>3 Differential dynamic programming</li>
+<li>4 Regularization and line-search</li>
+<li>5 See also</li>
+<li>6 References</li>
+<li>7 External links</li>
+</ul>
+<p></p>
+<h2>Finite-horizon discrete-time problems</h2>
+<p>The dynamics</p>
+<p><img class="mwe-math-fallback-image-inline tex" alt="\mathbf{x}_{i+1} = \mathbf{f}(\mathbf{x}_i,\mathbf{u}_i)" src="//upload.wikimedia.org/math/0/d/f/0dfdf56c5aca61d4e33af2e826f4989d.png"></p>
+<p></p>
+<p> </p>
+<p> </p>
+<p> </p>
+<p> </p>
+<p><b>(1)</b></p>
+<p>describe the evolution of the state <img class="mwe-math-fallback-image-inline tex" alt="\textstyle\mathbf{x}" src="//upload.wikimedia.org/math/8/3/0/830ee4a4699ebdc550271ba96f0fc1c5.png"> given the control <img class="mwe-math-fallback-image-inline tex" alt="\mathbf{u}" src="//upload.wikimedia.org/math/2/5/c/25cdaba0e466192c4086c413c442def1.png"> from time <img class="mwe-math-fallback-image-inline tex" alt="i" src="//upload.wikimedia.org/math/8/6/5/865c0c0b4ab0e063e5caa3387c1a8741.png"> to time <img class="mwe-math-fallback-image-inline tex" alt="i+1" src="//upload.wikimedia.org/math/1/5/a/15ab2d2b0b92c13f328635e5c4bdbe64.png">. The <i>total cost</i> <img class="mwe-math-fallback-image-inline tex" alt="J_0" src="//upload.wikimedia.org/math/a/f/1/af105717ba6f73bec8076e6e3709b015.png"> is the sum of running costs <img class="mwe-math-fallback-image-inline tex" alt="\textstyle\ell" src="//upload.wikimedia.org/math/d/8/e/d8efaeeb2e82f710dd2a541dd20771a5.png"> and final cost <img class="mwe-math-fallback-image-inline tex" alt="\ell_f" src="//upload.wikimedia.org/math/e/0/8/e081200eaa4f1def5a35826e4f63eb8e.png">, incurred when starting from state <img class="mwe-math-fallback-image-inline tex" alt="\mathbf{x}" src="//upload.wikimedia.org/math/3/c/6/3c66d9170d4c3fb75456e1a9fc6ead37.png"> and applying the control sequence <img class="mwe-math-fallback-image-inline tex" alt="\mathbf{U} \equiv \{\mathbf{u}_0,\mathbf{u}_1\dots,\mathbf{u}_{N-1}\}" src="//upload.wikimedia.org/math/3/b/7/3b70d9bc7bc7306ab265065deca3062d.png"> until the horizon is reached:</p>
+<p>where <img class="mwe-math-fallback-image-inline tex" alt="\mathbf{x}_0\equiv\mathbf{x}" src="//upload.wikimedia.org/math/5/8/a/58ae621506236af7903d912b0bb487df.png">, and the <img class="mwe-math-fallback-image-inline tex" alt="\mathbf{x}_i" src="//upload.wikimedia.org/math/3/f/0/3f052ba8a0742f689f895fd252fa157f.png"> for <img class="mwe-math-fallback-image-inline tex" alt="i&gt;0" src="//upload.wikimedia.org/math/5/6/3/563d880e1c878d80bb57b029b4c56166.png"> are given by <b>Eq. 1</b>. The solution of the optimal control problem is the minimizing control sequence <img class="mwe-math-fallback-image-inline tex" alt="\mathbf{U}^*(\mathbf{x})\equiv \operatorname{argmin}_{\mathbf{U}} J_0(\mathbf{x},\mathbf{U})." src="//upload.wikimedia.org/math/0/f/1/0f167de903abe70488e49955603db50b.png"> <i>Trajectory optimization</i> means finding <img class="mwe-math-fallback-image-inline tex" alt="\mathbf{U}^*(\mathbf{x})" src="//upload.wikimedia.org/math/3/9/e/39e4aee763de4afc86f0f9cd75ba9fac.png"> for a particular <img class="mwe-math-fallback-image-inline tex" alt="\mathbf{x}" src="//upload.wikimedia.org/math/3/c/6/3c66d9170d4c3fb75456e1a9fc6ead37.png">, rather than for all possible initial states.</p>
+<h2>Dynamic programming</h2>
+<p>Let <img class="mwe-math-fallback-image-inline tex" alt="\mathbf{U}_i" src="//upload.wikimedia.org/math/f/3/e/f3e77bce15cb92bbb875c734183d7a25.png"> be the partial control sequence <img class="mwe-math-fallback-image-inline tex" alt="\mathbf{U}_i \equiv \{\mathbf{u}_i,\mathbf{u}_{i+1}\dots,\mathbf{u}_{N-1}\}" src="//upload.wikimedia.org/math/a/2/c/a2c2dbf609540769f056505cc6785d31.png"> and define the <i>cost-to-go</i> <img class="mwe-math-fallback-image-inline tex" alt="J_i" src="//upload.wikimedia.org/math/6/5/7/657e4adad7075ebe664309beeef1bf79.png"> as the partial sum of costs from <img class="mwe-math-fallback-image-inline tex" alt="i" src="//upload.wikimedia.org/math/8/6/5/865c0c0b4ab0e063e5caa3387c1a8741.png"> to <img class="mwe-math-fallback-image-inline tex" alt="N" src="//upload.wikimedia.org/math/8/d/9/8d9c307cb7f3c4a32822a51922d1ceaa.png">:</p>
+<p>The optimal cost-to-go or <i>value function</i> at time <img class="mwe-math-fallback-image-inline tex" alt="i" src="//upload.wikimedia.org/math/8/6/5/865c0c0b4ab0e063e5caa3387c1a8741.png"> is the cost-to-go given the minimizing control sequence:</p>
+<p>Setting <img class="mwe-math-fallback-image-inline tex" alt="V(\mathbf{x},N)\equiv \ell_f(\mathbf{x}_N)" src="//upload.wikimedia.org/math/2/c/d/2cd7eab1000da6135affde0725e43e14.png">, the dynamic programming principle reduces the minimization over an entire sequence of controls to a sequence of minimizations over a single control, proceeding backwards in time:</p>
+<p><img class="mwe-math-fallback-image-inline tex" alt="V(\mathbf{x},i)= \min_{\mathbf{u}}[\ell(\mathbf{x},\mathbf{u}) + V(\mathbf{f}(\mathbf{x},\mathbf{u}),i+1)]." src="//upload.wikimedia.org/math/8/f/9/8f90eb41b0109b4606c541dfcb9cf3ce.png"></p>
+<p></p>
+<p> </p>
+<p> </p>
+<p> </p>
+<p> </p>
+<p><b>(2)</b></p>
+<p>This is the Bellman equation.</p>
+<h2>Differential dynamic programming</h2>
+<p>DDP proceeds by iteratively performing a backward pass on the nominal trajectory to generate a new control sequence, and then a forward-pass to compute and evaluate a new nominal trajectory. We begin with the backward pass. If</p>
+<p>is the argument of the <img class="mwe-math-fallback-image-inline tex" alt="\min[]" src="//upload.wikimedia.org/math/e/0/6/e0607703814149a49215b2b4d6b4a263.png"> operator in <b>Eq. 2</b>, let <img class="mwe-math-fallback-image-inline tex" alt="Q" src="//upload.wikimedia.org/math/f/0/9/f09564c9ca56850d4cd6b3319e541aee.png"> be the variation of this quantity around the <img class="mwe-math-fallback-image-inline tex" alt="i" src="//upload.wikimedia.org/math/8/6/5/865c0c0b4ab0e063e5caa3387c1a8741.png">-th <img class="mwe-math-fallback-image-inline tex" alt="(\mathbf{x},\mathbf{u})" src="//upload.wikimedia.org/math/1/9/a/19a0255135319d10b759922a7292b6f5.png"> pair:</p>
+<p>and expand to second order</p>
+<p><img class="mwe-math-fallback-image-inline tex" alt="
+\approx\frac{1}{2}
+\begin{bmatrix}
+1\\
+\delta\mathbf{x}\\
+\delta\mathbf{u}
+\end{bmatrix}^\mathsf{T}
+\begin{bmatrix}
+0 &amp; Q_\mathbf{x}^\mathsf{T} &amp; Q_\mathbf{u}^\mathsf{T}\\
+Q_\mathbf{x} &amp; Q_{\mathbf{x}\mathbf{x}} &amp; Q_{\mathbf{x}\mathbf{u}}\\
+Q_\mathbf{u} &amp; Q_{\mathbf{u}\mathbf{x}} &amp; Q_{\mathbf{u}\mathbf{u}}
+\end{bmatrix}
+\begin{bmatrix}
+1\\
+\delta\mathbf{x}\\
+\delta\mathbf{u}
+\end{bmatrix}
+" src="//upload.wikimedia.org/math/7/a/e/7ae0f3b568cde096c745f687e1e13afa.png"></p>
+<p></p>
+<p> </p>
+<p> </p>
+<p> </p>
+<p> </p>
+<p><b>(3)</b></p>
+<p>The <img class="mwe-math-fallback-image-inline tex" alt="Q" src="//upload.wikimedia.org/math/f/0/9/f09564c9ca56850d4cd6b3319e541aee.png"> notation used here is a variant of the notation of Morimoto where subscripts denote differentiation in denominator layout. Dropping the index <img class="mwe-math-fallback-image-inline tex" alt="i" src="//upload.wikimedia.org/math/8/6/5/865c0c0b4ab0e063e5caa3387c1a8741.png"> for readability, primes denoting the next time-step <img class="mwe-math-fallback-image-inline tex" alt="V'\equiv V(i+1)" src="//upload.wikimedia.org/math/c/1/3/c1368e8de8b12fa1f72874b2b2574d95.png">, the expansion coefficients are</p>
+<p>The last terms in the last three equations denote contraction of a vector with a tensor. Minimizing the quadratic approximation <b>(3)</b> with respect to <img class="mwe-math-fallback-image-inline tex" alt="\delta\mathbf{u}" src="//upload.wikimedia.org/math/5/5/1/551eda5bb57bdd1db8aa5f8d1023348b.png"> we have</p>
+<p><img class="mwe-math-fallback-image-inline tex" alt="
+{\delta \mathbf{u}}^* = \operatorname{argmin}\limits_{\delta \mathbf{u}}Q(\delta \mathbf{x},\delta
+\mathbf{u})=-Q_{\mathbf{u}\mathbf{u}}^{-1}(Q_\mathbf{u}+Q_{\mathbf{u}\mathbf{x}}\delta \mathbf{x}),
+" src="//upload.wikimedia.org/math/5/0/0/500a67bd74f263c3923a5869f98e36bd.png"></p>
+<p></p>
+<p> </p>
+<p> </p>
+<p> </p>
+<p> </p>
+<p><b>(4)</b></p>
+<p>giving an open-loop term <img class="mwe-math-fallback-image-inline tex" alt="\mathbf{k}=-Q_{\mathbf{u}\mathbf{u}}^{-1}Q_\mathbf{u}" src="//upload.wikimedia.org/math/e/4/a/e4a94d5a6b38a58d32677023e46c243d.png"> and a feedback gain term <img class="mwe-math-fallback-image-inline tex" alt="\mathbf{K}=-Q_{\mathbf{u}\mathbf{u}}^{-1}Q_{\mathbf{u}\mathbf{x}}" src="//upload.wikimedia.org/math/d/2/e/d2e2fe0978bddc9d765cc288ac7f3a78.png">. Plugging the result back into <b>(3)</b>, we now have a quadratic model of the value at time <img class="mwe-math-fallback-image-inline tex" alt="i" src="//upload.wikimedia.org/math/8/6/5/865c0c0b4ab0e063e5caa3387c1a8741.png">:</p>
+<p>Recursively computing the local quadratic models of <img class="mwe-math-fallback-image-inline tex" alt="V(i)" src="//upload.wikimedia.org/math/4/7/a/47aca2228d16b9374000bf2ad5046e04.png"> and the control modifications <img class="mwe-math-fallback-image-inline tex" alt="\{\mathbf{k}(i),\mathbf{K}(i)\}" src="//upload.wikimedia.org/math/d/b/e/dbe8a758732e5b019a81c9fabec25851.png">, from <img class="mwe-math-fallback-image-inline tex" alt="i=N-1" src="//upload.wikimedia.org/math/d/0/0/d005e3ea3731ab3a8480f8229b3d02ce.png"> down to <img class="mwe-math-fallback-image-inline tex" alt="i=1" src="//upload.wikimedia.org/math/9/a/0/9a041ce63f6c28100344427c6d71837b.png">, constitutes the backward pass. As above, the Value is initialized with <img class="mwe-math-fallback-image-inline tex" alt="V(\mathbf{x},N)\equiv \ell_f(\mathbf{x}_N)" src="//upload.wikimedia.org/math/2/c/d/2cd7eab1000da6135affde0725e43e14.png">. Once the backward pass is completed, a forward pass computes a new trajectory:</p>
+<p>The backward passes and forward passes are iterated until convergence.</p>
+<h2>Regularization and line-search</h2>
+<p>Differential dynamic programming is a second-order algorithm like Newton's method. It therefore takes large steps toward the minimum and often requires regularization and/or line-search to achieve convergence  . Regularization in the DDP context means ensuring that the <img class="mwe-math-fallback-image-inline tex" alt="Q_{\mathbf{u}\mathbf{u}}" src="//upload.wikimedia.org/math/f/3/4/f343c730922545175aa9516a7d04fa59.png"> matrix in <b>Eq. 4</b> is positive definite. Line-search in DDP amounts to scaling the open-loop control modification <img class="mwe-math-fallback-image-inline tex" alt="\mathbf{k}" src="//upload.wikimedia.org/math/4/9/b/49b252932f19c605cfbb78689e9365ed.png"> by some <img class="mwe-math-fallback-image-inline tex" alt="0&lt;\alpha&lt;1" src="//upload.wikimedia.org/math/b/7/5/b759578cec5b9449a9eea6d4ec1d2e2c.png">.</p>
+<h2>See also</h2>
+<ul>
+<li>optimal control</li>
+</ul>
+</body>
+</html>

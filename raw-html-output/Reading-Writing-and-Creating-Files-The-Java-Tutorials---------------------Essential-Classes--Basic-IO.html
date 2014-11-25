@@ -1,0 +1,238 @@
+<h1>Reading, Writing, and Creating Files</h1>
+<p>This page discusses the details of reading, writing, creating, and opening files. There are a wide array of file I/O methods to choose from. To help make sense of the API, the following diagram arranges the file I/O methods by complexity.</p>
+<p class="FigureCaption"></p>
+<p>On the far left of the diagram are the utility methods <code>readAllBytes</code>, <code>readAllLines</code>, and the <code>write</code> methods, designed for simple, common cases. To the right of those are the methods used to iterate over a stream or lines of text, such as <code>newBufferedReader</code>, <code>newBufferedWriter</code>, then <code>newInputStream</code> and <code>newOutputStream</code>. These methods are interoperable with the <code>java.io</code> package. To the right of those are the methods for dealing with <code>ByteChannels</code>, <code>SeekableByteChannels</code>, and <code>ByteBuffers</code>, such as the <code>newByteChannel</code> method. Finally, on the far right are the methods that use <code>FileChannel</code> for advanced applications needing file locking or memory-mapped I/O.</p>
+<p>This page has the following topics:</p>
+<ul>
+<li><a href="#openOptions">The <code>OpenOptions</code> Parameter</a></li>
+<li><a href="#common">Commonly Used Methods for Small Files</a></li>
+<li><a href="#textfiles">Buffered I/O Methods for Text Files</a></li>
+<li><a href="#streams">Methods for Unbuffered Streams and Interoperable with <code>java.io</code> APIs</a></li>
+<li><a href="#channels">Methods for Channels and <code>ByteBuffers</code></a></li>
+<li><a href="#creating">Methods for Creating Regular and Temporary Files</a></li>
+</ul>
+<h2><a name="openOptions" id="openOptions">The <code>OpenOptions</code> Parameter</a></h2>
+<p>Several of the methods in this section take an optional <code>OpenOptions</code> parameter. This parameter is optional and the API tells you what the default behavior is for the method when none is specified.</p>
+<p>The following <code>StandardOpenOptions</code> enums are supported:</p>
+<ul>
+<li><code>WRITE</code> – Opens the file for write access.</li>
+<li><code>APPEND</code> – Appends the new data to the end of the file. This option is used with the <code>WRITE</code> or <code>CREATE</code> options.</li>
+<li><code>TRUNCATE_EXISTING</code> – Truncates the file to zero bytes. This option is used with the <code>WRITE</code> option.</li>
+<li><code>CREATE_NEW</code> – Creates a new file and throws an exception if the file already exists.</li>
+<li><code>CREATE</code> – Opens the file if it exists or creates a new file if it does not.</li>
+<li><code>DELETE_ON_CLOSE</code> – Deletes the file when the stream is closed. This option is useful for temporary files.</li>
+<li><code>SPARSE</code> – Hints that a newly created file will be sparse. This advanced option is honored on some file systems, such as NTFS, where large files with data "gaps" can be stored in a more efficient manner where those empty gaps do not consume disk space.</li>
+<li><code>SYNC</code> – Keeps the file (both content and metadata) synchronized with the underlying storage device.</li>
+<li><code>DSYNC</code> – Keeps the file content synchronized with the underlying storage device.</li>
+</ul>
+<h2><a name="common" id="common">Commonly Used Methods for Small Files</a></h2>
+<h3><a name="readAllLines" id="readAllLines">Reading All Bytes or Lines from a File</a></h3>
+<p>If you have a small-ish file and you would like to read its entire contents in one pass, you can use the 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/nio/file/Files.html#readAllBytes-java.nio.file.Path-"><code>readAllBytes(Path)</code></a> or 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/nio/file/Files.html#readAllLines-java.nio.file.Path-java.nio.charset.Charset-"><code>readAllLines(Path, Charset)</code></a> method. These methods take care of most of the work for you, such as opening and closing the stream, but are not intended for handling large files. The following code shows how to use the <code>readAllBytes</code> method:</p>
+<p>WHATSON? eda536f1-51ff-49eb-993b-b7b49662af88</p>
+<pre>
+Path file = ...;
+byte[] fileArray;
+fileArray = Files.readAllBytes(file);
+</pre>
+<h3><a name="writeAllLines" id="writeAllLines">Writing All Bytes or Lines to a File</a></h3>
+<p>You can use one of the write methods to write bytes, or lines, to a file.</p>
+<ul>
+<li>
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/nio/file/Files.html#write-java.nio.file.Path-byte:A-java.nio.file.OpenOption...-"><code>write(Path, byte[], OpenOption...)</code></a></li>
+<li>
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/nio/file/Files.html#write-java.nio.file.Path-java.lang.Iterable-java.nio.charset.Charset-java.nio.file.OpenOption...-"><code>write(Path, Iterable&lt; extends CharSequence&gt;, Charset, OpenOption...)</code></a></li>
+</ul>
+<p>The following code snippet shows how to use a <code>write</code> method.</p>
+<p>WHATSON? 255f5fdf-106b-41ea-9da0-53e84fa23347</p>
+<pre>
+Path file = ...;
+byte[] buf = ...;
+Files.write(file, buf);
+
+</pre>
+<h2><a name="textfiles" id="textfiles">Buffered I/O Methods for Text Files</a></h2>
+<p>The <code>java.nio.file</code> package supports channel I/O, which moves data in buffers, bypassing some of the layers that can bottleneck stream I/O.</p>
+<h3><a name="readBufferedStream" id="readBufferedStream">Reading a File by Using Buffered Stream I/O</a></h3>
+<p>The 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/nio/file/Files.html#newBufferedReader-java.nio.file.Path-java.nio.charset.Charset-"><code>newBufferedReader(Path, Charset)</code></a> method opens a file for reading, returning a <code>BufferedReader</code> that can be used to read text from a file in an efficient manner.</p>
+<p>The following code snippet shows how to use the <code>newBufferedReader</code> method to read from a file. The file is encoded in "US-ASCII."</p>
+<p>WHATSON? e8d100af-5e38-44ae-9c6f-282ae43065c2</p>
+<pre>
+Charset charset = Charset.forName("US-ASCII");
+try (BufferedReader reader = Files.newBufferedReader(file, charset)) {
+    String line = null;
+    while ((line = reader.readLine()) != null) {
+        System.out.println(line);
+    }
+} catch (IOException x) {
+    System.err.format("IOException: %s%n", x);
+}
+</pre>
+<h3><a name="writeBufferedStream" id="writeBufferedStream">Writing a File by Using Buffered Stream I/O</a></h3>
+<p>You can use the 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/nio/file/Files.html#newBufferedWriter-java.nio.file.Path-java.nio.charset.Charset-java.nio.file.OpenOption...-"><code>newBufferedWriter(Path, Charset, OpenOption...)</code></a> method to write to a file using a <code>BufferedWriter</code>.</p>
+<p>The following code snippet shows how to create a file encoded in "US-ASCII" using this method:</p>
+<p>WHATSON? 0c1ca45f-d84f-4951-b481-aa3c7aa548d4</p>
+<pre>
+Charset charset = Charset.forName("US-ASCII");
+String s = ...;
+try (BufferedWriter writer = Files.newBufferedWriter(file, charset)) {
+    writer.write(s, 0, s.length());
+} catch (IOException x) {
+    System.err.format("IOException: %s%n", x);
+}
+</pre>
+<h2><a name="streams" id="streams">Methods for Unbuffered Streams and Interoperable with <code>java.io</code> APIs</a></h2>
+<h3><a name="readStream" id="readStream">Reading a File by Using Stream I/O</a></h3>
+<p>To open a file for reading, you can use the 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/nio/file/Files.html#newInputStream-java.nio.file.Path-java.nio.file.OpenOption...-"><code>newInputStream(Path, OpenOption...)</code></a> method. This method returns an unbuffered input stream for reading bytes from the file.</p>
+<p>WHATSON? 3a20a053-9cab-4543-bf70-45265add960e</p>
+<pre>
+Path file = ...;
+try (InputStream in = Files.newInputStream(file);
+    BufferedReader reader =
+      new BufferedReader(new InputStreamReader(in))) {
+    String line = null;
+    while ((line = reader.readLine()) != null) {
+        System.out.println(line);
+    }
+} catch (IOException x) {
+    System.err.println(x);
+}
+</pre>
+<h3><a name="createStream" id="createStream">Creating and Writing a File by Using Stream I/O</a></h3>
+<p>You can create a file, append to a file, or write to a file by using the 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/nio/file/Files.html#newOutputStream-java.nio.file.Path-java.nio.file.OpenOption...-"><code>newOutputStream(Path, OpenOption...)</code></a> method. This method opens or creates a file for writing bytes and returns an unbuffered output stream.</p>
+<p>The method takes an optional <code>OpenOption</code> parameter. If no open options are specified, and the file does not exist, a new file is created. If the file exists, it is truncated. This option is equivalent to invoking the method with the <code>CREATE</code> and <code>TRUNCATE_EXISTING</code> options.</p>
+<p>The following code snippet opens a log file. If the file does not exist, it is created. If the file exists, it is opened for appending.</p>
+<p>WHATSON? b90c90c8-985c-4da3-97c7-0fb38792ba62</p>
+<pre>
+import static java.nio.file.StandardOpenOption.*;
+
+// Convert the string to a
+// byte array.
+String s = ...;
+byte data[] = s.getBytes();
+
+try (OutputStream out = new BufferedOutputStream(
+                 Files.newOutputStream(CREATE, APPEND))) {
+    ...
+    out.write(data, 0, data.length);
+} catch (IOException x) {
+    System.err.println(x);
+}
+</pre>
+<h2><a name="channels" id="channels">Methods for Channels and <code>ByteBuffers</code></a></h2>
+<h3><a name="channelio" id="channelio">Reading and Writing Files by Using Channel I/O</a></h3>
+<p>While stream I/O reads a character at a time, channel I/O reads a buffer at a time. The 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/nio/channels/ByteChannel.html"><code>ByteChannel</code></a> interface provides basic <code>read</code> and <code>write</code> functionality. A 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/nio/channels/SeekableByteChannel.html"><code>SeekableByteChannel</code></a> is a <code>ByteChannel</code> that has the capability to maintain a position in the channel and to change that position. A <code>SeekableByteChannel</code> also supports truncating the file associated with the channel and querying the file for its size.</p>
+<p>The capability to move to different points in the file and then read from or write to that location makes random access of a file possible. See 
+<a class="TutorialLink" target="_top" href="rafs.html">Random Access Files</a> for more information.</p>
+<p>There are two methods for reading and writing channel I/O.</p>
+<ul>
+<li>
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/nio/file/Files.html#newByteChannel-java.nio.file.Path-java.nio.file.OpenOption...-"><code>newByteChannel(Path, OpenOption...)</code></a></li>
+<li>
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/nio/file/Files.html#newByteChannel-java.nio.file.Path-java.util.Set-java.nio.file.attribute.FileAttribute...-"><code>newByteChannel(Path, Set&lt;? extends OpenOption&gt;, FileAttribute&lt;?&gt;...)</code></a></li>
+</ul>
+<p>Both <code>newByteChannel</code> methods enable you to specify a list of <code>OpenOption</code> options. The same <a href="#openOptions">open options</a> used by the <code>newOutputStream</code> methods are supported, in addition to one more option: <code>READ</code> is required because the <code>SeekableByteChannel</code> supports both reading and writing.</p>
+<p>Specifying <code>READ</code> opens the channel for reading. Specifying <code>WRITE</code> or <code>APPEND</code> opens the channel for writing. If none of these options is specified, the channel is opened for reading.</p>
+<p>The following code snippet reads a file and prints it to standard output:</p>
+<p>WHATSON? 88a04b79-f152-4b35-8f40-df239d9d3145</p>
+<pre>
+// Defaults to READ
+try (SeekableByteChannel sbc = Files.newByteChannel(file)) {
+    ByteBuffer buf = ByteBuffer.allocate(10);
+
+    // Read the bytes with the proper encoding for this platform.  If
+    // you skip this step, you might see something that looks like
+    // Chinese characters when you expect Latin-style characters.
+    String encoding = System.getProperty("file.encoding");
+    while (sbc.read(buf) &gt; 0) {
+        buf.rewind();
+        System.out.print(Charset.forName(encoding).decode(buf));
+        buf.flip();
+    }
+} catch (IOException x) {
+    System.out.println("caught exception: " + x);
+</pre>
+<p>The following code snippet, written for UNIX and other POSIX file systems, creates a log file with a specific set of file permissions. This code creates a log file or appends to the log file if it already exists. The log file is created with read/write permissions for owner and read only permissions for group.</p>
+<p>WHATSON? e3d141ea-b649-48c4-8f8b-4b7bf5196d46</p>
+<pre>
+import static java.nio.file.StandardCopyOption.*;
+
+// Create the set of options for appending to the file.
+Set&lt;OpenOptions&gt; options = new HashSet&lt;OpenOption&gt;();
+options.add(APPEND);
+options.add(CREATE);
+
+// Create the custom permissions attribute.
+Set&lt;PosixFilePermission&gt; perms =
+    PosixFilePermissions.fromString("rw-r------");
+FileAttribute&lt;Set&lt;PosixFilePermission&gt;&gt; attr =
+    PosixFilePermissions.asFileAttribute(perms);
+
+// Convert the string to a ByteBuffer.
+String s = ...;
+byte data[] = s.getBytes();
+ByteBuffer bb = ByteBuffer.wrap(data);
+
+try (SeekableByteChannel sbc = Files.newByteChannel(file, options, attr)) {
+    sbc.write(bb);
+} catch (IOException x) {
+    System.out.println("exception thrown: " + x);
+}
+</pre>
+<h2><a name="creating" id="creating">Methods for Creating Regular and Temporary Files</a></h2>
+<h3><a name="createFile" id="createFile">Creating Files</a></h3>
+<p>You can create an empty file with an initial set of attributes by using the 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/nio/file/Files.html#createFile-java.nio.file.Path-java.nio.file.attribute.FileAttribute...-"><code>createFile(Path, FileAttribute&lt;?&gt;)</code></a> method. For example, if, at the time of creation, you want a file to have a particular set of file permissions, use the <code>createFile</code> method to do so. If you do not specify any attributes, the file is created with default attributes. If the file already exists, <code>createFile</code> throws an exception.</p>
+<p>In a single atomic operation, the <code>createFile</code> method checks for the existence of the file and creates that file with the specified attributes, which makes the process more secure against malicious code.</p>
+<p>The following code snippet creates a file with default attributes:</p>
+<p>WHATSON? 9c16389f-ecbb-458e-b629-6d39afc322f4</p>
+<pre>
+Path file = ...;
+try {
+    // Create the empty file with default permissions, etc.
+    Files.createFile(file);
+} catch (FileAlreadyExistsException x) {
+    System.err.format("file named %s" +
+        " already exists%n", file);
+} catch (IOException x) {
+    // Some other sort of failure, such as permissions.
+    System.err.format("createFile error: %s%n", x);
+}
+</pre>
+<p>
+<a class="TutorialLink" target="_top" href="fileAttr.html#posix">POSIX File Permissions</a> has an example that uses <code>createFile(Path, FileAttribute&lt;?&gt;)</code> to create a file with pre-set permissions.</p>
+<p>You can also create a new file by using the <code>newOutputStream</code> methods, as described in 
+<a class="TutorialLink" target="_top" href="file.html#createStream">Creating and Writing a File using Stream I/O</a>. If you open a new output stream and close it immediately, an empty file is created.</p>
+<h3><a name="createTempFile" id="createTempFile">Creating Temporary Files</a></h3>
+<p>You can create a temporary file using one of the following <code>createTempFile</code> methods:</p>
+<ul>
+<li>
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/nio/file/Files.html#createTempFile-java.nio.file.Path-java.lang.String-java.lang.String-java.nio.file.attribute.FileAttribute...-"><code>createTempFile(Path, String, String, FileAttribute&lt;?&gt;)</code></a></li>
+<li>
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/nio/file/Files.html#createTempFile-java.lang.String-java.lang.String-java.nio.file.attribute.FileAttribute...-"><code>createTempFile(String, String, FileAttribute&lt;?&gt;)</code></a></li>
+</ul>
+<p>The first method allows the code to specify a directory for the temporary file and the second method creates a new file in the default temporary-file directory. Both methods allow you to specify a suffix for the filename and the first method allows you to also specify a prefix. The following code snippet gives an example of the second method:</p>
+<p>WHATSON? a8629b65-cdb7-4bbd-9948-35c466efa65f</p>
+<pre>
+try {
+    Path tempFile = Files.createTempFile(null, ".myapp");
+    System.out.format("The temporary file" +
+        " has been created: %s%n", tempFile)
+;
+} catch (IOException x) {
+    System.err.format("IOException: %s%n", x);
+}
+</pre>
+<p>The result of running this file would be something like the following:</p>
+<p>WHATSON? 1e06a79a-3f9e-4ddc-93b6-c77598dca00d</p>
+<pre>
+The temporary file has been created: /tmp/509668702974537184.myapp
+</pre>
+<p>The specific format of the temporary file name is platform specific.</p>

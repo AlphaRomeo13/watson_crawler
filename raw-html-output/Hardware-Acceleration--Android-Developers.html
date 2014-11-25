@@ -1,0 +1,648 @@
+<h1 itemprop="name">Hardware Acceleration</h1>
+<h2>In this document</h2>
+<ol>
+        <li><a href="#controlling">Controlling Hardware Acceleration</a></li>
+        <li><a href="#determining">Determining if a View is Hardware Accelerated</a></li>
+        <li><a href="#model">Android Drawing Models</a>
+
+          <ol>
+            <li><a href="#software-model">Software-based drawing model</a></li>
+            <li><a href="#hardware-model">Hardware accelerated drawing model</a></li>
+          </ol>
+        </li>
+
+        <li>
+          <a href="#unsupported">Unsupported Drawing Operations</a>
+        </li>
+
+
+
+        <li>
+          <a href="#layers">View Layers</a>
+
+          <ol>
+            <li><a href="#layers-anims">View Layers and Animations</a></li>
+          </ol>
+        </li>
+
+        <li><a href="#tips">Tips and Tricks</a></li>
+      </ol>
+<ol>
+            <li><a href="#software-model">Software-based drawing model</a></li>
+            <li><a href="#hardware-model">Hardware accelerated drawing model</a></li>
+          </ol>
+<ol>
+            <li><a href="#layers-anims">View Layers and Animations</a></li>
+          </ol>
+<h2>See also</h2>
+<ol>
+        <li><a href="/guide/topics/graphics/opengl.html">OpenGL with the Framework
+        APIs</a></li>
+
+        <li><a href="/guide/topics/renderscript/index.html">Renderscript</a></li>
+      </ol>
+<p>Beginning in Android 3.0 (API level 11), the Android 2D rendering pipeline supports hardware
+  acceleration, meaning that all drawing operations that are performed on a <code><a href="/reference/android/view/View.html">View</a></code>'s canvas use the GPU. Because of the increased resources required to enable
+  hardware acceleration, your app will consume more RAM.</p>
+<p>Hardware acceleration is enabled by default if your Target API level is &gt;=14, but can also
+  be explicitly enabled. If your application uses only standard views and <code><a href="/reference/android/graphics/drawable/Drawable.html">Drawable</a></code>s, turning it on globally should not cause any adverse drawing
+  effects. However, because hardware acceleration is not supported for all of the 2D drawing
+  operations, turning it on might affect some of your custom views or drawing calls. Problems
+  usually manifest themselves as invisible elements, exceptions, or wrongly rendered pixels. To
+  remedy this, Android gives you the option to enable or disable hardware acceleration at multiple
+  levels. See <a href="#controlling">Controlling Hardware Acceleration</a>.</p>
+<p>If your application performs custom drawing, test your application on actual hardware devices
+  with hardware acceleration turned on to find any problems. The <a href="#drawing-support">Unsupported drawing operations</a> section describes known issues with
+  hardware acceleration and how to work around them.</p>
+<h2 id="controlling">Controlling Hardware Acceleration</h2>
+<p>You can control hardware acceleration at the following levels:</p>
+<ul>
+    <li>Application</li>
+
+    <li>Activity</li>
+
+    <li>Window</li>
+
+    <li>View</li>
+  </ul>
+<h4>Application level</h4>
+<p>In your Android manifest file, add the following attribute to the
+  <a href="/guide/topics/manifest/application-element.html">
+    <code>&lt;application&gt;</code></a> tag to enable hardware acceleration for your entire
+  application:</p>
+<p>WHATSON? dfd69195-472c-4a04-bca3-2988c13e9a5e</p>
+<pre>
+&lt;application android:hardwareAccelerated="true" ...&gt;
+</pre>
+<h4>Activity level</h4>
+<p>If your application does not behave properly with hardware acceleration turned on globally, you
+  can control it for individual activities as well. To enable or disable hardware acceleration at
+  the activity level, you can use the <code>android:hardwareAccelerated</code> attribute for
+  the <a href="/guide/topics/manifest/activity-element.html">
+  <code>&lt;activity&gt;</code></a> element. The following example enables hardware acceleration for
+  the entire application but disables it for one activity:</p>
+<p>WHATSON? fde2afad-f90e-4eb9-8417-83c8d6082508</p>
+<pre>
+&lt;application android:hardwareAccelerated="true"&gt;
+    &lt;activity ... /&gt;
+    &lt;activity android:hardwareAccelerated="false" /&gt;
+&lt;/application&gt;
+</pre>
+<h4>Window level</h4>
+<p>If you need even more fine-grained control, you can enable hardware acceleration for a given
+  window with the following code:</p>
+<p>WHATSON? ec5d296e-cb8e-4d8a-a25d-1b62bcb29ec1</p>
+<pre>
+getWindow().setFlags(
+    WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
+    WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED);
+
+</pre>
+<p class="note"><strong>Note</strong>:  You currently cannot disable hardware acceleration at
+the window level.</p>
+<h4>View level</h4>
+<p>You can disable hardware acceleration for an individual view at runtime with the
+following code:</p>
+<p>WHATSON? 0ca9db90-22d2-418e-8888-80f9820f2bdd</p>
+<pre>
+myView.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
+</pre>
+<p class="note"><strong>Note</strong>: You currently cannot enable hardware acceleration at
+the view level. View layers have other functions besides disabling hardware acceleration. See <a href="#layers">View layers</a> for more information about their uses.</p>
+<h2 id="determining">Determining if a View is Hardware Accelerated</h2>
+<p>It is sometimes useful for an application to know whether it is currently hardware
+  accelerated, especially for things such as custom views. This is particularly useful if your
+  application does a lot of custom drawing and not all operations are properly supported by the new
+  rendering pipeline.</p>
+<p>There are two different ways to check whether the application is hardware accelerated:</p>
+<ul>
+    <li><code><a href="/reference/android/view/View.html#isHardwareAccelerated()">View.isHardwareAccelerated()</a></code> returns
+    <code>true</code> if the <code><a href="/reference/android/view/View.html">View</a></code> is attached to a hardware accelerated
+    window.</li>
+
+    <li><code><a href="/reference/android/graphics/Canvas.html#isHardwareAccelerated()">Canvas.isHardwareAccelerated()</a></code>
+    returns <code>true</code> if the <code><a href="/reference/android/graphics/Canvas.html">Canvas</a></code> is hardware accelerated</li>
+  </ul>
+<p>If you must do this check in your drawing code, use <code><a href="/reference/android/graphics/Canvas.html#isHardwareAccelerated()">Canvas.isHardwareAccelerated()</a></code> instead of <code><a href="/reference/android/view/View.html#isHardwareAccelerated()">View.isHardwareAccelerated()</a></code> when possible. When a view
+  is attached to a hardware accelerated window, it can still be drawn using a non-hardware
+  accelerated Canvas. This happens, for instance, when drawing a view into a bitmap for caching
+  purposes.</p>
+<h2 id="model">Android Drawing Models</h2>
+<p>When hardware acceleration is enabled, the Android framework utilizes a new drawing model that
+  utilizes <em>display lists</em> to render your application to the screen. To fully understand
+  display lists and how they might affect your application, it is useful to understand how Android
+  draws views without hardware acceleration as well. The following sections describe the
+  software-based  and hardware-accelerated drawing models.</p>
+<h3 id="software-model">Software-based drawing model</h3>
+<p>In the software drawing model, views are drawn with the following two steps:</p>
+<ol>
+    <li>Invalidate the hierarchy</li>
+
+    <li>Draw the hierarchy</li>
+  </ol>
+<p>Whenever an application needs to update a part of its UI, it invokes <code><a href="/reference/android/view/View.html#invalidate()">invalidate()</a></code> (or one of its variants) on any view that has changed
+  content. The invalidation messages are propagated all the way up the view hierarchy to compute
+  the regions of the screen that need to be redrawn (the dirty region). The Android system then
+  draws any view in the hierarchy that intersects with the dirty region. Unfortunately, there are
+  two drawbacks to this drawing model:</p>
+<ul>
+    <li>First, this model requires execution of a lot of code on every draw pass. For example, if
+your application calls <code><a href="/reference/android/view/View.html#invalidate()">invalidate()</a></code> on a button and that
+button sits on top of another view, the Android system redraws the view even though it hasn't
+changed.</li>
+    <li>The second issue is that the drawing model can hide bugs in your application. Since the
+  Android system redraws views when they intersect the dirty region, a view whose content you
+  changed might be redrawn even though <code><a href="/reference/android/view/View.html#invalidate()">invalidate()</a></code> was not
+  called on it. When this happens, you are relying on another view being invalidated to obtain the
+  proper behavior. This behavior can change every time you modify your application. Because of
+  this, you should always call <code><a href="/reference/android/view/View.html#invalidate()">invalidate()</a></code> on your custom
+  views whenever you modify data or state that affects the view’s drawing code.</li>
+</ul>
+<p class="note"><strong>Note</strong>: Android views automatically call <code><a href="/reference/android/view/View.html#invalidate()">invalidate()</a></code> when their properties change, such as the background
+  color or the text in a <code><a href="/reference/android/widget/TextView.html">TextView</a></code>.</p>
+<h3 id="hardware-model">Hardware accelerated drawing model</h3>
+<p>The Android system still uses <code><a href="/reference/android/view/View.html#invalidate()">invalidate()</a></code> and <code><a href="/reference/android/view/View.html#draw(android.graphics.Canvas)">draw()</a></code> to request screen updates and to render views, but handles the
+  actual drawing differently. Instead of executing the drawing commands immediately, the Android
+  system records them inside display lists, which contain the output of the view hierarchy’s
+  drawing code. Another optimization is that the Android system only needs to record and update
+  display lists for views marked dirty by an <code><a href="/reference/android/view/View.html#invalidate()">invalidate()</a></code>
+  call. Views that have not been invalidated can be redrawn simply by re-issuing the previously
+  recorded display list. The new drawing model contains three stages:</p>
+<ol>
+    <li>Invalidate the hierarchy</li>
+
+    <li>Record and update display lists</li>
+
+    <li>Draw the display lists</li>
+  </ol>
+<p>With this model, you cannot rely on a view intersecting the dirty region to have its <code><a href="/reference/android/view/View.html#draw(android.graphics.Canvas)">draw()</a></code> method executed. To ensure that the Android system records a
+  view’s display list, you must call <code><a href="/reference/android/view/View.html#invalidate()">invalidate()</a></code>. Forgetting
+  to do so causes a view to look the same even after it has been changed.</p>
+<p>Using display lists also benefits animation performance because setting specific properties,
+  such as alpha or rotation, does not require invalidating the targeted view (it is done
+  automatically). This optimization also applies to views with display lists (any view when your
+  application is hardware accelerated.) For example, assume there is a <code><a href="/reference/android/widget/LinearLayout.html">LinearLayout</a></code> that contains a <code><a href="/reference/android/widget/ListView.html">ListView</a></code> above a <code><a href="/reference/android/widget/Button.html">Button</a></code>. The display list for the <code><a href="/reference/android/widget/LinearLayout.html">LinearLayout</a></code> looks like
+  this:</p>
+<ul>
+    <li>DrawDisplayList(ListView)</li>
+
+    <li>DrawDisplayList(Button)</li>
+  </ul>
+<p>Assume now that you want to change the <code><a href="/reference/android/widget/ListView.html">ListView</a></code>'s opacity. After
+  invoking <code>setAlpha(0.5f)</code> on the <code><a href="/reference/android/widget/ListView.html">ListView</a></code>, the display list now
+  contains this:</p>
+<ul>
+    <li>SaveLayerAlpha(0.5)</li>
+
+    <li>DrawDisplayList(ListView)</li>
+
+    <li>Restore</li>
+
+    <li>DrawDisplayList(Button)</li>
+  </ul>
+<p>The complex drawing code of <code><a href="/reference/android/widget/ListView.html">ListView</a></code> was not executed. Instead, the
+  system only updated the display list of the much simpler <code><a href="/reference/android/widget/LinearLayout.html">LinearLayout</a></code>. In
+  an application without hardware acceleration enabled, the drawing code of both the list and its
+  parent are executed again.</p>
+<h2 id="unsupported">Unsupported Drawing Operations</h2>
+<p>When hardware accelerated, the 2D rendering pipeline supports the most commonly used <code><a href="/reference/android/graphics/Canvas.html">Canvas</a></code> drawing operations as well as many less-used operations. All of the
+  drawing operations that are used to render applications that ship with Android, default widgets
+  and layouts, and common advanced visual effects such as reflections and tiled textures are
+  supported.</p>
+<p>The following table describes the support level of various operations across API levels:</p>
+<h3 id="scaling">Canvas Scaling</h3>
+<p>The hardware accelerated 2D rendering pipeline was built first to support unscaled drawing,
+  with some drawing operations degrading quality significantly at higher scale values. These
+  operations are implemented as textures drawn at scale 1.0, transformed by the GPU.  In API level
+  &lt;17, using these operations will result in scaling artifacts increasing with scale.</p>
+<p class="note"><strong>Note</strong>: 'Simple' shapes are <code>drawRect()</code>,
+  <code>drawCircle()</code>, <code>drawOval()</code>, <code>drawRoundRect()</code>, and
+  <code>drawArc()</code> (with useCenter=false) commands issued with a Paint that doesn't have a
+  PathEffect, and doesn't contain non-default joins (via <code>setStrokeJoin()</code> /
+  <code>setStrokeMiter()</code>). Other instances of those draw commands fall under 'Complex,' in
+  the above chart.</p>
+<p>If your application is affected by any of these missing features or limitations, you can turn
+  off hardware acceleration for just the affected portion of your application by calling <code><a href="/reference/android/view/View.html#setLayerType(int,%20android.graphics.Paint)">setLayerType(View.LAYER_TYPE_SOFTWARE, null)</a></code>. This way, you can
+  still take advantage of hardware acceleration everywhere else. See <a href="#controlling">Controlling Hardware Acceleration</a> for more information on how to enable
+  and disable hardware acceleration at different levels in your application.
+
+  </p>
+<h2 id="layers">View Layers</h2>
+<p>In all versions of Android, views have had the ability to render into off-screen buffers,
+either by using a view's drawing cache, or by using <code><a href="/reference/android/graphics/Canvas.html#saveLayer(android.graphics.RectF,%20android.graphics.Paint)">Canvas.saveLayer()</a></code>. Off-screen buffers, or layers, have several uses. You can use them to get
+  better performance when animating complex views or to apply composition effects. For instance,
+  you can implement fade effects using <code>Canvas.saveLayer()</code> to temporarily render a view
+  into a layer and then composite it back on screen with an opacity factor.</p>
+<p>Beginning in Android 3.0 (API level 11), you have more control on how and when to use layers
+  with the <code><a href="/reference/android/view/View.html#setLayerType(int,%20android.graphics.Paint)">View.setLayerType()</a></code> method. This API takes two
+  parameters: the type of layer you want to use and an optional <code><a href="/reference/android/graphics/Paint.html">Paint</a></code>
+  object that describes how the layer should be composited. You can use the <code><a href="/reference/android/graphics/Paint.html">Paint</a></code> parameter to apply color filters, special blending modes, or opacity to a
+  layer. A view can use one of three layer types:</p>
+<ul>
+    <li><code><a href="/reference/android/view/View.html#LAYER_TYPE_NONE">LAYER_TYPE_NONE</a></code>: The view is rendered normally and is not backed
+    by an off-screen buffer. This is the default behavior.</li>
+
+    <li><code><a href="/reference/android/view/View.html#LAYER_TYPE_HARDWARE">LAYER_TYPE_HARDWARE</a></code>: The view is rendered in hardware into a
+    hardware texture if the application is hardware accelerated. If the application is not hardware
+    accelerated, this layer type behaves the same as <code><a href="/reference/android/view/View.html#LAYER_TYPE_SOFTWARE">LAYER_TYPE_SOFTWARE</a></code>.</li>
+
+    <li><code><a href="/reference/android/view/View.html#LAYER_TYPE_SOFTWARE">LAYER_TYPE_SOFTWARE</a></code>: The view is rendered in software into a
+    bitmap.</li>
+  </ul>
+<p>The type of layer you use depends on your goal:</p>
+<ul>
+    <li><strong>Performance</strong>: Use a hardware layer type to render a view into a hardware
+    texture. Once a view is rendered into a layer, its drawing code does not have to be executed
+    until the view calls <code><a href="/reference/android/view/View.html#invalidate()">invalidate()</a></code>. Some animations, such as
+    alpha animations, can then be applied directly onto the layer, which is very efficient
+    for the GPU to do.</li>
+
+    <li><strong>Visual effects</strong>: Use a hardware or software layer type and a <code><a href="/reference/android/graphics/Paint.html">Paint</a></code> to apply special visual treatments to a view. For instance, you can
+    draw a view in black and white using a <code><a href="/reference/android/graphics/ColorMatrixColorFilter.html">ColorMatrixColorFilter</a></code>.</li>
+
+    <li><strong>Compatibility</strong>: Use a software layer type to force a view to be rendered in
+    software. If a view that is hardware accelerated (for instance, if your whole
+    application is hardware acclerated), is having rendering problems, this is an easy way to work
+around limitations of the hardware rendering
+    pipeline.</li>
+  </ul>
+<h3 id="layers-anims">View layers and animations</h3>
+<p>Hardware layers can deliver faster and smoother animations when your application
+is hardware accelerated. Running an animation at 60 frames per second is not always possible when
+animating complex views that issue a lot of drawing operations. This can be alleviated by
+using hardware layers to render the view to a hardware texture. The hardware texture can
+then be used to animate the view, eliminating the need for the view to constantly redraw itself
+when it is being animated. The view is not redrawn unless you change the view's
+properties, which calls <code><a href="/reference/android/view/View.html#invalidate()">invalidate()</a></code>, or if you call <code><a href="/reference/android/view/View.html#invalidate()">invalidate()</a></code> manually. If you are running an animation in
+your application and do not obtain the smooth results you want, consider enabling hardware layers on
+your animated views.</p>
+<p>When a view is backed by a hardware layer, some of its properties are handled by the way the
+  layer is composited on screen. Setting these properties will be efficient because they do not
+  require the view to be invalidated and redrawn. The following list of properties affect the way
+  the layer is composited. Calling the setter for any of these properties results in optimal
+  invalidation and no redrawing of the targeted view:</p>
+<ul>
+    <li><code>alpha</code>: Changes the layer's opacity</li>
+
+    <li><code>x</code>, <code>y</code>, <code>translationX</code>, <code>translationY</code>:
+Changes the layer's position</li>
+
+    <li><code>scaleX</code>, <code>scaleY</code>: Changes the layer's size</li>
+
+    <li><code>rotation</code>, <code>rotationX</code>, <code>rotationY</code>: Changes the
+    layer's orientation in 3D space</li>
+
+    <li><code>pivotX</code>, <code>pivotY</code>: Changes the layer's transformations origin</li>
+  </ul>
+<p>These properties are the names used when animating a view with an <code><a href="/reference/android/animation/ObjectAnimator.html">ObjectAnimator</a></code>. If you want to access these properties, call the appropriate
+  setter or getter. For instance, to modify the alpha property, call <code><a href="/reference/android/view/View.html#setAlpha(float)">setAlpha()</a></code>. The following code snippet shows the most efficient way
+  to rotate a viewiew in 3D around the Y-axis:</p>
+<p>WHATSON? a4670acf-8fe7-4402-837d-bee0a5735bfb</p>
+<pre>
+view.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+ObjectAnimator.ofFloat(view, "rotationY", 180).start();
+</pre>
+<p>Because hardware layers consume video memory, it is highly recommended that you enable them
+only for the duration of the animation and then disable them after the animation is done. You
+can accomplish this using animation listeners:</p>
+<p>WHATSON? 564e2fd6-c90a-41db-b784-4348439e549d</p>
+<pre>
+View.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+ObjectAnimator animator = ObjectAnimator.ofFloat(view, "rotationY", 180);
+animator.addListener(new AnimatorListenerAdapter() {
+    @Override
+    public void onAnimationEnd(Animator animation) {
+        view.setLayerType(View.LAYER_TYPE_NONE, null);
+    }
+});
+animator.start();
+</pre>
+<p>For more information on property animation, see <a href="/guide/topics/graphics/prop-animation.html">Property Animation</a>.</p>
+<h2 id="tips">Tips and Tricks</h2>
+<p>Switching to hardware accelerated 2D graphics can instantly increase performance, but you
+  should still design your application to use the GPU effectively by following these
+  recommendations:</p>
+<h1 itemprop="name">Hardware Acceleration</h1>
+<h2>In this document</h2>
+<ol>
+        <li><a href="#controlling">Controlling Hardware Acceleration</a></li>
+        <li><a href="#determining">Determining if a View is Hardware Accelerated</a></li>
+        <li><a href="#model">Android Drawing Models</a>
+
+          <ol>
+            <li><a href="#software-model">Software-based drawing model</a></li>
+            <li><a href="#hardware-model">Hardware accelerated drawing model</a></li>
+          </ol>
+        </li>
+
+        <li>
+          <a href="#unsupported">Unsupported Drawing Operations</a>
+        </li>
+
+
+
+        <li>
+          <a href="#layers">View Layers</a>
+
+          <ol>
+            <li><a href="#layers-anims">View Layers and Animations</a></li>
+          </ol>
+        </li>
+
+        <li><a href="#tips">Tips and Tricks</a></li>
+      </ol>
+<ol>
+            <li><a href="#software-model">Software-based drawing model</a></li>
+            <li><a href="#hardware-model">Hardware accelerated drawing model</a></li>
+          </ol>
+<ol>
+            <li><a href="#layers-anims">View Layers and Animations</a></li>
+          </ol>
+<h2>See also</h2>
+<ol>
+        <li><a href="/guide/topics/graphics/opengl.html">OpenGL with the Framework
+        APIs</a></li>
+
+        <li><a href="/guide/topics/renderscript/index.html">Renderscript</a></li>
+      </ol>
+<p>Beginning in Android 3.0 (API level 11), the Android 2D rendering pipeline supports hardware
+  acceleration, meaning that all drawing operations that are performed on a <code><a href="/reference/android/view/View.html">View</a></code>'s canvas use the GPU. Because of the increased resources required to enable
+  hardware acceleration, your app will consume more RAM.</p>
+<p>Hardware acceleration is enabled by default if your Target API level is &gt;=14, but can also
+  be explicitly enabled. If your application uses only standard views and <code><a href="/reference/android/graphics/drawable/Drawable.html">Drawable</a></code>s, turning it on globally should not cause any adverse drawing
+  effects. However, because hardware acceleration is not supported for all of the 2D drawing
+  operations, turning it on might affect some of your custom views or drawing calls. Problems
+  usually manifest themselves as invisible elements, exceptions, or wrongly rendered pixels. To
+  remedy this, Android gives you the option to enable or disable hardware acceleration at multiple
+  levels. See <a href="#controlling">Controlling Hardware Acceleration</a>.</p>
+<p>If your application performs custom drawing, test your application on actual hardware devices
+  with hardware acceleration turned on to find any problems. The <a href="#drawing-support">Unsupported drawing operations</a> section describes known issues with
+  hardware acceleration and how to work around them.</p>
+<h2 id="controlling">Controlling Hardware Acceleration</h2>
+<p>You can control hardware acceleration at the following levels:</p>
+<ul>
+    <li>Application</li>
+
+    <li>Activity</li>
+
+    <li>Window</li>
+
+    <li>View</li>
+  </ul>
+<h4>Application level</h4>
+<p>In your Android manifest file, add the following attribute to the
+  <a href="/guide/topics/manifest/application-element.html">
+    <code>&lt;application&gt;</code></a> tag to enable hardware acceleration for your entire
+  application:</p>
+<p>WHATSON? 82c8c502-730c-4fc1-8c57-d03be1bf39a4</p>
+<pre>
+&lt;application android:hardwareAccelerated="true" ...&gt;
+</pre>
+<h4>Activity level</h4>
+<p>If your application does not behave properly with hardware acceleration turned on globally, you
+  can control it for individual activities as well. To enable or disable hardware acceleration at
+  the activity level, you can use the <code>android:hardwareAccelerated</code> attribute for
+  the <a href="/guide/topics/manifest/activity-element.html">
+  <code>&lt;activity&gt;</code></a> element. The following example enables hardware acceleration for
+  the entire application but disables it for one activity:</p>
+<p>WHATSON? 6e283e12-ed22-4079-80df-fe30ce3fa4d5</p>
+<pre>
+&lt;application android:hardwareAccelerated="true"&gt;
+    &lt;activity ... /&gt;
+    &lt;activity android:hardwareAccelerated="false" /&gt;
+&lt;/application&gt;
+</pre>
+<h4>Window level</h4>
+<p>If you need even more fine-grained control, you can enable hardware acceleration for a given
+  window with the following code:</p>
+<p>WHATSON? 8c71ab4a-44bd-4e40-bf69-fd24ad22a8cc</p>
+<pre>
+getWindow().setFlags(
+    WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED,
+    WindowManager.LayoutParams.FLAG_HARDWARE_ACCELERATED);
+
+</pre>
+<p class="note"><strong>Note</strong>:  You currently cannot disable hardware acceleration at
+the window level.</p>
+<h4>View level</h4>
+<p>You can disable hardware acceleration for an individual view at runtime with the
+following code:</p>
+<p>WHATSON? 484f4fd4-d4e4-4f6e-b26c-99d425f735c9</p>
+<pre>
+myView.setLayerType(View.LAYER_TYPE_SOFTWARE, null);
+</pre>
+<p class="note"><strong>Note</strong>: You currently cannot enable hardware acceleration at
+the view level. View layers have other functions besides disabling hardware acceleration. See <a href="#layers">View layers</a> for more information about their uses.</p>
+<h2 id="determining">Determining if a View is Hardware Accelerated</h2>
+<p>It is sometimes useful for an application to know whether it is currently hardware
+  accelerated, especially for things such as custom views. This is particularly useful if your
+  application does a lot of custom drawing and not all operations are properly supported by the new
+  rendering pipeline.</p>
+<p>There are two different ways to check whether the application is hardware accelerated:</p>
+<ul>
+    <li><code><a href="/reference/android/view/View.html#isHardwareAccelerated()">View.isHardwareAccelerated()</a></code> returns
+    <code>true</code> if the <code><a href="/reference/android/view/View.html">View</a></code> is attached to a hardware accelerated
+    window.</li>
+
+    <li><code><a href="/reference/android/graphics/Canvas.html#isHardwareAccelerated()">Canvas.isHardwareAccelerated()</a></code>
+    returns <code>true</code> if the <code><a href="/reference/android/graphics/Canvas.html">Canvas</a></code> is hardware accelerated</li>
+  </ul>
+<p>If you must do this check in your drawing code, use <code><a href="/reference/android/graphics/Canvas.html#isHardwareAccelerated()">Canvas.isHardwareAccelerated()</a></code> instead of <code><a href="/reference/android/view/View.html#isHardwareAccelerated()">View.isHardwareAccelerated()</a></code> when possible. When a view
+  is attached to a hardware accelerated window, it can still be drawn using a non-hardware
+  accelerated Canvas. This happens, for instance, when drawing a view into a bitmap for caching
+  purposes.</p>
+<h2 id="model">Android Drawing Models</h2>
+<p>When hardware acceleration is enabled, the Android framework utilizes a new drawing model that
+  utilizes <em>display lists</em> to render your application to the screen. To fully understand
+  display lists and how they might affect your application, it is useful to understand how Android
+  draws views without hardware acceleration as well. The following sections describe the
+  software-based  and hardware-accelerated drawing models.</p>
+<h3 id="software-model">Software-based drawing model</h3>
+<p>In the software drawing model, views are drawn with the following two steps:</p>
+<ol>
+    <li>Invalidate the hierarchy</li>
+
+    <li>Draw the hierarchy</li>
+  </ol>
+<p>Whenever an application needs to update a part of its UI, it invokes <code><a href="/reference/android/view/View.html#invalidate()">invalidate()</a></code> (or one of its variants) on any view that has changed
+  content. The invalidation messages are propagated all the way up the view hierarchy to compute
+  the regions of the screen that need to be redrawn (the dirty region). The Android system then
+  draws any view in the hierarchy that intersects with the dirty region. Unfortunately, there are
+  two drawbacks to this drawing model:</p>
+<ul>
+    <li>First, this model requires execution of a lot of code on every draw pass. For example, if
+your application calls <code><a href="/reference/android/view/View.html#invalidate()">invalidate()</a></code> on a button and that
+button sits on top of another view, the Android system redraws the view even though it hasn't
+changed.</li>
+    <li>The second issue is that the drawing model can hide bugs in your application. Since the
+  Android system redraws views when they intersect the dirty region, a view whose content you
+  changed might be redrawn even though <code><a href="/reference/android/view/View.html#invalidate()">invalidate()</a></code> was not
+  called on it. When this happens, you are relying on another view being invalidated to obtain the
+  proper behavior. This behavior can change every time you modify your application. Because of
+  this, you should always call <code><a href="/reference/android/view/View.html#invalidate()">invalidate()</a></code> on your custom
+  views whenever you modify data or state that affects the view’s drawing code.</li>
+</ul>
+<p class="note"><strong>Note</strong>: Android views automatically call <code><a href="/reference/android/view/View.html#invalidate()">invalidate()</a></code> when their properties change, such as the background
+  color or the text in a <code><a href="/reference/android/widget/TextView.html">TextView</a></code>.</p>
+<h3 id="hardware-model">Hardware accelerated drawing model</h3>
+<p>The Android system still uses <code><a href="/reference/android/view/View.html#invalidate()">invalidate()</a></code> and <code><a href="/reference/android/view/View.html#draw(android.graphics.Canvas)">draw()</a></code> to request screen updates and to render views, but handles the
+  actual drawing differently. Instead of executing the drawing commands immediately, the Android
+  system records them inside display lists, which contain the output of the view hierarchy’s
+  drawing code. Another optimization is that the Android system only needs to record and update
+  display lists for views marked dirty by an <code><a href="/reference/android/view/View.html#invalidate()">invalidate()</a></code>
+  call. Views that have not been invalidated can be redrawn simply by re-issuing the previously
+  recorded display list. The new drawing model contains three stages:</p>
+<ol>
+    <li>Invalidate the hierarchy</li>
+
+    <li>Record and update display lists</li>
+
+    <li>Draw the display lists</li>
+  </ol>
+<p>With this model, you cannot rely on a view intersecting the dirty region to have its <code><a href="/reference/android/view/View.html#draw(android.graphics.Canvas)">draw()</a></code> method executed. To ensure that the Android system records a
+  view’s display list, you must call <code><a href="/reference/android/view/View.html#invalidate()">invalidate()</a></code>. Forgetting
+  to do so causes a view to look the same even after it has been changed.</p>
+<p>Using display lists also benefits animation performance because setting specific properties,
+  such as alpha or rotation, does not require invalidating the targeted view (it is done
+  automatically). This optimization also applies to views with display lists (any view when your
+  application is hardware accelerated.) For example, assume there is a <code><a href="/reference/android/widget/LinearLayout.html">LinearLayout</a></code> that contains a <code><a href="/reference/android/widget/ListView.html">ListView</a></code> above a <code><a href="/reference/android/widget/Button.html">Button</a></code>. The display list for the <code><a href="/reference/android/widget/LinearLayout.html">LinearLayout</a></code> looks like
+  this:</p>
+<ul>
+    <li>DrawDisplayList(ListView)</li>
+
+    <li>DrawDisplayList(Button)</li>
+  </ul>
+<p>Assume now that you want to change the <code><a href="/reference/android/widget/ListView.html">ListView</a></code>'s opacity. After
+  invoking <code>setAlpha(0.5f)</code> on the <code><a href="/reference/android/widget/ListView.html">ListView</a></code>, the display list now
+  contains this:</p>
+<ul>
+    <li>SaveLayerAlpha(0.5)</li>
+
+    <li>DrawDisplayList(ListView)</li>
+
+    <li>Restore</li>
+
+    <li>DrawDisplayList(Button)</li>
+  </ul>
+<p>The complex drawing code of <code><a href="/reference/android/widget/ListView.html">ListView</a></code> was not executed. Instead, the
+  system only updated the display list of the much simpler <code><a href="/reference/android/widget/LinearLayout.html">LinearLayout</a></code>. In
+  an application without hardware acceleration enabled, the drawing code of both the list and its
+  parent are executed again.</p>
+<h2 id="unsupported">Unsupported Drawing Operations</h2>
+<p>When hardware accelerated, the 2D rendering pipeline supports the most commonly used <code><a href="/reference/android/graphics/Canvas.html">Canvas</a></code> drawing operations as well as many less-used operations. All of the
+  drawing operations that are used to render applications that ship with Android, default widgets
+  and layouts, and common advanced visual effects such as reflections and tiled textures are
+  supported.</p>
+<p>The following table describes the support level of various operations across API levels:</p>
+<h3 id="scaling">Canvas Scaling</h3>
+<p>The hardware accelerated 2D rendering pipeline was built first to support unscaled drawing,
+  with some drawing operations degrading quality significantly at higher scale values. These
+  operations are implemented as textures drawn at scale 1.0, transformed by the GPU.  In API level
+  &lt;17, using these operations will result in scaling artifacts increasing with scale.</p>
+<p class="note"><strong>Note</strong>: 'Simple' shapes are <code>drawRect()</code>,
+  <code>drawCircle()</code>, <code>drawOval()</code>, <code>drawRoundRect()</code>, and
+  <code>drawArc()</code> (with useCenter=false) commands issued with a Paint that doesn't have a
+  PathEffect, and doesn't contain non-default joins (via <code>setStrokeJoin()</code> /
+  <code>setStrokeMiter()</code>). Other instances of those draw commands fall under 'Complex,' in
+  the above chart.</p>
+<p>If your application is affected by any of these missing features or limitations, you can turn
+  off hardware acceleration for just the affected portion of your application by calling <code><a href="/reference/android/view/View.html#setLayerType(int,%20android.graphics.Paint)">setLayerType(View.LAYER_TYPE_SOFTWARE, null)</a></code>. This way, you can
+  still take advantage of hardware acceleration everywhere else. See <a href="#controlling">Controlling Hardware Acceleration</a> for more information on how to enable
+  and disable hardware acceleration at different levels in your application.
+
+  </p>
+<h2 id="layers">View Layers</h2>
+<p>In all versions of Android, views have had the ability to render into off-screen buffers,
+either by using a view's drawing cache, or by using <code><a href="/reference/android/graphics/Canvas.html#saveLayer(android.graphics.RectF,%20android.graphics.Paint)">Canvas.saveLayer()</a></code>. Off-screen buffers, or layers, have several uses. You can use them to get
+  better performance when animating complex views or to apply composition effects. For instance,
+  you can implement fade effects using <code>Canvas.saveLayer()</code> to temporarily render a view
+  into a layer and then composite it back on screen with an opacity factor.</p>
+<p>Beginning in Android 3.0 (API level 11), you have more control on how and when to use layers
+  with the <code><a href="/reference/android/view/View.html#setLayerType(int,%20android.graphics.Paint)">View.setLayerType()</a></code> method. This API takes two
+  parameters: the type of layer you want to use and an optional <code><a href="/reference/android/graphics/Paint.html">Paint</a></code>
+  object that describes how the layer should be composited. You can use the <code><a href="/reference/android/graphics/Paint.html">Paint</a></code> parameter to apply color filters, special blending modes, or opacity to a
+  layer. A view can use one of three layer types:</p>
+<ul>
+    <li><code><a href="/reference/android/view/View.html#LAYER_TYPE_NONE">LAYER_TYPE_NONE</a></code>: The view is rendered normally and is not backed
+    by an off-screen buffer. This is the default behavior.</li>
+
+    <li><code><a href="/reference/android/view/View.html#LAYER_TYPE_HARDWARE">LAYER_TYPE_HARDWARE</a></code>: The view is rendered in hardware into a
+    hardware texture if the application is hardware accelerated. If the application is not hardware
+    accelerated, this layer type behaves the same as <code><a href="/reference/android/view/View.html#LAYER_TYPE_SOFTWARE">LAYER_TYPE_SOFTWARE</a></code>.</li>
+
+    <li><code><a href="/reference/android/view/View.html#LAYER_TYPE_SOFTWARE">LAYER_TYPE_SOFTWARE</a></code>: The view is rendered in software into a
+    bitmap.</li>
+  </ul>
+<p>The type of layer you use depends on your goal:</p>
+<ul>
+    <li><strong>Performance</strong>: Use a hardware layer type to render a view into a hardware
+    texture. Once a view is rendered into a layer, its drawing code does not have to be executed
+    until the view calls <code><a href="/reference/android/view/View.html#invalidate()">invalidate()</a></code>. Some animations, such as
+    alpha animations, can then be applied directly onto the layer, which is very efficient
+    for the GPU to do.</li>
+
+    <li><strong>Visual effects</strong>: Use a hardware or software layer type and a <code><a href="/reference/android/graphics/Paint.html">Paint</a></code> to apply special visual treatments to a view. For instance, you can
+    draw a view in black and white using a <code><a href="/reference/android/graphics/ColorMatrixColorFilter.html">ColorMatrixColorFilter</a></code>.</li>
+
+    <li><strong>Compatibility</strong>: Use a software layer type to force a view to be rendered in
+    software. If a view that is hardware accelerated (for instance, if your whole
+    application is hardware acclerated), is having rendering problems, this is an easy way to work
+around limitations of the hardware rendering
+    pipeline.</li>
+  </ul>
+<h3 id="layers-anims">View layers and animations</h3>
+<p>Hardware layers can deliver faster and smoother animations when your application
+is hardware accelerated. Running an animation at 60 frames per second is not always possible when
+animating complex views that issue a lot of drawing operations. This can be alleviated by
+using hardware layers to render the view to a hardware texture. The hardware texture can
+then be used to animate the view, eliminating the need for the view to constantly redraw itself
+when it is being animated. The view is not redrawn unless you change the view's
+properties, which calls <code><a href="/reference/android/view/View.html#invalidate()">invalidate()</a></code>, or if you call <code><a href="/reference/android/view/View.html#invalidate()">invalidate()</a></code> manually. If you are running an animation in
+your application and do not obtain the smooth results you want, consider enabling hardware layers on
+your animated views.</p>
+<p>When a view is backed by a hardware layer, some of its properties are handled by the way the
+  layer is composited on screen. Setting these properties will be efficient because they do not
+  require the view to be invalidated and redrawn. The following list of properties affect the way
+  the layer is composited. Calling the setter for any of these properties results in optimal
+  invalidation and no redrawing of the targeted view:</p>
+<ul>
+    <li><code>alpha</code>: Changes the layer's opacity</li>
+
+    <li><code>x</code>, <code>y</code>, <code>translationX</code>, <code>translationY</code>:
+Changes the layer's position</li>
+
+    <li><code>scaleX</code>, <code>scaleY</code>: Changes the layer's size</li>
+
+    <li><code>rotation</code>, <code>rotationX</code>, <code>rotationY</code>: Changes the
+    layer's orientation in 3D space</li>
+
+    <li><code>pivotX</code>, <code>pivotY</code>: Changes the layer's transformations origin</li>
+  </ul>
+<p>These properties are the names used when animating a view with an <code><a href="/reference/android/animation/ObjectAnimator.html">ObjectAnimator</a></code>. If you want to access these properties, call the appropriate
+  setter or getter. For instance, to modify the alpha property, call <code><a href="/reference/android/view/View.html#setAlpha(float)">setAlpha()</a></code>. The following code snippet shows the most efficient way
+  to rotate a viewiew in 3D around the Y-axis:</p>
+<p>WHATSON? 0d9931e7-3da6-4381-b5ca-9cc731e09578</p>
+<pre>
+view.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+ObjectAnimator.ofFloat(view, "rotationY", 180).start();
+</pre>
+<p>Because hardware layers consume video memory, it is highly recommended that you enable them
+only for the duration of the animation and then disable them after the animation is done. You
+can accomplish this using animation listeners:</p>
+<p>WHATSON? fe2772fb-544f-4a3f-9e12-7ce32204e1b4</p>
+<pre>
+View.setLayerType(View.LAYER_TYPE_HARDWARE, null);
+ObjectAnimator animator = ObjectAnimator.ofFloat(view, "rotationY", 180);
+animator.addListener(new AnimatorListenerAdapter() {
+    @Override
+    public void onAnimationEnd(Animator animation) {
+        view.setLayerType(View.LAYER_TYPE_NONE, null);
+    }
+});
+animator.start();
+</pre>
+<p>For more information on property animation, see <a href="/guide/topics/graphics/prop-animation.html">Property Animation</a>.</p>
+<h2 id="tips">Tips and Tricks</h2>
+<p>Switching to hardware accelerated 2D graphics can instantly increase performance, but you
+  should still design your application to use the GPU effectively by following these
+  recommendations:</p>

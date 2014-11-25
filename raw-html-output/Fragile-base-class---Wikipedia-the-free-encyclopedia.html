@@ -1,0 +1,85 @@
+<h1 id="firstHeading" class="firstHeading" lang="en"><span dir="auto">Fragile base class</span></h1>
+<p>The <b>fragile base class problem</b> is a fundamental architectural problem of <a href="/wiki/Object-oriented_programming" title="Object-oriented programming">object-oriented programming</a> systems where base classes (<a href="/wiki/Superclass_(computer_science)" title="Superclass (computer science)" class="mw-redirect">superclasses</a>) are considered "fragile" because seemingly safe modifications to a base class, when inherited by the <a href="/wiki/Subclass_(computer_science)" title="Subclass (computer science)" class="mw-redirect">derived classes</a>, may cause the derived classes to malfunction. The programmer cannot determine whether a base class change is safe simply by examining in isolation the methods of the base class.</p>
+<p>One possible solution is to make instance variables private to their defining class and force subclasses to use accessors to modify superclass states. A language could also make it so that subclasses can control which inherited methods are exposed publicly. These changes prevent subclasses from relying on implementation details of superclasses and allow subclasses to expose only those superclass methods that are applicable to themselves.</p>
+<p>Another alternative solution could be to have an <a href="/wiki/Interface_(object-oriented_programming)" title="Interface (object-oriented programming)" class="mw-redirect">interface</a> instead of superclass.</p>
+<p>The fragile base class problem has been blamed on <a href="/wiki/Open_recursion" title="Open recursion" class="mw-redirect">open recursion</a> (dynamic dispatch of methods on <code><a href="/wiki/This_(computer_programming)" title="This (computer programming)">this</a></code>), with the suggestion that invoking methods on <code>this</code> default to closed recursion (static dispatch, early binding) rather than open recursion (dynamic dispatch, late binding), only using open recursion when it is specifically requested; external calls (not using <code>this</code>) would be dynamically dispatched as usual.<sup id="cite_ref-1" class="reference"><a href="#cite_note-1"><span>[</span>1<span>]</span></a></sup><sup id="cite_ref-2" class="reference"><a href="#cite_note-2"><span>[</span>2<span>]</span></a></sup></p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Java_Example"><span class="tocnumber">1</span> <span class="toctext">Java Example</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Solutions"><span class="tocnumber">2</span> <span class="toctext">Solutions</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#See_also"><span class="tocnumber">3</span> <span class="toctext">See also</span></a></li>
+<li class="toclevel-1 tocsection-4"><a href="#References"><span class="tocnumber">4</span> <span class="toctext">References</span></a></li>
+<li class="toclevel-1 tocsection-5"><a href="#External_links"><span class="tocnumber">5</span> <span class="toctext">External links</span></a></li>
+</ul>
+<p></p>
+<h2><span class="mw-headline" id="Java_Example">Java Example</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Fragile_base_class&amp;action=edit&amp;section=1" title="Edit section: Java Example">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>The following trivial example is written in the <a href="/wiki/Java_programming_language" title="Java programming language" class="mw-redirect">Java programming language</a> and shows how a seemingly safe modification of a base class, can cause an inheriting subclass to malfunction by entering an <a href="/wiki/Infinite_recursion" title="Infinite recursion" class="mw-redirect">infinite recursion</a> which will result into a <a href="/wiki/Stack_Overflow" title="Stack Overflow">Stack Overflow</a>.</p>
+<p>WHATSON? dbb0a67f-dd1c-4525-8064-1bb8dd05590d</p>
+<pre class="de1">
+<span class="kw1">class</span> <span class="kw1">Super</span> <span class="br0">{</span>
+ 
+  <span class="kw1">private</span> <span class="kw4">int</span> counter <span class="sy0">=</span> <span class="nu0">0</span><span class="sy0">;</span>
+ 
+  <span class="kw4">void</span> inc1<span class="br0">(</span><span class="br0">)</span> <span class="br0">{</span>
+    counter<span class="sy0">++;</span>
+  <span class="br0">}</span>
+ 
+  <span class="kw4">void</span> inc2<span class="br0">(</span><span class="br0">)</span> <span class="br0">{</span>
+    counter<span class="sy0">++;</span>
+  <span class="br0">}</span>
+ 
+<span class="br0">}</span>
+ 
+<span class="kw1">class</span> Sub <span class="kw1">extends</span> <span class="kw1">Super</span> <span class="br0">{</span>
+ 
+  @Override
+  <span class="kw4">void</span> inc2<span class="br0">(</span><span class="br0">)</span> <span class="br0">{</span>
+    inc1<span class="br0">(</span><span class="br0">)</span><span class="sy0">;</span>
+  <span class="br0">}</span>
+ 
+<span class="br0">}</span>
+</pre>
+<p>Calling the dynamically bound method <i>inc2()</i> on an instance of <i>Sub</i> will correctly increase the field <i>counter</i> by one. If however the code of the superclass is changed in the following way:</p>
+<p>WHATSON? c3bf6bd1-7e4c-4d0d-8090-13649888e41d</p>
+<pre class="de1">
+<span class="kw1">class</span> <span class="kw1">Super</span> <span class="br0">{</span>
+ 
+  <span class="kw1">private</span> <span class="kw4">int</span> counter <span class="sy0">=</span> <span class="nu0">0</span><span class="sy0">;</span>
+ 
+  <span class="kw4">void</span> inc1<span class="br0">(</span><span class="br0">)</span> <span class="br0">{</span>
+    inc2<span class="br0">(</span><span class="br0">)</span><span class="sy0">;</span>
+  <span class="br0">}</span>
+ 
+  <span class="kw4">void</span> inc2<span class="br0">(</span><span class="br0">)</span> <span class="br0">{</span>
+    counter<span class="sy0">++;</span>
+  <span class="br0">}</span>
+<span class="br0">}</span>
+</pre>
+<p>a call to the dynamically bound method <i>inc2()</i> on an instance of <i>Sub</i> will cause an infinite recursion between itself and the method <i>inc1()</i> of the sub-class and eventually cause a stack overflow. This problem could have been avoided, by declaring the methods in the superclass as <b>final</b>, which would make it impossible for a sub-class to override them. However, this is not always desirable or possible. Therefore, it is good practice for super-classes to avoid changing calls to dynamically-bound methods.</p>
+<h2><span class="mw-headline" id="Solutions">Solutions</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Fragile_base_class&amp;action=edit&amp;section=2" title="Edit section: Solutions">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul>
+<li><a href="/wiki/Objective-C" title="Objective-C">Objective-C</a> has <a href="/wiki/Objective-C#Categories" title="Objective-C">categories</a> as well as <a href="/wiki/Objective-C#Non-fragile_instance_variables" title="Objective-C">non-fragile instance variables</a>.</li>
+<li><a href="/wiki/Component_Pascal" title="Component Pascal">Component Pascal</a> deprecates <a href="/wiki/Superclass_(computer_science)" title="Superclass (computer science)" class="mw-redirect">superclass calls</a>.</li>
+<li><a href="/wiki/Java_(programming_language)" title="Java (programming language)">Java</a>, <a href="/wiki/C%2B%2B" title="C++">C++</a> and <a href="/wiki/D_(programming_language)" title="D (programming language)">D</a> allow inheritance or overriding a class method to be prohibited by labeling a declaration of a class or method, respectively, with the keyword "<tt>final</tt>". In the book <i>Effective Java</i>, author <a href="/wiki/Joshua_Bloch" title="Joshua Bloch">Joshua Bloch</a> writes (in item 17) that programmers should "Design and document for inheritance or else prohibit it".</li>
+<li><a href="/wiki/C_Sharp_(programming_language)" title="C Sharp (programming language)">C#</a> and <a href="/wiki/VB.NET" title="VB.NET" class="mw-redirect">VB.NET</a> like Java have "<tt>sealed</tt>" and "<tt>Not Inheritable</tt>" class declaration keywords to prohibit inheritance.</li>
+<li><a href="/wiki/Scala_(programming_language)" title="Scala (programming language)">Scala</a> require a subclass to use keyword "<tt>override</tt>" explicitly in order to override a parent class method. In the book "Programming in Scala, 2nd Edition", the author writes that (with modifications here) If there was no method f(), the client’s original implementation of method f() could not have had an override modifier. Once you add the f() method to the second version of your library class, a recompile of the client code would give an compile error instead of wrong behavior.</li>
+</ul>
+<h2><span class="mw-headline" id="See_also">See also</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Fragile_base_class&amp;action=edit&amp;section=3" title="Edit section: See also">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul>
+<li><a href="/wiki/Fragile_binary_interface_problem" title="Fragile binary interface problem">Fragile binary interface problem</a></li>
+<li><a href="/wiki/Implementation_inheritance" title="Implementation inheritance" class="mw-redirect">Implementation inheritance</a></li>
+<li><a href="/wiki/Inheritance_semantics" title="Inheritance semantics" class="mw-redirect">Inheritance semantics</a></li>
+<li><a href="/wiki/Software_brittleness" title="Software brittleness">Software brittleness</a></li>
+<li><a href="/wiki/Virtual_inheritance" title="Virtual inheritance">Virtual Inheritance (object-oriented programming)</a></li>
+</ul>
+<h2><span class="mw-headline" id="References">References</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Fragile_base_class&amp;action=edit&amp;section=4" title="Edit section: References">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ol class="references">
+<li id="cite_note-1"><span class="mw-cite-backlink"><b><a href="#cite_ref-1">^</a></b></span> <span class="reference-text">"<a rel="nofollow" class="external text" href="http://www.cs.cmu.edu/~aldrich/papers/selective-open-recursion.pdf">Selective Open Recursion: A Solution to the Fragile Base Class Problem</a>", Jonathan Aldrich</span></li>
+<li id="cite_note-2"><span class="mw-cite-backlink"><b><a href="#cite_ref-2">^</a></b></span> <span class="reference-text">"<a rel="nofollow" class="external text" href="http://lambda-the-ultimate.org/classic/message12271.html">Selective Open Recursion: A Solution to the Fragile Base Class Problem</a>", <i><a rel="nofollow" class="external text" href="http://lambda-the-ultimate.org/">Lambda the Ultimate</a></i></span></li>
+</ol>
+<h2><span class="mw-headline" id="External_links">External links</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Fragile_base_class&amp;action=edit&amp;section=5" title="Edit section: External links">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul>
+<li>Leonid Mikhajlov and Emil Sekerinski: <a rel="nofollow" class="external text" href="http://www.cas.mcmaster.ca/~emil/Publications_files/MikhajlovSekerinski98FragileBaseClassProblem.pdf">A Study of The Fragile Base Class Problem</a>. ECOOP 1998: 355-382. - Scientific description and analysis of the fragile base class problem.</li>
+<li><a rel="nofollow" class="external text" href="http://www.javaworld.com/javaworld/jw-08-2003/jw-0801-toolbox.html">Why Extends is Evil</a> - An example in <a href="/wiki/Java_(programming_language)" title="Java (programming language)">Java</a></li>
+</ul>

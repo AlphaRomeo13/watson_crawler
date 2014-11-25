@@ -1,0 +1,94 @@
+<h1>How to Use Editor Panes and Text Panes</h1>
+<p>Two Swing classes support styled text: 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/javax/swing/JEditorPane.html"><code>JEditorPane</code></a> and its subclass 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/javax/swing/JTextPane.html"><code>JTextPane</code></a>. The <code>JEditorPane</code> class is the foundation for Swing's styled text components and provides a mechanism through which you can add support for custom text formats. If you want unstyled text, use a <a href="textarea.html">text area</a> instead.</p>
+<p>You can see an editor pane and a text pane in use by running TextSamplerDemo. Here is a picture of the <code>TextSamplerDemo</code> example.</p>
+<p>Click the Launch button to run TextSamplerDemo using 
+<a class="OutsideLink" target="_blank" href="http://www.oracle.com/technetwork/java/javase/javawebstart/index.html">Java™ Web Start </a> (<a href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">download JDK 7 or later</a>). Alternatively, to compile and run the example yourself, consult the <a href="../examples/components/index.html#TextSamplerDemo">example index</a>.</p>
+<p>The <code>TextSamplerDemo</code> example barely begins to demonstrate the capabilities of editor panes and text panes. However, the top right editor pane illustrates a handy, easy-to-use feature: it displays uneditable help information loaded from a URL. The text pane at the lower right demonstrates that you can easily embed images and even components directly into text panes.</p>
+<p>If you need a fully-fledged help system, take a look at the 
+<a class="OutsideLink" target="_blank" href="http://www.oracle.com/technetwork/java/javase/index-jsp-142628.html">JavaHelp™ system</a>.</p>
+<p>The Swing text API is powerful and immense, and we could devote an entire book just to using editor panes and text panes. This section introduces their capabilities, offers hints on which one you might want to use, and points to other sources of information.</p>
+<ul>
+<li><a href="#editorpane">Using an Editor Pane to Display Text From a URL</a></li>
+<li><a href="#recap">Editor Panes vs. Text Panes</a></li>
+<li><a href="#textpane">An Example of Using a Text Pane</a></li>
+<li><a href="#api">The Editor Pane and Text Pane API</a></li>
+<li><a href="#eg">Examples That Use Editor Panes and Text Panes</a></li>
+</ul>
+<h2><a name="editorpane" id="editorpane">Using an Editor Pane to Display Text From a URL</a></h2>
+<p>One task that you can accomplish without knowing anything about the Swing text system is displaying text from a URL. Here is the code from 
+<a class="SourceLink" target="_blank" href="../examples/components/TextSamplerDemoProject/src/components/TextSamplerDemo.java" onclick="showCode('../../displayCode.html', '../examples/components/TextSamplerDemoProject/src/components/TextSamplerDemo.java'); return false;"><code>TextSamplerDemo.java</code></a> that creates an uneditable editor pane that displays text formatted with HTML tags.</p>
+<p>WHATSON? e816f6ba-2a85-4c00-af53-81b8c722693b</p>
+<pre>
+JEditorPane editorPane = new JEditorPane();
+editorPane.setEditable(false);
+java.net.URL helpURL = TextSamplerDemo.class.getResource(
+                                "TextSamplerDemoHelp.html");
+if (helpURL != null) {
+    try {
+        editorPane.setPage(helpURL);
+    } catch (IOException e) {
+        System.err.println("Attempted to read a bad URL: " + helpURL);
+    }
+} else {
+    System.err.println("Couldn't find file: TextSamplerDemoHelp.html");
+}
+
+//Put the editor pane in a scroll pane.
+JScrollPane editorScrollPane = new JScrollPane(editorPane);
+editorScrollPane.setVerticalScrollBarPolicy(
+                JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+editorScrollPane.setPreferredSize(new Dimension(250, 145));
+editorScrollPane.setMinimumSize(new Dimension(10, 10));
+</pre>
+<p>The code uses the default constructor to create the editor pane, then calls <code>setEditable(false)</code> so the user cannot edit the text. Next, the code creates the <code>URL</code> object, and calls the <code>setPage</code> method with it.</p>
+<p>The <code>setPage</code> method opens the resource pointed to by the URL and figures out the format of the text (which is HTML in the example). If the text format is known, the editor pane initializes itself with the text found at the URL. A standard editor pane can understand plain text, HTML, and RTF. Note that the page might be loaded asynchronously, which keeps the GUI responsive but means that you should not count on the data being completely loaded after the call to <code>setPage</code> returns.</p>
+<h2><a name="recap" id="recap">Editor Panes vs. Text Panes</a></h2>
+<p>In order to use editor panes and text panes, you need to understand the text system, which is described in <a href="generaltext.html">Text Component Features</a>. Several facts about editor panes and text panes are scattered throughout that section. Here we list the facts again and provide a bit more detail. The information here should help you understand the differences between editor panes and text panes, and when to use which.</p>
+<ul>
+<li>An editor pane or a text pane can easily be loaded with text from a URL using the <code>setPage</code> method. The <code>JEditorPane</code> class also provides constructors that let you initialize an editor pane from a URL. The <code>JTextPane</code> class has no such constructors. See <a href="#editorpane">Using an Editor Pane to Display Text From a URL</a> for an example that uses this feature to load an uneditable editor pane with HTML-formatted text.
+<p>Be aware that the document and editor kit might change when using the <code>setPage</code> method. For example, if an editor pane contains plain text (the default), and you load it with HTML, the document will change to an <code>HTMLDocument</code> instance and the editor kit will change to an <code>HTMLEditorKit</code> instance. If your program uses the <code>setPage</code> method, make sure you adjust your code for possible changes to the pane's document and editor kit instances (re-register document listeners on the new document, and so on).</p>
+</li>
+<li>Editor panes, by default, know how to read, write, and edit plain, HTML, and RTF text. Text panes inherit this capability but impose certain limitations. A text pane insists that its document implement the <code>StyledDocument</code> interface. <code>HTMLDocument</code> and <code>RTFDocument</code> are both <code>StyledDocuments</code> so HTML and RTF work as expected within a text pane. If you load a text pane with plain text though, the text pane's document is not a <code>PlainDocument</code> as you might expect, but a <code>DefaultStyledDocument</code>.</li>
+<li>To support a custom text format, implement an editor kit that can read, write, and edit text of that format. Then call the <code>registerEditorKitForContentType</code> method to register your kit with the <code>JEditorPane</code> class. By registering an editor kit in this way, all editor panes and text panes in your program will be able to read, write, and edit the new format. However, if the new editor kit is not a <code>StyledEditorKit</code>, text panes will not support the new format.</li>
+<li>As mentioned previously, a text pane requires its document to implement the <code>StyledDocument</code> interface. The Swing text package provides a default implementation of this interface, <code>DefaultStyledDocument</code>, which is the document that text panes use by default. A text pane also requires that its editor kit be an instance of a <code>StyledEditorKit</code> (or a subclass). Be aware that the <code>read</code> and <code>write</code> methods for <code>StyleEditorKit</code> work with plain text.</li>
+<li>Through their styled document and styled editor kit, text panes provide support for named styles and logical styles. The <code>JTextPane</code> class itself contains many methods for working with styles that simply call methods in its document or editor kit.</li>
+<li>Through the API provided in the <code>JTextPane</code> class, you can embed images and components in a text pane. You can embed images in an editor pane, too, but only by including the images in an HTML or RTF file.</li>
+</ul>
+<p>Be aware that the document and editor kit might change when using the <code>setPage</code> method. For example, if an editor pane contains plain text (the default), and you load it with HTML, the document will change to an <code>HTMLDocument</code> instance and the editor kit will change to an <code>HTMLEditorKit</code> instance. If your program uses the <code>setPage</code> method, make sure you adjust your code for possible changes to the pane's document and editor kit instances (re-register document listeners on the new document, and so on).</p>
+<h2><a name="textpane" id="textpane">An Example of Using a Text Pane</a></h2>
+<p>Here is the code from the <code>TextSamplerDemo</code> example that creates and initializes a text pane.</p>
+<p>WHATSON? cdd4de9b-d07d-4f46-9b6a-34ae58564caf</p>
+<pre>
+String[] initString =
+        { /* ... <em> fill array with initial text </em> ... */ };
+
+String[] initStyles =
+        { /* ... <em> fill array with names of styles </em> ... */ };
+
+JTextPane textPane = new JTextPane();
+StyledDocument doc = textPane.getStyledDocument();
+addStylesToDocument(doc);
+
+//Load the text pane with styled text.
+try {
+    for (int i=0; i &lt; initString.length; i++) {
+        doc.insertString(doc.getLength(), initString[i],
+                         doc.getStyle(initStyles[i]));
+    }
+} catch (BadLocationException ble) {
+    System.err.println("Couldn't insert initial text into text pane.");
+}
+</pre>
+<p>Briefly, this code hard-codes the initial text into an array and creates and hard-codes several <em>styles</em>  objects that represent different paragraph and character formats  into another array. Next, the code loops over the arrays, inserts the text into the text pane, and specifies the style to use for the inserted text.</p>
+<p>Although this is an interesting example that concisely demonstrates several features of <code>JTextPane</code>, "real-world" programs aren't likely to initialize a text pane this way. Instead, a program would use an editor pane to save a document which would then be used to initialize the text pane.</p>
+<h2><a name="api" id="api">The Editor Pane and Text Pane API</a></h2>
+<p>This section lists some of the API related to text and editor panes. Many of the most useful methods for 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/javax/swing/JEditorPane.html">JEditorPane</a> and its subclass 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/javax/swing/JTextPane.html">JTextPane</a> are inherited from the <code>JTextComponent</code> class. You can find the API tables for <code>JTextComponent</code> in <a href="textapi.html">The Text Component API</a>. Also see <a href="jcomponent.html">The JComponent Class</a>, which describes the API inherited from <code>JComponent</code>.</p>
+<h2><a name="eg" id="eg">Examples That Use Text Panes and Editor Panes</a></h2>
+<p>To begin using text, you might want to run these programs and examine their code to find something similar to what you want to do.</p>
+<p>
+Learn to edit HTML text in JavaFX with the
+<a class="OutsideLink" target="_blank" href="http://docs.oracle.com/javase/8/javafx/user-interface-tutorial/editor.htm">Using JavaFX UI Controls: HTML Editor</a> tutorial.</p>

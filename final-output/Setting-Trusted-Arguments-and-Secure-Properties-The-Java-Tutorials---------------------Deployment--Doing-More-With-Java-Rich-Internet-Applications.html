@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Setting-Trusted-Arguments-and-Secure-Properties-The-Java-Tutorials---------------------Deployment--Doing-More-With-Java-Rich-Internet-Applications.html</title></head>
+<body>
+<h1>Setting Trusted Arguments and Secure Properties</h1>
+<p>You can set certain Java Virtual Machine arguments and secure properties for your rich Internet application (RIA) in the RIA's Java Network Launch Protocol (JNLP) file. For applets, you can also set arguments in the <code>java_arguments</code> parameter of the <code>&lt;applet&gt;</code> tag. Although there is a predefined set of secure properties, you can also define new secure properties by prefixing the property name with "<code>jnlp.</code>" or "<code>javaws.</code>". Properties can be retrieved in your RIA by using the <code>System.getProperty</code> method.</p>
+<p>Consider the Properties and Arguments Demo applet. The following Java Virtual Machine arguments and properties are set in the applet's JNLP file, 
+<code>appletpropsargs.jnlp</code>.</p>
+<ul>
+<li><code>-Xmx</code> – A secure argument set equal to "256M"</li>
+<li><code>sun.java2d.noddraw</code> – A predefined secure property set equal to "true"</li>
+<li><code>jnlp.myProperty</code> – A user-defined secure property set equal to "a user-defined property"</li>
+</ul>
+<p>WHATSON? 1db21220-6a50-4308-ba12-33d76a0b3d31</p>
+<pre>
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;jnlp spec="1.0+" codebase="" href=""&gt;
+    &lt;information&gt;
+        &lt;title&gt;Properties and Arguments Demo Applet&lt;/title&gt;
+        &lt;vendor&gt;Dynamic Team&lt;/vendor&gt;
+    &lt;/information&gt;
+    &lt;resources&gt;
+        &lt;!-- Application Resources --&gt;
+        &lt;j2se version="1.6+"
+              href="http://java.sun.com/products/autodl/j2se"
+              &lt;!-- secure java vm argument --&gt;
+              java-vm-args="-Xmx256M"/&gt;
+        &lt;jar href="applet_PropertiesAndVMArgs.jar"
+            main="true" /&gt;
+            &lt;!-- secure properties --&gt;
+        &lt;property name="sun.java2d.noddraw"
+            value="true"/&gt;
+        &lt;property name="jnlp.myProperty"
+            value="a user-defined property"/&gt;
+    &lt;/resources&gt;
+    &lt;applet-desc 
+         name="Properties and Arguments Demo Applet"
+         main-class="PropertiesArgsDemoApplet"
+         width="800"
+         height="50"&gt;             
+     &lt;/applet-desc&gt;
+     &lt;update check="background"/&gt;
+&lt;/jnlp&gt;
+</pre>
+<p>The 
+<code>PropertiesArgsDemoApplet</code> class uses the <code>System.getProperty</code> method to retrieve the <code>java.version</code> property and other properties that are set in the JNLP file. The <code>PropertiesArgsDemoApplet</code> class also displays the properties.</p>
+<p>WHATSON? fe09bcec-74b1-4533-b10b-936232639871</p>
+<pre>
+
+import javax.swing.JApplet;
+import javax.swing.SwingUtilities;
+import javax.swing.JLabel;
+
+public class PropertiesArgsDemoApplet extends JApplet {
+    public void init() {
+        final String javaVersion = System.getProperty("java.version");
+        final String  swing2dNoDrawProperty = System.getProperty("sun.java2d.noddraw");
+        final String  jnlpMyProperty = System.getProperty("jnlp.myProperty");        
+
+        try {
+            SwingUtilities.invokeAndWait(new Runnable() {
+                public void run() {
+                    createGUI(javaVersion, swing2dNoDrawProperty, jnlpMyProperty);
+                }
+            });
+        } catch (Exception e) {
+            System.err.println("createGUI didn't successfully complete");
+        }
+    }
+    private void createGUI(String javaVersion, String swing2dNoDrawProperty, String jnlpMyProperty) {
+        String text = "Properties: java.version = " + javaVersion + 
+                ",  sun.java2d.noddraw = " + swing2dNoDrawProperty +
+                ",   jnlp.myProperty = " + jnlpMyProperty;
+        JLabel lbl = new JLabel(text);
+        add(lbl);
+    }
+}
+</pre>
+<p>The Properties and Arguments Demo applet is shown next. You can also see the applet running in 
+<code>AppletPage.html</code>.</p>
+<p>
+Download source code for the <em>Properties and Arguments Demo Applet</em> example to experiment further.</p>
+<p>See 
+System Properties for a complete set of system properties that can be accessed by RIAs.</p>
+</body>
+</html>

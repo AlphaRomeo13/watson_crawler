@@ -1,0 +1,106 @@
+<h1 id="firstHeading" class="firstHeading" lang="en"><span dir="auto">Rope (data structure)</span></h1>
+<p>In <a href="/wiki/Computer_programming" title="Computer programming">computer programming</a> a <b>rope</b>, or <b>cord</b>, is a <a href="/wiki/Data_structure" title="Data structure">data structure</a> composed of smaller <a href="/wiki/String_(computer_science)" title="String (computer science)">strings</a> that is used for efficiently storing and manipulating a very long string. For example, a text editing program may use a rope to represent the text being edited, so that operations such as insertion, deletion, and random access can be done efficiently.<sup id="cite_ref-Boehm_1-0" class="reference"><a href="#cite_note-Boehm-1"><span>[</span>1<span>]</span></a></sup></p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Description"><span class="tocnumber">1</span> <span class="toctext">Description</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Operations"><span class="tocnumber">2</span> <span class="toctext">Operations</span></a>
+<ul>
+<li class="toclevel-2 tocsection-3"><a href="#Index"><span class="tocnumber">2.1</span> <span class="toctext">Index</span></a></li>
+<li class="toclevel-2 tocsection-4"><a href="#Concat"><span class="tocnumber">2.2</span> <span class="toctext">Concat</span></a></li>
+<li class="toclevel-2 tocsection-5"><a href="#Split"><span class="tocnumber">2.3</span> <span class="toctext">Split</span></a></li>
+<li class="toclevel-2 tocsection-6"><a href="#Insert"><span class="tocnumber">2.4</span> <span class="toctext">Insert</span></a></li>
+<li class="toclevel-2 tocsection-7"><a href="#Delete"><span class="tocnumber">2.5</span> <span class="toctext">Delete</span></a></li>
+<li class="toclevel-2 tocsection-8"><a href="#Report"><span class="tocnumber">2.6</span> <span class="toctext">Report</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-9"><a href="#Comparison_with_monolithic_arrays"><span class="tocnumber">3</span> <span class="toctext">Comparison with monolithic arrays</span></a></li>
+<li class="toclevel-1 tocsection-10"><a href="#See_also"><span class="tocnumber">4</span> <span class="toctext">See also</span></a></li>
+<li class="toclevel-1 tocsection-11"><a href="#References"><span class="tocnumber">5</span> <span class="toctext">References</span></a></li>
+<li class="toclevel-1 tocsection-12"><a href="#External_links"><span class="tocnumber">6</span> <span class="toctext">External links</span></a></li>
+</ul>
+<ul>
+<li class="toclevel-2 tocsection-3"><a href="#Index"><span class="tocnumber">2.1</span> <span class="toctext">Index</span></a></li>
+<li class="toclevel-2 tocsection-4"><a href="#Concat"><span class="tocnumber">2.2</span> <span class="toctext">Concat</span></a></li>
+<li class="toclevel-2 tocsection-5"><a href="#Split"><span class="tocnumber">2.3</span> <span class="toctext">Split</span></a></li>
+<li class="toclevel-2 tocsection-6"><a href="#Insert"><span class="tocnumber">2.4</span> <span class="toctext">Insert</span></a></li>
+<li class="toclevel-2 tocsection-7"><a href="#Delete"><span class="tocnumber">2.5</span> <span class="toctext">Delete</span></a></li>
+<li class="toclevel-2 tocsection-8"><a href="#Report"><span class="tocnumber">2.6</span> <span class="toctext">Report</span></a></li>
+</ul>
+<p></p>
+<h2><span class="mw-headline" id="Description">Description</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Rope_(data_structure)&amp;action=edit&amp;section=1" title="Edit section: Description">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>A rope is a <a href="/wiki/Binary_tree" title="Binary tree">binary tree</a> having leaf nodes that contain a short string. Each node has a weight value equal to the length of its string plus the sum of all the weights in its left <a href="/wiki/Subtree" title="Subtree" class="mw-redirect">subtree</a>. Thus a node with two children divides the whole string into two parts: the left subtree stores the first part of the string. The right subtree stores the second part and its weight is the sum of the left child's weight and the length of its contained string.</p>
+<p>The binary tree can be seen as several levels of nodes. The bottom level contains all the nodes that contain a string. Higher levels have fewer and fewer nodes. The top level consists of a single "root" node. The rope is built by putting the nodes with short strings in the bottom level, then attaching a random half of the nodes to parent nodes in the next level.</p>
+<h2><span class="mw-headline" id="Operations">Operations</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Rope_(data_structure)&amp;action=edit&amp;section=2" title="Edit section: Operations">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>In the following definitions, <i>N</i> is the length of the rope.</p>
+<h3><span class="mw-headline" id="Index">Index</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Rope_(data_structure)&amp;action=edit&amp;section=3" title="Edit section: Index">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>To retrieve the <i>i</i>-th character, we begin a <a href="/wiki/Recursion" title="Recursion">recursive</a> search from the root node:</p>
+<p>WHATSON? 30c782a3-4843-4700-b3f5-d6dbcc9d2464</p>
+<pre class="de1">
+ <span class="co1">// Note: Assumes 1-based indexing.</span>
+ <span class="kw1">function</span> <span class="kw1">index</span><span class="br0">(</span>RopeNode node<span class="sy1">,</span> <span class="kw4">integer</span> i<span class="br0">)</span>
+     <span class="kw1">if</span> node<span class="sy1">.</span><span class="me1">weight</span> &lt; i <span class="kw1">then</span>
+         return <span class="kw1">index</span><span class="br0">(</span>node<span class="sy1">.</span><span class="me1">right</span><span class="sy1">,</span> i <span class="sy3">-</span> node<span class="sy1">.</span><span class="me1">weight</span><span class="br0">)</span>
+     <span class="kw1">else</span>
+         <span class="kw1">if</span> exists<span class="br0">(</span>node<span class="sy1">.</span><span class="me1">left</span><span class="br0">)</span> <span class="kw1">then</span>
+             return <span class="kw1">index</span><span class="br0">(</span>node<span class="sy1">.</span><span class="me1">left</span><span class="sy1">,</span> i<span class="br0">)</span>
+         <span class="kw1">else</span>
+             return node<span class="sy1">.</span><span class="kw4">string</span><span class="br0">[</span>i<span class="br0">]</span>
+         endif
+     endif
+ <span class="kw1">end</span>
+</pre>
+<p>For example, to find the character at <i>i=10</i> in Figure 2.1 shown on the right, start at the root node (A), find that 22 is greater than 10 and there is a left child, so go to the left child (B). 9 is less than 10, so subtract 9 from 10 (leaving <i>i=1</i>) and go to the right child (D). Then because 6 is greater than 1 and there's a left child, go to the left child (G). 2 is greater than 1 and there's a left child, so go to the left child again (J). Finally 2 is greater than 1 but there is no left child, so the character at index 1 of the short string "na", is the answer.</p>
+<h3><span class="mw-headline" id="Concat">Concat</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Rope_(data_structure)&amp;action=edit&amp;section=4" title="Edit section: Concat">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>A concatenation can be performed simply by creating a new root node with <i>left = S<sub>1</sub></i> and <i>right = S<sub>2</sub></i>, which is constant time. The weight of the parent node is set to the length of the left child <i>S1</i>, which would take O(log N) time, if the tree is balanced.</p>
+<p>As most rope operations require balanced trees, the tree may need to be re-balanced after concatenation.</p>
+<h3><span class="mw-headline" id="Split">Split</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Rope_(data_structure)&amp;action=edit&amp;section=5" title="Edit section: Split">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>There are two cases that must be dealt with:</p>
+<ol>
+<li>The split point is at the end of a string (i.e. after the last character of a leaf node)</li>
+<li>The split point is in the middle of a string.</li>
+</ol>
+<p>The second case reduces to the first by splitting the string at the split point to create two new leaf nodes, then creating a new node that is the parent of the two component strings.</p>
+<p>For example, to split the 22-character rope pictured in Figure 2.3 into two equal component ropes of length 11, query the 12th character to locate the node <b>K</b> at the bottom level. Remove the link between <b>K</b> and the right child of <b>G</b>. Go to the parent <b>G</b> and subtract the weight of <b>K</b> from the weight of <b>G</b>. Travel up the tree and remove any right links, subtracting the weight of <b>K</b> from these nodes (only node <b>D</b>, in this case). Finally, build up the newly orphaned nodes <b>K</b> and <b>H</b> by concatenating them together and creating a new parent <b>P</b> with weight equal to the length of the left node <b>K</b>.</p>
+<p>As most rope operations require balanced trees, the tree may need to be re-balanced after splitting.</p>
+<h3><span class="mw-headline" id="Insert">Insert</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Rope_(data_structure)&amp;action=edit&amp;section=6" title="Edit section: Insert">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>This operation can be done by a <code>Split()</code> and two <code>Concat()</code> operations. The cost is the sum of the three.</p>
+<h3><span class="mw-headline" id="Delete">Delete</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Rope_(data_structure)&amp;action=edit&amp;section=7" title="Edit section: Delete">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>This operation can be done by two <code>Split()</code> and one <code>Concat()</code> operation. First, split the rope in three, divided by <i>i</i>-th and <i>i+j</i>-th character respectively, which extracts the string to delete in a separate node. Then concatenate the other two nodes.</p>
+<h3><span class="mw-headline" id="Report">Report</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Rope_(data_structure)&amp;action=edit&amp;section=8" title="Edit section: Report">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>To report the string <i>C<sub>i</sub>, …, <span class="nowrap">C<sub>i + j − 1</sub></span></i>, find the node <i>u</i> that contains <i>C<sub>i</sub></i> and <i>weight(u) &gt;= j</i>, and then traverse <i>T</i> starting at node <i>u</i>. Output <i>C<sub>i</sub>, …, <span class="nowrap">C<sub>i + j − 1</sub></span></i> by doing an <a href="/wiki/Tree_traversal#In-order" title="Tree traversal">in-order traversal</a> of <i>T</i> starting at node <i>u</i>.</p>
+<h2><span class="mw-headline" id="Comparison_with_monolithic_arrays">Comparison with monolithic arrays</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Rope_(data_structure)&amp;action=edit&amp;section=9" title="Edit section: Comparison with monolithic arrays">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Advantages:</p>
+<ul>
+<li>Ropes enable much faster insertion and deletion of text than monolithic string arrays, on which operations have time complexity O(n).</li>
+<li>Ropes don't require O(n) extra memory when operated upon (arrays need that for copying operations)</li>
+<li>Ropes don't require large contiguous memory spaces.</li>
+<li>If only nondestructive versions of operations are used, rope is a <a href="/wiki/Persistent_data_structure" title="Persistent data structure">persistent data structure</a>. For the text editing program example, this leads to an easy support for multiple <a href="/wiki/Undo" title="Undo">undo</a> levels.</li>
+</ul>
+<p>Disadvantages:</p>
+<ul>
+<li>Greater overall space usage when not being operated on, mainly to store parent nodes. There is a trade-off between how much of the total memory is such overhead and how long pieces of data are being processed as strings; note that the strings in example figures above are unrealistically short for modern architectures. The overhead is always O(n), but the constant can be made arbitrarily small.</li>
+<li>Increase in time to manage the extra storage</li>
+<li>Increased complexity of source code; greater risk for bugs</li>
+</ul>
+<p>This table compares the <i>algorithmic</i> characteristics of string and rope implementations, not their "raw speed". Array-based strings have smaller overhead, so (for example) concatenation and split operations are faster on small datasets. However, when array-based strings are used for longer strings, time complexity and memory usage for insertion and deletion of characters become unacceptably large. A rope data structure, on the other hand, has stable performance regardless of data size. Moreover, the space complexity for ropes and arrays are both O(n). In summary, ropes are better suited when the data is large and frequently modified.</p>
+<h2><span class="mw-headline" id="See_also">See also</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Rope_(data_structure)&amp;action=edit&amp;section=10" title="Edit section: See also">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul>
+<li>The <a href="/wiki/Cedar_(programming_language)" title="Cedar (programming language)" class="mw-redirect">Cedar</a> programming environment, which used ropes "almost since its inception"<sup id="cite_ref-Boehm_1-4" class="reference"><a href="#cite_note-Boehm-1"><span>[</span>1<span>]</span></a></sup></li>
+<li>The <a href="/wiki/Enfilade_(Xanadu)" title="Enfilade (Xanadu)">Model T enfilade</a>, a similar data structure from the early 1970s.</li>
+<li><a href="/wiki/Gap_buffer" title="Gap buffer">Gap buffer</a>, a data structure commonly used in text editors that allows efficient insertion and deletion operations clustered near the same location</li>
+</ul>
+<h2><span class="mw-headline" id="References">References</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Rope_(data_structure)&amp;action=edit&amp;section=11" title="Edit section: References">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ol class="references">
+<li id="cite_note-Boehm-1"><span class="mw-cite-backlink">^ <a href="#cite_ref-Boehm_1-0"><sup><i><b>a</b></i></sup></a> <a href="#cite_ref-Boehm_1-1"><sup><i><b>b</b></i></sup></a> <a href="#cite_ref-Boehm_1-2"><sup><i><b>c</b></i></sup></a> <a href="#cite_ref-Boehm_1-3"><sup><i><b>d</b></i></sup></a> <a href="#cite_ref-Boehm_1-4"><sup><i><b>e</b></i></sup></a></span> <span class="reference-text"><span class="citation journal">Boehm, Hans-J; Atkinson, Russ; and Plass, Michael (December 1995). <a rel="nofollow" class="external text" href="http://citeseer.ist.psu.edu/viewdoc/download?doi=10.1.1.14.9450&amp;rep=rep1&amp;type=pdf">"Ropes: an Alternative to Strings"</a> (<a href="/wiki/PDF" title="PDF" class="mw-redirect">PDF</a>). <i>Software—Practice &amp; Experience</i> (New York, NY, USA: John Wiley &amp; Sons, Inc.) <b>25</b> (12): 1315–1330. <a href="/wiki/Digital_object_identifier" title="Digital object identifier">doi</a>:<a rel="nofollow" class="external text" href="http://dx.doi.org/10.1002%2Fspe.4380251203">10.1002/spe.4380251203</a>.</span><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3ARope+%28data+structure%29&amp;rft.atitle=Ropes%3A+an+Alternative+to+Strings&amp;rft.au=Boehm%2C+Hans-J&amp;rft.aufirst=Hans-J&amp;rft.aulast=Boehm&amp;rft.date=December+1995&amp;rft.genre=article&amp;rft_id=http%3A%2F%2Fciteseer.ist.psu.edu%2Fviewdoc%2Fdownload%3Fdoi%3D10.1.1.14.9450%26rep%3Drep1%26type%3Dpdf&amp;rft_id=info%3Adoi%2F10.1002%2Fspe.4380251203&amp;rft.issue=12&amp;rft.jtitle=Software%E2%80%94Practice+%26+Experience&amp;rft.pages=1315-1330&amp;rft.place=New+York%2C+NY%2C+USA&amp;rft.pub=John+Wiley+%26+Sons%2C+Inc.&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Ajournal&amp;rft.volume=25" class="Z3988"><span style="display:none;"> </span></span> <span style="display:none;font-size:100%" class="error citation-comment">Cite uses deprecated parameters (<a href="/wiki/Help:CS1_errors#deprecated_params" title="Help:CS1 errors">help</a>)</span></span></li>
+</ol>
+<h2><span class="mw-headline" id="External_links">External links</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Rope_(data_structure)&amp;action=edit&amp;section=12" title="Edit section: External links">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul>
+<li><a rel="nofollow" class="external text" href="http://www.sgi.com/tech/stl/Rope.html">SGI's implementation of ropes for C++</a></li>
+<li><a rel="nofollow" class="external text" href="https://github.com/ivmai/bdwgc/">"C cords" implementation of ropes within the Boehm Garbage Collector library</a></li>
+<li><a rel="nofollow" class="external text" href="http://gcc.gnu.org/onlinedocs/libstdc++/libstdc++-html-USERS-4.3/a00223.html">libstdc++ support for ropes</a></li>
+<li><a rel="nofollow" class="external text" href="http://ahmadsoft.org/ropes/">Ropes for Java</a></li>
+<li><a rel="nofollow" class="external text" href="http://rope.forge.ocamlcore.org/doc/Rope.html">Ropes</a> for <a href="/wiki/OCaml" title="OCaml">OCaml</a></li>
+<li><a rel="nofollow" class="external text" href="https://github.com/Ramarren/ropes">ropes</a> for <a href="/wiki/Common_Lisp" title="Common Lisp">Common Lisp</a></li>
+<li><a rel="nofollow" class="external text" href="http://sourceforge.net/projects/pyropes/files/?source=navbar">pyropes</a> for <a href="/wiki/Python_(programming_language)" title="Python (programming language)">Python</a></li>
+</ul>

@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Understanding-Class-Members-The-Java-Tutorials---------------------Learning-the-Java-Language--Classes-and-Objects.html</title></head>
+<body>
+<h1>Understanding Class Members</h1>
+<p>In this section, we discuss the use of the <code>static</code> keyword to create fields and methods that belong to the class, rather than to an instance of the class.</p>
+<h2>Class Variables</h2>
+<p>When a number of objects are created from the same class blueprint, they each have their own distinct copies of <i>instance variables</i>. In the case of the <code>Bicycle</code> class, the instance variables are <code>cadence</code>, <code>gear</code>, and <code>speed</code>. Each <code>Bicycle</code> object has its own values for these variables, stored in different memory locations.</p>
+<p>Sometimes, you want to have variables that are common to all objects. This is accomplished with the <code>static</code> modifier. Fields that have the <code>static</code> modifier in their declaration are called <i>static fields</i> or <i>class variables</i>. They are associated with the class, rather than with any object. Every instance of the class shares a class variable, which is in one fixed location in memory. Any object can change the value of a class variable, but class variables can also be manipulated without creating an instance of the class.</p>
+<p>For example, suppose you want to create a number of <code>Bicycle</code> objects and assign each a serial number, beginning with 1 for the first object. This ID number is unique to each object and is therefore an instance variable. At the same time, you need a field to keep track of how many <code>Bicycle</code> objects have been created so that you know what ID to assign to the next one. Such a field is not related to any individual object, but to the class as a whole. For this you need a class variable, <code>numberOfBicycles</code>, as follows:</p>
+<p>WHATSON? 0ec91e78-d9a3-4ccf-9f64-a7fb99540adf</p>
+<pre>
+public class Bicycle {
+        
+    private int cadence;
+    private int gear;
+    private int speed;
+        
+    // <b>add an instance variable for the object ID</b>
+    private int id;
+    
+    // <b>add a class variable for the</b>
+    // <b>number of Bicycle objects instantiated</b>
+    private <b>static</b> int numberOfBicycles = 0;
+        ...
+}
+</pre>
+<p>Class variables are referenced by the class name itself, as in</p>
+<p>WHATSON? c32670e1-1cbb-43db-a4c1-60226cdb46fa</p>
+<pre>
+Bicycle.numberOfBicycles
+</pre>
+<p>This makes it clear that they are class variables.</p>
+<p>WHATSON? e754a3c5-33de-4be1-9cd7-09e79f9519e4</p>
+<pre>
+myBike.numberOfBicycles
+</pre>
+<p>You can use the <code>Bicycle</code> constructor to set the <code>id</code> instance variable and increment the <code>numberOfBicycles</code> class variable:</p>
+<p>WHATSON? f6859661-19f8-419e-bdc4-86f95d6ca8f8</p>
+<pre>
+public class Bicycle {
+        
+    private int cadence;
+    private int gear;
+    private int speed;
+    private int id;
+    private static int numberOfBicycles = 0;
+        
+    public Bicycle(int startCadence, int startSpeed, int startGear){
+        gear = startGear;
+        cadence = startCadence;
+        speed = startSpeed;
+
+        // <b>increment number of Bicycles</b>
+        // <b>and assign ID number</b>
+        <b>id = ++numberOfBicycles;</b>
+    }
+
+    // <b>new method to return the ID instance variable</b>
+    public int getID() {
+        return id;
+    }
+        ...
+}
+</pre>
+<h2>Class Methods</h2>
+<p>The Java programming language supports static methods as well as static variables. Static methods, which have the <code>static</code> modifier in their declarations, should be invoked with the class name, without the need for creating an instance of the class, as in</p>
+<p>WHATSON? 57d3dee7-8ac5-415f-9fed-a2d7c4d53af5</p>
+<pre>
+ClassName.methodName(args)
+</pre>
+<p>WHATSON? 446712f8-f19e-44c5-a1a4-903896283987</p>
+<pre>
+instanceName.methodName(args)
+</pre>
+<p>A common use for static methods is to access static fields. For example, we could add a static method to the <code>Bicycle</code> class to access the <code>numberOfBicycles</code> static field:</p>
+<p>WHATSON? 54726f50-5883-418c-9ea2-2b01f3fc175c</p>
+<pre>
+public <b>static</b> int getNumberOfBicycles() {
+    return numberOfBicycles;
+}
+</pre>
+<p>Not all combinations of instance and class variables and methods are allowed:</p>
+<ul>
+<li>Instance methods can access instance variables and instance methods directly.</li>
+<li>Instance methods can access class variables and class methods directly.</li>
+<li>Class methods can access class variables and class methods directly.</li>
+<li>Class methods <b style="font-style: italic">cannot</b> access instance variables or instance methods directlythey must use an object reference. Also, class methods cannot use the <code>this</code> keyword as there is no instance for <code>this</code> to refer to.</li>
+</ul>
+<h2>Constants</h2>
+<p>The <code>static</code> modifier, in combination with the <code>final</code> modifier, is also used to define constants. The <code>final</code> modifier indicates that the value of this field cannot change.</p>
+<p>For example, the following variable declaration defines a constant named <code>PI</code>, whose value is an approximation of pi (the ratio of the circumference of a circle to its diameter):</p>
+<p>WHATSON? 76718aaf-292d-4830-a220-40518227dcd6</p>
+<pre>
+static final double PI = 3.141592653589793;
+</pre>
+<p>Constants defined in this way cannot be reassigned, and it is a compile-time error if your program tries to do so. By convention, the names of constant values are spelled in uppercase letters. If the name is composed of more than one word, the words are separated by an underscore (_).</p>
+<h2>The <code>Bicycle</code> Class</h2>
+<p>After all the modifications made in this section, the <code>Bicycle</code> class is now:</p>
+<p>WHATSON? 91e813c7-efa7-4e38-bb0b-873952e304c9</p>
+<pre>
+public class Bicycle {
+        
+    private int cadence;
+    private int gear;
+    private int speed;
+        
+    private int id;
+    
+    private <b>static</b> int numberOfBicycles = 0;
+
+        
+    public Bicycle(int startCadence,
+                   int startSpeed,
+                   int startGear){
+        gear = startGear;
+        cadence = startCadence;
+        speed = startSpeed;
+
+        id = ++numberOfBicycles;
+    }
+
+    public int getID() {
+        return id;
+    }
+
+    public static int getNumberOfBicycles() {
+        return numberOfBicycles;
+    }
+
+    public int getCadence(){
+        return cadence;
+    }
+        
+    public void setCadence(int newValue){
+        cadence = newValue;
+    }
+        
+    public int getGear(){
+    return gear;
+    }
+        
+    public void setGear(int newValue){
+        gear = newValue;
+    }
+        
+    public int getSpeed(){
+        return speed;
+    }
+        
+    public void applyBrake(int decrement){
+        speed -= decrement;
+    }
+        
+    public void speedUp(int increment){
+        speed += increment;
+    }
+}
+</pre>
+</body>
+</html>

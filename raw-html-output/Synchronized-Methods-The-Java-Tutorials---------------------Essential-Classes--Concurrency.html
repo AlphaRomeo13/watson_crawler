@@ -1,0 +1,32 @@
+<h1>Synchronized Methods</h1>
+<p>The Java programming language provides two basic synchronization idioms: <i>synchronized methods</i> and <i>synchronized statements</i>. The more complex of the two, synchronized statements, are described in the next section. This section is about synchronized methods.</p>
+<p>To make a method synchronized, simply add the <code>synchronized</code> keyword to its declaration:</p>
+<p>WHATSON? 1c844ee0-d83c-4097-9ea2-e58aa901693b</p>
+<pre>
+public class SynchronizedCounter {
+    private int c = 0;
+
+    public synchronized void increment() {
+        c++;
+    }
+
+    public synchronized void decrement() {
+        c--;
+    }
+
+    public synchronized int value() {
+        return c;
+    }
+}
+</pre>
+<p>If <code>count</code> is an instance of <code>SynchronizedCounter</code>, then making these methods synchronized has two effects:</p>
+<ul>
+<li>First, it is not possible for two invocations of synchronized methods on the same object to interleave. When one thread is executing a synchronized method for an object, all other threads that invoke synchronized methods for the same object block (suspend execution) until the first thread is done with the object.</li>
+<li>Second, when a synchronized method exits, it automatically establishes a happens-before relationship with <i>any subsequent invocation</i> of a synchronized method for the same object. This guarantees that changes to the state of the object are visible to all threads.</li>
+</ul>
+<p>Note that constructors cannot be synchronized  using the <code>synchronized</code> keyword with a constructor is a syntax error. Synchronizing constructors doesn't make sense, because only the thread that creates an object should have access to it while it is being constructed.</p>
+<p>WHATSON? 95e09746-ffb6-44cc-841e-0821b6c40571</p>
+<pre>
+instances.add(this);
+</pre>
+<p>Synchronized methods enable a simple strategy for preventing thread interference and memory consistency errors: if an object is visible to more than one thread, all reads or writes to that object's variables are done through <code>synchronized</code> methods. (An important exception: <code>final</code> fields, which cannot be modified after the object is constructed, can be safely read through non-synchronized methods, once the object is constructed) This strategy is effective, but can present problems with <a href="liveness.html">liveness</a>, as we'll see later in this lesson.</p>

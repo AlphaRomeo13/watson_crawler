@@ -1,0 +1,170 @@
+<h1>How to Use Lists</h1>
+<p>A 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/javax/swing/JList.html"><code>JList</code></a> presents the user with a group of items, displayed in one or more columns, to choose from. Lists can have many items, so they are often put in <a href="scrollpane.html">scroll panes</a>.</p>
+<p>In addition to lists, the following Swing components present multiple selectable items to the user: <a href="combobox.html">combo boxes</a>, <a href="menu.html">menus</a>, <a href="table.html">tables</a>, and groups of <a href="button.html#checkbox">check boxes</a> or <a href="button.html#radiobutton">radio buttons</a>. To display hierarchical data, use a <a href="tree.html">tree</a>.</p>
+<p>The following figures shows two applications that use lists. This section uses these examples as a basis for the discussions that follow.</p>
+<ol>
+<li>Click the Launch button to run ListDemo using 
+<a class="OutsideLink" target="_blank" href="http://www.oracle.com/technetwork/java/javase/javawebstart/index.html">Java™ Web Start</a> (<a href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">download JDK 7 or later</a>). Alternatively, to compile and run the example yourself, consult the <a href="../examples/components/index.html#ListDemo">example index</a>.<a href="http://docs.oracle.com/javase/tutorialJWS/samples/uiswing/ListDemoProject/ListDemo.jnlp"><img src="../../images/jws-launch-button.png" width="88" height="23" align="bottom" alt="Launches the ListDemo example"></a><br></li>
+<li>Click the Launch button to run ListDialogRunner. Alternatively, to compile and run the example yourself, consult the <a href="../examples/components/index.html#ListDialog">example index</a>.<a href="http://docs.oracle.com/javase/tutorialJWS/samples/uiswing/ListDialogRunnerProject/ListDialogRunner.jnlp"><img src="../../images/jws-launch-button.png" width="88" height="23" align="bottom" alt="Launches the ListDialogRunner example"></a><br></li>
+<li>To bring up the ListDialog, click the Pick a new name... button in the window titled Name That Baby.<br>
+The resulting dialog is a ListDialog instance that has been customized to have the title Name Chooser.</li>
+<li>In ListDemo, try adding (hiring) and removing (firing) a few items.</li>
+</ol>
+<ul>
+<li><a href="#creating">Creating a Model</a></li>
+<li><a href="#init">Initializing a List</a></li>
+<li><a href="#selection">Selecting Items in a List</a></li>
+<li><a href="#mutable">Adding Items to and Removing Items from a List</a></li>
+<li><a href="#renderer">Writing a Custom Cell Renderer</a></li>
+<li><a href="#api">The List API</a></li>
+<li><a href="#eg">Examples that Use Lists</a></li>
+</ul>
+<h2><a name="creating__1" id="creating__1">Creating a Model</a></h2>
+<p>There are three ways to create a list model:</p>
+<ul>
+<li>
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/javax/swing/DefaultListModel.html">DefaultListModel</a> — everything is pretty much taken care of for you. The examples in this page use <code>DefaultListModel</code>.</li>
+<li>
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/javax/swing/AbstractListModel.html">AbstractListModel</a> — you manage the data and invoke the "fire" methods. For this approach, you must subclass <code>AbstractListModel</code> and implement the <code>getSize</code> and <code>getElementAt</code> methods inherited from the <code>ListModel</code> interface.</li>
+<li>
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/javax/swing/ListModel.html">ListModel</a> — you manage everything.</li>
+</ul>
+<p><a name="init" id="init"></a></p>
+<h2><a name="init__1" id="init__1">Initializing a List</a></h2>
+<p>Here is the code from 
+<a class="SourceLink" target="_blank" href="../examples/components/ListDialogRunnerProject/src/components/ListDialog.java" onclick="showCode('../../displayCode.html', '../examples/components/ListDialogRunnerProject/src/components/ListDialog.java'); return false;"><code>ListDialog.java</code></a> that creates and sets up its list:</p>
+<p>WHATSON? a3e1b9c7-69a9-4e5a-9298-3eba1df1052c</p>
+<pre>
+list = new JList(data); //data has type Object[]
+list.setSelectionMode(ListSelectionModel.SINGLE_INTERVAL_SELECTION);
+list.setLayoutOrientation(JList.HORIZONTAL_WRAP);
+list.setVisibleRowCount(-1);
+...
+JScrollPane listScroller = new JScrollPane(list);
+listScroller.setPreferredSize(new Dimension(250, 80));
+</pre>
+<p>The code passes an array to the list's constructor. The array is filled with strings that were passed in from another object. In our example, the strings happen to be boys' names.</p>
+<p>Other <code>JList</code> constructors let you initialize a list from a <code>Vector</code> or from an object that adheres to the 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/javax/swing/ListModel.html"><code>ListModel</code></a> interface. If you initialize a list with an array or vector, the constructor implicitly creates a default list model. The default list model is immutable  you cannot add, remove, or replace items in the list. To create a list whose items can be changed individually, set the list's model to an instance of a mutable list model class, such as an instance of 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/javax/swing/DefaultListModel.html"><code>DefaultListModel</code></a>. You can set a list's model when you create the list or by calling the <code>setModel</code> method. See <a href="#mutable">Adding Items to and Removing Items from a List</a> for an example.</p>
+<p>The call to <code>setSelectionMode</code> specifies how many items the user can select, and whether they must be contiguous; the next section tells you more about selection modes.</p>
+<p>The call to <code>setLayoutOrientation</code> lets the list display its data in multiple columns. The value <code>JList.HORIZONTAL_WRAP</code> specifies that the list should display its items from left to right before wrapping to a new row. Another possible value is <code>JList.VERTICAL_WRAP</code>, which specifies that the data be displayed from top to bottom (as usual) before wrapping to a new column. The following figures show these two wrapping possibilities, together with the default, <code>JList.VERTICAL</code>.</p>
+<p>In combination with the call to <code>setLayoutOrientation</code>, invoking <code>setVisibleRowCount(-1)</code> makes the list display the maximum number of items possible in the available space onscreen. Another common use of <code>setVisibleRowCount</code> is to specify to the lists's scroll pane how many rows the list prefers to display.</p>
+<h2><a name="selection" id="selection">Selecting Items in a List</a></h2>
+<p>A list uses an instance of 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/javax/swing/ListSelectionModel.html"><code>ListSelectionModel</code></a> to manage its selection. By default, a list selection model allows any combination of items to be selected at a time. You can specify a different selection mode by calling the <code>setSelectionMode</code> method on the list. For example, both <code>ListDialog</code> and <code>ListDemo</code> set the selection mode to <code>SINGLE_SELECTION</code> (a constant defined by <code>ListSelectionModel</code>) so that only one item in the list can be selected. The following table describes the three list selection modes:</p>
+<p>No matter which selection mode your list uses, the list fires list selection events whenever the selection changes. You can process these events by adding a <a href="../events/listselectionlistener.html">list selection listener</a> to the list with the <code>addListSelectionListener</code> method. A list selection listener must implement one method: <code>valueChanged</code>. Here is the <code>valueChanged</code> method for the listener in <code>ListDemo</code>:</p>
+<p>WHATSON? aafdb1c4-b691-452d-a605-c07f5fe69312</p>
+<pre>
+public void valueChanged(ListSelectionEvent e) {
+    if (e.getValueIsAdjusting() == false) {
+
+        if (list.getSelectedIndex() == -1) {
+        //No selection, disable fire button.
+            fireButton.setEnabled(false);
+
+        } else {
+        //Selection, enable the fire button.
+            fireButton.setEnabled(true);
+        }
+    }
+}
+</pre>
+<p>Many list selection events can be generated from a single user action such as a mouse click. The <code>getValueIsAdjusting</code> method returns <code>true</code> if the user is still manipulating the selection. This particular program is interested only in the final result of the user's action, so the <code>valueChanged</code> method does something only if <code>getValueIsAdjusting</code> returns <code>false</code>.</p>
+<p>Because the list is in single-selection mode, this code can use <code>getSelectedIndex</code> to get the index of the just-selected item. <code>JList</code> provides other methods for <a href="#selectionapi">setting or getting the selection</a> when the selection mode allows more than one item to be selected. If you want, you can listen for events on the list's list selection model rather than on the list itself. 
+<a class="TutorialLink" target="_top" href="../examples/events/index.html#ListSelectionDemo">ListSelectionDemo</a> is an example that shows how to listen for list selection events on the list selection model and lets you change the selection mode of a list dynamically.</p>
+<h2><a name="mutable" id="mutable">Adding Items to and Removing Items from a List</a></h2>
+<p>The ListDemo example that we showed previously features a list whose contents can change. You can find the source code for ListDemo in 
+<a class="SourceLink" target="_blank" href="../examples/components/ListDemoProject/src/components/ListDemo.java" onclick="showCode('../../displayCode.html', '../examples/components/ListDemoProject/src/components/ListDemo.java'); return false;"><code>ListDemo.java</code></a>. Here is the ListDemo code that creates a mutable list model object, puts the initial items in it, and uses the list model to create a list:</p>
+<p>WHATSON? 38ef5528-c48c-460f-84a4-c649f2730806</p>
+<pre>
+listModel = new DefaultListModel();
+listModel.addElement("Jane Doe");
+listModel.addElement("John Smith");
+listModel.addElement("Kathy Green");
+
+
+list = new JList(listModel);
+</pre>
+<p>This particular program uses an instance of <code>DefaultListModel</code>, a class provided by Swing. In spite of the class name, a list does not have a <code>DefaultListModel</code> unless your program explicitly makes it so. If <code>DefaultListModel</code> does not suit your needs, you can write a custom list model, which must adhere to the <code>ListModel</code> interface.</p>
+<p>The following code snippet shows the <code>actionPerformed</code> method for the action listener registered on the <strong>Fire</strong> button. The bold line of code removes the selected item in the list. The remaining lines in the method disable the fire button if the list is now empty, and make another selection if it is not.</p>
+<p>WHATSON? 0a7ba58b-1321-4932-a297-407734a940c7</p>
+<pre>
+public void actionPerformed(ActionEvent e) {
+    int index = list.getSelectedIndex();
+    <strong>listModel.remove(index);</strong>
+
+    int size = listModel.getSize();
+
+    if (size == 0) { //Nobody's left, disable firing.
+        fireButton.setEnabled(false);
+
+    } else { //Select an index.
+        if (index == listModel.getSize()) {
+            //removed item in last position
+            index--;
+        }
+
+        list.setSelectedIndex(index);
+        list.ensureIndexIsVisible(index);
+    }
+}
+</pre>
+<p>Here is the <code>actionPerformed</code> method for the action listener shared by the <strong>Hire</strong> button and the text field:</p>
+<p>WHATSON? 679d2d2a-0996-4a5d-b049-ff21ed41922a</p>
+<pre>
+public void actionPerformed(ActionEvent e) {
+    String name = employeeName.getText();
+
+    //User did not type in a unique name...
+    if (name.equals("") || alreadyInList(name)) {
+        Toolkit.getDefaultToolkit().beep();
+        employeeName.requestFocusInWindow();
+        employeeName.selectAll();
+        return;
+    }
+
+    int index = list.getSelectedIndex(); //get selected index
+    if (index == -1) { //no selection, so insert at beginning
+        index = 0;
+    } else {           //add after the selected item
+        index++;
+    }
+
+    <b>listModel.insertElementAt(employeeName.getText(), index);</b>
+
+    //Reset the text field.
+    employeeName.requestFocusInWindow();
+    employeeName.setText("");
+
+    //Select the new item and make it visible.
+    list.setSelectedIndex(index);
+    list.ensureIndexIsVisible(index);
+}
+</pre>
+<p>This code uses the list model's <code>insertElementAt</code> method to insert the new name after the current selection or, if no selection exists, at the beginning of the list. If you just wish to add to the end of the list, you can use <code>DefaultListModel</code>'s <code>addElement</code> method instead.</p>
+<p>Whenever items are added to, removed from, or modified in a list, the list model fires list data events. Refer to 
+<a class="TutorialLink" target="_top" href="../events/listdatalistener.html">How to Write a List Data Listener</a> for information about listening for these events. That section contains an example that is similar to <code>ListDemo</code>, but adds buttons that move items up or down in the list.</p>
+<h2><a name="renderer" id="renderer">Writing a Custom Cell Renderer</a></h2>
+<p>A list uses an object called a cell renderer to display each of its items. The default cell renderer knows how to display strings and icons and it displays <code>Object</code>s by invoking <code>toString</code>. If you want to change the way the default renderer display icons or strings, or if you want behavior different than what is provided by <code>toString</code>, you can implement a custom cell renderer. Take these steps to provide a custom cell renderer for a list:</p>
+<ul>
+<li>Write a class that implements the 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/javax/swing/ListCellRenderer.html"><code>ListCellRenderer</code></a> interface.</li>
+<li>Create an instance of your class and call the list's <code>setCellRenderer</code> using the instance as an argument.</li>
+</ul>
+<p>We do not provide an example of a list with a custom cell renderer, but we do have an example of a combo box with a custom renderer  and combo boxes use the same type of renderer as lists. See the example described in <a href="combobox.html#renderer">Providing a Custom Renderer</a>.</p>
+<h2><a name="api" id="api">The List API</a></h2>
+<p>The following tables list the commonly used <code>JList</code> constructors and methods. Other methods you are most likely to invoke on a <code>JList</code> object are those such as <code>setPreferredSize</code> that its superclasses provide. See <a href="jcomponent.html#api">The JComponent API</a> for tables of commonly used inherited methods.</p>
+<p>Much of the operation of a list is managed by other objects. The items in the list are managed by a list model object, the selection is managed by a list selection model object, and most programs put a list in a scroll pane to handle scrolling. For the most part, you do not need to worry about the models because <code>JList</code> creates them as necessary and you interact with them implicitly with <code>JList</code>'s convenience methods.</p>
+<p>That said, the API for using lists falls into these categories:</p>
+<ul>
+<li><a href="#itemsapi">Initializing List Data</a></li>
+<li><a href="#scrollingapi">Displaying the List</a></li>
+<li><a href="#selectionapi">Managing the List's Selection</a></li>
+<li><a href="#dataapi">Managing List Data</a></li>
+</ul>
+<h2><a name="eg" id="eg">Examples that Use Lists</a></h2>
+<p>This table shows the examples that use <code>JList</code> and where those examples are described.</p>
+<p>See the
+<a class="OutsideLink" target="_blank" href="http://docs.oracle.com/javase/8/javafx/user-interface-tutorial/list-view.htm">Using JavaFX UI Controls: List View</a> tutorial to learn how to create lists in JavaFX.</p>

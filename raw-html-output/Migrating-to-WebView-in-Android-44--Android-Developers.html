@@ -1,0 +1,578 @@
+<h1 itemprop="name">Migrating to WebView in Android 4.4</h1>
+<h2>In this document</h2>
+<ol>
+  <li><a href="#UserAgent">User Agent Changes</a></li>
+  <li><a href="#Threads">Multi-threading and Thread Blocking</a></li>
+  <li><a href="#URLs">Custom URL Handling</a></li>
+  <li><a href="#Viewport">Viewport Changes</a>
+    <ol>
+      <li><a href="#TargetDensity">Viewport target-densitydpi no longer supported</a></li>
+      <li><a href="#SmallViewport">Viewport zooms in when small</a></li>
+      <li><a href="#MultiViewport">Multiple viewport tags not supported</a></li>
+      <li><a href="#Zoom">Default zoom is deprecated</a></li>
+    </ol>
+  </li>
+  <li><a href="#Style">Styling Changes</a>
+    <ol>
+      <li><a href="#BackgroundSize">The background CSS shorthand overrides background-size</a></li>
+      <li><a href="#Pixels">Sizes are in CSS pixels instead of screen pixels</a></li>
+      <li><a href="#Columns">NARROW_COLUMNS and SINGLE_COLUMN no longer supported</a></li>
+    </ol>
+  </li>
+  <li><a href="#TouchCancel">Handling Touch Events in JavaScript</a></li>
+</ol>
+<ol>
+      <li><a href="#TargetDensity">Viewport target-densitydpi no longer supported</a></li>
+      <li><a href="#SmallViewport">Viewport zooms in when small</a></li>
+      <li><a href="#MultiViewport">Multiple viewport tags not supported</a></li>
+      <li><a href="#Zoom">Default zoom is deprecated</a></li>
+    </ol>
+<ol>
+      <li><a href="#BackgroundSize">The background CSS shorthand overrides background-size</a></li>
+      <li><a href="#Pixels">Sizes are in CSS pixels instead of screen pixels</a></li>
+      <li><a href="#Columns">NARROW_COLUMNS and SINGLE_COLUMN no longer supported</a></li>
+    </ol>
+<p>Android 4.4 (API level 19) introduces a new version of <code><a href="/reference/android/webkit/WebView.html">WebView</a></code> that is
+based on <a href="http://www.chromium.org/Home">Chromium</a>. This change upgrades
+<code><a href="/reference/android/webkit/WebView.html">WebView</a></code> performance and standards support for HTML5, CSS3, and JavaScript
+to match the latest web browsers. Any apps using <code><a href="/reference/android/webkit/WebView.html">WebView</a></code> will inherit these
+upgrades when running on Android 4.4 and higher.</p>
+<p>This document describes additional changes
+to <code><a href="/reference/android/webkit/WebView.html">WebView</a></code> that you should be aware of if you set your
+<a href="/guide/topics/manifest/uses-sdk-element.html#target"><code>targetSdkVersion</code></a> to "19" or higher.</p>
+<p class="note"><strong>Note:</strong>
+If your <a href="/guide/topics/manifest/uses-sdk-element.html#target"><code>targetSdkVersion</code></a> is set to "18" or lower, <code><a href="/reference/android/webkit/WebView.html">WebView</a></code> operates in
+"quirks mode" in order to avoid some of the behavior changes described below, as closely
+as possible—while still providing your app the performance and web standards upgrades.
+Beware, though, that <a href="#Columns">single and narrow column layouts</a> and <a href="#Zoom">default zoom levels</a> are
+<strong>not supported at all</strong> on Android 4.4, and there may be other behavioral differences
+that have not been identified, so be sure to test your app on Android 4.4
+or higher even if you keep your <a href="/guide/topics/manifest/uses-sdk-element.html#target"><code>targetSdkVersion</code></a> set to "18" or lower. </p>
+<p>To help you work through any issues you may encounter when migrating your app to
+<code><a href="/reference/android/webkit/WebView.html">WebView</a></code> in Android 4.4, you can enable remote debugging through
+Chrome on your desktop by calling
+<code><a href="/reference/android/webkit/WebView.html#setWebContentsDebuggingEnabled(boolean)">setWebContentsDebuggingEnabled()</a></code>.
+This new feature in <code><a href="/reference/android/webkit/WebView.html">WebView</a></code> allows
+you to inspect and analyze your web content, scripts, and network activity while running in
+a <code><a href="/reference/android/webkit/WebView.html">WebView</a></code>. For more information, see <a href="https://developers.google.com/chrome-developer-tools/docs/remote-debugging">Remote
+Debugging on Android</a>.</p>
+<h2 id="UserAgent">User Agent Changes</h2>
+<p>If you serve content to your <code><a href="/reference/android/webkit/WebView.html">WebView</a></code> based on the user agent, you should
+to be aware of the user agent string has changed slightly and now includes the Chrome version:</p>
+<p>WHATSON? 88c65dfc-d975-4ff8-8a19-c9c483d45ec6</p>
+<pre class="no-pretty-print">
+Mozilla/5.0 (Linux; Android 4.4; Nexus 4 Build/KRT16H) AppleWebKit/537.36
+(KHTML, like Gecko) Version/4.0 <strong>Chrome/30.0.0.0</strong> Mobile Safari/537.36
+</pre>
+<p>If you need to retrieve the user agent but don't need to store it for your app or
+do not want to instantiate <code><a href="/reference/android/webkit/WebView.html">WebView</a></code>, you should use
+the static method, <code><a href="/reference/android/webkit/WebSettings.html#getDefaultUserAgent(android.content.Context)">getDefaultUserAgent()</a></code>. However, if you intend to override the user agent string in your
+<code><a href="/reference/android/webkit/WebView.html">WebView</a></code>, you may instead want to use
+<code><a href="/reference/android/webkit/WebSettings.html#getUserAgentString()">getUserAgentString()</a></code>.</p>
+<h2 id="Threads">Multi-threading and Thread Blocking</h2>
+<p>If you call methods on <code><a href="/reference/android/webkit/WebView.html">WebView</a></code> from any thread other than your app's
+UI thread, it can cause unexpected results. For example, if your app uses multiple threads,
+you can use the <code><a href="/reference/android/app/Activity.html#runOnUiThread(java.lang.Runnable)">runOnUiThread()</a></code> method
+to ensure your code executes on the UI thread:</p>
+<p>WHATSON? 90bdba93-d44b-475c-8418-88be53cc6546</p>
+<pre>
+runOnUiThread(new Runnable() {
+    @Override
+    public void run() {
+        // Code for WebView goes here
+    }
+});
+</pre>
+<p>Also be sure that you <a href="/guide/components/processes-and-threads.html#Threads">
+never block the UI thread</a>. A situation in which some apps make this mistake is while waiting for
+a JavaScript callback. For example, <strong>do not</strong> use code like this:</p>
+<p>WHATSON? 2f15fb88-69fb-4573-b8c7-ffc79dfae3a3</p>
+<pre>
+// This code is BAD and will block the UI thread
+webView.loadUrl("javascript:fn()");
+while(result == null) {
+  Thread.sleep(100);
+}
+</pre>
+<p>You can instead use a new method, <code><a href="/reference/android/webkit/WebView.html#evaluateJavascript(java.lang.String,%20android.webkit.ValueCallback&lt;java.lang.String&gt;)">evaluateJavascript()</a></code>, to run JavaScript asynchronously.</p>
+<h2 id="URLs">Custom URL Handling</h2>
+<p>The new <code><a href="/reference/android/webkit/WebView.html">WebView</a></code> applies additional restrictions when requesting resources
+and resolving links that use a custom URL scheme. For example, if you implement callbacks such as
+<code><a href="/reference/android/webkit/WebViewClient.html#shouldOverrideUrlLoading(android.webkit.WebView,%20java.lang.String)">shouldOverrideUrlLoading()</a></code> or
+<code><a href="/reference/android/webkit/WebViewClient.html#shouldInterceptRequest(android.webkit.WebView,%20android.webkit.WebResourceRequest)">shouldInterceptRequest()</a></code>, then
+<code><a href="/reference/android/webkit/WebView.html">WebView</a></code> invokes them only for valid URLs.</p>
+<p>If you are using a custom URL scheme or a base URL and
+notice that your app is receiving fewer calls to these callbacks or failing
+to load resources on Android 4.4, ensure that the requests specify valid URLs that conform to
+<a href="http://tools.ietf.org/html/rfc3986#appendix-A">RFC 3986</a>.
+
+</p>
+<p>For example, the new <code><a href="/reference/android/webkit/WebView.html">WebView</a></code> may not call your
+<code><a href="/reference/android/webkit/WebViewClient.html#shouldOverrideUrlLoading(android.webkit.WebView,%20java.lang.String)">shouldOverrideUrlLoading()</a></code> method
+for links like this:</p>
+<p>WHATSON? 8dc6411f-0a67-4f8f-9fc6-efbee72d4753</p>
+<pre>&lt;a href="showProfile"&gt;Show Profile&lt;/a&gt;</pre>
+<p>The result of the user clicking such a link can vary:
+</p>
+<ul>
+  <li>If you loaded the page by calling <code><a href="/reference/android/webkit/WebView.html#loadData(java.lang.String,%20java.lang.String,%20java.lang.String)">loadData()</a></code> or <code><a href="/reference/android/webkit/WebView.html#loadDataWithBaseURL(java.lang.String,%20java.lang.String,%20java.lang.String,%20java.lang.String,%20java.lang.String)">loadDataWithBaseURL()</a></code> with an invalid or null base URL, then you will not receive the
+<code><a href="/reference/android/webkit/WebViewClient.html#shouldOverrideUrlLoading(android.webkit.WebView,%20java.lang.String)">shouldOverrideUrlLoading()</a></code> callback
+for this type of link on the page.
+  <p class="note"><strong>Note:</strong>
+  When you use <code><a href="/reference/android/webkit/WebView.html#loadDataWithBaseURL(java.lang.String,%20java.lang.String,%20java.lang.String,%20java.lang.String,%20java.lang.String)">loadDataWithBaseURL()</a></code> and the base URL is invalid or set null, all links in the content
+you are loading must be absolute.</p>
+  </li><li>If you loaded the page by calling <code><a href="/reference/android/webkit/WebView.html#loadUrl(java.lang.String)">loadUrl()</a></code> or provided a valid base URL with <code><a href="/reference/android/webkit/WebView.html#loadDataWithBaseURL(java.lang.String,%20java.lang.String,%20java.lang.String,%20java.lang.String,%20java.lang.String)">loadDataWithBaseURL()</a></code>, then you will receive the
+<code><a href="/reference/android/webkit/WebViewClient.html#shouldOverrideUrlLoading(android.webkit.WebView,%20java.lang.String)">shouldOverrideUrlLoading()</a></code> callback
+for this type of link on the page, but the URL you receive will be absolute, relative
+to the current page. For example, the URL you receive will be
+<code>"http://www.example.com/showProfile"</code> instead of just <code>"showProfile"</code>.
+</li></ul>
+<p class="note"><strong>Note:</strong>
+  When you use <code><a href="/reference/android/webkit/WebView.html#loadDataWithBaseURL(java.lang.String,%20java.lang.String,%20java.lang.String,%20java.lang.String,%20java.lang.String)">loadDataWithBaseURL()</a></code> and the base URL is invalid or set null, all links in the content
+you are loading must be absolute.</p>
+<p>Instead of using a simple string in a link as shown above, you can use a custom scheme such
+as the following:</p>
+<p>WHATSON? 8fc1f3a6-ee8a-4658-88cb-8c316cfd17c0</p>
+<pre>&lt;a href="example-app:showProfile"&gt;Show Profile&lt;/a&gt;</pre>
+<p>You can then handle this URL in your
+<code><a href="/reference/android/webkit/WebViewClient.html#shouldOverrideUrlLoading(android.webkit.WebView,%20java.lang.String)">shouldOverrideUrlLoading()</a></code> method
+like this:</p>
+<p>WHATSON? 775a6676-de7d-433b-b196-f796fbe878ed</p>
+<pre>
+// The URL scheme should be non-hierarchical (no trailing slashes)
+private static final String APP_SCHEME = "example-app:";
+
+@Override
+public boolean shouldOverrideUrlLoading(WebView view, String url) {
+    if (url.startsWith(APP_SCHEME)) {
+        urlData = URLDecoder.decode(url.substring(APP_SCHEME.length()), "UTF-8");
+        respondToData(urlData);
+        return true;
+    }
+    return false;
+}
+</pre>
+<p>If you can't alter the HTML then you may be able to use
+<code><a href="/reference/android/webkit/WebView.html#loadDataWithBaseURL(java.lang.String,%20java.lang.String,%20java.lang.String,%20java.lang.String,%20java.lang.String)">loadDataWithBaseURL()</a></code> and set a base URL
+consisting of a custom scheme and a valid host, such as
+<code>"example-app://&lt;valid_host_name&gt;/"</code>. For example:</p>
+<p>WHATSON? 5ed0800e-3d0c-40f3-b12a-7f84ee6950de</p>
+<pre>
+webView.loadDataWithBaseURL("example-app://example.co.uk/", HTML_DATA,
+        null, "UTF-8", null);
+</pre>
+<p>The valid host name should conform to
+<a href="http://tools.ietf.org/html/rfc3986#appendix-A">RFC 3986</a>
+and it's important to include the trailing slash at the end, otherwise, any requests from the
+loaded page may be dropped.</p>
+<h2 id="Viewport">Viewport Changes</h2>
+<h3 id="TargetDensity">Viewport target-densitydpi no longer supported</h3>
+<p>Previously, <code><a href="/reference/android/webkit/WebView.html">WebView</a></code> supported a viewport property called
+<code>target-densitydpi</code> to help web pages specify their intended screen density. This
+property is no longer supported and you should migrate to using standard solutions with
+images and CSS as discussed in <a href="http://developers.google.com/chrome/mobile/docs/webview/pixelperfect">Pixel-Perfect UI in
+the WebView</a>.</p>
+<h3 id="SmallViewport">Viewport zooms in when small</h3>
+<p>Previously, if you set your viewport width to a value less than or equal to "320"
+it would be set to "device-width", and if you set the viewport height to a value less than or
+equal to the <code><a href="/reference/android/webkit/WebView.html">WebView</a></code> height, it would be set to "device-height". However,
+when running in the new <code><a href="/reference/android/webkit/WebView.html">WebView</a></code>, the width or height value is adhered and
+the <code><a href="/reference/android/webkit/WebView.html">WebView</a></code> zooms in to fill the screen width.</p>
+<h3 id="MultiViewport">Multiple viewport tags not supported</h3>
+<p>Previously, if you included multiple viewport tags in a web page, <code><a href="/reference/android/webkit/WebView.html">WebView</a></code>
+would merge the properties from all the tags.
+In the new <code><a href="/reference/android/webkit/WebView.html">WebView</a></code>, only the last viewport is
+used and all others are ignored.</p>
+<h3 id="Zoom">Default zoom is deprecated</h3>
+<p>The methods <code><a href="/reference/android/webkit/WebSettings.html#getDefaultZoom()">getDefaultZoom()</a></code> and
+<code><a href="/reference/android/webkit/WebSettings.html#setDefaultZoom(android.webkit.WebSettings.ZoomDensity)">setDefaultZoom()</a></code> for getting and setting
+the initial zoom level on a page have are no longer supported and you should instead define
+the appropriate viewport in the web page.</p>
+<p class="caution"><strong>Caution:</strong> These APIs are not supported on Android 4.4 and higher
+at all. Even if your <a href="/guide/topics/manifest/uses-sdk-element.html#target"><code>targetSdkVersion</code></a> is set to "18" or lower, these APIs have no effect.</p>
+<p>For information about how to define the viewport properties in your HTML, read
+<a href="http://developers.google.com/chrome/mobile/docs/webview/pixelperfect" class="external-link">Pixel-Perfect UI in the WebView</a>.
+
+</p>
+<p>If you cannot set the width of the viewport in the HTML, then you should call
+<code><a href="/reference/android/webkit/WebSettings.html#setUseWideViewPort(boolean)">setUseWideViewPort()</a></code> to ensure the page
+is given a larger viewport. For example:</p>
+<p>WHATSON? 0a13cd46-b1d7-4858-8a5f-67cfc10ecbf5</p>
+<pre>
+WebSettings settings = webView.getSettings();
+settings.setUseWideViewPort(true);
+settings.setLoadWithOverviewMode(true);
+</pre>
+<h2 id="Style">Styling Changes</h2>
+<h3 id="BackgroundSize">The background CSS shorthand overrides background-size</h3>
+<p>Chrome and other browser have behaved this way for a while, but now
+<code><a href="/reference/android/webkit/WebView.html">WebView</a></code> will also override a CSS setting for <code>background-size</code>
+if you also specify the <code>background</code> style. For example, the size here will be reset
+to a default value:</p>
+<p>WHATSON? 5c8cd167-a5b9-4473-806b-9bd947a51796</p>
+<pre class="no-pretty-print">
+.some-class {
+  background-size: contain;
+  background: url('images/image.png') no-repeat;
+}
+</pre>
+<p>The fix is to simply switch the two properties around.</p>
+<p>WHATSON? 378279bb-4508-4bf5-873e-e3fa98771744</p>
+<pre class="no-pretty-print">
+.some-class {
+  background: url('images/image.png') no-repeat;
+  background-size: contain;
+}
+</pre>
+<h3 id="Pixels">Sizes are in CSS pixels instead of screen pixels</h3>
+<p>Previously, size parameters such as <a href="https://developer.mozilla.org/en-US/docs/Web/API/Window.outerWidth" class="external-link">
+<code>window.outerWidth</code></a> and
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/Window.outerHeight" class="external-link"><code>window.outerHeight</code></a> returned a value in actual screen pixels.
+In the new <code><a href="/reference/android/webkit/WebView.html">WebView</a></code>, these return a value based on CSS pixels.</p>
+<p>It's generally bad practice to try and calculate the physical size in pixels for
+sizing elements or other calculations. However, if you've disabled zooming and the initial-scale
+is set to 1.0, you can use <code>window.devicePixelRatio</code>
+to get the scale, then multiply the CSS pixel value by that. Instead,
+you can also <a href="/guide/webapps/webview.html#BindingJavaScript">create a
+JavaScript binding</a> to query the pixel size from the <code><a href="/reference/android/webkit/WebView.html">WebView</a></code> itself.</p>
+<p>For more information, see <a class="external-link" href="http://www.quirksmode.org/blog/archives/2012/03/windowouterwidt.html">quirksmode.org</a>.</p>
+<h3 id="Columns">NARROW_COLUMNS and SINGLE_COLUMN no longer supported</h3>
+<p>The <code><a href="/reference/android/webkit/WebSettings.LayoutAlgorithm.html#NARROW_COLUMNS">NARROW_COLUMNS</a></code> value for <code><a href="/reference/android/webkit/WebSettings.LayoutAlgorithm.html">WebSettings.LayoutAlgorithm</a></code> is not be supported in the new <code><a href="/reference/android/webkit/WebView.html">WebView</a></code>.</p>
+<p class="caution"><strong>Caution:</strong> These APIs are not supported on Android 4.4 and higher
+at all. Even if your <a href="/guide/topics/manifest/uses-sdk-element.html#target"><code>targetSdkVersion</code></a> is set to "18" or lower, these APIs have no effect.</p>
+<p>You can handle this change in the following ways:</p>
+<ul>
+  <li>Alter the styles of your application:
+    <p>If you have control of the HTML and CSS on the page, you may find that altering the design
+    of your content may be the most reliable approach. For example, for screens where you cite
+    licenses, you may want wrap text inside of a
+    <code>&lt;pre&gt;</code> tag, which you could do with the following styles:
+    </p><pre>&lt;pre style="word-wrap: break-word; white-space: pre-wrap;"&gt;</pre>
+    <p>This may be especially helpful if you have not defined the viewport properties for
+    your page.</p>
+  </li>
+  <li>Use the new <code><a href="/reference/android/webkit/WebSettings.LayoutAlgorithm.html#TEXT_AUTOSIZING">TEXT_AUTOSIZING</a></code> layout
+  algorithm:
+    <p>If you were using narrow columns as a way to make a broad spectrum of desktop
+    sites more readable on mobile devices and you aren't able to change the HTML content, the new
+    <code><a href="/reference/android/webkit/WebSettings.LayoutAlgorithm.html#TEXT_AUTOSIZING">TEXT_AUTOSIZING</a></code> algorithm may be a
+    suitable alternative to <code><a href="/reference/android/webkit/WebSettings.LayoutAlgorithm.html#NARROW_COLUMNS">NARROW_COLUMNS</a></code>.</p>
+  </li>
+</ul>
+<p>If you have control of the HTML and CSS on the page, you may find that altering the design
+    of your content may be the most reliable approach. For example, for screens where you cite
+    licenses, you may want wrap text inside of a
+    <code>&lt;pre&gt;</code> tag, which you could do with the following styles:
+    </p>
+<p>WHATSON? 51f023d8-2f5b-41e0-8cb5-df395d53bd1f</p>
+<pre>&lt;pre style="word-wrap: break-word; white-space: pre-wrap;"&gt;</pre>
+<p>This may be especially helpful if you have not defined the viewport properties for
+    your page.</p>
+<p>If you were using narrow columns as a way to make a broad spectrum of desktop
+    sites more readable on mobile devices and you aren't able to change the HTML content, the new
+    <code><a href="/reference/android/webkit/WebSettings.LayoutAlgorithm.html#TEXT_AUTOSIZING">TEXT_AUTOSIZING</a></code> algorithm may be a
+    suitable alternative to <code><a href="/reference/android/webkit/WebSettings.LayoutAlgorithm.html#NARROW_COLUMNS">NARROW_COLUMNS</a></code>.</p>
+<p>Additionally, the <code><a href="/reference/android/webkit/WebSettings.LayoutAlgorithm.html#SINGLE_COLUMN">SINGLE_COLUMN</a></code> value—which
+was previously deprecated—is also not supported in the new <code><a href="/reference/android/webkit/WebView.html">WebView</a></code>.</p>
+<h2 id="TouchCancel">Handling Touch Events in JavaScript</h2>
+<p>If your web page is directly handling touch events in a <code><a href="/reference/android/webkit/WebView.html">WebView</a></code>,
+be sure you are also handling the <a href="https://developer.mozilla.org/en-US/docs/Web/Reference/Events/touchcancel" class="external-link"><code>touchcancel</code></a>
+event. There are a few scenarios where <code>touchcancel</code> will be called, which can
+cause problems if not received:</p>
+<ul>
+  <li>An element is touched (so <code>touchstart</code> and <code>touchmove</code> are called)
+  and the page is scrolled, causing a <code>touchcancel</code> to be thrown.</li>
+  <li>An element is touched (<code>touchstart</code> is called) but
+  <code>event.preventDefault()</code> is not called, resulting earlier enough that
+  <code>touchcancel</code> is thrown (so
+  <code><a href="/reference/android/webkit/WebView.html">WebView</a></code> assumes you don't want to consume the touch events).</li>
+</ul>
+<h1 itemprop="name">Migrating to WebView in Android 4.4</h1>
+<h2>In this document</h2>
+<ol>
+  <li><a href="#UserAgent">User Agent Changes</a></li>
+  <li><a href="#Threads">Multi-threading and Thread Blocking</a></li>
+  <li><a href="#URLs">Custom URL Handling</a></li>
+  <li><a href="#Viewport">Viewport Changes</a>
+    <ol>
+      <li><a href="#TargetDensity">Viewport target-densitydpi no longer supported</a></li>
+      <li><a href="#SmallViewport">Viewport zooms in when small</a></li>
+      <li><a href="#MultiViewport">Multiple viewport tags not supported</a></li>
+      <li><a href="#Zoom">Default zoom is deprecated</a></li>
+    </ol>
+  </li>
+  <li><a href="#Style">Styling Changes</a>
+    <ol>
+      <li><a href="#BackgroundSize">The background CSS shorthand overrides background-size</a></li>
+      <li><a href="#Pixels">Sizes are in CSS pixels instead of screen pixels</a></li>
+      <li><a href="#Columns">NARROW_COLUMNS and SINGLE_COLUMN no longer supported</a></li>
+    </ol>
+  </li>
+  <li><a href="#TouchCancel">Handling Touch Events in JavaScript</a></li>
+</ol>
+<ol>
+      <li><a href="#TargetDensity">Viewport target-densitydpi no longer supported</a></li>
+      <li><a href="#SmallViewport">Viewport zooms in when small</a></li>
+      <li><a href="#MultiViewport">Multiple viewport tags not supported</a></li>
+      <li><a href="#Zoom">Default zoom is deprecated</a></li>
+    </ol>
+<ol>
+      <li><a href="#BackgroundSize">The background CSS shorthand overrides background-size</a></li>
+      <li><a href="#Pixels">Sizes are in CSS pixels instead of screen pixels</a></li>
+      <li><a href="#Columns">NARROW_COLUMNS and SINGLE_COLUMN no longer supported</a></li>
+    </ol>
+<p>Android 4.4 (API level 19) introduces a new version of <code><a href="/reference/android/webkit/WebView.html">WebView</a></code> that is
+based on <a href="http://www.chromium.org/Home">Chromium</a>. This change upgrades
+<code><a href="/reference/android/webkit/WebView.html">WebView</a></code> performance and standards support for HTML5, CSS3, and JavaScript
+to match the latest web browsers. Any apps using <code><a href="/reference/android/webkit/WebView.html">WebView</a></code> will inherit these
+upgrades when running on Android 4.4 and higher.</p>
+<p>This document describes additional changes
+to <code><a href="/reference/android/webkit/WebView.html">WebView</a></code> that you should be aware of if you set your
+<a href="/guide/topics/manifest/uses-sdk-element.html#target"><code>targetSdkVersion</code></a> to "19" or higher.</p>
+<p class="note"><strong>Note:</strong>
+If your <a href="/guide/topics/manifest/uses-sdk-element.html#target"><code>targetSdkVersion</code></a> is set to "18" or lower, <code><a href="/reference/android/webkit/WebView.html">WebView</a></code> operates in
+"quirks mode" in order to avoid some of the behavior changes described below, as closely
+as possible—while still providing your app the performance and web standards upgrades.
+Beware, though, that <a href="#Columns">single and narrow column layouts</a> and <a href="#Zoom">default zoom levels</a> are
+<strong>not supported at all</strong> on Android 4.4, and there may be other behavioral differences
+that have not been identified, so be sure to test your app on Android 4.4
+or higher even if you keep your <a href="/guide/topics/manifest/uses-sdk-element.html#target"><code>targetSdkVersion</code></a> set to "18" or lower. </p>
+<p>To help you work through any issues you may encounter when migrating your app to
+<code><a href="/reference/android/webkit/WebView.html">WebView</a></code> in Android 4.4, you can enable remote debugging through
+Chrome on your desktop by calling
+<code><a href="/reference/android/webkit/WebView.html#setWebContentsDebuggingEnabled(boolean)">setWebContentsDebuggingEnabled()</a></code>.
+This new feature in <code><a href="/reference/android/webkit/WebView.html">WebView</a></code> allows
+you to inspect and analyze your web content, scripts, and network activity while running in
+a <code><a href="/reference/android/webkit/WebView.html">WebView</a></code>. For more information, see <a href="https://developers.google.com/chrome-developer-tools/docs/remote-debugging">Remote
+Debugging on Android</a>.</p>
+<h2 id="UserAgent">User Agent Changes</h2>
+<p>If you serve content to your <code><a href="/reference/android/webkit/WebView.html">WebView</a></code> based on the user agent, you should
+to be aware of the user agent string has changed slightly and now includes the Chrome version:</p>
+<p>WHATSON? 7165af6a-e90f-41a7-9f59-cc1513fc26c7</p>
+<pre class="no-pretty-print">
+Mozilla/5.0 (Linux; Android 4.4; Nexus 4 Build/KRT16H) AppleWebKit/537.36
+(KHTML, like Gecko) Version/4.0 <strong>Chrome/30.0.0.0</strong> Mobile Safari/537.36
+</pre>
+<p>If you need to retrieve the user agent but don't need to store it for your app or
+do not want to instantiate <code><a href="/reference/android/webkit/WebView.html">WebView</a></code>, you should use
+the static method, <code><a href="/reference/android/webkit/WebSettings.html#getDefaultUserAgent(android.content.Context)">getDefaultUserAgent()</a></code>. However, if you intend to override the user agent string in your
+<code><a href="/reference/android/webkit/WebView.html">WebView</a></code>, you may instead want to use
+<code><a href="/reference/android/webkit/WebSettings.html#getUserAgentString()">getUserAgentString()</a></code>.</p>
+<h2 id="Threads">Multi-threading and Thread Blocking</h2>
+<p>If you call methods on <code><a href="/reference/android/webkit/WebView.html">WebView</a></code> from any thread other than your app's
+UI thread, it can cause unexpected results. For example, if your app uses multiple threads,
+you can use the <code><a href="/reference/android/app/Activity.html#runOnUiThread(java.lang.Runnable)">runOnUiThread()</a></code> method
+to ensure your code executes on the UI thread:</p>
+<p>WHATSON? 7945e54d-202d-4461-a69e-56db2802f687</p>
+<pre>
+runOnUiThread(new Runnable() {
+    @Override
+    public void run() {
+        // Code for WebView goes here
+    }
+});
+</pre>
+<p>Also be sure that you <a href="/guide/components/processes-and-threads.html#Threads">
+never block the UI thread</a>. A situation in which some apps make this mistake is while waiting for
+a JavaScript callback. For example, <strong>do not</strong> use code like this:</p>
+<p>WHATSON? 1a071d18-0b28-4ff2-abfd-3e74a68e33af</p>
+<pre>
+// This code is BAD and will block the UI thread
+webView.loadUrl("javascript:fn()");
+while(result == null) {
+  Thread.sleep(100);
+}
+</pre>
+<p>You can instead use a new method, <code><a href="/reference/android/webkit/WebView.html#evaluateJavascript(java.lang.String,%20android.webkit.ValueCallback&lt;java.lang.String&gt;)">evaluateJavascript()</a></code>, to run JavaScript asynchronously.</p>
+<h2 id="URLs">Custom URL Handling</h2>
+<p>The new <code><a href="/reference/android/webkit/WebView.html">WebView</a></code> applies additional restrictions when requesting resources
+and resolving links that use a custom URL scheme. For example, if you implement callbacks such as
+<code><a href="/reference/android/webkit/WebViewClient.html#shouldOverrideUrlLoading(android.webkit.WebView,%20java.lang.String)">shouldOverrideUrlLoading()</a></code> or
+<code><a href="/reference/android/webkit/WebViewClient.html#shouldInterceptRequest(android.webkit.WebView,%20android.webkit.WebResourceRequest)">shouldInterceptRequest()</a></code>, then
+<code><a href="/reference/android/webkit/WebView.html">WebView</a></code> invokes them only for valid URLs.</p>
+<p>If you are using a custom URL scheme or a base URL and
+notice that your app is receiving fewer calls to these callbacks or failing
+to load resources on Android 4.4, ensure that the requests specify valid URLs that conform to
+<a href="http://tools.ietf.org/html/rfc3986#appendix-A">RFC 3986</a>.
+
+</p>
+<p>For example, the new <code><a href="/reference/android/webkit/WebView.html">WebView</a></code> may not call your
+<code><a href="/reference/android/webkit/WebViewClient.html#shouldOverrideUrlLoading(android.webkit.WebView,%20java.lang.String)">shouldOverrideUrlLoading()</a></code> method
+for links like this:</p>
+<p>WHATSON? d451684c-b411-477b-8a2f-48124472b3b7</p>
+<pre>&lt;a href="showProfile"&gt;Show Profile&lt;/a&gt;</pre>
+<p>The result of the user clicking such a link can vary:
+</p>
+<ul>
+  <li>If you loaded the page by calling <code><a href="/reference/android/webkit/WebView.html#loadData(java.lang.String,%20java.lang.String,%20java.lang.String)">loadData()</a></code> or <code><a href="/reference/android/webkit/WebView.html#loadDataWithBaseURL(java.lang.String,%20java.lang.String,%20java.lang.String,%20java.lang.String,%20java.lang.String)">loadDataWithBaseURL()</a></code> with an invalid or null base URL, then you will not receive the
+<code><a href="/reference/android/webkit/WebViewClient.html#shouldOverrideUrlLoading(android.webkit.WebView,%20java.lang.String)">shouldOverrideUrlLoading()</a></code> callback
+for this type of link on the page.
+  <p class="note"><strong>Note:</strong>
+  When you use <code><a href="/reference/android/webkit/WebView.html#loadDataWithBaseURL(java.lang.String,%20java.lang.String,%20java.lang.String,%20java.lang.String,%20java.lang.String)">loadDataWithBaseURL()</a></code> and the base URL is invalid or set null, all links in the content
+you are loading must be absolute.</p>
+  </li><li>If you loaded the page by calling <code><a href="/reference/android/webkit/WebView.html#loadUrl(java.lang.String)">loadUrl()</a></code> or provided a valid base URL with <code><a href="/reference/android/webkit/WebView.html#loadDataWithBaseURL(java.lang.String,%20java.lang.String,%20java.lang.String,%20java.lang.String,%20java.lang.String)">loadDataWithBaseURL()</a></code>, then you will receive the
+<code><a href="/reference/android/webkit/WebViewClient.html#shouldOverrideUrlLoading(android.webkit.WebView,%20java.lang.String)">shouldOverrideUrlLoading()</a></code> callback
+for this type of link on the page, but the URL you receive will be absolute, relative
+to the current page. For example, the URL you receive will be
+<code>"http://www.example.com/showProfile"</code> instead of just <code>"showProfile"</code>.
+</li></ul>
+<p class="note"><strong>Note:</strong>
+  When you use <code><a href="/reference/android/webkit/WebView.html#loadDataWithBaseURL(java.lang.String,%20java.lang.String,%20java.lang.String,%20java.lang.String,%20java.lang.String)">loadDataWithBaseURL()</a></code> and the base URL is invalid or set null, all links in the content
+you are loading must be absolute.</p>
+<p>Instead of using a simple string in a link as shown above, you can use a custom scheme such
+as the following:</p>
+<p>WHATSON? 68be6b52-c34f-4350-b915-e8489b67c377</p>
+<pre>&lt;a href="example-app:showProfile"&gt;Show Profile&lt;/a&gt;</pre>
+<p>You can then handle this URL in your
+<code><a href="/reference/android/webkit/WebViewClient.html#shouldOverrideUrlLoading(android.webkit.WebView,%20java.lang.String)">shouldOverrideUrlLoading()</a></code> method
+like this:</p>
+<p>WHATSON? 7f84317e-c05a-42dd-88f5-b963da979621</p>
+<pre>
+// The URL scheme should be non-hierarchical (no trailing slashes)
+private static final String APP_SCHEME = "example-app:";
+
+@Override
+public boolean shouldOverrideUrlLoading(WebView view, String url) {
+    if (url.startsWith(APP_SCHEME)) {
+        urlData = URLDecoder.decode(url.substring(APP_SCHEME.length()), "UTF-8");
+        respondToData(urlData);
+        return true;
+    }
+    return false;
+}
+</pre>
+<p>If you can't alter the HTML then you may be able to use
+<code><a href="/reference/android/webkit/WebView.html#loadDataWithBaseURL(java.lang.String,%20java.lang.String,%20java.lang.String,%20java.lang.String,%20java.lang.String)">loadDataWithBaseURL()</a></code> and set a base URL
+consisting of a custom scheme and a valid host, such as
+<code>"example-app://&lt;valid_host_name&gt;/"</code>. For example:</p>
+<p>WHATSON? e7df5ef3-964d-4cc8-a960-ce45574ce5f5</p>
+<pre>
+webView.loadDataWithBaseURL("example-app://example.co.uk/", HTML_DATA,
+        null, "UTF-8", null);
+</pre>
+<p>The valid host name should conform to
+<a href="http://tools.ietf.org/html/rfc3986#appendix-A">RFC 3986</a>
+and it's important to include the trailing slash at the end, otherwise, any requests from the
+loaded page may be dropped.</p>
+<h2 id="Viewport">Viewport Changes</h2>
+<h3 id="TargetDensity">Viewport target-densitydpi no longer supported</h3>
+<p>Previously, <code><a href="/reference/android/webkit/WebView.html">WebView</a></code> supported a viewport property called
+<code>target-densitydpi</code> to help web pages specify their intended screen density. This
+property is no longer supported and you should migrate to using standard solutions with
+images and CSS as discussed in <a href="http://developers.google.com/chrome/mobile/docs/webview/pixelperfect">Pixel-Perfect UI in
+the WebView</a>.</p>
+<h3 id="SmallViewport">Viewport zooms in when small</h3>
+<p>Previously, if you set your viewport width to a value less than or equal to "320"
+it would be set to "device-width", and if you set the viewport height to a value less than or
+equal to the <code><a href="/reference/android/webkit/WebView.html">WebView</a></code> height, it would be set to "device-height". However,
+when running in the new <code><a href="/reference/android/webkit/WebView.html">WebView</a></code>, the width or height value is adhered and
+the <code><a href="/reference/android/webkit/WebView.html">WebView</a></code> zooms in to fill the screen width.</p>
+<h3 id="MultiViewport">Multiple viewport tags not supported</h3>
+<p>Previously, if you included multiple viewport tags in a web page, <code><a href="/reference/android/webkit/WebView.html">WebView</a></code>
+would merge the properties from all the tags.
+In the new <code><a href="/reference/android/webkit/WebView.html">WebView</a></code>, only the last viewport is
+used and all others are ignored.</p>
+<h3 id="Zoom">Default zoom is deprecated</h3>
+<p>The methods <code><a href="/reference/android/webkit/WebSettings.html#getDefaultZoom()">getDefaultZoom()</a></code> and
+<code><a href="/reference/android/webkit/WebSettings.html#setDefaultZoom(android.webkit.WebSettings.ZoomDensity)">setDefaultZoom()</a></code> for getting and setting
+the initial zoom level on a page have are no longer supported and you should instead define
+the appropriate viewport in the web page.</p>
+<p class="caution"><strong>Caution:</strong> These APIs are not supported on Android 4.4 and higher
+at all. Even if your <a href="/guide/topics/manifest/uses-sdk-element.html#target"><code>targetSdkVersion</code></a> is set to "18" or lower, these APIs have no effect.</p>
+<p>For information about how to define the viewport properties in your HTML, read
+<a href="http://developers.google.com/chrome/mobile/docs/webview/pixelperfect" class="external-link">Pixel-Perfect UI in the WebView</a>.
+
+</p>
+<p>If you cannot set the width of the viewport in the HTML, then you should call
+<code><a href="/reference/android/webkit/WebSettings.html#setUseWideViewPort(boolean)">setUseWideViewPort()</a></code> to ensure the page
+is given a larger viewport. For example:</p>
+<p>WHATSON? f1b4f829-6b03-4497-bc81-ffb1d9ecae6f</p>
+<pre>
+WebSettings settings = webView.getSettings();
+settings.setUseWideViewPort(true);
+settings.setLoadWithOverviewMode(true);
+</pre>
+<h2 id="Style">Styling Changes</h2>
+<h3 id="BackgroundSize">The background CSS shorthand overrides background-size</h3>
+<p>Chrome and other browser have behaved this way for a while, but now
+<code><a href="/reference/android/webkit/WebView.html">WebView</a></code> will also override a CSS setting for <code>background-size</code>
+if you also specify the <code>background</code> style. For example, the size here will be reset
+to a default value:</p>
+<p>WHATSON? da1d0570-ed7c-4dec-80a5-9a748292c22e</p>
+<pre class="no-pretty-print">
+.some-class {
+  background-size: contain;
+  background: url('images/image.png') no-repeat;
+}
+</pre>
+<p>The fix is to simply switch the two properties around.</p>
+<p>WHATSON? 673f18a3-23a8-4685-b3e1-846133612882</p>
+<pre class="no-pretty-print">
+.some-class {
+  background: url('images/image.png') no-repeat;
+  background-size: contain;
+}
+</pre>
+<h3 id="Pixels">Sizes are in CSS pixels instead of screen pixels</h3>
+<p>Previously, size parameters such as <a href="https://developer.mozilla.org/en-US/docs/Web/API/Window.outerWidth" class="external-link">
+<code>window.outerWidth</code></a> and
+<a href="https://developer.mozilla.org/en-US/docs/Web/API/Window.outerHeight" class="external-link"><code>window.outerHeight</code></a> returned a value in actual screen pixels.
+In the new <code><a href="/reference/android/webkit/WebView.html">WebView</a></code>, these return a value based on CSS pixels.</p>
+<p>It's generally bad practice to try and calculate the physical size in pixels for
+sizing elements or other calculations. However, if you've disabled zooming and the initial-scale
+is set to 1.0, you can use <code>window.devicePixelRatio</code>
+to get the scale, then multiply the CSS pixel value by that. Instead,
+you can also <a href="/guide/webapps/webview.html#BindingJavaScript">create a
+JavaScript binding</a> to query the pixel size from the <code><a href="/reference/android/webkit/WebView.html">WebView</a></code> itself.</p>
+<p>For more information, see <a class="external-link" href="http://www.quirksmode.org/blog/archives/2012/03/windowouterwidt.html">quirksmode.org</a>.</p>
+<h3 id="Columns">NARROW_COLUMNS and SINGLE_COLUMN no longer supported</h3>
+<p>The <code><a href="/reference/android/webkit/WebSettings.LayoutAlgorithm.html#NARROW_COLUMNS">NARROW_COLUMNS</a></code> value for <code><a href="/reference/android/webkit/WebSettings.LayoutAlgorithm.html">WebSettings.LayoutAlgorithm</a></code> is not be supported in the new <code><a href="/reference/android/webkit/WebView.html">WebView</a></code>.</p>
+<p class="caution"><strong>Caution:</strong> These APIs are not supported on Android 4.4 and higher
+at all. Even if your <a href="/guide/topics/manifest/uses-sdk-element.html#target"><code>targetSdkVersion</code></a> is set to "18" or lower, these APIs have no effect.</p>
+<p>You can handle this change in the following ways:</p>
+<ul>
+  <li>Alter the styles of your application:
+    <p>If you have control of the HTML and CSS on the page, you may find that altering the design
+    of your content may be the most reliable approach. For example, for screens where you cite
+    licenses, you may want wrap text inside of a
+    <code>&lt;pre&gt;</code> tag, which you could do with the following styles:
+    </p><pre>&lt;pre style="word-wrap: break-word; white-space: pre-wrap;"&gt;</pre>
+    <p>This may be especially helpful if you have not defined the viewport properties for
+    your page.</p>
+  </li>
+  <li>Use the new <code><a href="/reference/android/webkit/WebSettings.LayoutAlgorithm.html#TEXT_AUTOSIZING">TEXT_AUTOSIZING</a></code> layout
+  algorithm:
+    <p>If you were using narrow columns as a way to make a broad spectrum of desktop
+    sites more readable on mobile devices and you aren't able to change the HTML content, the new
+    <code><a href="/reference/android/webkit/WebSettings.LayoutAlgorithm.html#TEXT_AUTOSIZING">TEXT_AUTOSIZING</a></code> algorithm may be a
+    suitable alternative to <code><a href="/reference/android/webkit/WebSettings.LayoutAlgorithm.html#NARROW_COLUMNS">NARROW_COLUMNS</a></code>.</p>
+  </li>
+</ul>
+<p>If you have control of the HTML and CSS on the page, you may find that altering the design
+    of your content may be the most reliable approach. For example, for screens where you cite
+    licenses, you may want wrap text inside of a
+    <code>&lt;pre&gt;</code> tag, which you could do with the following styles:
+    </p>
+<p>WHATSON? 8296ca67-d671-4f4a-9ea8-0ed5e9aa7c7b</p>
+<pre>&lt;pre style="word-wrap: break-word; white-space: pre-wrap;"&gt;</pre>
+<p>This may be especially helpful if you have not defined the viewport properties for
+    your page.</p>
+<p>If you were using narrow columns as a way to make a broad spectrum of desktop
+    sites more readable on mobile devices and you aren't able to change the HTML content, the new
+    <code><a href="/reference/android/webkit/WebSettings.LayoutAlgorithm.html#TEXT_AUTOSIZING">TEXT_AUTOSIZING</a></code> algorithm may be a
+    suitable alternative to <code><a href="/reference/android/webkit/WebSettings.LayoutAlgorithm.html#NARROW_COLUMNS">NARROW_COLUMNS</a></code>.</p>
+<p>Additionally, the <code><a href="/reference/android/webkit/WebSettings.LayoutAlgorithm.html#SINGLE_COLUMN">SINGLE_COLUMN</a></code> value—which
+was previously deprecated—is also not supported in the new <code><a href="/reference/android/webkit/WebView.html">WebView</a></code>.</p>
+<h2 id="TouchCancel">Handling Touch Events in JavaScript</h2>
+<p>If your web page is directly handling touch events in a <code><a href="/reference/android/webkit/WebView.html">WebView</a></code>,
+be sure you are also handling the <a href="https://developer.mozilla.org/en-US/docs/Web/Reference/Events/touchcancel" class="external-link"><code>touchcancel</code></a>
+event. There are a few scenarios where <code>touchcancel</code> will be called, which can
+cause problems if not received:</p>
+<ul>
+  <li>An element is touched (so <code>touchstart</code> and <code>touchmove</code> are called)
+  and the page is scrolled, causing a <code>touchcancel</code> to be thrown.</li>
+  <li>An element is touched (<code>touchstart</code> is called) but
+  <code>event.preventDefault()</code> is not called, resulting earlier enough that
+  <code>touchcancel</code> is thrown (so
+  <code><a href="/reference/android/webkit/WebView.html">WebView</a></code> assumes you don't want to consume the touch events).</li>
+</ul>

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Object-slicing---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Object slicing</h1>
+<p>In object-oriented programming, a subclass typically extends its superclass by defining additional member variables. If a superclass instance is assigned its value from a subclass instance, member variables defined in the subclass cannot be copied, since the superclass has no place to store them. This is a natural and unavoidable consequence of assignment by value from subclass objects. The term <i>object slicing</i> is sometimes used to refer to this aspect of assignment by value to a superclass instance.</p>
+<p><i>Object slicing</i> is also used to refer to a more subtle, problematic, case in which an object assignment by value appears to be to a superclass instance but is actually to a subclass instance. From the perspective of object memory layout, the member variables of the source instance can be thought of as having been "sliced off", <i>leaving the corresponding member variables in the destination instance unchanged</i>. It is this <i>partial assignment</i> (arguably a more apt term) that often surprises programmers and leads to unintended consequences.</p>
+<p>Unexpected object slicing can happen in languages such as C++ in which assignment by value is not polymorphic. It is not possible in the D programming language, which allows object inheritance only through reference types.</p>
+<h2>Example in C++</h2>
+<p>WHATSON? f0ce8fb6-fbc4-4441-a4e9-cdbfa172a2e2</p>
+<pre>
+struct A
+{
+    A(int a) : a_var(a) {}
+    int a_var;
+};
+ 
+struct B : public A
+{
+    B(int a, int b) : A(a), b_var(b) {}
+    int b_var;
+};
+ 
+B &amp;getB()
+{
+    static B b(1, 2);
+    return b;
+}
+ 
+int main()
+{
+    // Normal assignment by value to a
+    A a(3);
+    a = getB();
+    // a.a_var == 1, b.b_var not copied to a
+ 
+    B b2(3, 4);
+    A &amp;a2 = b2;
+    // Partial assignment by value through reference to b2
+    a2 = getB();
+    // b2.a_var == 1, b2.b_var == 4!
+ 
+    return 0;
+}
+</pre>
+<h2>See also</h2>
+<ul>
+<li>Diamond problem</li>
+<li>What is the slicing problem in C++?</li>
+</ul>
+</body>
+</html>

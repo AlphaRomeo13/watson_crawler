@@ -1,0 +1,61 @@
+<h1 id="firstHeading" class="firstHeading" lang="en"><span dir="auto">Advice (programming)</span></h1>
+<p>In <a href="/wiki/Aspect-oriented_programming" title="Aspect-oriented programming">aspect</a> and <a href="/wiki/Functional_programming" title="Functional programming">functional programming</a>, <b>advice</b> describes a class of <a href="/wiki/Function_(computer_science)" title="Function (computer science)" class="mw-redirect">functions</a> which modify other functions when the latter are run; it is a certain function, method or procedure that is to be applied at a given <a href="/wiki/Join_point" title="Join point">join point</a> of a program.</p>
+<p>The following is taken from a discussion at the mailing list <a rel="nofollow" class="external text" href="http://aosd.net/pipermail/discuss_aosd.net/2004-November/001173.html">aosd-discuss</a>. <a href="/wiki/Pascal_Costanza" title="Pascal Costanza">Pascal Costanza</a> contributed the following:</p>
+<p>The term <b>advice</b> goes back to the term <i>advising</i> as introduced by <a href="/wiki/Warren_Teitelman" title="Warren Teitelman">Warren Teitelman</a> in his PhD thesis in 1966. Here is a quote from Chapter 3 of his thesis:</p>
+<p>"Advising" found its way into <a href="/wiki/BBN_Lisp" title="BBN Lisp" class="mw-redirect">BBN Lisp</a> and later into <a href="/wiki/Xerox_PARC" title="Xerox PARC" class="mw-redirect">Xerox PARC</a>'s <a href="/wiki/Interlisp" title="Interlisp">Interlisp</a>.</p>
+<p>It also found its way to <a href="/wiki/Flavors_(programming_language)" title="Flavors (programming language)">Flavors</a>, the first <a href="/wiki/Object-oriented_programming" title="Object-oriented programming">object-oriented</a> extension to <a href="/wiki/Lisp_(programming_language)" title="Lisp (programming language)">Lisp</a> developed at <a href="/wiki/MIT" title="MIT" class="mw-redirect">MIT</a>. They were subsumed under the notion of method combination. See, for example, AIM-602 at <a rel="nofollow" class="external free" href="http://www.ai.mit.edu/research/publications/browse/0600browse.shtml">http://www.ai.mit.edu/research/publications/browse/0600browse.shtml</a> <sup><a href="#Notes">1</a></sup></p>
+<p>Since method combination and macros are closely related, it's also interesting to note that the first macro system was described in 1963, three years before Warren Teitelman's PhD thesis. See AIM-57 at <a rel="nofollow" class="external free" href="http://www.ai.mit.edu/research/publications/browse/0000browse.shtml">http://www.ai.mit.edu/research/publications/browse/0000browse.shtml</a> <sup><a href="#Notes">2</a></sup></p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Use"><span class="tocnumber">1</span> <span class="toctext">Use</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Notes"><span class="tocnumber">2</span> <span class="toctext">Notes</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#See_also"><span class="tocnumber">3</span> <span class="toctext">See also</span></a></li>
+<li class="toclevel-1 tocsection-4"><a href="#External_links"><span class="tocnumber">4</span> <span class="toctext">External links</span></a></li>
+</ul>
+<p></p>
+<h2><span class="mw-headline" id="Use">Use</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Advice_(programming)&amp;action=edit&amp;section=1" title="Edit section: Use">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>The practical use of advice functions is generally to modify or otherwise extend the behavior of functions which cannot be easily modified or extended. The <a href="/wiki/Emacspeak" title="Emacspeak">Emacspeak</a> <a href="/wiki/Emacs" title="Emacs">Emacs</a>-addon makes extensive use of advice: it must modify thousands of existing Emacs modules and functions such that it can produce audio output for the blind corresponding to the visual presentation, but it would obviously be infeasible to copy all of them and redefine them to produce audio output in addition to their normal outputs; so, the Emacspeak programmers define advice functions which run before and after.</p>
+<p>Another Emacs example; suppose after one corrected a misspelled word through <a href="/wiki/Ispell" title="Ispell">ispell</a>, one wanted to re-spellcheck the entire buffer. <code>ispell-word</code> offers no such functionality, even if the spellchecked word is used a thousand times. One <i>could</i> track down the definition of <code>ispell-word</code>, copy it into one's .emacs, and write the additional functionality, but this is tedious, prone to broken-ness (the .emacs version will get out of sync with the actual Ispell Elisp module, if it even works out of its home). What one wants is fairly simple: just to run another command after <code>ispell-word</code> runs. Using advice functions, it can be done as simply as this:</p>
+<p>WHATSON? ad014330-cd6b-46d3-8f17-5bc5afb6eef6</p>
+<pre>
+<code>(defadvice ispell (after advice)
+  (flyspell-buffer))
+(ad-activate 'ispell t) </code>
+</pre>
+<h2><span class="mw-headline" id="Notes">Notes</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Advice_(programming)&amp;action=edit&amp;section=2" title="Edit section: Notes">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><a href="/wiki/Gregor_Kiczales" title="Gregor Kiczales">Gregor Kiczales</a> comments the above as follows:</p>
+<ol>
+<li><i>Advice appeared separately from <a href="/wiki/Flavors_(Lisp)" title="Flavors (Lisp)" class="mw-redirect">Flavors</a> in <a href="/wiki/Maclisp" title="Maclisp">Maclisp</a> and the <a href="/wiki/Lisp_Machine" title="Lisp Machine" class="mw-redirect">Lisp Machine</a>. You could advise any function, just like in Interlisp at the time. The before/after ontology appeared separately in Flavors methods.</i></li>
+<li><i>Method combination and macros were only marginally related until much later, in New Flavors and <a href="/wiki/CLOS" title="CLOS" class="mw-redirect">CLOS</a>, when a macro-like mechanism was provided to allow people to define their own rules for combining methods. Prior to that the rules governing combination of before/after methods and so-called whoppers methods (around) was fixed, and the compiler just generated the code for that. There were things called wrappers, which had macro-like behavior, but I forget when they came around. Traipsing through the various versions of MacLisp and Lispm manual to get this part of the history exactly right could interesting. Or it could be that Howard Cannon or David Moon or someone could actually remember it all exactly.</i></li>
+</ol>
+<h2><span class="mw-headline" id="See_also">See also</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Advice_(programming)&amp;action=edit&amp;section=3" title="Edit section: See also">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul>
+<li><a href="/wiki/Python_syntax_and_semantics#Decorators" title="Python syntax and semantics">Function decorator</a> (w.r.t. <a href="/wiki/Python_(programming_language)" title="Python (programming language)">Python</a>)</li>
+<li><a href="/wiki/Aspect-oriented_software_development#Advice_bodies" title="Aspect-oriented software development">Aspect-oriented software development#Advice bodies</a></li>
+</ul>
+<h2><span class="mw-headline" id="External_links">External links</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Advice_(programming)&amp;action=edit&amp;section=4" title="Edit section: External links">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul>
+<li><a rel="nofollow" class="external text" href="http://www.ai.mit.edu/research/publications/browse/0200browse.shtml">Teitelman's PhD thesis</a> (AITR-221)</li>
+<li><a rel="nofollow" class="external text" href="http://www.classiccmp.org/bitsavers/pdf/xerox/interlisp/1974_InterlispRefMan.pdf">InterLisp reference manual</a></li>
+<li><a rel="nofollow" class="external text" href="http://p-cos.blogspot.com/2007/12/origin-of-advice.html">"Origin of Advice"</a></li>
+</ul>
+<ul>
+<li class="nv-view"><a href="/wiki/Template:Aspect-oriented_software_development" title="Template:Aspect-oriented software development"><span title="View this template" style=";;background:none transparent;border:none;;">v</span></a></li>
+<li class="nv-talk"><a href="/wiki/Template_talk:Aspect-oriented_software_development" title="Template talk:Aspect-oriented software development"><span title="Discuss this template" style=";;background:none transparent;border:none;;">t</span></a></li>
+<li class="nv-edit"><a class="external text" href="//en.wikipedia.org/w/index.php?title=Template:Aspect-oriented_software_development&amp;action=edit"><span title="Edit this template" style=";;background:none transparent;border:none;;">e</span></a></li>
+</ul>
+<ul>
+<li><strong class="selflink">Advice</strong></li>
+<li><a href="/wiki/Aspect_(computer_science)" title="Aspect (computer science)" class="mw-redirect">Aspect</a></li>
+<li><a href="/wiki/Aspect-oriented_programming" title="Aspect-oriented programming">Aspect-oriented programming</a></li>
+<li><a href="/wiki/Aspect_weaver" title="Aspect weaver">Aspect weaver</a></li>
+<li><a href="/wiki/Cross-cutting_concern" title="Cross-cutting concern">Cross-cutting concerns</a></li>
+<li><a href="/wiki/Join_point" title="Join point">Join point</a></li>
+<li><a href="/wiki/Pointcut" title="Pointcut">Pointcut</a></li>
+</ul>
+<ul>
+<li><a href="/wiki/AspectC%2B%2B" title="AspectC++">AspectC++</a></li>
+<li><a href="/wiki/AspectJ" title="AspectJ">AspectJ</a></li>
+<li><a href="/wiki/AspectWerkz" title="AspectWerkz">AspectWerkz</a></li>
+</ul>

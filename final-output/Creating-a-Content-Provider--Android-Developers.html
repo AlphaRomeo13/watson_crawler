@@ -1,0 +1,2142 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Creating-a-Content-Provider--Android-Developers.html</title></head>
+<body>
+<h1>Creating a Content Provider</h1>
+<h2>In this document</h2>
+<ol>
+    <li>
+        Designing Data Storage
+    </li>
+    <li>
+        Designing Content URIs
+    </li>
+    <li>
+        Implementing the ContentProvider Class
+        <ol>
+            <li>
+                Required Methods
+            </li>
+            <li>
+                Implementing the query() method
+            </li>
+            <li>
+                Implementing the insert() method
+            </li>
+            <li>
+                Implementing the delete() method
+            </li>
+            <li>
+                Implementing the update() method
+            </li>
+            <li>
+                Implementing the onCreate() method
+            </li>
+        </ol>
+    </li>
+    <li>
+        Implementing Content Provider MIME Types
+        <ol>
+            <li>
+                MIME types for tables
+            </li>
+            <li>
+                MIME types for files
+            </li>
+        </ol>
+    </li>
+    <li>
+        Implementing a Contract Class
+    </li>
+    <li>
+        Implementing Content Provider Permissions
+    </li>
+    <li>
+        The &lt;provider&gt; Element
+    </li>
+    <li>
+        Intents and Data Access
+    </li>
+</ol>
+<ol>
+            <li>
+                Required Methods
+            </li>
+            <li>
+                Implementing the query() method
+            </li>
+            <li>
+                Implementing the insert() method
+            </li>
+            <li>
+                Implementing the delete() method
+            </li>
+            <li>
+                Implementing the update() method
+            </li>
+            <li>
+                Implementing the onCreate() method
+            </li>
+        </ol>
+<ol>
+            <li>
+                MIME types for tables
+            </li>
+            <li>
+                MIME types for files
+            </li>
+        </ol>
+<h2>Key classes</h2>
+<ol>
+        <li>
+            <code>ContentProvider</code>
+        </li>
+        <li>
+            <code>Cursor</code>
+        </li>
+        <li>
+            <code>Uri</code>
+        </li>
+    </ol>
+<h2>Related Samples</h2>
+<ol>
+        <li>
+            
+                Note Pad sample application
+            
+        </li>
+    </ol>
+<h2>See also</h2>
+<ol>
+        <li>
+            
+            Content Provider Basics
+        </li>
+        <li>
+            
+            Calendar Provider
+        </li>
+    </ol>
+<p>
+    A content provider manages access to a central repository of data. You implement a
+    provider as one or more classes in an Android application, along with elements in
+    the manifest file. One of your classes implements a subclass
+    <code>ContentProvider</code>, which is the interface between your provider and
+    other applications. Although content providers are meant to make data available to other
+    applications, you may of course have activities in your application that allow the user
+    to query and modify the data managed by your provider.
+</p>
+<p>
+    The rest of this topic is a basic list of steps for building a content provider and a list
+    of APIs to use.
+</p>
+<h2>Before You Start Building</h2>
+<p>
+    Before you start building a provider, do the following:
+</p>
+<ol>
+    <li>
+        <strong>Decide if you need a content provider</strong>. You need to build a content
+        provider if you want to provide one or more of the following features:
+        <ul>
+            <li>You want to offer complex data or files to other applications.</li>
+            <li>You want to allow users to copy complex data from your app into other apps.</li>
+            <li>You want to provide custom search suggestions using the search framework.</li>
+        </ul>
+    <p>
+        You <em>don't</em> need a provider to use an SQLite database if the use is entirely within
+        your own application.
+    </p>
+    </li>
+    <li>
+        If you haven't done so already, read the topic
+        
+        Content Provider Basics to learn more about providers.
+    </li>
+</ol>
+<ul>
+            <li>You want to offer complex data or files to other applications.</li>
+            <li>You want to allow users to copy complex data from your app into other apps.</li>
+            <li>You want to provide custom search suggestions using the search framework.</li>
+        </ul>
+<p>
+        You <em>don't</em> need a provider to use an SQLite database if the use is entirely within
+        your own application.
+    </p>
+<p>
+    Next, follow these steps to build your provider:
+</p>
+<ol>
+    <li>
+        Design the raw storage for your data. A content provider offers data in two ways:
+        <dl>
+            <dt>
+                File data
+            </dt>
+            <dd>
+                Data that normally goes into files, such as
+                photos, audio, or videos. Store the files in your application's private
+                space. In response to a request for a file from another application, your
+                provider can offer a handle to the file.
+            </dd>
+            <dt>
+                "Structured" data
+            </dt>
+            <dd>
+                Data that normally goes into a database, array, or similar structure.
+                Store the data in a form that's compatible with tables of rows and columns. A row
+                represents an entity, such as a person or an item in inventory. A column represents
+                some data for the entity, such a person's name or an item's price. A common way to
+                store this type of data is in an SQLite database, but you can use any type of
+                persistent storage. To learn more about the storage types available in the
+                Android system, see the section 
+                Designing Data Storage.
+            </dd>
+        </dl>
+    </li>
+    <li>
+        Define a concrete implementation of the <code>ContentProvider</code> class and
+        its required methods. This class is the interface between your data and the rest of the
+        Android system. For more information about this class, see the section
+        Implementing the ContentProvider Class.
+    </li>
+    <li>
+        Define the provider's authority string, its content URIs, and column names. If you want
+        the provider's application to handle intents, also define intent actions, extras data,
+        and flags. Also define the permissions that you will require for applications that want
+        to access your data. You should consider defining all of these values as constants in a
+        separate contract class; later, you can expose this class to other developers. For more
+        information about content URIs, see the
+        section Designing Content URIs.
+        For more information about intents, see the
+        section Intents and Data Access.
+    </li>
+    <li>
+        Add other optional pieces, such as sample data or an implementation
+        of <code>AbstractThreadedSyncAdapter</code> that can synchronize data between
+        the provider and cloud-based data.
+    </li>
+</ol>
+<h2>Designing Data Storage</h2>
+<p>
+    A content provider is the interface to data saved in a structured format. Before you create
+    the interface, you must decide how to store the data. You can store the data in any form you
+    like, and then design the interface to read and write the data as necessary.
+</p>
+<p>
+    These are some of the data storage technologies that are available in Android:
+</p>
+<ul>
+    <li>
+        The Android system includes an SQLite database API that Android's own providers use
+        to store table-oriented data. The
+        <code>SQLiteOpenHelper</code> class helps you create databases, and the
+        <code>SQLiteDatabase</code> class is the base class for accessing
+        databases.
+        <p>
+            Remember that you don't have to use a database to implement your repository. A provider
+            appears externally as a set of tables, similar to a relational database, but this is
+            not a requirement for the provider's internal implementation.
+        </p>
+    </li>
+    <li>
+        For storing file data, Android has a variety of file-oriented APIs.
+        To learn more about file storage, read the topic
+        Data Storage. If you're
+        designing a provider that offers media-related data such as music or videos, you can
+        have a provider that combines table data and files.
+    </li>
+    <li>
+        For working with network-based data, use classes in <code>java.net</code> and
+        <code>android.net</code>. You can also synchronize network-based data to a local data
+        store such as a database, and then offer the data as tables or files.
+        The 
+        Sample Sync Adapter sample application demonstrates this type of synchronization.
+    </li>
+</ul>
+<p>
+            Remember that you don't have to use a database to implement your repository. A provider
+            appears externally as a set of tables, similar to a relational database, but this is
+            not a requirement for the provider's internal implementation.
+        </p>
+<h3>
+    Data design considerations
+</h3>
+<p>
+    Here are some tips for designing your provider's data structure:
+</p>
+<ul>
+    <li>
+        Table data should always have a "primary key" column that the provider maintains
+        as a unique numeric value for each row. You can use this value to link the row to related
+        rows in other tables (using it as a "foreign key"). Although you can use any name
+        for this column, using <code>BaseColumns._ID</code> is the best
+        choice, because linking the results of a provider query to a
+        <code>ListView</code> requires one of the retrieved columns to have the name
+        <code>_ID</code>.
+    </li>
+    <li>
+        If you want to provide bitmap images or other very large pieces of file-oriented data, store
+        the data in a file and then provide it indirectly rather than storing it directly in a
+        table. If you do this, you need to tell users of your provider that they need to use a
+        <code>ContentResolver</code> file method to access the data.
+    </li>
+    <li>
+        Use the Binary Large OBject (BLOB) data type to store data that varies in size or has a
+        varying structure. For example, you can use a BLOB column to store a
+        protocol buffer or
+        JSON structure.
+        <p>
+            You can also use a BLOB to implement a <em>schema-independent</em> table. In
+            this type of table, you define a primary key column, a MIME type column, and one or
+            more generic columns as BLOB. The meaning of the data in the BLOB columns is indicated
+            by the value in the MIME type column. This allows you to store different row types in
+            the same table. The Contacts Provider's "data" table
+            <code>ContactsContract.Data</code> is an example of a schema-independent
+            table.
+        </p>
+    </li>
+</ul>
+<p>
+            You can also use a BLOB to implement a <em>schema-independent</em> table. In
+            this type of table, you define a primary key column, a MIME type column, and one or
+            more generic columns as BLOB. The meaning of the data in the BLOB columns is indicated
+            by the value in the MIME type column. This allows you to store different row types in
+            the same table. The Contacts Provider's "data" table
+            <code>ContactsContract.Data</code> is an example of a schema-independent
+            table.
+        </p>
+<h2>Designing Content URIs</h2>
+<p>
+    A <strong>content URI</strong> is a URI that identifies data in a provider. Content URIs include
+    the symbolic name of the entire provider (its <strong>authority</strong>) and a
+    name that points to a table or file (a <strong>path</strong>). The optional id part points to
+    an individual row in a table. Every data access method of
+    <code>ContentProvider</code> has a content URI as an argument; this allows you to
+    determine the table, row, or file to access.
+</p>
+<p>
+    The basics of content URIs are described in the topic
+    
+    Content Provider Basics.
+</p>
+<h3>Designing an authority</h3>
+<p>
+    A provider usually has a single authority, which serves as its Android-internal name. To
+    avoid conflicts with other providers, you should use Internet domain ownership (in reverse)
+    as the basis of your provider authority. Because this recommendation is also true for Android
+    package names, you can define your provider authority as an extension of the name
+    of the package containing the provider. For example, if your Android package name is
+    <code>com.example.&lt;appname&gt;</code>, you should give your provider the
+    authority <code>com.example.&lt;appname&gt;.provider</code>.
+</p>
+<h3>Designing a path structure</h3>
+<p>
+    Developers usually create content URIs from the authority by appending paths that point to
+    individual tables. For example, if you have two tables <em>table1</em> and
+    <em>table2</em>, you combine the authority from the previous example to yield the
+    content URIs
+    <code>com.example.&lt;appname&gt;.provider/table1</code> and
+    <code>com.example.&lt;appname&gt;.provider/table2</code>. Paths aren't
+    limited to a single segment, and there doesn't have to be a table for each level of the path.
+</p>
+<h3>Handling content URI IDs</h3>
+<p>
+    By convention, providers offer access to a single row in a table by accepting a content URI
+    with an ID value for the row at the end of the URI. Also by convention, providers match the
+    ID value to the table's <code>_ID</code> column, and perform the requested access against the
+    row that matches.
+</p>
+<p>
+    This convention facilitates a common design pattern for apps accessing a provider. The app
+    does a query against the provider and displays the resulting <code>Cursor</code>
+    in a <code>ListView</code> using a <code>CursorAdapter</code>.
+    The definition of <code>CursorAdapter</code> requires one of the columns in the
+    <code>Cursor</code> to be <code>_ID</code>
+</p>
+<p>
+    The user then picks one of the displayed rows from the UI in order to look at or modify the
+    data. The app gets the corresponding row from the <code>Cursor</code> backing the
+    <code>ListView</code>, gets the <code>_ID</code> value for this row, appends it to
+    the content URI, and sends the access request to the provider. The provider can then do the
+    query or modification against the exact row the user picked.
+</p>
+<h3>Content URI patterns</h3>
+<p>
+    To help you choose which action to take for an incoming content URI, the provider API includes
+    the convenience class <code>UriMatcher</code>, which maps content URI "patterns" to
+    integer values. You can use the integer values in a <code>switch</code> statement that
+    chooses the desired action for the content URI or URIs that match a particular pattern.
+</p>
+<p>
+    A content URI pattern matches content URIs using wildcard characters:
+</p>
+<ul>
+        <li>
+            <strong><code>*</code>:</strong> Matches a string of any valid characters of any length.
+        </li>
+        <li>
+            <strong><code>#</code>:</strong> Matches a string of numeric characters of any length.
+        </li>
+    </ul>
+<p>
+    As an example of designing and coding content URI handling, consider a provider with the
+    authority <code>com.example.app.provider</code> that recognizes the following content URIs
+    pointing to tables:
+</p>
+<ul>
+    <li>
+        <code>content://com.example.app.provider/table1</code>: A table called <code>table1</code>.
+    </li>
+    <li>
+        <code>content://com.example.app.provider/table2/dataset1</code>: A table called
+        <code>dataset1</code>.
+    </li>
+    <li>
+        <code>content://com.example.app.provider/table2/dataset2</code>: A table called
+        <code>dataset2</code>.
+    </li>
+    <li>
+        <code>content://com.example.app.provider/table3</code>: A table called <code>table3</code>.
+    </li>
+</ul>
+<p>
+    The provider also recognizes these content URIs if they have a row ID appended to them, as
+    for example <code>content://com.example.app.provider/table3/1</code> for the row identified by
+    <code>1</code> in <code>table3</code>.
+</p>
+<p>
+    The following content URI patterns would be possible:
+</p>
+<p>
+    The following code snippet shows how the methods in <code>UriMatcher</code> work.
+    This code handles URIs for an entire table differently from URIs for a
+    single row, by using the content URI pattern
+    <code>content://&lt;authority&gt;/&lt;path&gt;</code> for tables, and
+    <code>content://&lt;authority&gt;/&lt;path&gt;/&lt;id&gt;</code> for single rows.
+</p>
+<p>
+    The method <code>addURI()</code> maps an
+    authority and path to an integer value. The method <code>match()</code> returns the integer value for a URI. A <code>switch</code> statement
+    chooses between querying the entire table, and querying for a single record:
+</p>
+<p>WHATSON? c255dabf-a754-49bf-8954-de76324cfd14</p>
+<pre>
+public class ExampleProvider extends ContentProvider {
+...
+    // Creates a UriMatcher object.
+    private static final UriMatcher sUriMatcher;
+...
+    /*
+     * The calls to addURI() go here, for all of the content URI patterns that the provider
+     * should recognize. For this snippet, only the calls for table 3 are shown.
+     */
+...
+    /*
+     * Sets the integer value for multiple rows in table 3 to 1. Notice that no wildcard is used
+     * in the path
+     */
+    sUriMatcher.addURI("com.example.app.provider", "table3", 1);
+
+    /*
+     * Sets the code for a single row to 2. In this case, the "#" wildcard is
+     * used. "content://com.example.app.provider/table3/3" matches, but
+     * "content://com.example.app.provider/table3 doesn't.
+     */
+    sUriMatcher.addURI("com.example.app.provider", "table3/#", 2);
+...
+    // Implements ContentProvider.query()
+    public Cursor query(
+        Uri uri,
+        String[] projection,
+        String selection,
+        String[] selectionArgs,
+        String sortOrder) {
+...
+        /*
+         * Choose the table to query and a sort order based on the code returned for the incoming
+         * URI. Here, too, only the statements for table 3 are shown.
+         */
+        switch (sUriMatcher.match(uri)) {
+
+
+            // If the incoming URI was for all of table3
+            case 1:
+
+                if (TextUtils.isEmpty(sortOrder)) sortOrder = "_ID ASC";
+                break;
+
+            // If the incoming URI was for a single row
+            case 2:
+
+                /*
+                 * Because this URI was for a single row, the _ID value part is
+                 * present. Get the last path segment from the URI; this is the _ID value.
+                 * Then, append the value to the WHERE clause for the query
+                 */
+                selection = selection + "_ID = " uri.getLastPathSegment();
+                break;
+
+            default:
+            ...
+                // If the URI is not recognized, you should do some error handling here.
+        }
+        // call the code to actually do the query
+    }
+</pre>
+<p>
+    Another class, <code>ContentUris</code>, provides convenience methods for working
+    with the <code>id</code> part of content URIs. The classes <code>Uri</code> and
+    <code>Uri.Builder</code> include convenience methods for parsing existing
+    <code>Uri</code> objects and building new ones.
+</p>
+<h2>Implementing the ContentProvider Class</h2>
+<p>
+    The <code>ContentProvider</code> instance manages access
+    to a structured set of data by handling requests from other applications. All forms
+    of access eventually call <code>ContentResolver</code>, which then calls a concrete
+    method of <code>ContentProvider</code> to get access.
+</p>
+<h3>Required methods</h3>
+<p>
+    The abstract class <code>ContentProvider</code> defines six abstract methods that
+    you must implement as part of your own concrete subclass. All of these methods except
+    <code>onCreate()</code> are called by a client application
+    that is attempting to access your content provider:
+</p>
+<p>
+    Notice that these methods have the same signature as the identically-named
+    <code>ContentResolver</code> methods.
+</p>
+<p>
+    Your implementation of these methods should account for the following:
+</p>
+<ul>
+    <li>
+        All of these methods except <code>onCreate()</code>
+        can be called by multiple threads at once, so they must be thread-safe. To learn
+        more about multiple threads, see the topic
+        
+        Processes and Threads.
+    </li>
+    <li>
+        Avoid doing lengthy operations in <code>onCreate()</code>. Defer initialization tasks until they are actually needed.
+        The section Implementing the onCreate() method
+        discusses this in more detail.
+    </li>
+    <li>
+        Although you must implement these methods, your code does not have to do anything except
+        return the expected data type. For example, you may want to prevent other applications
+        from inserting data into some tables. To do this, you can ignore the call to
+        <code>insert()</code> and return
+        0.
+    </li>
+</ul>
+<h3>Implementing the query() method</h3>
+<p>
+    The
+    <code>ContentProvider.query()</code> method must return a <code>Cursor</code> object, or if it
+    fails, throw an <code>Exception</code>. If you are using an SQLite database as your data
+    storage, you can simply return the <code>Cursor</code> returned by one of the
+    <code>query()</code> methods of the <code>SQLiteDatabase</code> class.
+    If the query does not match any rows, you should return a <code>Cursor</code>
+    instance whose <code>getCount()</code> method returns 0.
+    You should return <code>null</code> only if an internal error occurred during the query process.
+</p>
+<p>
+    If you aren't using an SQLite database as your data storage, use one of the concrete subclasses
+    of <code>Cursor</code>. For example, the <code>MatrixCursor</code> class
+    implements a cursor in which each row is an array of <code>Object</code>. With this class,
+    use <code>addRow()</code> to add a new row.
+</p>
+<p>
+    Remember that the Android system must be able to communicate the <code>Exception</code>
+    across process boundaries. Android can do this for the following exceptions that may be useful
+    in handling query errors:
+</p>
+<ul>
+    <li>
+        <code>IllegalArgumentException</code> (You may choose to throw this if your provider
+        receives an invalid content URI)
+    </li>
+    <li>
+        <code>NullPointerException</code>
+    </li>
+</ul>
+<h3>Implementing the insert() method</h3>
+<p>
+    The <code>insert()</code> method adds a
+    new row to the appropriate table, using the values in the <code>ContentValues</code>
+    argument. If a column name is not in the <code>ContentValues</code> argument, you
+    may want to provide a default value for it either in your provider code or in your database
+    schema.
+</p>
+<p>
+    This method should return the content URI for the new row. To construct this, append the new
+    row's <code>_ID</code> (or other primary key) value to the table's content URI, using
+    <code>withAppendedId()</code>.
+</p>
+<h3>Implementing the delete() method</h3>
+<p>
+    The <code>delete()</code> method
+    does not have to physically delete rows from your data storage. If you are using a sync adapter
+    with your provider, you should consider marking a deleted row
+    with a "delete" flag rather than removing the row entirely. The sync adapter can
+    check for deleted rows and remove them from the server before deleting them from the provider.
+</p>
+<h3>Implementing the update() method</h3>
+<p>
+    The <code>update()</code> method takes the same <code>ContentValues</code> argument used by
+    <code>insert()</code>, and the
+    same <code>selection</code> and <code>selectionArgs</code> arguments used by
+    <code>delete()</code> and
+    <code>ContentProvider.query()</code>. This may allow you to re-use code between these methods.
+</p>
+<h3>Implementing the onCreate() method</h3>
+<p>
+    The Android system calls <code>onCreate()</code> when it starts up the provider. You should perform only fast-running initialization
+    tasks in this method, and defer database creation and data loading until the provider actually
+    receives a request for the data. If you do lengthy tasks in
+    <code>onCreate()</code>, you will slow down your
+    provider's startup. In turn, this will slow down the response from the provider to other
+    applications.
+</p>
+<p>
+    For example, if you are using an SQLite database you can create
+    a new <code>SQLiteOpenHelper</code> object in
+    <code>ContentProvider.onCreate()</code>,
+    and then create the SQL tables the first time you open the database. To facilitate this, the
+    first time you call <code>getWritableDatabase()</code>, it automatically calls the
+    <code>SQLiteOpenHelper.onCreate()</code> method.
+</p>
+<p>
+    The following two snippets demonstrate the interaction between
+    <code>ContentProvider.onCreate()</code> and
+    <code>SQLiteOpenHelper.onCreate()</code>. The first snippet is the implementation of
+    <code>ContentProvider.onCreate()</code>:
+</p>
+<p>WHATSON? 612da639-5609-4b74-a164-b51fae1ad40a</p>
+<pre>
+public class ExampleProvider extends ContentProvider
+
+    /*
+     * Defines a handle to the database helper object. The MainDatabaseHelper class is defined
+     * in a following snippet.
+     */
+    private MainDatabaseHelper mOpenHelper;
+
+    // Defines the database name
+    private static final String DBNAME = "mydb";
+
+    // Holds the database object
+    private SQLiteDatabase db;
+
+    public boolean onCreate() {
+
+        /*
+         * Creates a new helper object. This method always returns quickly.
+         * Notice that the database itself isn't created or opened
+         * until SQLiteOpenHelper.getWritableDatabase is called
+         */
+        mOpenHelper = new MainDatabaseHelper(
+            getContext(),        // the application context
+            DBNAME,              // the name of the database)
+            null,                // uses the default SQLite cursor
+            1                    // the version number
+        );
+
+        return true;
+    }
+
+    ...
+
+    // Implements the provider's insert method
+    public Cursor insert(Uri uri, ContentValues values) {
+        // Insert code here to determine which table to open, handle error-checking, and so forth
+
+        ...
+
+        /*
+         * Gets a writeable database. This will trigger its creation if it doesn't already exist.
+         *
+         */
+        db = mOpenHelper.getWritableDatabase();
+    }
+}
+</pre>
+<p>
+    The next snippet is the implementation of
+    <code>SQLiteOpenHelper.onCreate()</code>, including a helper class:
+</p>
+<p>WHATSON? dbe148b1-9c55-4d1b-8c98-c21a6a906d3f</p>
+<pre>
+...
+// A string that defines the SQL statement for creating a table
+private static final String SQL_CREATE_MAIN = "CREATE TABLE " +
+    "main " +                       // Table's name
+    "(" +                           // The columns in the table
+    " _ID INTEGER PRIMARY KEY, " +
+    " WORD TEXT"
+    " FREQUENCY INTEGER " +
+    " LOCALE TEXT )";
+...
+/**
+ * Helper class that actually creates and manages the provider's underlying data repository.
+ */
+protected static final class MainDatabaseHelper extends SQLiteOpenHelper {
+
+    /*
+     * Instantiates an open helper for the provider's SQLite data repository
+     * Do not do database creation and upgrade here.
+     */
+    MainDatabaseHelper(Context context) {
+        super(context, DBNAME, null, 1);
+    }
+
+    /*
+     * Creates the data repository. This is called when the provider attempts to open the
+     * repository and SQLite reports that it doesn't exist.
+     */
+    public void onCreate(SQLiteDatabase db) {
+
+        // Creates the main table
+        db.execSQL(SQL_CREATE_MAIN);
+    }
+}
+</pre>
+<h2>Implementing ContentProvider MIME Types</h2>
+<p>
+    The <code>ContentProvider</code> class has two methods for returning MIME types:
+</p>
+<h3>MIME types for tables</h3>
+<p>
+    The <code>getType()</code> method returns a
+    <code>String</code> in MIME format that describes the type of data returned by the content
+    URI argument. The <code>Uri</code> argument can be a pattern rather than a specific URI;
+    in this case, you should return the type of data associated with content URIs that match the
+    pattern.
+</p>
+<p>
+    For common types of data such as as text, HTML, or JPEG,
+    <code>getType()</code> should return the standard
+    MIME type for that data. A full list of these standard types is available on the
+    IANA MIME Media Types
+    website.
+</p>
+<p>
+    For content URIs that point to a row or rows of table data,
+    <code>getType()</code> should return
+    a MIME type in Android's vendor-specific MIME format:
+</p>
+<ul>
+    <li>
+        Type part: <code>vnd</code>
+    </li>
+    <li>
+        Subtype part:
+        <ul>
+            <li>
+    If the URI pattern is for a single row: <code>android.cursor.<strong>item</strong>/</code>
+            </li>
+            <li>
+    If the URI pattern is for more than one row: <code>android.cursor.<strong>dir</strong>/</code>
+            </li>
+        </ul>
+    </li>
+    <li>
+        Provider-specific part: <code>vnd.&lt;name&gt;</code>.<code>&lt;type&gt;</code>
+        <p>
+            You supply the <code>&lt;name&gt;</code> and <code>&lt;type&gt;</code>.
+            The <code>&lt;name&gt;</code> value should be globally unique,
+            and the <code>&lt;type&gt;</code> value should be unique to the corresponding URI
+            pattern. A good choice for <code>&lt;name&gt;</code> is your company's name or
+            some part of your application's Android package name. A good choice for the
+            <code>&lt;type&gt;</code> is a string that identifies the table associated with the
+            URI.
+        </p>
+
+    </li>
+</ul>
+<ul>
+            <li>
+    If the URI pattern is for a single row: <code>android.cursor.<strong>item</strong>/</code>
+            </li>
+            <li>
+    If the URI pattern is for more than one row: <code>android.cursor.<strong>dir</strong>/</code>
+            </li>
+        </ul>
+<p>
+            You supply the <code>&lt;name&gt;</code> and <code>&lt;type&gt;</code>.
+            The <code>&lt;name&gt;</code> value should be globally unique,
+            and the <code>&lt;type&gt;</code> value should be unique to the corresponding URI
+            pattern. A good choice for <code>&lt;name&gt;</code> is your company's name or
+            some part of your application's Android package name. A good choice for the
+            <code>&lt;type&gt;</code> is a string that identifies the table associated with the
+            URI.
+        </p>
+<p>
+    For example, if a provider's authority is
+    <code>com.example.app.provider</code>, and it exposes a table named
+    <code>table1</code>, the MIME type for multiple rows in <code>table1</code> is:
+</p>
+<p>WHATSON? ada16743-731e-4343-813e-a919ac25540b</p>
+<pre>
+vnd.android.cursor.<strong>dir</strong>/vnd.com.example.provider.table1
+</pre>
+<p>
+    For a single row of <code>table1</code>, the MIME type is:
+</p>
+<p>WHATSON? 746aabfd-b537-48e2-81f5-fb1a6d3c345e</p>
+<pre>
+vnd.android.cursor.<strong>item</strong>/vnd.com.example.provider.table1
+</pre>
+<h3>MIME types for files</h3>
+<p>
+    If your provider offers files, implement
+    <code>getStreamTypes()</code>.
+    The method returns a <code>String</code> array of MIME types for the files your provider
+    can return for a given content URI. You should filter the MIME types you offer by the MIME type
+    filter argument, so that you return only those MIME types that the client wants to handle.
+</p>
+<p>
+    For example, consider a provider that offers photo images as files in <code>.jpg</code>,
+    <code>.png</code>, and <code>.gif</code> format.
+    If an application calls <code>ContentResolver.getStreamTypes()</code> with the filter string <code>image/*</code> (something that
+    is an "image"),
+    then the <code>ContentProvider.getStreamTypes()</code> method should return the array:
+</p>
+<p>WHATSON? 67615550-4227-47ca-b387-483025793866</p>
+<pre>
+{ "image/jpeg", "image/png", "image/gif"}
+</pre>
+<p>
+    If the app is only interested in <code>.jpg</code> files, then it can call
+    <code>ContentResolver.getStreamTypes()</code> with the filter string <code>*\/jpeg</code>, and
+    <code>ContentProvider.getStreamTypes()</code> should return:
+</p>
+<p>WHATSON? a88219cd-9384-42a6-b9b4-bbac1e3d6e4f</p>
+<pre>
+{"image/jpeg"}
+</pre>
+<p>
+    If your provider doesn't offer any of the MIME types requested in the filter string,
+    <code>getStreamTypes()</code>
+    should return <code>null</code>.
+</p>
+<h2>Implementing a Contract Class</h2>
+<p>
+    A contract class is a <code>public final</code> class that contains constant definitions for the
+    URIs, column names, MIME types, and other meta-data that pertain to the provider. The class
+    establishes a contract between the provider and other applications by ensuring that the provider
+    can be correctly accessed even if there are changes to the actual values of URIs, column names,
+    and so forth.
+</p>
+<p>
+    A contract class also helps developers because it usually has mnemonic names for its constants,
+    so developers are less likely to use incorrect values for column names or URIs. Since it's a
+    class, it can contain Javadoc documentation. Integrated development environments such as
+    Eclipse can auto-complete constant names from the contract class and display Javadoc for the
+    constants.
+</p>
+<p>
+    Developers can't access the contract class's class file from your application, but they can
+    statically compile it into their application from a <code>.jar</code> file you provide.
+</p>
+<p>
+    The <code>ContactsContract</code> class and its nested classes are examples of
+    contract classes.
+</p>
+<h2>Implementing Content Provider Permissions</h2>
+<p>
+    Permissions and access for all aspects of the Android system are described in detail in the
+    topic Security and Permissions.
+    The topic Data Storage also
+    described the security and permissions in effect for various types of storage.
+    In brief, the important points are:
+</p>
+<ul>
+    <li>
+        By default, data files stored on the device's internal storage are private to your
+        application and provider.
+    </li>
+    <li>
+        <code>SQLiteDatabase</code> databases you create are private to your
+        application and provider.
+    </li>
+    <li>
+        By default, data files that you save to external storage are <em>public</em> and
+        <em>world-readable</em>. You can't use a content provider to restrict access to files in
+        external storage, because other applications can use other API calls to read and write them.
+    </li>
+    <li>
+        The method calls for opening or creating files or SQLite databases on your device's internal
+        storage can potentially give both read and write access to all other applications. If you
+        use an internal file or database as your provider's repository, and you give it
+        "world-readable" or "world-writeable" access, the permissions you set for your provider in
+        its manifest won't protect your data. The default access for files and databases in
+        internal storage is "private", and for your provider's repository you shouldn't change this.
+    </li>
+</ul>
+<p>
+    If you want to use content provider permissions to control access to your data, then you should
+    store your data in internal files, SQLite databases, or the "cloud" (for example,
+    on a remote server), and you should keep files and databases private to your application.
+</p>
+<h3>Implementing permissions</h3>
+<p>
+    All applications can read from or write to your provider, even if the underlying data is
+    private, because by default your provider does not have permissions set. To change this,
+    set permissions for your provider in your manifest file, using attributes or child
+    elements of the <code>
+    &lt;provider&gt;</code> element. You can set permissions that apply to the entire provider,
+    or to certain tables, or even to certain records, or all three.
+</p>
+<p>
+    You define permissions for your provider with one or more
+    <code>
+    &lt;permission&gt;</code> elements in your manifest file. To make the
+    permission unique to your provider, use Java-style scoping for the
+    <code>
+    android:name</code> attribute. For example, name the read permission
+    <code>com.example.app.provider.permission.READ_PROVIDER</code>.
+
+</p>
+<p>
+    The following list describes the scope of provider permissions, starting with the
+    permissions that apply to the entire provider and then becoming more fine-grained.
+    More fine-grained permissions take precedence over ones with larger scope:
+</p>
+<p>
+            Consider the permissions you need to implement an email provider and app, when you
+            want to allow an outside image viewer application to display photo attachments from your
+            provider. To give the image viewer the necessary access without requiring permissions,
+            set up temporary permissions for content URIs for photos. Design your email app so
+            that when the user wants to display a photo, the app sends an intent containing the
+            photo's content URI and permission flags to the image viewer. The image viewer can
+            then query your email provider to retrieve the photo, even though the viewer doesn't
+            have the normal read permission for your provider.
+        </p>
+<p>
+            To turn on temporary permissions, either set the
+            <code>
+            android:grantUriPermissions</code> attribute of the
+            <code>
+            &lt;provider&gt;</code> element, or add one or more
+            <code>
+            &lt;grant-uri-permission&gt;</code> child elements to your
+            <code>
+            &lt;provider&gt;</code> element. If you use temporary permissions, you have to call
+            <code>Context.revokeUriPermission()</code> whenever you remove support for a content URI from your
+            provider, and the content URI is associated with a temporary permission.
+        </p>
+<p>
+            The attribute's value determines how much of your provider is made accessible.
+            If the attribute is set to <code>true</code>, then the system will grant temporary
+            permission to your entire provider, overriding any other permissions that are required
+            by your provider-level or path-level permissions.
+        </p>
+<p>
+            If this flag is set to <code>false</code>, then you must add
+            <code>
+            &lt;grant-uri-permission&gt;</code> child elements to your
+            <code>
+            &lt;provider&gt;</code> element. Each child element specifies the content URI or
+            URIs for which temporary access is granted.
+        </p>
+<p>
+            To delegate temporary access to an application, an intent must contain
+            the <code>FLAG_GRANT_READ_URI_PERMISSION</code> or the
+            <code>FLAG_GRANT_WRITE_URI_PERMISSION</code> flags, or both. These
+            are set with the <code>setFlags()</code> method.
+        </p>
+<p>
+            If the <code>
+            android:grantUriPermissions</code> attribute is not present, it's assumed to be
+            <code>false</code>.
+        </p>
+<h2>The &lt;provider&gt; Element</h2>
+<p>
+    Like <code>Activity</code> and <code>Service</code> components,
+    a subclass of <code>ContentProvider</code>
+    must be defined in the manifest file for its application, using the
+    <code>
+    &lt;provider&gt;</code> element. The Android system gets the following information from
+    the element:
+</p>
+<ul>
+            <li>
+                <code>
+                android:grantUriPermssions</code>: Temporary permission flag.
+            </li>
+            <li>
+                <code>
+                android:permission</code>: Single provider-wide read/write permission.
+            </li>
+            <li>
+                <code>
+                android:readPermission</code>: Provider-wide read permission.
+            </li>
+            <li>
+                <code>
+                android:writePermission</code>: Provider-wide write permission.
+            </li>
+        </ul>
+<p>
+            Permissions and their corresponding attributes are described in more
+            detail in the section
+            Implementing Content Provider Permissions.
+        </p>
+<ul>
+            <li>
+                <code>
+                android:enabled</code>: Flag allowing the system to start the provider.
+            </li>
+              <li>
+                <code>
+                android:exported</code>: Flag allowing other applications to use this provider.
+            </li>
+            <li>
+                <code>
+                android:initOrder</code>: The order in which this provider should be started,
+                relative to other providers in the same process.
+            </li>
+            <li>
+                <code>
+                android:multiProcess</code>: Flag allowing the system to start the provider
+                in the same process as the calling client.
+            </li>
+            <li>
+                <code>
+                android:process</code>: The name of the process in which the provider should
+                run.
+            </li>
+            <li>
+                <code>
+                android:syncable</code>: Flag indicating that the provider's data is to be
+                sync'ed with data on a server.
+            </li>
+        </ul>
+<p>
+            The attributes are fully documented in the dev guide topic for the
+            <code>
+            &lt;provider&gt;</code>
+            element.
+        </p>
+<ul>
+            <li>
+                <code>
+                android:icon</code>: A drawable resource containing an icon for the provider.
+                The icon appears next to the provider's label in the list of apps in
+                <em>Settings</em> &gt; <em>Apps</em> &gt; <em>All</em>.
+            </li>
+            <li>
+                <code>
+                android:label</code>: An informational label describing the provider or its
+                data, or both. The label appears in the list of apps in
+                <em>Settings</em> &gt; <em>Apps</em> &gt; <em>All</em>.
+            </li>
+        </ul>
+<p>
+            The attributes are fully documented in the dev guide topic for the
+            <code>
+            &lt;provider&gt;</code> element.
+        </p>
+<h2>Intents and Data Access</h2>
+<p>
+    Applications can access a content provider indirectly with an <code>Intent</code>.
+    The application does not call any of the methods of <code>ContentResolver</code> or
+    <code>ContentProvider</code>. Instead, it sends an intent that starts an activity,
+    which is often part of the provider's own application. The destination activity is in charge of
+    retrieving and displaying the data in its UI. Depending on the action in the intent, the
+    destination activity may also prompt the user to make modifications to the provider's data.
+    An intent may also contain "extras" data that the destination activity displays
+    in the UI; the user then has the option of changing this data before using it to modify the
+    data in the provider.
+</p>
+<p>
+
+</p>
+<p>
+    You may want to use intent access to help ensure data integrity. Your provider may depend
+    on having data inserted, updated, and deleted according to strictly defined business logic. If
+    this is the case, allowing other applications to directly modify your data may lead to
+    invalid data. If you want developers to use intent access, be sure to document it thoroughly.
+    Explain to them why intent access using your own application's UI is better than trying to
+    modify the data with their code.
+</p>
+<p>
+    Handling an incoming intent that wishes to modify your provider's data is no different from
+    handling other intents. You can learn more about using intents by reading the topic
+    Intents and Intent Filters.
+</p>
+<h1>Creating a Content Provider</h1>
+<h2>In this document</h2>
+<ol>
+    <li>
+        Designing Data Storage
+    </li>
+    <li>
+        Designing Content URIs
+    </li>
+    <li>
+        Implementing the ContentProvider Class
+        <ol>
+            <li>
+                Required Methods
+            </li>
+            <li>
+                Implementing the query() method
+            </li>
+            <li>
+                Implementing the insert() method
+            </li>
+            <li>
+                Implementing the delete() method
+            </li>
+            <li>
+                Implementing the update() method
+            </li>
+            <li>
+                Implementing the onCreate() method
+            </li>
+        </ol>
+    </li>
+    <li>
+        Implementing Content Provider MIME Types
+        <ol>
+            <li>
+                MIME types for tables
+            </li>
+            <li>
+                MIME types for files
+            </li>
+        </ol>
+    </li>
+    <li>
+        Implementing a Contract Class
+    </li>
+    <li>
+        Implementing Content Provider Permissions
+    </li>
+    <li>
+        The &lt;provider&gt; Element
+    </li>
+    <li>
+        Intents and Data Access
+    </li>
+</ol>
+<ol>
+            <li>
+                Required Methods
+            </li>
+            <li>
+                Implementing the query() method
+            </li>
+            <li>
+                Implementing the insert() method
+            </li>
+            <li>
+                Implementing the delete() method
+            </li>
+            <li>
+                Implementing the update() method
+            </li>
+            <li>
+                Implementing the onCreate() method
+            </li>
+        </ol>
+<ol>
+            <li>
+                MIME types for tables
+            </li>
+            <li>
+                MIME types for files
+            </li>
+        </ol>
+<h2>Key classes</h2>
+<ol>
+        <li>
+            <code>ContentProvider</code>
+        </li>
+        <li>
+            <code>Cursor</code>
+        </li>
+        <li>
+            <code>Uri</code>
+        </li>
+    </ol>
+<h2>Related Samples</h2>
+<ol>
+        <li>
+            
+                Note Pad sample application
+            
+        </li>
+    </ol>
+<h2>See also</h2>
+<ol>
+        <li>
+            
+            Content Provider Basics
+        </li>
+        <li>
+            
+            Calendar Provider
+        </li>
+    </ol>
+<p>
+    A content provider manages access to a central repository of data. You implement a
+    provider as one or more classes in an Android application, along with elements in
+    the manifest file. One of your classes implements a subclass
+    <code>ContentProvider</code>, which is the interface between your provider and
+    other applications. Although content providers are meant to make data available to other
+    applications, you may of course have activities in your application that allow the user
+    to query and modify the data managed by your provider.
+</p>
+<p>
+    The rest of this topic is a basic list of steps for building a content provider and a list
+    of APIs to use.
+</p>
+<h2>Before You Start Building</h2>
+<p>
+    Before you start building a provider, do the following:
+</p>
+<ol>
+    <li>
+        <strong>Decide if you need a content provider</strong>. You need to build a content
+        provider if you want to provide one or more of the following features:
+        <ul>
+            <li>You want to offer complex data or files to other applications.</li>
+            <li>You want to allow users to copy complex data from your app into other apps.</li>
+            <li>You want to provide custom search suggestions using the search framework.</li>
+        </ul>
+    <p>
+        You <em>don't</em> need a provider to use an SQLite database if the use is entirely within
+        your own application.
+    </p>
+    </li>
+    <li>
+        If you haven't done so already, read the topic
+        
+        Content Provider Basics to learn more about providers.
+    </li>
+</ol>
+<ul>
+            <li>You want to offer complex data or files to other applications.</li>
+            <li>You want to allow users to copy complex data from your app into other apps.</li>
+            <li>You want to provide custom search suggestions using the search framework.</li>
+        </ul>
+<p>
+        You <em>don't</em> need a provider to use an SQLite database if the use is entirely within
+        your own application.
+    </p>
+<p>
+    Next, follow these steps to build your provider:
+</p>
+<ol>
+    <li>
+        Design the raw storage for your data. A content provider offers data in two ways:
+        <dl>
+            <dt>
+                File data
+            </dt>
+            <dd>
+                Data that normally goes into files, such as
+                photos, audio, or videos. Store the files in your application's private
+                space. In response to a request for a file from another application, your
+                provider can offer a handle to the file.
+            </dd>
+            <dt>
+                "Structured" data
+            </dt>
+            <dd>
+                Data that normally goes into a database, array, or similar structure.
+                Store the data in a form that's compatible with tables of rows and columns. A row
+                represents an entity, such as a person or an item in inventory. A column represents
+                some data for the entity, such a person's name or an item's price. A common way to
+                store this type of data is in an SQLite database, but you can use any type of
+                persistent storage. To learn more about the storage types available in the
+                Android system, see the section 
+                Designing Data Storage.
+            </dd>
+        </dl>
+    </li>
+    <li>
+        Define a concrete implementation of the <code>ContentProvider</code> class and
+        its required methods. This class is the interface between your data and the rest of the
+        Android system. For more information about this class, see the section
+        Implementing the ContentProvider Class.
+    </li>
+    <li>
+        Define the provider's authority string, its content URIs, and column names. If you want
+        the provider's application to handle intents, also define intent actions, extras data,
+        and flags. Also define the permissions that you will require for applications that want
+        to access your data. You should consider defining all of these values as constants in a
+        separate contract class; later, you can expose this class to other developers. For more
+        information about content URIs, see the
+        section Designing Content URIs.
+        For more information about intents, see the
+        section Intents and Data Access.
+    </li>
+    <li>
+        Add other optional pieces, such as sample data or an implementation
+        of <code>AbstractThreadedSyncAdapter</code> that can synchronize data between
+        the provider and cloud-based data.
+    </li>
+</ol>
+<h2>Designing Data Storage</h2>
+<p>
+    A content provider is the interface to data saved in a structured format. Before you create
+    the interface, you must decide how to store the data. You can store the data in any form you
+    like, and then design the interface to read and write the data as necessary.
+</p>
+<p>
+    These are some of the data storage technologies that are available in Android:
+</p>
+<ul>
+    <li>
+        The Android system includes an SQLite database API that Android's own providers use
+        to store table-oriented data. The
+        <code>SQLiteOpenHelper</code> class helps you create databases, and the
+        <code>SQLiteDatabase</code> class is the base class for accessing
+        databases.
+        <p>
+            Remember that you don't have to use a database to implement your repository. A provider
+            appears externally as a set of tables, similar to a relational database, but this is
+            not a requirement for the provider's internal implementation.
+        </p>
+    </li>
+    <li>
+        For storing file data, Android has a variety of file-oriented APIs.
+        To learn more about file storage, read the topic
+        Data Storage. If you're
+        designing a provider that offers media-related data such as music or videos, you can
+        have a provider that combines table data and files.
+    </li>
+    <li>
+        For working with network-based data, use classes in <code>java.net</code> and
+        <code>android.net</code>. You can also synchronize network-based data to a local data
+        store such as a database, and then offer the data as tables or files.
+        The 
+        Sample Sync Adapter sample application demonstrates this type of synchronization.
+    </li>
+</ul>
+<p>
+            Remember that you don't have to use a database to implement your repository. A provider
+            appears externally as a set of tables, similar to a relational database, but this is
+            not a requirement for the provider's internal implementation.
+        </p>
+<h3>
+    Data design considerations
+</h3>
+<p>
+    Here are some tips for designing your provider's data structure:
+</p>
+<ul>
+    <li>
+        Table data should always have a "primary key" column that the provider maintains
+        as a unique numeric value for each row. You can use this value to link the row to related
+        rows in other tables (using it as a "foreign key"). Although you can use any name
+        for this column, using <code>BaseColumns._ID</code> is the best
+        choice, because linking the results of a provider query to a
+        <code>ListView</code> requires one of the retrieved columns to have the name
+        <code>_ID</code>.
+    </li>
+    <li>
+        If you want to provide bitmap images or other very large pieces of file-oriented data, store
+        the data in a file and then provide it indirectly rather than storing it directly in a
+        table. If you do this, you need to tell users of your provider that they need to use a
+        <code>ContentResolver</code> file method to access the data.
+    </li>
+    <li>
+        Use the Binary Large OBject (BLOB) data type to store data that varies in size or has a
+        varying structure. For example, you can use a BLOB column to store a
+        protocol buffer or
+        JSON structure.
+        <p>
+            You can also use a BLOB to implement a <em>schema-independent</em> table. In
+            this type of table, you define a primary key column, a MIME type column, and one or
+            more generic columns as BLOB. The meaning of the data in the BLOB columns is indicated
+            by the value in the MIME type column. This allows you to store different row types in
+            the same table. The Contacts Provider's "data" table
+            <code>ContactsContract.Data</code> is an example of a schema-independent
+            table.
+        </p>
+    </li>
+</ul>
+<p>
+            You can also use a BLOB to implement a <em>schema-independent</em> table. In
+            this type of table, you define a primary key column, a MIME type column, and one or
+            more generic columns as BLOB. The meaning of the data in the BLOB columns is indicated
+            by the value in the MIME type column. This allows you to store different row types in
+            the same table. The Contacts Provider's "data" table
+            <code>ContactsContract.Data</code> is an example of a schema-independent
+            table.
+        </p>
+<h2>Designing Content URIs</h2>
+<p>
+    A <strong>content URI</strong> is a URI that identifies data in a provider. Content URIs include
+    the symbolic name of the entire provider (its <strong>authority</strong>) and a
+    name that points to a table or file (a <strong>path</strong>). The optional id part points to
+    an individual row in a table. Every data access method of
+    <code>ContentProvider</code> has a content URI as an argument; this allows you to
+    determine the table, row, or file to access.
+</p>
+<p>
+    The basics of content URIs are described in the topic
+    
+    Content Provider Basics.
+</p>
+<h3>Designing an authority</h3>
+<p>
+    A provider usually has a single authority, which serves as its Android-internal name. To
+    avoid conflicts with other providers, you should use Internet domain ownership (in reverse)
+    as the basis of your provider authority. Because this recommendation is also true for Android
+    package names, you can define your provider authority as an extension of the name
+    of the package containing the provider. For example, if your Android package name is
+    <code>com.example.&lt;appname&gt;</code>, you should give your provider the
+    authority <code>com.example.&lt;appname&gt;.provider</code>.
+</p>
+<h3>Designing a path structure</h3>
+<p>
+    Developers usually create content URIs from the authority by appending paths that point to
+    individual tables. For example, if you have two tables <em>table1</em> and
+    <em>table2</em>, you combine the authority from the previous example to yield the
+    content URIs
+    <code>com.example.&lt;appname&gt;.provider/table1</code> and
+    <code>com.example.&lt;appname&gt;.provider/table2</code>. Paths aren't
+    limited to a single segment, and there doesn't have to be a table for each level of the path.
+</p>
+<h3>Handling content URI IDs</h3>
+<p>
+    By convention, providers offer access to a single row in a table by accepting a content URI
+    with an ID value for the row at the end of the URI. Also by convention, providers match the
+    ID value to the table's <code>_ID</code> column, and perform the requested access against the
+    row that matches.
+</p>
+<p>
+    This convention facilitates a common design pattern for apps accessing a provider. The app
+    does a query against the provider and displays the resulting <code>Cursor</code>
+    in a <code>ListView</code> using a <code>CursorAdapter</code>.
+    The definition of <code>CursorAdapter</code> requires one of the columns in the
+    <code>Cursor</code> to be <code>_ID</code>
+</p>
+<p>
+    The user then picks one of the displayed rows from the UI in order to look at or modify the
+    data. The app gets the corresponding row from the <code>Cursor</code> backing the
+    <code>ListView</code>, gets the <code>_ID</code> value for this row, appends it to
+    the content URI, and sends the access request to the provider. The provider can then do the
+    query or modification against the exact row the user picked.
+</p>
+<h3>Content URI patterns</h3>
+<p>
+    To help you choose which action to take for an incoming content URI, the provider API includes
+    the convenience class <code>UriMatcher</code>, which maps content URI "patterns" to
+    integer values. You can use the integer values in a <code>switch</code> statement that
+    chooses the desired action for the content URI or URIs that match a particular pattern.
+</p>
+<p>
+    A content URI pattern matches content URIs using wildcard characters:
+</p>
+<ul>
+        <li>
+            <strong><code>*</code>:</strong> Matches a string of any valid characters of any length.
+        </li>
+        <li>
+            <strong><code>#</code>:</strong> Matches a string of numeric characters of any length.
+        </li>
+    </ul>
+<p>
+    As an example of designing and coding content URI handling, consider a provider with the
+    authority <code>com.example.app.provider</code> that recognizes the following content URIs
+    pointing to tables:
+</p>
+<ul>
+    <li>
+        <code>content://com.example.app.provider/table1</code>: A table called <code>table1</code>.
+    </li>
+    <li>
+        <code>content://com.example.app.provider/table2/dataset1</code>: A table called
+        <code>dataset1</code>.
+    </li>
+    <li>
+        <code>content://com.example.app.provider/table2/dataset2</code>: A table called
+        <code>dataset2</code>.
+    </li>
+    <li>
+        <code>content://com.example.app.provider/table3</code>: A table called <code>table3</code>.
+    </li>
+</ul>
+<p>
+    The provider also recognizes these content URIs if they have a row ID appended to them, as
+    for example <code>content://com.example.app.provider/table3/1</code> for the row identified by
+    <code>1</code> in <code>table3</code>.
+</p>
+<p>
+    The following content URI patterns would be possible:
+</p>
+<p>
+    The following code snippet shows how the methods in <code>UriMatcher</code> work.
+    This code handles URIs for an entire table differently from URIs for a
+    single row, by using the content URI pattern
+    <code>content://&lt;authority&gt;/&lt;path&gt;</code> for tables, and
+    <code>content://&lt;authority&gt;/&lt;path&gt;/&lt;id&gt;</code> for single rows.
+</p>
+<p>
+    The method <code>addURI()</code> maps an
+    authority and path to an integer value. The method <code>match()</code> returns the integer value for a URI. A <code>switch</code> statement
+    chooses between querying the entire table, and querying for a single record:
+</p>
+<p>WHATSON? ea6d1d9f-8068-47ff-a0c8-395fc09d5f90</p>
+<pre>
+public class ExampleProvider extends ContentProvider {
+...
+    // Creates a UriMatcher object.
+    private static final UriMatcher sUriMatcher;
+...
+    /*
+     * The calls to addURI() go here, for all of the content URI patterns that the provider
+     * should recognize. For this snippet, only the calls for table 3 are shown.
+     */
+...
+    /*
+     * Sets the integer value for multiple rows in table 3 to 1. Notice that no wildcard is used
+     * in the path
+     */
+    sUriMatcher.addURI("com.example.app.provider", "table3", 1);
+
+    /*
+     * Sets the code for a single row to 2. In this case, the "#" wildcard is
+     * used. "content://com.example.app.provider/table3/3" matches, but
+     * "content://com.example.app.provider/table3 doesn't.
+     */
+    sUriMatcher.addURI("com.example.app.provider", "table3/#", 2);
+...
+    // Implements ContentProvider.query()
+    public Cursor query(
+        Uri uri,
+        String[] projection,
+        String selection,
+        String[] selectionArgs,
+        String sortOrder) {
+...
+        /*
+         * Choose the table to query and a sort order based on the code returned for the incoming
+         * URI. Here, too, only the statements for table 3 are shown.
+         */
+        switch (sUriMatcher.match(uri)) {
+
+
+            // If the incoming URI was for all of table3
+            case 1:
+
+                if (TextUtils.isEmpty(sortOrder)) sortOrder = "_ID ASC";
+                break;
+
+            // If the incoming URI was for a single row
+            case 2:
+
+                /*
+                 * Because this URI was for a single row, the _ID value part is
+                 * present. Get the last path segment from the URI; this is the _ID value.
+                 * Then, append the value to the WHERE clause for the query
+                 */
+                selection = selection + "_ID = " uri.getLastPathSegment();
+                break;
+
+            default:
+            ...
+                // If the URI is not recognized, you should do some error handling here.
+        }
+        // call the code to actually do the query
+    }
+</pre>
+<p>
+    Another class, <code>ContentUris</code>, provides convenience methods for working
+    with the <code>id</code> part of content URIs. The classes <code>Uri</code> and
+    <code>Uri.Builder</code> include convenience methods for parsing existing
+    <code>Uri</code> objects and building new ones.
+</p>
+<h2>Implementing the ContentProvider Class</h2>
+<p>
+    The <code>ContentProvider</code> instance manages access
+    to a structured set of data by handling requests from other applications. All forms
+    of access eventually call <code>ContentResolver</code>, which then calls a concrete
+    method of <code>ContentProvider</code> to get access.
+</p>
+<h3>Required methods</h3>
+<p>
+    The abstract class <code>ContentProvider</code> defines six abstract methods that
+    you must implement as part of your own concrete subclass. All of these methods except
+    <code>onCreate()</code> are called by a client application
+    that is attempting to access your content provider:
+</p>
+<p>
+    Notice that these methods have the same signature as the identically-named
+    <code>ContentResolver</code> methods.
+</p>
+<p>
+    Your implementation of these methods should account for the following:
+</p>
+<ul>
+    <li>
+        All of these methods except <code>onCreate()</code>
+        can be called by multiple threads at once, so they must be thread-safe. To learn
+        more about multiple threads, see the topic
+        
+        Processes and Threads.
+    </li>
+    <li>
+        Avoid doing lengthy operations in <code>onCreate()</code>. Defer initialization tasks until they are actually needed.
+        The section Implementing the onCreate() method
+        discusses this in more detail.
+    </li>
+    <li>
+        Although you must implement these methods, your code does not have to do anything except
+        return the expected data type. For example, you may want to prevent other applications
+        from inserting data into some tables. To do this, you can ignore the call to
+        <code>insert()</code> and return
+        0.
+    </li>
+</ul>
+<h3>Implementing the query() method</h3>
+<p>
+    The
+    <code>ContentProvider.query()</code> method must return a <code>Cursor</code> object, or if it
+    fails, throw an <code>Exception</code>. If you are using an SQLite database as your data
+    storage, you can simply return the <code>Cursor</code> returned by one of the
+    <code>query()</code> methods of the <code>SQLiteDatabase</code> class.
+    If the query does not match any rows, you should return a <code>Cursor</code>
+    instance whose <code>getCount()</code> method returns 0.
+    You should return <code>null</code> only if an internal error occurred during the query process.
+</p>
+<p>
+    If you aren't using an SQLite database as your data storage, use one of the concrete subclasses
+    of <code>Cursor</code>. For example, the <code>MatrixCursor</code> class
+    implements a cursor in which each row is an array of <code>Object</code>. With this class,
+    use <code>addRow()</code> to add a new row.
+</p>
+<p>
+    Remember that the Android system must be able to communicate the <code>Exception</code>
+    across process boundaries. Android can do this for the following exceptions that may be useful
+    in handling query errors:
+</p>
+<ul>
+    <li>
+        <code>IllegalArgumentException</code> (You may choose to throw this if your provider
+        receives an invalid content URI)
+    </li>
+    <li>
+        <code>NullPointerException</code>
+    </li>
+</ul>
+<h3>Implementing the insert() method</h3>
+<p>
+    The <code>insert()</code> method adds a
+    new row to the appropriate table, using the values in the <code>ContentValues</code>
+    argument. If a column name is not in the <code>ContentValues</code> argument, you
+    may want to provide a default value for it either in your provider code or in your database
+    schema.
+</p>
+<p>
+    This method should return the content URI for the new row. To construct this, append the new
+    row's <code>_ID</code> (or other primary key) value to the table's content URI, using
+    <code>withAppendedId()</code>.
+</p>
+<h3>Implementing the delete() method</h3>
+<p>
+    The <code>delete()</code> method
+    does not have to physically delete rows from your data storage. If you are using a sync adapter
+    with your provider, you should consider marking a deleted row
+    with a "delete" flag rather than removing the row entirely. The sync adapter can
+    check for deleted rows and remove them from the server before deleting them from the provider.
+</p>
+<h3>Implementing the update() method</h3>
+<p>
+    The <code>update()</code> method takes the same <code>ContentValues</code> argument used by
+    <code>insert()</code>, and the
+    same <code>selection</code> and <code>selectionArgs</code> arguments used by
+    <code>delete()</code> and
+    <code>ContentProvider.query()</code>. This may allow you to re-use code between these methods.
+</p>
+<h3>Implementing the onCreate() method</h3>
+<p>
+    The Android system calls <code>onCreate()</code> when it starts up the provider. You should perform only fast-running initialization
+    tasks in this method, and defer database creation and data loading until the provider actually
+    receives a request for the data. If you do lengthy tasks in
+    <code>onCreate()</code>, you will slow down your
+    provider's startup. In turn, this will slow down the response from the provider to other
+    applications.
+</p>
+<p>
+    For example, if you are using an SQLite database you can create
+    a new <code>SQLiteOpenHelper</code> object in
+    <code>ContentProvider.onCreate()</code>,
+    and then create the SQL tables the first time you open the database. To facilitate this, the
+    first time you call <code>getWritableDatabase()</code>, it automatically calls the
+    <code>SQLiteOpenHelper.onCreate()</code> method.
+</p>
+<p>
+    The following two snippets demonstrate the interaction between
+    <code>ContentProvider.onCreate()</code> and
+    <code>SQLiteOpenHelper.onCreate()</code>. The first snippet is the implementation of
+    <code>ContentProvider.onCreate()</code>:
+</p>
+<p>WHATSON? e58466f3-24a7-4de3-8455-3e993b7c5986</p>
+<pre>
+public class ExampleProvider extends ContentProvider
+
+    /*
+     * Defines a handle to the database helper object. The MainDatabaseHelper class is defined
+     * in a following snippet.
+     */
+    private MainDatabaseHelper mOpenHelper;
+
+    // Defines the database name
+    private static final String DBNAME = "mydb";
+
+    // Holds the database object
+    private SQLiteDatabase db;
+
+    public boolean onCreate() {
+
+        /*
+         * Creates a new helper object. This method always returns quickly.
+         * Notice that the database itself isn't created or opened
+         * until SQLiteOpenHelper.getWritableDatabase is called
+         */
+        mOpenHelper = new MainDatabaseHelper(
+            getContext(),        // the application context
+            DBNAME,              // the name of the database)
+            null,                // uses the default SQLite cursor
+            1                    // the version number
+        );
+
+        return true;
+    }
+
+    ...
+
+    // Implements the provider's insert method
+    public Cursor insert(Uri uri, ContentValues values) {
+        // Insert code here to determine which table to open, handle error-checking, and so forth
+
+        ...
+
+        /*
+         * Gets a writeable database. This will trigger its creation if it doesn't already exist.
+         *
+         */
+        db = mOpenHelper.getWritableDatabase();
+    }
+}
+</pre>
+<p>
+    The next snippet is the implementation of
+    <code>SQLiteOpenHelper.onCreate()</code>, including a helper class:
+</p>
+<p>WHATSON? f25d0990-12c8-4ad5-9096-a8a0b00f476f</p>
+<pre>
+...
+// A string that defines the SQL statement for creating a table
+private static final String SQL_CREATE_MAIN = "CREATE TABLE " +
+    "main " +                       // Table's name
+    "(" +                           // The columns in the table
+    " _ID INTEGER PRIMARY KEY, " +
+    " WORD TEXT"
+    " FREQUENCY INTEGER " +
+    " LOCALE TEXT )";
+...
+/**
+ * Helper class that actually creates and manages the provider's underlying data repository.
+ */
+protected static final class MainDatabaseHelper extends SQLiteOpenHelper {
+
+    /*
+     * Instantiates an open helper for the provider's SQLite data repository
+     * Do not do database creation and upgrade here.
+     */
+    MainDatabaseHelper(Context context) {
+        super(context, DBNAME, null, 1);
+    }
+
+    /*
+     * Creates the data repository. This is called when the provider attempts to open the
+     * repository and SQLite reports that it doesn't exist.
+     */
+    public void onCreate(SQLiteDatabase db) {
+
+        // Creates the main table
+        db.execSQL(SQL_CREATE_MAIN);
+    }
+}
+</pre>
+<h2>Implementing ContentProvider MIME Types</h2>
+<p>
+    The <code>ContentProvider</code> class has two methods for returning MIME types:
+</p>
+<h3>MIME types for tables</h3>
+<p>
+    The <code>getType()</code> method returns a
+    <code>String</code> in MIME format that describes the type of data returned by the content
+    URI argument. The <code>Uri</code> argument can be a pattern rather than a specific URI;
+    in this case, you should return the type of data associated with content URIs that match the
+    pattern.
+</p>
+<p>
+    For common types of data such as as text, HTML, or JPEG,
+    <code>getType()</code> should return the standard
+    MIME type for that data. A full list of these standard types is available on the
+    IANA MIME Media Types
+    website.
+</p>
+<p>
+    For content URIs that point to a row or rows of table data,
+    <code>getType()</code> should return
+    a MIME type in Android's vendor-specific MIME format:
+</p>
+<ul>
+    <li>
+        Type part: <code>vnd</code>
+    </li>
+    <li>
+        Subtype part:
+        <ul>
+            <li>
+    If the URI pattern is for a single row: <code>android.cursor.<strong>item</strong>/</code>
+            </li>
+            <li>
+    If the URI pattern is for more than one row: <code>android.cursor.<strong>dir</strong>/</code>
+            </li>
+        </ul>
+    </li>
+    <li>
+        Provider-specific part: <code>vnd.&lt;name&gt;</code>.<code>&lt;type&gt;</code>
+        <p>
+            You supply the <code>&lt;name&gt;</code> and <code>&lt;type&gt;</code>.
+            The <code>&lt;name&gt;</code> value should be globally unique,
+            and the <code>&lt;type&gt;</code> value should be unique to the corresponding URI
+            pattern. A good choice for <code>&lt;name&gt;</code> is your company's name or
+            some part of your application's Android package name. A good choice for the
+            <code>&lt;type&gt;</code> is a string that identifies the table associated with the
+            URI.
+        </p>
+
+    </li>
+</ul>
+<ul>
+            <li>
+    If the URI pattern is for a single row: <code>android.cursor.<strong>item</strong>/</code>
+            </li>
+            <li>
+    If the URI pattern is for more than one row: <code>android.cursor.<strong>dir</strong>/</code>
+            </li>
+        </ul>
+<p>
+            You supply the <code>&lt;name&gt;</code> and <code>&lt;type&gt;</code>.
+            The <code>&lt;name&gt;</code> value should be globally unique,
+            and the <code>&lt;type&gt;</code> value should be unique to the corresponding URI
+            pattern. A good choice for <code>&lt;name&gt;</code> is your company's name or
+            some part of your application's Android package name. A good choice for the
+            <code>&lt;type&gt;</code> is a string that identifies the table associated with the
+            URI.
+        </p>
+<p>
+    For example, if a provider's authority is
+    <code>com.example.app.provider</code>, and it exposes a table named
+    <code>table1</code>, the MIME type for multiple rows in <code>table1</code> is:
+</p>
+<p>WHATSON? 55612434-9794-47ea-95df-77a921150a47</p>
+<pre>
+vnd.android.cursor.<strong>dir</strong>/vnd.com.example.provider.table1
+</pre>
+<p>
+    For a single row of <code>table1</code>, the MIME type is:
+</p>
+<p>WHATSON? e5e94f2b-bf75-4e80-89f5-47701e5619e6</p>
+<pre>
+vnd.android.cursor.<strong>item</strong>/vnd.com.example.provider.table1
+</pre>
+<h3>MIME types for files</h3>
+<p>
+    If your provider offers files, implement
+    <code>getStreamTypes()</code>.
+    The method returns a <code>String</code> array of MIME types for the files your provider
+    can return for a given content URI. You should filter the MIME types you offer by the MIME type
+    filter argument, so that you return only those MIME types that the client wants to handle.
+</p>
+<p>
+    For example, consider a provider that offers photo images as files in <code>.jpg</code>,
+    <code>.png</code>, and <code>.gif</code> format.
+    If an application calls <code>ContentResolver.getStreamTypes()</code> with the filter string <code>image/*</code> (something that
+    is an "image"),
+    then the <code>ContentProvider.getStreamTypes()</code> method should return the array:
+</p>
+<p>WHATSON? 72728da5-fecf-4f0e-a348-1e78eb1f6eaf</p>
+<pre>
+{ "image/jpeg", "image/png", "image/gif"}
+</pre>
+<p>
+    If the app is only interested in <code>.jpg</code> files, then it can call
+    <code>ContentResolver.getStreamTypes()</code> with the filter string <code>*\/jpeg</code>, and
+    <code>ContentProvider.getStreamTypes()</code> should return:
+</p>
+<p>WHATSON? c1b96f76-35cb-47c9-b017-a606dafdba4a</p>
+<pre>
+{"image/jpeg"}
+</pre>
+<p>
+    If your provider doesn't offer any of the MIME types requested in the filter string,
+    <code>getStreamTypes()</code>
+    should return <code>null</code>.
+</p>
+<h2>Implementing a Contract Class</h2>
+<p>
+    A contract class is a <code>public final</code> class that contains constant definitions for the
+    URIs, column names, MIME types, and other meta-data that pertain to the provider. The class
+    establishes a contract between the provider and other applications by ensuring that the provider
+    can be correctly accessed even if there are changes to the actual values of URIs, column names,
+    and so forth.
+</p>
+<p>
+    A contract class also helps developers because it usually has mnemonic names for its constants,
+    so developers are less likely to use incorrect values for column names or URIs. Since it's a
+    class, it can contain Javadoc documentation. Integrated development environments such as
+    Eclipse can auto-complete constant names from the contract class and display Javadoc for the
+    constants.
+</p>
+<p>
+    Developers can't access the contract class's class file from your application, but they can
+    statically compile it into their application from a <code>.jar</code> file you provide.
+</p>
+<p>
+    The <code>ContactsContract</code> class and its nested classes are examples of
+    contract classes.
+</p>
+<h2>Implementing Content Provider Permissions</h2>
+<p>
+    Permissions and access for all aspects of the Android system are described in detail in the
+    topic Security and Permissions.
+    The topic Data Storage also
+    described the security and permissions in effect for various types of storage.
+    In brief, the important points are:
+</p>
+<ul>
+    <li>
+        By default, data files stored on the device's internal storage are private to your
+        application and provider.
+    </li>
+    <li>
+        <code>SQLiteDatabase</code> databases you create are private to your
+        application and provider.
+    </li>
+    <li>
+        By default, data files that you save to external storage are <em>public</em> and
+        <em>world-readable</em>. You can't use a content provider to restrict access to files in
+        external storage, because other applications can use other API calls to read and write them.
+    </li>
+    <li>
+        The method calls for opening or creating files or SQLite databases on your device's internal
+        storage can potentially give both read and write access to all other applications. If you
+        use an internal file or database as your provider's repository, and you give it
+        "world-readable" or "world-writeable" access, the permissions you set for your provider in
+        its manifest won't protect your data. The default access for files and databases in
+        internal storage is "private", and for your provider's repository you shouldn't change this.
+    </li>
+</ul>
+<p>
+    If you want to use content provider permissions to control access to your data, then you should
+    store your data in internal files, SQLite databases, or the "cloud" (for example,
+    on a remote server), and you should keep files and databases private to your application.
+</p>
+<h3>Implementing permissions</h3>
+<p>
+    All applications can read from or write to your provider, even if the underlying data is
+    private, because by default your provider does not have permissions set. To change this,
+    set permissions for your provider in your manifest file, using attributes or child
+    elements of the <code>
+    &lt;provider&gt;</code> element. You can set permissions that apply to the entire provider,
+    or to certain tables, or even to certain records, or all three.
+</p>
+<p>
+    You define permissions for your provider with one or more
+    <code>
+    &lt;permission&gt;</code> elements in your manifest file. To make the
+    permission unique to your provider, use Java-style scoping for the
+    <code>
+    android:name</code> attribute. For example, name the read permission
+    <code>com.example.app.provider.permission.READ_PROVIDER</code>.
+
+</p>
+<p>
+    The following list describes the scope of provider permissions, starting with the
+    permissions that apply to the entire provider and then becoming more fine-grained.
+    More fine-grained permissions take precedence over ones with larger scope:
+</p>
+<p>
+            Consider the permissions you need to implement an email provider and app, when you
+            want to allow an outside image viewer application to display photo attachments from your
+            provider. To give the image viewer the necessary access without requiring permissions,
+            set up temporary permissions for content URIs for photos. Design your email app so
+            that when the user wants to display a photo, the app sends an intent containing the
+            photo's content URI and permission flags to the image viewer. The image viewer can
+            then query your email provider to retrieve the photo, even though the viewer doesn't
+            have the normal read permission for your provider.
+        </p>
+<p>
+            To turn on temporary permissions, either set the
+            <code>
+            android:grantUriPermissions</code> attribute of the
+            <code>
+            &lt;provider&gt;</code> element, or add one or more
+            <code>
+            &lt;grant-uri-permission&gt;</code> child elements to your
+            <code>
+            &lt;provider&gt;</code> element. If you use temporary permissions, you have to call
+            <code>Context.revokeUriPermission()</code> whenever you remove support for a content URI from your
+            provider, and the content URI is associated with a temporary permission.
+        </p>
+<p>
+            The attribute's value determines how much of your provider is made accessible.
+            If the attribute is set to <code>true</code>, then the system will grant temporary
+            permission to your entire provider, overriding any other permissions that are required
+            by your provider-level or path-level permissions.
+        </p>
+<p>
+            If this flag is set to <code>false</code>, then you must add
+            <code>
+            &lt;grant-uri-permission&gt;</code> child elements to your
+            <code>
+            &lt;provider&gt;</code> element. Each child element specifies the content URI or
+            URIs for which temporary access is granted.
+        </p>
+<p>
+            To delegate temporary access to an application, an intent must contain
+            the <code>FLAG_GRANT_READ_URI_PERMISSION</code> or the
+            <code>FLAG_GRANT_WRITE_URI_PERMISSION</code> flags, or both. These
+            are set with the <code>setFlags()</code> method.
+        </p>
+<p>
+            If the <code>
+            android:grantUriPermissions</code> attribute is not present, it's assumed to be
+            <code>false</code>.
+        </p>
+<h2>The &lt;provider&gt; Element</h2>
+<p>
+    Like <code>Activity</code> and <code>Service</code> components,
+    a subclass of <code>ContentProvider</code>
+    must be defined in the manifest file for its application, using the
+    <code>
+    &lt;provider&gt;</code> element. The Android system gets the following information from
+    the element:
+</p>
+<ul>
+            <li>
+                <code>
+                android:grantUriPermssions</code>: Temporary permission flag.
+            </li>
+            <li>
+                <code>
+                android:permission</code>: Single provider-wide read/write permission.
+            </li>
+            <li>
+                <code>
+                android:readPermission</code>: Provider-wide read permission.
+            </li>
+            <li>
+                <code>
+                android:writePermission</code>: Provider-wide write permission.
+            </li>
+        </ul>
+<p>
+            Permissions and their corresponding attributes are described in more
+            detail in the section
+            Implementing Content Provider Permissions.
+        </p>
+<ul>
+            <li>
+                <code>
+                android:enabled</code>: Flag allowing the system to start the provider.
+            </li>
+              <li>
+                <code>
+                android:exported</code>: Flag allowing other applications to use this provider.
+            </li>
+            <li>
+                <code>
+                android:initOrder</code>: The order in which this provider should be started,
+                relative to other providers in the same process.
+            </li>
+            <li>
+                <code>
+                android:multiProcess</code>: Flag allowing the system to start the provider
+                in the same process as the calling client.
+            </li>
+            <li>
+                <code>
+                android:process</code>: The name of the process in which the provider should
+                run.
+            </li>
+            <li>
+                <code>
+                android:syncable</code>: Flag indicating that the provider's data is to be
+                sync'ed with data on a server.
+            </li>
+        </ul>
+<p>
+            The attributes are fully documented in the dev guide topic for the
+            <code>
+            &lt;provider&gt;</code>
+            element.
+        </p>
+<ul>
+            <li>
+                <code>
+                android:icon</code>: A drawable resource containing an icon for the provider.
+                The icon appears next to the provider's label in the list of apps in
+                <em>Settings</em> &gt; <em>Apps</em> &gt; <em>All</em>.
+            </li>
+            <li>
+                <code>
+                android:label</code>: An informational label describing the provider or its
+                data, or both. The label appears in the list of apps in
+                <em>Settings</em> &gt; <em>Apps</em> &gt; <em>All</em>.
+            </li>
+        </ul>
+<p>
+            The attributes are fully documented in the dev guide topic for the
+            <code>
+            &lt;provider&gt;</code> element.
+        </p>
+<h2>Intents and Data Access</h2>
+<p>
+    Applications can access a content provider indirectly with an <code>Intent</code>.
+    The application does not call any of the methods of <code>ContentResolver</code> or
+    <code>ContentProvider</code>. Instead, it sends an intent that starts an activity,
+    which is often part of the provider's own application. The destination activity is in charge of
+    retrieving and displaying the data in its UI. Depending on the action in the intent, the
+    destination activity may also prompt the user to make modifications to the provider's data.
+    An intent may also contain "extras" data that the destination activity displays
+    in the UI; the user then has the option of changing this data before using it to modify the
+    data in the provider.
+</p>
+<p>
+
+</p>
+<p>
+    You may want to use intent access to help ensure data integrity. Your provider may depend
+    on having data inserted, updated, and deleted according to strictly defined business logic. If
+    this is the case, allowing other applications to directly modify your data may lead to
+    invalid data. If you want developers to use intent access, be sure to document it thoroughly.
+    Explain to them why intent access using your own application's UI is better than trying to
+    modify the data with their code.
+</p>
+<p>
+    Handling an incoming intent that wishes to modify your provider's data is no different from
+    handling other intents. You can learn more about using intents by reading the topic
+    Intents and Intent Filters.
+</p>
+</body>
+</html>

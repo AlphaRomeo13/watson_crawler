@@ -1,0 +1,119 @@
+<h1>Invoking JavaScript Code From an Applet</h1>
+<p>Java applets can invoke JavaScript functions present in the same web page as the applet. The 
+<a class="OutsideLink" target="_blank" href="http://www.oracle.com/technetwork/java/javase/plugin2-142482.html#LIVECONNECT">LiveConnect Specification</a> describes details about how JavaScript code communicates with Java code.</p>
+<p>The <code>netscape.javascript.JSObject</code> class enables Java applets to retrieve a reference to JavaScript objects and interact with the web page. The Data Summary applet described next invokes JavaScript code to retrieve information from the web page and writes a data summary back to the web page.</p>
+<p>Assume you have a web page with a few JavaScript functions. The example 
+<a class="SourceLink" target="_blank" href="examples/dist/applet_InvokingJavaScriptFromApplet/AppletPage.html" onclick="showCode('../../displayCode.html', 'examples/dist/applet_InvokingJavaScriptFromApplet/AppletPage.html'); return false;"><code><code>AppletPage.html</code></code></a> has JavaScript functions to retrieve age, address, and phone numbers. There is also a variable called <code>userName</code> which has no value at the outset.</p>
+<p>WHATSON? bf98b148-f547-40c6-95c5-0afa62d86d02</p>
+<pre>
+&lt;head&gt;
+&lt;title&gt;Data Summary Applet Page - Java to JavaScript LiveConnect&lt;/title&gt;
+&lt;meta http-equiv="Content-Type" content="text/html; charset=windows-1252"/&gt;
+&lt;script language="javascript"&gt;
+    var userName = "";
+    
+    // returns number
+    function getAge() { 
+        return 25;
+    }
+    // returns an object
+    function address() { 
+        this.street = "1 Example Lane";
+        this.city = "Santa Clara";
+        this.state = "CA";
+    }
+    // returns an array
+    function getPhoneNums() { 
+        return ["408-555-0100", "408-555-0102"];
+    } 
+    function writeSummary(summary) {
+        summaryElem =
+            document.getElementById("summary");
+        summaryElem.innerHTML = summary;
+    }
+    &lt;/script&gt;
+
+    &lt;!-- ... --&gt;      
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;script src =
+      "https://www.java.com/js/deployJava.js"&gt;&lt;/script&gt;
+    &lt;script&gt; 
+        &lt;!-- ... --&gt;
+        deployJava.runApplet(attributes, parameters, '1.6'); 
+    &lt;/script&gt;          
+    &lt;!-- ... --&gt;
+    &lt;p id="summary"/&gt;  // this HTML element contains
+                             // the summary 
+    &lt;!-- ... --&gt;
+&lt;/body&gt;
+</pre>
+<p>Next, consider an applet class called <code>DataSummaryApplet</code>. The <code>DataSummaryApplet</code> class performs the following operations.</p>
+<ul>
+<li>Invokes the <code>JSObject</code>'s <code>setMember</code> method to set the <code>userName</code> variable to "John Doe".</li>
+<li>Retrieves the age, address, and phone numbers and builds a string containing a summary of this data.</li>
+<li>Invokes the <code>writeSummary</code> JavaScript function to write the summary back to the web page.</li>
+</ul>
+<p>This applet first needs to retrieve a reference to <code>JSObject</code> as follows:</p>
+<p>WHATSON? 21f144a6-24f5-48de-8972-a4da32116da1</p>
+<pre>
+...
+JSObject window = JSObject.getWindow(this);
+...
+</pre>
+<p>Put the preceding statement in a try ...catch.. block to handle <code>netscape.javascript.JSException</code>.</p>
+<p>Now that the applet has a reference to <code>JSObject</code>, it can invoke the relevant JavaScript functions by using the <code>eval</code> and <code>call</code> methods of <code>JSObject</code>.</p>
+<p>WHATSON? 2cfdf6a6-5d0c-482a-a4ed-515a42db9123</p>
+<pre>
+
+package javatojs;
+
+import java.applet.Applet;
+import netscape.javascript.*; // add plugin.jar to classpath during compilation
+
+public class DataSummaryApplet extends Applet {
+    public void start() {
+        try {
+            JSObject window = JSObject.getWindow(this);
+
+            String userName = "John Doe";
+
+            // set JavaScript variable
+            window.setMember("userName", userName);
+
+            // invoke JavaScript function
+            Number age = (Number) window.eval("getAge()");
+
+            // get a JavaScript object and retrieve its contents
+            JSObject address = (JSObject) window.eval("new address();");
+            String addressStr = (String) address.getMember("street") + ", " +
+                    (String) address.getMember("city") + ", " +
+                    (String) address.getMember("state");
+
+            // get an array from JavaScript and retrieve its contents
+            JSObject phoneNums = (JSObject) window.eval("getPhoneNums()");
+            String phoneNumStr = (String) phoneNums.getSlot(0) + ", " +
+                    (String) phoneNums.getSlot(1);
+
+            // dynamically change HTML in page; write data summary
+            String summary = userName + " : " + age + " : " +
+                    addressStr + " : " + phoneNumStr;
+            window.call("writeSummary", new Object[] {summary})   ;
+        } catch (JSException jse) {
+            jse.printStackTrace();
+        }
+    }
+}
+</pre>
+<p>To compile Java code that has a reference to classes in the <code>netscape.javascript</code> package, include <code>&lt;your JDK path&gt;/jre/lib/plugin.jar</code> in your classpath. At runtime, the Java Plug-in software automatically makes these classes available to applets.</p>
+<p>The Data Summary applet displays the following result on the web page:</p>
+<p>WHATSON? 8b1f6ead-e6fa-43e6-8322-bc8026620d4e</p>
+<pre>
+Result of applet's Java calls to JavaScript on this page
+                
+John Doe : 25 : 1 Example Lane, Santa Clara, CA : 408-555-0100, 408-555-0102
+</pre>
+<p>Open 
+<a class="SourceLink" target="_blank" href="examples/dist/applet_InvokingJavaScriptFromApplet/AppletPage.html" onclick="showCode('../../displayCode.html', 'examples/dist/applet_InvokingJavaScriptFromApplet/AppletPage.html'); return false;"><code><code>AppletPage.html</code></code></a> in a browser to view the Data Summary applet .</p>
+<p>
+<a class="TutorialLink" target="_top" href="examplesIndex.html#InvokingJavaScriptFromApplet">Download source code</a> for the <em>Invoking JavaScript Code From Applet</em> example to experiment further.</p>

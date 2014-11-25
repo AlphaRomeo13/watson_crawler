@@ -1,0 +1,81 @@
+<h1>How to Use CardLayout</h1>
+<p>If you are interested in using JavaFX to create your GUI, see
+<a class="OutsideLink" target="_blank" href="http://docs.oracle.com/javase/8/javafx/layout-tutorial/index.html">Working With Layouts in JavaFX</a>.</p>
+<p>The following figure represents a snapshot of an application that uses the 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/awt/CardLayout.html"><code>CardLayout</code></a> class to switch between two panels.</p>
+<p style="text-align: center">
+<img src="../../figures/uiswing/layout/CardLayoutDemo.png" width="273" height="104 " alt="A snapshot of CardLayoutDemo"> 
+<img src="../../figures/uiswing/layout/CardLayoutDemo-2.png" width="273" height="104 " alt="Another snapshot of CardLayoutDemo"></p>
+<p>Click the Launch button to run CardLayoutDemo using 
+<a class="OutsideLink" target="_blank" href="http://www.oracle.com/technetwork/java/javase/javawebstart/index.html">Java™ Web Start</a> (<a href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">download Java SE</a>). Alternatively, to compile and run the example yourself, consult the <a href="../examples/layout/index.html#CardLayoutDemo">example index</a>.</p>
+<p>The complete code of this demo is in the 
+<a class="SourceLink" target="_blank" href="../examples/layout/CardLayoutDemoProject/src/layout/CardLayoutDemo.java" onclick="showCode('../../displayCode.html', '../examples/layout/CardLayoutDemoProject/src/layout/CardLayoutDemo.java'); return false;"><code>CardLayoutDemo.java</code></a> file.</p>
+<p>The <code>CardLayout</code> class manages two or more components (usually <code>JPanel</code> instances) that share the same display space. When using the <code>CardLayout</code> class, let the user choose between the components by using a combo box. The <code>CardLayoutDemo</code> application is an example to illustrate this feature.</p>
+<p>Another way to accomplish the same task is to use a 
+<a class="TutorialLink" target="_top" href="../components/tabbedpane.html">tabbed pane</a>. The following picture shows a tabbed pane version of the preceding example: 
+</p>
+<p>Because a tabbed pane provides its own GUI, using a tabbed pane is simpler than using the <code>CardLayout</code> class. For example, implementing the preceding example using a tabbed pane results in a program with fewer lines of code.</p>
+<p>Click the Launch button to run TabDemo using 
+<a class="OutsideLink" target="_blank" href="http://www.oracle.com/technetwork/java/javase/javawebstart/index.html">Java™ Web Start</a> (<a href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">download JDK 7 or later</a>). Alternatively, to compile and run the example yourself, consult the <a href="../examples/layout/index.html#TabDemo">example index</a>.</p>
+<p>The complete code of this demo is in the 
+<a class="SourceLink" target="_blank" href="../examples/layout/TabDemoProject/src/layout/TabDemo.java" onclick="showCode('../../displayCode.html', '../examples/layout/TabDemoProject/src/layout/TabDemo.java'); return false;"><code>TabDemo.java</code></a> file.</p>
+<p>Conceptually, each component that a <code>CardLayout</code> manages is like a playing card or trading card in a stack, where only the top card is visible at any time. You can choose the card that is showing in any of the following ways:</p>
+<ul>
+<li>By asking for either the first or last card, in the order it was added to the container</li>
+<li>By flipping through the deck backwards or forwards</li>
+<li>By specifying a card with a specific name</li>
+</ul>
+<p>The <code>CardLayoutDemo</code> class uses the last scheme.</p>
+<p>The following code snippet from the 
+<a class="SourceLink" target="_blank" href="../examples/layout/CardLayoutDemoProject/src/layout/CardLayoutDemo.java" onclick="showCode('../../displayCode.html', '../examples/layout/CardLayoutDemoProject/src/layout/CardLayoutDemo.java'); return false;"><code>CardLayoutDemo.java</code></a> application creates the <code>CardLayout</code> object and the components it manages.</p>
+<p>WHATSON? 79f6c4fe-c70d-4cf5-83ec-9bea25b28ea3</p>
+<pre>
+<em>//Where instance variables are declared:</em>
+JPanel cards;
+final static String BUTTONPANEL = "Card with JButtons";
+final static String TEXTPANEL = "Card with JTextField";
+
+<em>//Where the components controlled by the CardLayout are initialized:</em>
+//Create the "cards".
+JPanel card1 = new JPanel();
+...
+JPanel card2 = new JPanel();
+...
+
+//Create the panel that contains the "cards".
+cards = new JPanel(new CardLayout());
+cards.add(card1, BUTTONPANEL);
+cards.add(card2, TEXTPANEL);
+</pre>
+<p>To add a component to a container that a <code>CardLayout</code> object manages, specify a string that identifies the component being added. For example, in this demo, the first panel has the string <code>"Card with JButtons"</code>, and the second panel has the string <code>"Card with JTextField"</code>. In this demo those strings are also used in the combo box.</p>
+<p>To choose which component a <code>CardLayout</code> object shows, put additional code in your code example:</p>
+<p>WHATSON? dc0656c2-01c1-44c3-92df-e78c7770b1dc</p>
+<pre>
+<em>//Where the GUI is assembled:</em>
+//Put the JComboBox in a JPanel to get a nicer look.
+JPanel comboBoxPane = new JPanel(); //use FlowLayout
+String comboBoxItems[] = { BUTTONPANEL, TEXTPANEL };
+JComboBox cb = new JComboBox(comboBoxItems);
+cb.setEditable(false);
+cb.addItemListener(this);
+comboBoxPane.add(cb);
+...
+pane.add(comboBoxPane, BorderLayout.PAGE_START);
+pane.add(cards, BorderLayout.CENTER);
+...
+
+//Method came from the ItemListener class implementation,
+//contains functionality to process the combo box item selecting
+public void itemStateChanged(ItemEvent evt) {
+    CardLayout cl = (CardLayout)(cards.getLayout());
+    cl.show(cards, (String)evt.getItem());
+}
+</pre>
+<p>This example shows that to use the <code>show</code> method of the <code>CardLayout</code> class, you must set the currently visible component. The first argument in the <code>show</code> method is the container the <code>CardLayout</code> controls  that is, the container of the components the <code>CardLayout</code> manages. The second argument is the string that identifies the component to show. This string is the same string that was used when adding the component to the container.</p>
+<h2><a name="api" id="api">The CardLayout API</a></h2>
+<p>The following table lists the <code>CardLayout</code> class methods that are used to choose a component. For each method, the first argument is the container for which the <code>CardLayout</code> is the layout manager (the container of the cards the <code>CardLayout</code> controls).</p>
+<h2><a name="eg" id="eg">Examples that Use CardLayout</a></h2>
+<p>Only one example in this 
+trail
+uses <code>CardLayout</code>, and this is the <a href="../examples/layout/index.html#CardLayoutDemo"><code>CardLayoutDemo</code></a>. Generally, our examples use 
+<a class="TutorialLink" target="_top" href="../components/tabbedpane.html">tabbed panes</a> instead of <code>CardLayout</code>, since a tabbed pane provides its own GUI.</p>

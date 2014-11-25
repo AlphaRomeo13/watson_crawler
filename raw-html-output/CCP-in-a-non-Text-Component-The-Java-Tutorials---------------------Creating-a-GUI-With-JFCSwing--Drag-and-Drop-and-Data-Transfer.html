@@ -1,0 +1,82 @@
+<h1>CCP in a non-Text Component</h1>
+<p>If you are implementing cut, copy and paste using one of the Swing components that is <i>not</i> one of the text components you have to do some additional setup. First, you need to install the cut, copy, and paste actions in the action map. The following method shows how to do this:</p>
+<p>WHATSON? 5c8641e8-1101-4606-aede-317797198b6a</p>
+<pre>
+    private void setMappings(JList list) { 
+        ActionMap map = list.getActionMap();
+        map.put(TransferHandler.getCutAction().getValue(Action.NAME),
+                TransferHandler.getCutAction());
+        map.put(TransferHandler.getCopyAction().getValue(Action.NAME),
+                TransferHandler.getCopyAction());
+        map.put(TransferHandler.getPasteAction().getValue(Action.NAME),
+                TransferHandler.getPasteAction());
+</pre>
+<p>When you set up the Edit menu, you can also choose to add menu accelerators, so that the user can type Control-C to initiate a copy, for example. In the following code snippet, the bolded text shows how to set the menu accelerator for the cut action:</p>
+<p>WHATSON? 3ef183ed-6f99-4d66-8414-aa5c239e910f</p>
+<pre>
+    menuItem = new JMenuItem("Cut");
+    menuItem.setActionCommand((String)TransferHandler.getCutAction().
+             getValue(Action.NAME));
+    menuItem.addActionListener(actionListener);
+    <b>menuItem.setAccelerator(
+      KeyStroke.getKeyStroke(KeyEvent.VK_X, ActionEvent.CTRL_MASK));</b>
+    menuItem.setMnemonic(KeyEvent.VK_T);
+    mainMenu.add(menuItem);
+</pre>
+<p>If you have set the menu accelerators for the CCP actions, this next step is redundant. If you have not set the menu accelerators, you need to add the CCP bindings to the input map. The following code snippet shows how this is done:</p>
+<p>WHATSON? e5e12e26-f0e6-480d-8817-f48c66d93760</p>
+<pre>
+    // only required if you have not set the menu accelerators
+    InputMap imap = this.getInputMap();
+    imap.put(KeyStroke.getKeyStroke("ctrl X"),
+        TransferHandler.getCutAction().getValue(Action.NAME));
+    imap.put(KeyStroke.getKeyStroke("ctrl C"),
+        TransferHandler.getCopyAction().getValue(Action.NAME));
+    imap.put(KeyStroke.getKeyStroke("ctrl V"),
+        TransferHandler.getPasteAction().getValue(Action.NAME));
+</pre>
+<p>Once the bindings have been installed and the Edit menu has been set up, there is another issue to be addressed: When the user initiates a cut, copy or a paste, which component should receive the action? In the case of a text component, the <code>DefaultEditorKit</code> remembers which component last had the focus and forwards the action to that component. The following class, <code>TransferActionListener</code>, performs the same function for non-text Swing components. This class can be dropped into most any application:</p>
+<p>WHATSON? b9606d45-4c46-4c24-8359-b232382c65fe</p>
+<pre>
+public class TransferActionListener implements ActionListener,
+                                              PropertyChangeListener {
+    private JComponent focusOwner = null;
+
+    public TransferActionListener() {
+        KeyboardFocusManager manager = KeyboardFocusManager.
+           getCurrentKeyboardFocusManager();
+        manager.addPropertyChangeListener("permanentFocusOwner", this);
+    }
+
+    public void propertyChange(PropertyChangeEvent e) {
+        Object o = e.getNewValue();
+        if (o instanceof JComponent) {
+            focusOwner = (JComponent)o;
+        } else {
+            focusOwner = null;
+        }
+    }
+
+    public void actionPerformed(ActionEvent e) {
+        if (focusOwner == null)
+            return;
+        String action = (String)e.getActionCommand();
+        Action a = focusOwner.getActionMap().get(action);
+        if (a != null) {
+            a.actionPerformed(new ActionEvent(focusOwner,
+                                              ActionEvent.ACTION_PERFORMED,
+                                              null));
+        }
+    }
+}
+</pre>
+<p>Finally, you have to decide how to handle the paste. In the case of a drag and drop, you insert the data at the drop location. In the case of a paste, you do not have the benefit of the user pointing to the desired paste location. You need to decide what makes sense for your application — inserting the data before or after the current selection might be the best solution.</p>
+<p>The following demo, ListCutPaste, shows how to implement CCP in an instance of <code>JList</code>. As you can see in the screen shot there are three lists and you can cut, copy, and paste to or from any of these lists. They also support drag and drop. For this demo, the pasted data is inserted after the current selection. If there is no current selection, the data is appended to the end of the list.</p>
+<ol>
+<li>Click the Launch button to run ListCutPaste using 
+<a class="OutsideLink" target="_blank" href="http://www.oracle.com/technetwork/java/javase/javawebstart/index.html">Java™ Web Start</a> (<a href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">download JDK 7 or later</a>). Alternatively, to compile and run the example yourself, consult the <a href="../examples/dnd/index.html#ListCutPaste">example index</a>.<a href="http://docs.oracle.com/javase/tutorialJWS/samples/uiswing/ListCutPasteProject/ListCutPaste.jnlp"><img src="../../images/jws-launch-button.png" width="88" height="23" align="bottom" alt="Launches the ListCutPaste example"></a><br></li>
+<li>Select an item in one of the lists. Use the Edit menu or the keyboard equivalent to cut or copy the list item from the source.</li>
+<li>Select the list item where you want the item to be pasted.</li>
+<li>Paste the text using the menu or the keyboard equivalent. The item is pasted after the current selection.</li>
+<li>Perform the same operation using drag and drop.</li>
+</ol>

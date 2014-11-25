@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>The-Set-Interface-The-Java-Tutorials---------------------Collections--Interfaces.html</title></head>
+<body>
+<h1>The Set Interface</h1>
+<p>A 
+<code>Set</code> is a 
+<code>Collection</code> that cannot contain duplicate elements. It models the mathematical set abstraction. The <code>Set</code> interface contains <i>only</i> methods inherited from <code>Collection</code> and adds the restriction that duplicate elements are prohibited. <code>Set</code> also adds a stronger contract on the behavior of the <code>equals</code> and <code>hashCode</code> operations, allowing <code>Set</code> instances to be compared meaningfully even if their implementation types differ. Two <code>Set</code> instances are equal if they contain the same elements.</p>
+<p>The Java platform contains three general-purpose <code>Set</code> implementations: <code>HashSet</code>, <code>TreeSet</code>, and <code>LinkedHashSet</code>. 
+<code>HashSet</code>, which stores its elements in a hash table, is the best-performing implementation; however it makes no guarantees concerning the order of iteration. 
+<code>TreeSet</code>, which stores its elements in a red-black tree, orders its elements based on their values; it is substantially slower than <code>HashSet</code>. 
+<code>LinkedHashSet</code>, which is implemented as a hash table with a linked list running through it, orders its elements based on the order in which they were inserted into the set (insertion-order). <code>LinkedHashSet</code> spares its clients from the unspecified, generally chaotic ordering provided by <code>HashSet</code> at a cost that is only slightly higher.</p>
+<p>Here's a simple but useful <code>Set</code> idiom. Suppose you have a <code>Collection</code>, <code>c</code>, and you want to create another <code>Collection</code> containing the same elements but with all duplicates eliminated. The following one-liner does the trick.</p>
+<p>WHATSON? 9521ba13-2529-4348-a000-48c4bcf9bac0</p>
+<pre>
+Collection&lt;Type&gt; noDups = new HashSet&lt;Type&gt;(c);
+</pre>
+<p>It works by creating a <code>Set</code> (which, by definition, cannot contain duplicates), initially containing all the elements in <code>c</code>. It uses the standard conversion constructor described in the 
+The Collection Interface section.</p>
+<p>
+Or, if using JDK 8 or later, you could easily collect into a <code>Set</code> using aggregate operations:
+</p>
+<p>WHATSON? 715803c4-5716-4b66-ad63-8ffa1eeb16c4</p>
+<pre>
+c.stream()
+.collect(Collectors.toSet()); // no duplicates
+</pre>
+<p>
+Here's a slightly longer example that accumulates a <code>Collection</code> of names into a 
+<code>TreeSet</code>:
+</p>
+<p>WHATSON? 90f5b0eb-1ae0-4392-af96-d64f663e8ea8</p>
+<pre>
+Set&lt;String&gt; set = people.stream()
+.map(Person::getName)
+.collect(Collectors.toCollection(TreeSet::new));
+</pre>
+<p>And the following is a minor variant of the first idiom that preserves the order of the original collection while removing duplicate elements:</p>
+<p>WHATSON? aa58f61a-5c5c-441b-a9ea-e51ca2aca448</p>
+<pre>
+Collection&lt;Type&gt; noDups = new LinkedHashSet&lt;Type&gt;(c);
+</pre>
+<p>The following is a generic method that encapsulates the preceding idiom, returning a <code>Set</code> of the same generic type as the one passed.</p>
+<p>WHATSON? 3ec2643a-ec8a-4440-a037-dd09f398859b</p>
+<pre>
+public static &lt;E&gt; Set&lt;E&gt; removeDups(Collection&lt;E&gt; c) {
+    return new LinkedHashSet&lt;E&gt;(c);
+}
+</pre>
+<h2>Set Interface Basic Operations</h2>
+<p>The <code>size</code> operation returns the number of elements in the <code>Set</code> (its <i>cardinality</i>). The <code>isEmpty</code> method does exactly what you think it would. The <code>add</code> method adds the specified element to the <code>Set</code> if it is not already present and returns a boolean indicating whether the element was added. Similarly, the <code>remove</code> method removes the specified element from the <code>Set</code> if it is present and returns a boolean indicating whether the element was present. The <code>iterator</code> method returns an <code>Iterator</code> over the <code>Set</code>.</p>
+<p>The following 
+<code>program</code> prints out all distinct words in its argument list.
+Two versions of this program are provided. The first uses JDK 8 aggregate operations. The second uses the for-each construct.</p>
+<p>
+Using JDK 8 Aggregate Operations:
+</p>
+<p>WHATSON? 5cfcce3d-6698-4fb2-b37e-7544d3b4e80a</p>
+<pre>
+import java.util.*;
+import java.util.stream.*;
+
+public class FindDups {
+    public static void main(String[] args) {
+        Set&lt;String&gt; distinctWords = Arrays.asList(args).stream()
+		.collect(Collectors.toSet()); 
+        System.out.println(distinctWords.size()+ 
+                           " distinct words: " + 
+                           distinctWords);
+    }
+}
+</pre>
+<p>
+Using the <code>for-each</code> Construct:
+</p>
+<p>WHATSON? 915033c3-224e-4057-a428-64a20b514eaf</p>
+<pre>
+import java.util.*;
+
+public class FindDups {
+    public static void main(String[] args) {
+        Set&lt;String&gt; s = new HashSet&lt;String&gt;();
+        for (String a : args)
+               s.add(a);
+               System.out.println(s.size() + " distinct words: " + s);
+    }
+}
+
+</pre>
+<p>Now run either version of the program.</p>
+<p>WHATSON? ace663f5-f1d1-448c-aba3-5f506bfdd6b7</p>
+<pre>
+java FindDups i came i saw i left
+</pre>
+<p>The following output is produced:</p>
+<p>WHATSON? a3de702f-843f-49ab-ad83-43b6868e9b1a</p>
+<pre>
+4 distinct words: [left, came, saw, i]
+</pre>
+<p>Note that the code always refers to the <code>Collection</code> by its interface type (<code>Set</code>) rather than by its implementation type. This is a <i>strongly</i> recommended programming practice because it gives you the flexibility to change implementations merely by changing the constructor. If either of the variables used to store a collection or the parameters used to pass it around are declared to be of the <code>Collection</code>'s implementation type rather than its interface type, <i>all</i> such variables and parameters must be changed in order to change its implementation type.</p>
+<p>Furthermore, there's no guarantee that the resulting program will work. If the program uses any nonstandard operations present in the original implementation type but not in the new one, the program will fail. Referring to collections only by their interface prevents you from using any nonstandard operations.</p>
+<p>The implementation type of the <code>Set</code> in the preceding example is <code>HashSet</code>, which makes no guarantees as to the order of the elements in the <code>Set</code>. If you want the program to print the word list in alphabetical order, merely change the <code>Set</code>'s implementation type from <code>HashSet</code> to <code>TreeSet</code>. Making this trivial one-line change causes the command line in the previous example to generate the following output.</p>
+<p>WHATSON? 0b8c8363-87ea-49c5-a5e2-f7158bd30694</p>
+<pre>
+java FindDups i came i saw i left
+
+4 distinct words: [came, i, left, saw]
+</pre>
+<h2>Set Interface Bulk Operations</h2>
+<p>Bulk operations are particularly well suited to <code>Set</code>s; when applied, they perform standard set-algebraic operations. Suppose <code>s1</code> and <code>s2</code> are sets. Here's what bulk operations do:</p>
+<ul>
+<li><code>s1.containsAll(s2)</code>  returns <code>true</code> if <code>s2</code> is a <b>subset</b> of <code>s1</code>. (<code>s2</code> is a subset of <code>s1</code> if set <code>s1</code> contains all of the elements in <code>s2</code>.)</li>
+<li><code>s1.addAll(s2)</code>  transforms <code>s1</code> into the <b>union</b> of <code>s1</code> and <code>s2</code>. (The union of two sets is the set containing all of the elements contained in either set.)</li>
+<li><code>s1.retainAll(s2)</code>  transforms <code>s1</code> into the intersection of <code>s1</code> and <code>s2</code>. (The intersection of two sets is the set containing only the elements common to both sets.)</li>
+<li><code>s1.removeAll(s2)</code>  transforms <code>s1</code> into the (asymmetric) set difference of <code>s1</code> and <code>s2</code>. (For example, the set difference of <code>s1</code> minus <code>s2</code> is the set containing all of the elements found in <code>s1</code> but not in <code>s2</code>.)</li>
+</ul>
+<p>To calculate the union, intersection, or set difference of two sets <i>nondestructively</i> (without modifying either set), the caller must copy one set before calling the appropriate bulk operation. The following are the resulting idioms.</p>
+<p>WHATSON? 9c23c2d5-fdca-452a-8fee-42c40c32840d</p>
+<pre>
+Set&lt;Type&gt; union = new HashSet&lt;Type&gt;(s1);
+union.addAll(s2);
+
+Set&lt;Type&gt; intersection = new HashSet&lt;Type&gt;(s1);
+intersection.retainAll(s2);
+
+Set&lt;Type&gt; difference = new HashSet&lt;Type&gt;(s1);
+difference.removeAll(s2);
+</pre>
+<p>The implementation type of the result <code>Set</code> in the preceding idioms is <code>HashSet</code>, which is, as already mentioned, the best all-around <code>Set</code> implementation in the Java platform. However, any general-purpose <code>Set</code> implementation could be substituted.</p>
+<p>Let's revisit the <code>FindDups</code> program. Suppose you want to know which words in the argument list occur only once and which occur more than once, but you do not want any duplicates printed out repeatedly. This effect can be achieved by generating two sets  one containing every word in the argument list and the other containing only the duplicates. The words that occur only once are the set difference of these two sets, which we know how to compute. Here's how 
+
+<code>the resulting program</code> looks.
+</p>
+<p>WHATSON? c679e6ac-54b0-4056-a5c3-05c2b32cf58b</p>
+<pre>
+
+import java.util.*;
+
+public class FindDups2 {
+    public static void main(String[] args) {
+        Set&lt;String&gt; uniques = new HashSet&lt;String&gt;();
+        Set&lt;String&gt; dups    = new HashSet&lt;String&gt;();
+
+        for (String a : args)
+            if (!uniques.add(a))
+                dups.add(a);
+
+        // Destructive set-difference
+        uniques.removeAll(dups);
+
+        System.out.println("Unique words:    " + uniques);
+        System.out.println("Duplicate words: " + dups);
+    }
+}
+</pre>
+<p>When run with the same argument list used earlier (<code>i came i saw i left</code>), the program yields the following output.</p>
+<p>WHATSON? 2e870249-66a9-481b-9954-8f035b321b5a</p>
+<pre>
+Unique words:    [left, saw, came]
+Duplicate words: [i]
+</pre>
+<p>A less common set-algebraic operation is the <i>symmetric set difference</i>  the set of elements contained in either of two specified sets but not in both. The following code calculates the symmetric set difference of two sets nondestructively.</p>
+<p>WHATSON? bde5b64f-20fd-408a-9b37-7a01845e0b79</p>
+<pre>
+Set&lt;Type&gt; symmetricDiff = new HashSet&lt;Type&gt;(s1);
+symmetricDiff.addAll(s2);
+Set&lt;Type&gt; tmp = new HashSet&lt;Type&gt;(s1);
+tmp.retainAll(s2);
+symmetricDiff.removeAll(tmp);
+</pre>
+<h2>Set Interface Array Operations</h2>
+<p>The array operations don't do anything special for <code>Set</code>s beyond what they do for any other <code>Collection</code>. These operations are described in 
+The Collection Interface section.</p>
+</body>
+</html>

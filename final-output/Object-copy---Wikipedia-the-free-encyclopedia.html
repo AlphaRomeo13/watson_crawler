@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Object-copy---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Object copy</h1>
+<p>An <b>object copy</b> is an action in computing where a data object has its attributes copied to another object of the same data type. An object is a composite data type in object-oriented programming languages. The copying of data is one of the most common procedures that occurs in computer programs. An object may be copied to reuse all or part of its data in a new context.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Methods of copying
+<ul>
+<li>1.1 Shallow copy</li>
+<li>1.2 Deep copy</li>
+<li>1.3 Lazy copy</li>
+</ul>
+</li>
+<li>2 Implementation
+<ul>
+<li>2.1 In C++</li>
+<li>2.2 In Java</li>
+<li>2.3 In Eiffel</li>
+<li>2.4 In other languages</li>
+</ul>
+</li>
+<li>3 See also</li>
+<li>4 References</li>
+</ul>
+<ul>
+<li>1.1 Shallow copy</li>
+<li>1.2 Deep copy</li>
+<li>1.3 Lazy copy</li>
+</ul>
+<ul>
+<li>2.1 In C++</li>
+<li>2.2 In Java</li>
+<li>2.3 In Eiffel</li>
+<li>2.4 In other languages</li>
+</ul>
+<p></p>
+<h2>Methods of copying</h2>
+<p>The design goal of most objects is to give the resemblance of being made out of one monolithic block even though most are not. As objects are made up of several different parts, copying becomes nontrivial. Several strategies exist to attack this problem.</p>
+<p>Consider two objects, A and B, which each refer to two memory blocks x<sub>i</sub> and y<sub>i</sub> (i = 1, 2,...). Think of A and B as strings and of x<sub>i</sub> and y<sub>i</sub> (i = 1, 2,...) as the characters they contain. There are different strategies for copying A into B.</p>
+<h3>Shallow copy</h3>
+<p>One method of copying an object is the shallow copy. In the process of shallow copying A, B will copy all of A's field values. If the field value is a memory address it copies the memory address, and if the field value is a primitive type it copies the value of the primitive type.</p>
+<p><br>
+The disadvantage is if you modify the memory address that one of B's fields point to, you are also modifying what A's fields point to.</p>
+<h3>Deep copy</h3>
+<p>An alternative is a deep copy. Here the data is actually copied over. The result is different from the result a shallow copy gives. The advantage is that A and B do not depend on each other but at the cost of a slower and more expensive copy.</p>
+<h3>Lazy copy</h3>
+<p>A lazy copy is a combination of both strategies above. When initially copying an object, a (fast) shallow copy is used. A counter is also used to track how many objects share the data. When the program wants to modify an object, it can determine if the data is shared (by examining the counter) and can do a deep copy if necessary.</p>
+<p>Lazy copy looks to the outside just as a deep copy but takes advantage of the speed of a shallow copy whenever possible. The downside are rather high but constant base costs because of the counter. Also, in certain situations, circular references can cause problems.</p>
+<p>Lazy copy is related to copy-on-write.</p>
+<h2>Implementation</h2>
+<p>Nearly all object-oriented programming languages provide some way to copy objects. As the majority of languages do not provide most objects themselves, the programmer has to define how an object should be copied, just as he or she has to define if two objects are identical or even comparable in the first place. Many languages provide some default behavior.</p>
+<p>How copying is solved varies from language to language and what concept of an object it has. The following presents examples for two of the most widely used object-oriented languages, C++ and Java, which should cover nearly every way that an object-oriented language can attack this problem.</p>
+<h3>In C++</h3>
+<p>C++ is designed so that user-defined types should be able to function exactly like native types such as <b>char</b> and <b>int</b>. One way in which C++ achieves this is by allowing any class to define a copy constructor and an assignment operator. C++ provides default versions of these which perform a memberwise copy, but any class is free to disable copying or define its own copy behaviour.</p>
+<h3>In Java</h3>
+<p>Unlike in C++, objects in Java are always accessed indirectly through references. Objects are never created implicitly but instead are always passed or assigned by a reference variable. (Methods in Java are always <i>pass by value</i>, however, it is the value of the reference variable that is being passed.) The Java Virtual Machine manages garbage collection so that objects are cleaned up after they are no longer reachable. There is no automatic way to copy any given object in Java.</p>
+<p>Copying is usually performed by a clone() method of a class. This method usually, in turn, calls the clone() method of its parent class to obtain a copy, and then does any custom copying procedures. Eventually this gets to the clone() method of <code>Object</code> (the uppermost class), which creates a new instance of the same class as the object and copies all the fields to the new instance (a "shallow copy"). If this method is used, the class must implement the <code>Cloneable</code> marker interface, or else it will throw a CloneNotSupportedException. After obtaining a copy from the parent class, a class' own clone() method may then provide custom cloning capability, like deep copying (i.e. duplicate some of the structures referred to by the object) or giving the new instance a new unique ID.</p>
+<p>The return type of clone() is <code>Object</code>, but implementers of a clone method could write the type of the object being cloned instead due to Java's support for covariant return types. One advantage of using clone() is that since it is an overridable method, we can call clone() on any object, and it will use the clone() method of its actual class, without the calling code needing to know what that class is (which would be necessary with a copy constructor).</p>
+<p>Another disadvantage is that one often cannot access the clone() method on an abstract type. Most interfaces and abstract classes in Java do not specify a public clone() method. As a result, often the only way to use the clone() method is if the actual class of an object is known, which is contrary to the abstraction principle of using the most generic type possible. For example, if one has a List reference in Java, one cannot invoke clone() on that reference because List specifies no public clone() method. Actual implementations of List like ArrayList and LinkedList all generally have clone() methods themselves, but it is inconvenient and bad abstraction to carry around the actual class type of an object.</p>
+<p>Another way to copy objects in Java is to serialize them through the <code>Serializable</code> interface. This is typically used for persistence and wire protocol purposes, but it does create copies of objects and, unlike clone, a deep copy that gracefully handles cycled graphs of objects is readily available with minimal effort from the programmer.</p>
+<p>Both of these methods suffer from a notable problem: the constructor is not used for objects copied with clone or serialization. This can lead to bugs with improperly initialized data, prevents the use of <code>final</code> member fields, and makes maintenance challenging. Some utilities attempt to overcome these issues by using reflection to deep copy objects, such as the deep-cloning library.</p>
+<h3>In Eiffel</h3>
+<p>Runtime objects in Eiffel are accessible either indirectly through references or as <i>expanded</i> objects whose fields are embedded within the objects that use them. That is, fields of an object are stored either externally or internally.</p>
+<p>The Eiffel class <code lang="eiffel" xml:lang="eiffel">ANY</code> contains features for shallow and deep copying and cloning of objects. All Eiffel classes inherit from <code lang="eiffel" xml:lang="eiffel">ANY</code>, so these features are available within all classes, and are applicable both to reference and expanded objects.</p>
+<p>The <code lang="eiffel" xml:lang="eiffel">copy</code> feature effects a shallow, field-by-field copy from one object to another. In this case no new object is created. If <code lang="eiffel" xml:lang="eiffel">y</code> were copied to <code lang="eiffel" xml:lang="eiffel">x</code>, then the same objects referenced by <code lang="eiffel" xml:lang="eiffel">y</code> before the application of <code lang="eiffel" xml:lang="eiffel">copy</code>, will also be referenced by <code lang="eiffel" xml:lang="eiffel">x</code> after the <code lang="eiffel" xml:lang="eiffel">copy</code> feature completes.</p>
+<p>To effect the creation of a new object which is a shallow duplicate of <code lang="eiffel" xml:lang="eiffel">y</code>, the feature <code lang="eiffel" xml:lang="eiffel">twin</code> is used. In this case, a single new object is created with its fields identical to those of the source.</p>
+<p>The feature <code lang="eiffel" xml:lang="eiffel">twin</code> relies on the feature <code lang="eiffel" xml:lang="eiffel">copy</code>, which can be redefined in descendants of <code lang="eiffel" xml:lang="eiffel">ANY</code>, if necessary. The result of <code lang="eiffel" xml:lang="eiffel">twin</code> is of the anchored type <code lang="eiffel" xml:lang="eiffel">like Current</code>.</p>
+<p>Deep copying and creating deep twins can be done using the features <code lang="eiffel" xml:lang="eiffel">deep_copy</code> and <code lang="eiffel" xml:lang="eiffel">deep_twin</code>, again inherited from class <code lang="eiffel" xml:lang="eiffel">ANY</code>. These features have the potential to create many new objects, because they duplicate all the objects in an entire object structure. Because new duplicate objects are created instead of simply copying references to existing objects, deep operations will become a source of performance issues more readily than shallow operations.</p>
+<h3>In other languages</h3>
+<p>In C Sharp (C#), rather than using the interface <code>ICloneable</code>, a generic extension method can be used to create a deep copy using reflection. This has two advantages: First, it provides the flexibility to copy every object without having to specify each property and variable to be copied manually. Second, because the type is generic, the compiler ensures that the destination object and the source object have the same type.</p>
+<p>In Objective-C, the methods <code>copy</code> and <code>mutableCopy</code> are inherited by all objects and intended for performing copies; the latter is for creating a mutable type of the original object. These methods in turn call the <code>copyWithZone</code> and <code>mutableCopyWithZone</code> methods, respectively, to perform the copying. An object must implement the corresponding <code>copyWithZone</code> method to be copyable.</p>
+<p>In OCaml, the library function Oo.copy performs shallow copying of an object.</p>
+<p>In PHP, the <code>clone</code> keyword performs shallow copying of an object.[1] Programmers may define a special method <code>__clone()</code> in an object to provide custom copying implementation.</p>
+<p>In Python, the library's copy module provides shallow copy and deep copy of objects through the <code>copy()</code> and <code>deepcopy()</code> functions, respectively. Programmers may define special methods <code>__copy__()</code> and <code>__deepcopy__()</code> in an object to provide custom copying implementation.</p>
+<p>In Ruby, all objects inherit two methods for performing shallow copies, clone and dup. The two methods differ in that <code>clone</code> copies an object's tainted state, frozen state, and any singleton methods it may have, whereas <code>dup</code> copies only its tainted state. Deep copies may be achieved by dumping and loading an object's byte stream or YAML serialization.[2] Alternatively, you can use the deep_dive gem to do a controlled deep copy of your object graphs. [3]</p>
+<p>In perl, nested structures are stored by the use of references, thus a developer can either loop over the entire structure and re-reference the data or use the <code lang="perl" xml:lang="perl">dclone()</code> function from the module Storable.</p>
+<p>In VBA, an assignment of variables of type <code>Object</code> is a shallow copy, an assignment for all other types (numeric types, String, user defined types, arrays) is a deep copy. So the keyword <code>Set</code> for an assignment signals a shallow copy and the (optional) keyword <code>Let</code> signals a deep copy. There is no built-in method for deep copies of Objects in VBA.</p>
+<h2>See also</h2>
+<ul>
+<li>Copy constructor</li>
+<li>Operator overloading</li>
+<li>Reference counting</li>
+<li>Copy-on-write</li>
+<li>Clone (Java method)</li>
+</ul>
+</body>
+</html>

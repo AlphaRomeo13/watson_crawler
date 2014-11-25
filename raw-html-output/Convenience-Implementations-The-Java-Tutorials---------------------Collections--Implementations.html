@@ -1,0 +1,47 @@
+<h1>Convenience Implementations</h1>
+<p>This section describes several mini-implementations that can be more convenient and more efficient than general-purpose implementations when you don't need their full power. All the implementations in this section are made available via static factory methods rather than <code>public</code> classes.</p>
+<h2>List View of an Array</h2>
+<p>The 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/util/Arrays.html#asList-T...-"><code>Arrays.asList</code></a> method returns a <code>List</code> view of its array argument. Changes to the <code>List</code> write through to the array and vice versa. The size of the collection is that of the array and cannot be changed. If the <code>add</code> or the <code>remove</code> method is called on the <code>List</code>, an <code>UnsupportedOperationException</code> will result.</p>
+<p>The normal use of this implementation is as a bridge between array-based and collection-based APIs. It allows you to pass an array to a method expecting a <code>Collection</code> or a <code>List</code>. However, this implementation also has another use. If you need a fixed-size <code>List</code>, it's more efficient than any general-purpose <code>List</code> implementation. This is the idiom.</p>
+<p>WHATSON? 812eacd9-b828-4bdd-aac9-343032b903aa</p>
+<pre>
+List&lt;String&gt; list = Arrays.asList(new String[size]);
+</pre>
+<p>Note that a reference to the backing array is not retained.</p>
+<h2>Immutable Multiple-Copy List</h2>
+<p>Occasionally you'll need an immutable <code>List</code> consisting of multiple copies of the same element. The 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/util/Collections.html#nCopies-int-T-"><code>Collections.nCopies</code></a> method returns such a list. This implementation has two main uses. The first is to initialize a newly created <code>List</code>; for example, suppose you want an <code>ArrayList</code> initially consisting of 1,000 <code>null</code> elements. The following incantation does the trick.</p>
+<p>WHATSON? 60ff2fad-ab18-4461-8f10-d1771b34696a</p>
+<pre>
+List&lt;Type&gt; list = new ArrayList&lt;Type&gt;(Collections.nCopies(1000, (Type)null);
+</pre>
+<p>Of course, the initial value of each element need not be <code>null</code>. The second main use is to grow an existing <code>List</code>. For example, suppose you want to add 69 copies of the string <code>"fruit bat"</code> to the end of a <code>List&lt;String&gt;</code>. It's not clear why you'd want to do such a thing, but let's just suppose you did. The following is how you'd do it.</p>
+<p>WHATSON? b8fa488e-273a-431a-8b4b-77574672cec6</p>
+<pre>
+lovablePets.addAll(Collections.nCopies(69, "fruit bat"));
+</pre>
+<p>By using the form of <code>addAll</code> that takes both an index and a <code>Collection</code>, you can add the new elements to the middle of a <code>List</code> instead of to the end of it.</p>
+<h2>Immutable Singleton Set</h2>
+<p>Sometimes you'll need an immutable <i>singleton</i> <code>Set</code>, which consists of a single, specified element. The 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/util/Collections.html#singleton-T-"><code>Collections.singleton</code></a> method returns such a <code>Set</code>. One use of this implementation is to remove all occurrences of a specified element from a <code>Collection</code>.</p>
+<p>WHATSON? bb3016ad-7ea3-4d81-8b86-606d77216657</p>
+<pre>
+c.removeAll(Collections.singleton(e));
+</pre>
+<p>A related idiom removes all elements that map to a specified value from a <code>Map</code>. For example, suppose you have a <code>Map</code>  <code>job</code>  that maps people to their line of work and suppose you want to eliminate all the lawyers. The following one-liner will do the deed.</p>
+<p>WHATSON? cb5dd537-6ba4-413c-9d41-6691b6e98ed0</p>
+<pre>
+job.values().removeAll(Collections.singleton(LAWYER));
+</pre>
+<p>One more use of this implementation is to provide a single input value to a method that is written to accept a collection of values.</p>
+<h2>Empty Set, List, and Map Constants</h2>
+<p>The 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/util/Collections.html"><code>Collections</code></a> class provides methods to return the empty <code>Set</code>, <code>List</code>, and <code>Map</code>  
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/util/Collections.html#emptySet--"><code>emptySet</code></a>, 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/util/Collections.html#emptyList--"><code>emptyList</code></a>, and 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/util/Collections.html#emptyMap--"><code>emptyMap</code></a>. The main use of these constants is as input to methods that take a <code>Collection</code> of values when you don't want to provide any values at all, as in this example.</p>
+<p>WHATSON? a3ed0a57-7e1e-40f5-be09-a5312d991644</p>
+<pre>
+tourist.declarePurchases(Collections.emptySet());
+</pre>

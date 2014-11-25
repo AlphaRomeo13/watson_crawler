@@ -1,0 +1,184 @@
+<h1>Walking the File Tree</h1>
+<p>Do you need to create an application that will recursively visit all the files in a file tree? Perhaps you need to delete every <code>.class</code> file in a tree, or find every file that hasn't been accessed in the last year. You can do so with the 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/nio/file/FileVisitor.html"><code>FileVisitor</code></a> interface.</p>
+<p>This section covers the following:</p>
+<ul>
+<li><a href="#filevisitor">The FileVisitor Interface</a></li>
+<li><a href="#invoke">Kickstarting the Process</a></li>
+<li><a href="#order">Considerations When Creating a FileVisitor</a></li>
+<li><a href="#return">Controlling the Flow</a></li>
+<li><a href="#ex">Examples</a></li>
+</ul>
+<h2><a name="filevisitor" id="filevisitor">The FileVisitor Interface</a></h2>
+<p>To walk a file tree, you first need to implement a <code>FileVisitor</code>. A <code>FileVisitor</code> specifies the required behavior at key points in the traversal process: when a file is visited, before a directory is accessed, after a directory is accessed, or when a failure occurs. The interface has four methods that correspond to these situations:</p>
+<ul>
+<li>
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/nio/file/FileVisitor.html#preVisitDirectory-T-java.nio.file.attribute.BasicFileAttributes-"><code>preVisitDirectory</code></a> – Invoked before a directory's entries are visited.</li>
+<li>
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/nio/file/FileVisitor.html#postVisitDirectory-T-java.io.IOException-"><code>postVisitDirectory</code></a> – Invoked after all the entries in a directory are visited. If any errors are encountered, the specific exception is passed to the method.</li>
+<li>
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/nio/file/FileVisitor.html#visitFile-T-java.nio.file.attribute.BasicFileAttributes-"><code>visitFile</code></a> – Invoked on the file being visited. The file's <code>BasicFileAttributes</code> is passed to the method, or you can use the 
+<a class="TutorialLink" target="_top" href="fileAttr.html">file attributes</a> package to read a specific set of attributes. For example, you can choose to read the file's <code>DosFileAttributeView</code> to determine if the file has the "hidden" bit set.</li>
+<li>
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/nio/file/FileVisitor.html#visitFileFailedy-T-java.io.IOException-"><code>visitFileFailed</code></a> – Invoked when the file cannot be accessed. The specific exception is passed to the method. You can choose whether to throw the exception, print it to the console or a log file, and so on.</li>
+</ul>
+<p>If you don't need to implement all four of the <code>FileVisitor</code> methods, instead of implementing the <code>FileVisitor</code> interface, you can extend the 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/nio/file/SimpleFileVisitor.html"><code>SimpleFileVisitor</code></a> class. This class, which implements the <code>FileVisitor</code> interface, visits all files in a tree and throws an <code>IOError</code> when an error is encountered. You can extend this class and override only the methods that you require.</p>
+<p>Here is an example that extends <code>SimpleFileVisitor</code> to print all entries in a file tree. It prints the entry whether the entry is a regular file, a symbolic link, a directory, or some other "unspecified" type of file. It also prints the size, in bytes, of each file. Any exception that is encountered is printed to the console.</p>
+<p>The <code>FileVisitor</code> methods are shown in bold:</p>
+<p>WHATSON? 35aa1a3e-d0a8-4e4a-aa39-d645ca80d527</p>
+<pre>
+import static java.nio.file.FileVisitResult.*;
+
+public static class PrintFiles
+    extends SimpleFileVisitor&lt;Path&gt; {
+
+    // Print information about
+    // each type of file.
+    @Override
+    <strong>public FileVisitResult visitFile(Path file,
+                                   BasicFileAttributes attr)</strong> {
+        if (attr.isSymbolicLink()) {
+            System.out.format("Symbolic link: %s ", file);
+        } else if (attr.isRegularFile()) {
+            System.out.format("Regular file: %s ", file);
+        } else {
+            System.out.format("Other: %s ", file);
+        }
+        System.out.println("(" + attr.size() + "bytes)");
+        return CONTINUE;
+    }
+
+    // Print each directory visited.
+    @Override
+    <strong>public FileVisitResult postVisitDirectory(Path dir,
+                                          IOException exc)</strong> {
+        System.out.format("Directory: %s%n", dir);
+        return CONTINUE;
+    }
+
+    // If there is some error accessing
+    // the file, let the user know.
+    // If you don't override this method
+    // and an error occurs, an IOException 
+    // is thrown.
+    @Override
+    <strong>public FileVisitResult visitFileFailed(Path file,
+                                       IOException exc)</strong> {
+        System.err.println(exc);
+        return CONTINUE;
+    }
+}
+</pre>
+<h2><a name="invoke" id="invoke">Kickstarting the Process</a></h2>
+<p>Once you have implemented your <code>FileVisitor</code>, how do you initiate the file walk? There are two <code>walkFileTree</code> methods in the <code>Files</code> class.</p>
+<ul>
+<li>
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/nio/file/Files.html#walkFileTree-java.nio.file.Path-java.nio.file.FileVisitor-"><code>walkFileTree(Path, FileVisitor)</code></a></li>
+<li>
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/nio/file/Files.html#walkFileTree-java.nio.file.Path-java.util.Set-int-java.nio.file.FileVisitor-"><code>walkFileTree(Path, Set&lt;FileVisitOption&gt;, int, FileVisitor)</code></a></li>
+</ul>
+<p>The first method requires only a starting point and an instance of your <code>FileVisitor</code>. You can invoke the <code>PrintFiles</code> file visitor as follows:</p>
+<p>WHATSON? 0c25940b-51ae-46ed-b954-93c84582cd72</p>
+<pre>
+Path startingDir = ...;
+PrintFiles pf = new PrintFiles();
+Files.walkFileTree(startingDir, pf);
+</pre>
+<p>The second <code>walkFileTree</code> method enables you to additionally specify a limit on the number of levels visited and a set of 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/nio/file/FileVisitOption.html"><code>FileVisitOption</code></a> enums. If you want to ensure that this method walks the entire file tree, you can specify <code>Integer.MAX_VALUE</code> for the maximum depth argument.</p>
+<p>You can specify the <code>FileVisitOption</code> enum, <code>FOLLOW_LINKS</code>, which indicates that symbolic links should be followed.</p>
+<p>This code snippet shows how the four-argument method can be invoked:</p>
+<p>WHATSON? cbda88d7-3413-4f36-aa63-5a9674b75442</p>
+<pre>
+import static java.nio.file.FileVisitResult.*;
+
+Path startingDir = ...;
+
+EnumSet&lt;FileVisitOption&gt; opts = EnumSet.of(FOLLOW_LINKS);
+
+Finder finder = new Finder(pattern);
+Files.walkFileTree(startingDir, opts, Integer.MAX_VALUE, finder);
+</pre>
+<h2><a name="order" id="order">Considerations When Creating a FileVisitor</a></h2>
+<p>A file tree is walked depth first, but you cannot make any assumptions about the iteration order that subdirectories are visited.</p>
+<p>If your program will be changing the file system, you need to carefully consider how you implement your <code>FileVisitor</code>.</p>
+<p>For example, if you are writing a recursive delete, you first delete the files in a directory before deleting the directory itself. In this case, you delete the directory in <code>postVisitDirectory</code>.</p>
+<p>If you are writing a recursive copy, you create the new directory in <code>preVisitDirectory</code> before attempting to copy the files to it (in <code>visitFiles</code>). If you want to preserve the attributes of the source directory (similar to the UNIX <code>cp -p</code> command), you need to do that <em>after</em> the files have been copied, in <code>postVisitDirectory</code>. The 
+<a class="SourceLink" target="_blank" href="examples/Copy.java" onclick="showCode('../../displayCode.html', 'examples/Copy.java'); return false;"><code><code>Copy</code></code></a> example shows how to do this.</p>
+<p>If you are writing a file search, you perform the comparison in the <code>visitFile</code> method. This method finds all the files that match your criteria, but it does not find the directories. If you want to find both files and directories, you must also perform the comparison in either the <code>preVisitDirectory</code> or <code>postVisitDirectory</code> method. The 
+<a class="SourceLink" target="_blank" href="examples/Find.java" onclick="showCode('../../displayCode.html', 'examples/Find.java'); return false;"><code><code>Find</code></code></a> example shows how to do this.</p>
+<p>You need to decide whether you want symbolic links to be followed. If you are deleting files, for example, following symbolic links might not be advisable. If you are copying a file tree, you might want to allow it. By default, <code>walkFileTree</code> does not follow symbolic links.</p>
+<p>The <code>visitFile</code> method is invoked for files. If you have specified the <code>FOLLOW_LINKS</code> option and your file tree has a circular link to a parent directory, the looping directory is reported in the <code>visitFileFailed</code> method with the <code>FileSystemLoopException</code>. The following code snippet shows how to catch a circular link and is from the 
+<a class="SourceLink" target="_blank" href="examples/Copy.java" onclick="showCode('../../displayCode.html', 'examples/Copy.java'); return false;"><code><code>Copy</code></code></a> example:</p>
+<p>WHATSON? b9f16762-13fb-4180-9d13-f5d8cb43196a</p>
+<pre>
+@Override
+public FileVisitResult
+    visitFileFailed(Path file,
+        IOException exc) {
+    if (exc instanceof FileSystemLoopException) {
+        System.err.println("cycle detected: " + file);
+    } else {
+        System.err.format("Unable to copy:" + " %s: %s%n", file, exc);
+    }
+    return CONTINUE;
+}
+</pre>
+<p>This case can occur only when the program is following symbolic links.</p>
+<h2><a name="return" id="return">Controlling the Flow</a></h2>
+<p>Perhaps you want to walk the file tree looking for a particular directory and, when found, you want the process to terminate. Perhaps you want to skip specific directories.</p>
+<p>The <code>FileVisitor</code> methods return a 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/nio/file/FileVisitResult.html"><code>FileVisitResult</code></a> value. You can abort the file walking process or control whether a directory is visited by the values you return in the <code>FileVisitor</code> methods:</p>
+<ul>
+<li><code>CONTINUE</code> – Indicates that the file walking should continue. If the <code>preVisitDirectory</code> method returns <code>CONTINUE</code>, the directory is visited.</li>
+<li><code>TERMINATE</code> – Immediately aborts the file walking. No further file walking methods are invoked after this value is returned.</li>
+<li><code>SKIP_SUBTREE</code> – When <code>preVisitDirectory</code> returns this value, the specified directory and its subdirectories are skipped. This branch is "pruned out" of the tree.</li>
+<li><code>SKIP_SIBLINGS</code> – When <code>preVisitDirectory</code> returns this value, the specified directory is not visited, <code>postVisitDirectory</code> is not invoked, and no further unvisited siblings are visited. If returned from the <code>postVisitDirectory</code> method, no further siblings are visited. Essentially, nothing further happens in the specified directory.</li>
+</ul>
+<p>In this code snippet, any directory named <code>SCCS</code> is skipped:</p>
+<p>WHATSON? b205029b-f18b-4ba6-bd2c-125704105b7d</p>
+<pre>
+import static java.nio.file.FileVisitResult.*;
+
+public FileVisitResult
+     preVisitDirectory(Path dir,
+         BasicFileAttributes attrs) {
+    (if (dir.getFileName().toString().equals("SCCS")) {
+         return SKIP_SUBTREE;
+    }
+    return CONTINUE;
+}
+</pre>
+<p>In this code snippet, as soon as a particular file is located, the file name is printed to standard output, and the file walking terminates:</p>
+<p>WHATSON? b83b3f41-a62c-4e9f-86cc-7a9ea6efd2ad</p>
+<pre>
+import static java.nio.file.FileVisitResult.*;
+
+// The file we are looking for.
+Path lookingFor = ...;
+
+public FileVisitResult
+    visitFile(Path file,
+        BasicFileAttributes attr) {
+    if (file.getFileName().equals(lookingFor)) {
+        System.out.println("Located file: " + file);
+        return TERMINATE;
+    }
+    return CONTINUE;
+}
+</pre>
+<h2><a name="ex" id="ex">Examples</a></h2>
+<p>The following examples demonstrate the file walking mechanism:</p>
+<ul>
+<li>
+<a class="SourceLink" target="_blank" href="examples/Find.java" onclick="showCode('../../displayCode.html', 'examples/Find.java'); return false;"><code><code>Find</code></code></a> – Recurses a file tree looking for files and directories that match a particular glob pattern. This example is discussed in 
+<a class="TutorialLink" target="_top" href="find.html">Finding Files</a>.</li>
+<li>
+<a class="SourceLink" target="_blank" href="examples/Chmod.java" onclick="showCode('../../displayCode.html', 'examples/Chmod.java'); return false;"><code><code>Chmod</code></code></a> – Recursively changes permissions on a file tree (for POSIX systems only).</li>
+<li>
+<a class="SourceLink" target="_blank" href="examples/Copy.java" onclick="showCode('../../displayCode.html', 'examples/Copy.java'); return false;"><code><code>Copy</code></code></a> – Recursively copies a file tree.</li>
+<li>
+<a class="SourceLink" target="_blank" href="examples/WatchDir.java" onclick="showCode('../../displayCode.html', 'examples/WatchDir.java'); return false;"><code><code>WatchDir</code></code></a> – Demonstrates the mechanism that watches a directory for files that have been created, deleted or modified. Calling this program with the <code>-r</code> option watches an entire tree for changes. For more information about the file notification service, see 
+<a class="TutorialLink" target="_top" href="notification.html">Watching a Directory for Changes</a>.</li>
+</ul>

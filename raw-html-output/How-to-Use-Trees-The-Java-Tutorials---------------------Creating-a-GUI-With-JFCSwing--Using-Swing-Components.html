@@ -1,0 +1,472 @@
+<h1>How to Use Trees</h1>
+<p>With the 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/javax/swing/JTree.html"><code>JTree</code></a> class, you can display hierarchical data. A <code>JTree</code> object does not actually contain your data; it simply provides a view of the data. Like any non-trivial Swing component, the tree gets data by querying its data model. Here is a picture of a tree:</p>
+<p>As the preceding figure shows, <code>JTree</code> displays its data vertically. Each row displayed by the tree contains exactly one item of data, which is called a <em>node</em>. Every tree has a <em>root</em> node from which all nodes descend. By default, the tree displays the root node, but you can decree otherwise. A node can either have children or not. We refer to nodes that can have children  whether or not they currently <em>have</em> children  as <em>branch</em> nodes. Nodes that can not have children are <em>leaf</em> nodes.</p>
+<p>Branch nodes can have any number of children. Typically, the user can expand and collapse branch nodes  making their children visible or invisible  by clicking them. By default, all branch nodes except the root node start out collapsed. A program can detect changes in branch nodes' expansion state by listening for tree expansion or tree-will-expand events, as described in 
+<a class="TutorialLink" target="_top" href="../events/treeexpansionlistener.html">How to Write a Tree Expansion Listener</a> and 
+<a class="TutorialLink" target="_top" href="../events/treewillexpandlistener.html">How to Write a Tree-Will-Expand Listener</a>.</p>
+<p>A specific node in a tree can be identified either by a TreePath, an object that encapsulates a node and all of its ancestors, or by its display row, where each row in the display area displays one node.</p>
+<ul>
+<li>An expanded node is a non-leaf node that will display its children when all its ancestors are expanded.</li>
+<li>A collapsed node is one which hides them.</li>
+<li>A hidden node is one which is under a collapsed ancestor.</li>
+</ul>
+<p>The rest of this section discusses the following topics:</p>
+<ul>
+<li><a href="#create">Creating a Tree</a></li>
+<li><a href="#select">Responding to Node Selection</a></li>
+<li><a href="#display">Customizing a Tree's Display</a></li>
+<li><a href="#dynamic">Dynamically Changing a Tree</a></li>
+<li><a href="#data">Creating a Data Model</a></li>
+<li><a href="#api">The Tree API</a></li>
+<li><a href="#eg">Examples that Use Trees</a></li>
+</ul>
+<h2><a name="create" id="create">Creating a Tree</a></h2>
+<p>Here is a picture of an application, the top half of which displays a tree in a scroll pane.</p>
+<ol>
+<li>Click the Launch button to run the Tree Demo using 
+<a class="OutsideLink" target="_blank" href="http://www.oracle.com/technetwork/java/javase/javawebstart/index.html">Java™ Web Start</a> (<a href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">download JDK 7 or later</a>). Alternatively, to compile and run the example yourself, consult the <a href="../examples/components/index.html#TreeDemo">example index</a>.<a href="http://docs.oracle.com/javase/tutorialJWS/samples/uiswing/TreeDemoProject/TreeDemo.jnlp"><img src="../../images/jws-launch-button.png" width="88" height="23" align="bottom" alt="Launches the TreeDemo example"></a><br>
+<p><!--  ******* end boilerplate stuff  *******  -->
+ <!--
+<div class="note"><hr /><strong>Try this:</strong>&nbsp;<li> <a href="http://docs.oracle.com/javase/tutorialJWS/samples/uiswing/TreeDemoProject/TreeDemo.jnlp">Run TreeDemo</a> (
+<a class="OutsideLink" target="_blank" href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">download JDK 7 or later</a>).    Or, to compile and run the example yourself,
+     consult the
+     <a href="../examples/components/index.html#TreeDemo">example index</a>.
+
+--></p>
+</li>
+<li>Expand one or more nodes.<br>
+You can do this by clicking the circle to the left of the item.</li>
+<li>Collapse a node.<br>
+You do this by clicking the circle to the left of an expanded node.</li>
+</ol>
+<p><!--  ******* end boilerplate stuff  *******  -->
+ <!--
+<div class="note"><hr /><strong>Try this:</strong>&nbsp;<li> <a href="http://docs.oracle.com/javase/tutorialJWS/samples/uiswing/TreeDemoProject/TreeDemo.jnlp">Run TreeDemo</a> (
+<a class="OutsideLink" target="_blank" href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">download JDK 7 or later</a>).    Or, to compile and run the example yourself,
+     consult the
+     <a href="../examples/components/index.html#TreeDemo">example index</a>.
+
+--></p>
+<p>The following code, taken from 
+<a class="SourceLink" target="_blank" href="../examples/components/TreeDemoProject/src/components/TreeDemo.java" onclick="showCode('../../displayCode.html', '../examples/components/TreeDemoProject/src/components/TreeDemo.java'); return false;"><code>TreeDemo.java</code></a>, creates the <code>JTree</code> object and puts it in a scroll pane:</p>
+<p>WHATSON? e0878aa9-3e83-4103-b5a0-75e5c1bcc5df</p>
+<pre>
+<em>//Where instance variables are declared:</em>
+private JTree tree;
+...
+public TreeDemo() {
+    ...
+    DefaultMutableTreeNode top =
+        new DefaultMutableTreeNode("The Java Series");
+    createNodes(top);
+    tree = new JTree(top);
+    ...
+    JScrollPane treeView = new JScrollPane(tree);
+    ...
+}
+</pre>
+<p>The code creates an instance of 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/javax/swing/tree/DefaultMutableTreeNode.html"><code>DefaultMutableTreeNode</code></a> to serve as the root node for the tree. It then creates the rest of the nodes in the tree. After that, it creates the tree, specifying the root node as an argument to the <code>JTree</code> constructor. Finally, it puts the tree in a scroll pane, a common tactic because showing the full, expanded tree would otherwise require too much space.</p>
+<p>Here is the code that creates the nodes under the root node:</p>
+<p>WHATSON? aac04065-1a40-48e0-99c1-20febc3220fb</p>
+<pre>
+private void createNodes(DefaultMutableTreeNode top) {
+    DefaultMutableTreeNode category = null;
+    DefaultMutableTreeNode book = null;
+    
+    category = new DefaultMutableTreeNode("Books for Java Programmers");
+    top.add(category);
+    
+    //original Tutorial
+    book = new DefaultMutableTreeNode(new BookInfo
+        ("The Java Tutorial: A Short Course on the Basics",
+        "tutorial.html"));
+    category.add(book);
+    
+    //Tutorial Continued
+    book = new DefaultMutableTreeNode(new BookInfo
+        ("The Java Tutorial Continued: The Rest of the JDK",
+        "tutorialcont.html"));
+    category.add(book);
+    
+    //Swing Tutorial
+    book = new DefaultMutableTreeNode(new BookInfo
+        ("The Swing Tutorial: A Guide to Constructing GUIs",
+        "swingtutorial.html"));
+    category.add(book);
+
+    <em>//...add more books for programmers...</em>
+
+    category = new DefaultMutableTreeNode("Books for Java Implementers");
+    top.add(category);
+
+    //VM
+    book = new DefaultMutableTreeNode(new BookInfo
+        ("The Java Virtual Machine Specification",
+         "vm.html"));
+    category.add(book);
+
+    //Language Spec
+    book = new DefaultMutableTreeNode(new BookInfo
+        ("The Java Language Specification",
+         "jls.html"));
+    category.add(book);
+}
+</pre>
+<p>The argument to the <code>DefaultMutableTreeNode</code> constructor is the <em>user object</em> which is an object that contains or points to the data associated with the tree node. The user object can be a string, or it can be a custom object. If you implement a custom object, you should implement its <code>toString</code> method so that it returns the string to be displayed for that node. JTree, by default, renders each node using the value returned from toString, so it is important that <code>toString</code> returns something meaningful. Sometimes, it is not feasible to override <code>toString</code>; in such a scenario you can override the convertValueToText of JTree to map the object from the model into a string that gets displayed.</p>
+<p>For example, the <code>BookInfo</code> class used in the previous code snippet is a custom class that holds two pieces of data: the name of a book, and the URL for an HTML file describing the book. The <code>toString</code> method is implemented to return the book name. Thus, each node associated with a <code>BookInfo</code> object displays a book name.</p>
+<p>To summarize, you can create a tree by invoking the <code>JTree</code> constructor, specifying the class that implements TreeNode as an argument. You should probably put the tree inside a scroll pane, so that the tree would not take up too much space. You do not have to do anything to make the tree nodes expand and collapse in response to user clicks. However, you do have to add some code to make the tree respond when the user selects a node  by clicking the node, for example.</p>
+<h2><a name="select" id="select">Responding to Node Selection</a></h2>
+<p>Responding to tree node selections is simple. You implement a tree selection listener and register it on the tree. The following code shows the selection-related code from the <code>TreeDemo</code> program:</p>
+<p>WHATSON? 436637d2-3c10-4b9d-8078-62c32b658e02</p>
+<pre>
+<em>//Where the tree is initialized:</em>
+    tree.getSelectionModel().setSelectionMode
+            (TreeSelectionModel.SINGLE_TREE_SELECTION);
+
+    //Listen for when the selection changes.
+    tree.addTreeSelectionListener(this);
+...
+public void valueChanged(TreeSelectionEvent e) {
+<em>//Returns the last path element of the selection.</em>
+<em>//This method is useful only when the selection model allows a single selection.</em>
+    DefaultMutableTreeNode node = (DefaultMutableTreeNode)
+                       tree.getLastSelectedPathComponent();
+
+    if (node == null)
+    <em>//Nothing is selected.</em>     
+    return;
+
+    Object nodeInfo = node.getUserObject();
+    if (node.isLeaf()) {
+        BookInfo book = (BookInfo)nodeInfo;
+        displayURL(book.bookURL);
+    } else {
+        displayURL(helpURL); 
+    }
+}
+</pre>
+<p>The preceding code performs these tasks:</p>
+<ul>
+<li>Gets the default 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/javax/swing/tree/TreeSelectionModel.html"><code>TreeSelectionModel</code></a> for the tree, and then sets it up so that at most one tree node at a time can be selected.</li>
+<li>Registers an event handler on the tree. The event handler is an object that implements the 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/javax/swing/event/TreeSelectionListener.html"><code>TreeSelectionListener</code></a> interface.</li>
+<li>In the event handler, determines which node is selected by invoking the tree's <code>getLastSelectedPathComponent</code> method.</li>
+<li>Uses the <code>getUserObject</code> method to get the data associated with the node.</li>
+</ul>
+<p>For more details about handling tree selection events, see 
+<a class="TutorialLink" target="_top" href="../events/treeselectionlistener.html">How to Write a Tree Selection Listener</a>.</p>
+<h2><a name="display" id="display">Customizing a Tree's Display</a></h2>
+<p>Here is a picture of some tree nodes, as drawn by the Java, Windows, and Mac OS look and feel implementations.</p>
+<p style="text-align: center"></p>
+<p>As the preceding figures show, a tree conventionally displays an icon and some text for each node. You can customize these, as we will show shortly.</p>
+<p>A tree typically also performs some look-and-feel-specific painting to indicate relationships between nodes. You can customize this painting in a limited way. First, you can use <code>tree.setRootVisible(true)</code> to show the root node or <code>tree.setRootVisible(false)</code> to hide it. Second, you can use <code>tree.setShowsRootHandles(true)</code> to request that a tree's top-level nodes  the root node (if it is visible) or its children (if not)  have handles that let them be expanded or collapsed.</p>
+<p>If you are using the Java look and feel, you can customize whether lines are drawn to show relationships between tree nodes. By default, the Java look and feel draws angled lines between nodes. By setting the <code>JTree.lineStyle</code> client property of a tree, you can specify a different convention. For example, to request that the Java look and feel use only horizontal lines to group nodes, use the following code:</p>
+<p>WHATSON? edf08485-9fd4-4ef0-9a74-a70fdacd452c</p>
+<pre>
+tree.putClientProperty("JTree.lineStyle", "Horizontal");
+</pre>
+<p>To specify that the Java look and feel should draw no lines, use this code:</p>
+<p>WHATSON? 2cb51aea-2267-4ac6-89f7-ee15ed16192f</p>
+<pre>
+tree.putClientProperty("JTree.lineStyle", "None");
+</pre>
+<p>The following snapshots show the results of setting the <code>JTree.lineStyle</code> property, when using the Java look and feel.</p>
+<p style="text-align: center"></p>
+<p>No matter what the look and feel, the default icon displayed by a node is determined by whether the node is a leaf and, if not, whether it is expanded. For example, in the Windows and Motif look and feel implementations, the default icon for each leaf node is a dot; in the Java look and feel, the default leaf icon is a paper-like symbol. In all the look-and-feel implementations we have shown, branch nodes are marked with folder-like symbols. Some look and feels might have different icons for expanded branches versus collapsed branches.</p>
+<p>You can easily change the default icon used for leaf, expanded branch, or collapsed branch nodes. To do so, you first create an instance of 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/javax/swing/tree/DefaultTreeCellRenderer.html"><code>DefaultTreeCellRenderer</code></a>. You could always create your own TreeCellRenderer implementation from scratch, reusing whatever components you like. Next, specify the icons to use by invoking one or more of the following methods on the renderer: <code>setLeafIcon</code> (for leaf nodes), <code>setOpenIcon</code> (for expanded branch nodes), <code>setClosedIcon</code> (for collapsed branch nodes). If you want the tree to display no icon for a type of node, then specify <code>null</code> for the icon. Once you have set up the icons, use the tree's <code>setCellRenderer</code> method to specify that the <code>DefaultTreeCellRenderer</code> paint its nodes. Here is an example, taken from 
+<a class="SourceLink" target="_blank" href="../examples/components/TreeIconDemoProject/src/components/TreeIconDemo.java" onclick="showCode('../../displayCode.html', '../examples/components/TreeIconDemoProject/src/components/TreeIconDemo.java'); return false;"><code>TreeIconDemo.java</code></a>:</p>
+<p>WHATSON? cc4fc42f-1b08-4c2e-928f-e626093699ea</p>
+<pre>
+ImageIcon leafIcon = createImageIcon("images/middle.gif");
+if (leafIcon != null) {
+    DefaultTreeCellRenderer renderer = 
+        new DefaultTreeCellRenderer();
+    renderer.setLeafIcon(leafIcon);
+    tree.setCellRenderer(renderer);
+}
+</pre>
+<p>Here is the screenshot of TreeIconDemo:</p>
+<ul>
+<li>Click the Launch button to run the TreeIconDemo using 
+<a class="OutsideLink" target="_blank" href="http://www.oracle.com/technetwork/java/javase/javawebstart/index.html">Java™ Web Start</a> (<a href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">download JDK 7 or later</a>). Alternatively, to compile and run the example yourself, consult the <a href="../examples/components/index.html#TreeIconDemo">example index</a>.<a href="http://docs.oracle.com/javase/tutorialJWS/samples/uiswing/TreeIconDemoProject/TreeIconDemo.jnlp"><img src="../../images/jws-launch-button.png" width="88" height="23" align="bottom" alt="Launches the TreeIconDemo example"></a><br>
+<p><!--  ******* end boilerplate stuff  *******  --></p>
+</li>
+</ul>
+<p><!--  ******* end boilerplate stuff  *******  --></p>
+<p>If you want finer control over the node icons or you want to provide tool tips, you can do so by creating a subclass of <code>DefaultTreeCellRenderer</code> and overriding the <code>getTreeCellRendererComponent</code> method. Because <code>DefaultTreeCellRenderer</code> is a subclass of <code>JLabel</code>, you can use any <code>JLabel</code> method  such as <code>setIcon</code>  to customize the <code>DefaultTreeCellRenderer</code>.</p>
+<p>The following code, from 
+<a class="SourceLink" target="_blank" href="../examples/components/TreeIconDemo2Project/src/components/TreeIconDemo2.java" onclick="showCode('../../displayCode.html', '../examples/components/TreeIconDemo2Project/src/components/TreeIconDemo2.java'); return false;"><code>TreeIconDemo2.java</code></a>, creates a cell renderer that varies the leaf icon depending on whether the word "Tutorial" is in the node's text data. The renderer also specifies tool-tip text, as the bold lines show. <!-- ***************** boilerplate stuff **************** --></p>
+<ul>
+<li>Click the Launch button to run the TreeIconDemo2 using 
+<a class="OutsideLink" target="_blank" href="http://www.oracle.com/technetwork/java/javase/javawebstart/index.html">Java™ Web Start</a> (<a href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">download JDK 7 or later</a>). Alternatively, to compile and run the example yourself, consult the <a href="../examples/components/index.html#TreeIconDemo2">example index</a>.<a href="http://docs.oracle.com/javase/tutorialJWS/samples/uiswing/TreeIconDemo2Project/TreeIconDemo2.jnlp"><img src="../../images/jws-launch-button.png" width="88" height="23" align="bottom" alt="Launches the TreeDemo example"></a><br>
+<p><!--  ******* end boilerplate stuff  *******  --></p>
+</li>
+</ul>
+<p><!--  ******* end boilerplate stuff  *******  --></p>
+<p>WHATSON? 8de5e38d-5bc8-4d0c-9c01-854a337f67f6</p>
+<pre>
+<em>//...where the tree is initialized:</em>
+    <b>//Enable tool tips.
+    ToolTipManager.sharedInstance().registerComponent(tree);</b>
+    
+    ImageIcon tutorialIcon = createImageIcon("images/middle.gif");
+    if (tutorialIcon != null) {
+        tree.setCellRenderer(new MyRenderer(tutorialIcon));
+    }
+...
+class MyRenderer extends DefaultTreeCellRenderer {
+    Icon tutorialIcon;
+
+    public MyRenderer(Icon icon) {
+        tutorialIcon = icon;
+    }
+
+    public Component getTreeCellRendererComponent(
+                        JTree tree,
+                        Object value,
+                        boolean sel,
+                        boolean expanded,
+                        boolean leaf,
+                        int row,
+                        boolean hasFocus) {
+
+        super.getTreeCellRendererComponent(
+                        tree, value, sel,
+                        expanded, leaf, row,
+                        hasFocus);
+        if (leaf &amp;&amp; isTutorialBook(value)) {
+            setIcon(tutorialIcon);
+            <b>setToolTipText("This book is in the Tutorial series.");</b>
+        <b>} else {
+            setToolTipText(null); //no tool tip</b>
+        } 
+
+        return this;
+    }
+
+    protected boolean isTutorialBook(Object value) {
+        DefaultMutableTreeNode node =
+                (DefaultMutableTreeNode)value;
+        BookInfo nodeInfo =
+                (BookInfo)(node.getUserObject());
+        String title = nodeInfo.bookName;
+        if (title.indexOf("Tutorial") &gt;= 0) {
+            return true;
+        }
+
+        return false;
+    }
+}
+</pre>
+<p>Here is the result:</p>
+<p>You might be wondering how a cell renderer works. When a tree paints each node, neither the <code>JTree</code> nor its look-and-feel-specific implementation actually contains the code that paints the node. Instead, the tree uses the cell renderer's painting code to paint the node. For example, to paint a leaf node that has the string "The Java Programming Language", the tree asks its cell renderer to return a component that can paint a leaf node with that string. If the cell renderer is a <code>DefaultTreeCellRenderer</code>, then it returns a label that paints the default leaf icon followed by the string.</p>
+<p>A cell renderer only paints; it cannot handle events. If you want to add event handling to a tree, you need to register your handler on either the tree or, if the handling occurs only when a node is selected, the tree's <em>cell editor</em>. For information about cell editors, see <a href="table.html#editrender">Concepts: Editors and Renderers</a>. That section discusses table cell editors and renderers, which are similar to tree cell editors and renderers.</p>
+<h2><a name="dynamic" id="dynamic">Dynamically Changing a Tree</a></h2>
+<p>The following figure shows an application called DynamicTreeDemo that lets you add nodes to and remove nodes from a visible tree. You can also edit the text in each node.</p>
+<p>The application is based on an example provided by tutorial reader Richard Stanford. <!-- ***************** boilerplate stuff **************** --></p>
+<ul>
+<li>Click the Launch button to run the DynamicTreeDemo using 
+<a class="OutsideLink" target="_blank" href="http://www.oracle.com/technetwork/java/javase/javawebstart/index.html">Java™ Web Start</a> (<a href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">download JDK 7 or later</a>). Alternatively, to compile and run the example yourself, consult the <a href="../examples/components/index.html#DynamicTreeDemo">example index</a>.<a href="http://docs.oracle.com/javase/tutorialJWS/samples/uiswing/DynamicTreeDemoProject/DynamicTreeDemo.jnlp"><img src="../../images/jws-launch-button.png" width="88" height="23" align="bottom" alt="Launches the TreeDemo example"></a><br>
+<p><!--  ******* end boilerplate stuff  *******  --></p>
+</li>
+</ul>
+<p><!--  ******* end boilerplate stuff  *******  --></p>
+<p>Here is the code that initializes the tree:</p>
+<p>WHATSON? 42194d18-7773-4b55-8287-644d04c87510</p>
+<pre>
+rootNode = new DefaultMutableTreeNode("Root Node");
+treeModel = new DefaultTreeModel(rootNode);
+treeModel.addTreeModelListener(new MyTreeModelListener());
+
+tree = new JTree(treeModel);
+tree.setEditable(true);
+tree.getSelectionModel().setSelectionMode
+        (TreeSelectionModel.SINGLE_TREE_SELECTION);
+tree.setShowsRootHandles(true);
+</pre>
+<p>By explicitly creating the tree's model, the code guarantees that the tree's model is an instance of 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/javax/swing/tree/DefaultTreeModel.html"><code>DefaultTreeModel</code></a>. That way, we know all the methods that the tree model supports. For example, we know that we can invoke the model's <code>insertNodeInto</code> method, even though that method is not required by the <code>TreeModel</code> interface.</p>
+<p>To make the text in the tree's nodes editable, we invoke <code>setEditable(true)</code> on the tree. When the user has finished editing a node, the model generates a tree model event that tells any listeners  including the <code>JTree</code>  that tree nodes have changed. Note that although <code>DefaultMutableTreeNode</code> has methods for changing a node's content, changes should go through the <code>DefaultTreeModel</code> cover methods. Otherwise, the tree model events would not be generated, and listeners such as the tree would not know about the updates.</p>
+<p>To be notified of node changes, we can implement a 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/javax/swing/event/TreeModelListener.html"><code>TreeModelListener</code></a>. Here is an example of a tree model listener that detects when the user has typed in a new name for a tree node:</p>
+<p>WHATSON? cbef14c6-b1f1-4c3a-b657-444727027a00</p>
+<pre>
+class MyTreeModelListener implements TreeModelListener {
+    public void treeNodesChanged(TreeModelEvent e) {
+        DefaultMutableTreeNode node;
+        node = (DefaultMutableTreeNode)
+                 (e.getTreePath().getLastPathComponent());
+
+        /*
+         * If the event lists children, then the changed
+         * node is the child of the node we have already
+         * gotten.  Otherwise, the changed node and the
+         * specified node are the same.
+         */
+        try {
+            int index = e.getChildIndices()[0];
+            node = (DefaultMutableTreeNode)
+                   (node.getChildAt(index));
+        } catch (NullPointerException exc) {}
+
+        System.out.println("The user has finished editing the node.");
+        System.out.println("New value: " + node.getUserObject());
+    }
+    public void treeNodesInserted(TreeModelEvent e) {
+    }
+    public void treeNodesRemoved(TreeModelEvent e) {
+    }
+    public void treeStructureChanged(TreeModelEvent e) {
+    }
+}
+</pre>
+<p>Here is the code that the <b>Add</b> button's event handler uses to add a new node to the tree:</p>
+<p>WHATSON? 1d3a2c55-9a5d-4a10-befb-7024dc59aa3a</p>
+<pre>
+treePanel.addObject("New Node " + newNodeSuffix++);
+...
+public DefaultMutableTreeNode addObject(Object child) {
+    DefaultMutableTreeNode parentNode = null;
+    TreePath parentPath = tree.getSelectionPath();
+
+    if (parentPath == null) {
+        //There is no selection. Default to the root node.
+        parentNode = rootNode;
+    } else {
+        parentNode = (DefaultMutableTreeNode)
+                     (parentPath.getLastPathComponent());
+    }
+
+    return addObject(parentNode, child, true);
+}
+...
+public DefaultMutableTreeNode addObject(DefaultMutableTreeNode parent,
+                                        Object child,
+                                        boolean shouldBeVisible) {
+    DefaultMutableTreeNode childNode =
+            new DefaultMutableTreeNode(child);
+    ...
+    treeModel.insertNodeInto(childNode, parent,
+                             parent.getChildCount());
+
+    //Make sure the user can see the lovely new node.
+    if (shouldBeVisible) {
+        tree.scrollPathToVisible(new TreePath(childNode.getPath()));
+    }
+    return childNode;
+}
+</pre>
+<p>The code creates a node, inserts it into the tree model, and then, if appropriate, requests that the nodes above it be expanded and the tree scrolled so that the new node is visible. To insert the node into the model, the code uses the <code>insertNodeInto</code> method provided by the <code>DefaultTreeModel</code> class.</p>
+<h2><a name="data" id="data">Creating a Data Model</a></h2>
+<p>If <code>DefaultTreeModel</code> does not suit your needs, then you will need to write a custom data model. Your data model must implement the 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/javax/swing/tree/TreeModel.html"><code>TreeModel</code></a> interface. <code>TreeModel</code> specifies methods for getting a particular node of the tree, getting the number of children of a particular node, determining whether a node is a leaf, notifying the model of a change in the tree, and adding and removing tree model listeners.</p>
+<p>Interestingly, the <code>TreeModel</code> interface accepts any kind of object as a tree node. It does not require that nodes be represented by <code>DefaultMutableTreeNode</code> objects, or even that nodes implement the 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/javax/swing/tree/TreeNode.html"><code>TreeNode</code></a> interface. Thus, if the <code>TreeNode</code> interface is not suitable for your tree model, feel free to devise your own representation for tree nodes. For example, if you have a pre-existing hierarchical data structure, you do not need to duplicate it or force it into the <code>TreeNode</code> mold. You just need to implement your tree model so that it uses the information in the existing data structure.</p>
+<p>The following figure shows an application called GenealogyExample that displays the descendants or ancestors of a particular person. (Thanks to tutorial reader Olivier Berlanger for providing this example.) <!-- ***************** boilerplate stuff **************** --></p>
+<ul>
+<li>Click the Launch button to run the Genealogy Example using 
+<a class="OutsideLink" target="_blank" href="http://www.oracle.com/technetwork/java/javase/javawebstart/index.html">Java™ Web Start</a> (<a href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">download JDK 7 or later</a>). Alternatively, to compile and run the example yourself, consult the <a href="../examples/components/index.html#GenealogyExample">example index</a>.<a href="http://docs.oracle.com/javase/tutorialJWS/samples/uiswing/GenealogyExampleProject/GenealogyExample.jnlp"><img src="../../images/jws-launch-button.png" width="88" height="23" align="bottom" alt="Launches the TreeDemo example"></a><br>
+<p><!--  ******* end boilerplate stuff  *******  --></p>
+</li>
+</ul>
+<p><!--  ******* end boilerplate stuff  *******  --></p>
+<p>You can find the custom tree model implementation in 
+<a class="SourceLink" target="_blank" href="../examples/components/GenealogyExampleProject/src/components/GenealogyModel.java" onclick="showCode('../../displayCode.html', '../examples/components/GenealogyExampleProject/src/components/GenealogyModel.java'); return false;"><code>GenealogyModel.java</code></a>. Because the model is implemented as an <code>Object</code> subclass instead of, say, a subclass of <code>DefaultTreeModel</code>, it must implement the <code>TreeModel</code> interface directly. This requires implementing methods for getting information about nodes, such as which is the root and what are the children of a particular node. In the case of <code>GenealogyModel</code>, each node is represented by an object of type <code>Person</code>, a custom class that does not implement <code>TreeNode</code>.</p>
+<p>A tree model must also implement methods for adding and removing tree model listeners, and must fire <code>TreeModelEvent</code>s to those listeners when the tree's structure or data changes. For example, when the user instructs GenealogyExample to switch from showing ancestors to showing descendants, the tree model makes the change and then fires an event to inform its listeners (such as the tree component).</p>
+<h2><a name="lazyload" id="lazyload">How to Load Children Lazily</a></h2>
+<p>Lazy loading is a characteristic of an application when the actual loading and instantiation of a class is delayed until the point just before the instance is actually used.</p>
+<p>Do we gain anything by loading them lazily? Yes, this would definitely add to the performance of an application. By lazily loading, you can dedicate the memory resources to load and instantiate an object only when it is actually used. You can also speed up the initial loading time of an application.</p>
+<p>One of the ways you can lazily load children of a Tree is by utilizing the TreeWillExpandListener interface. For example, you can declare and load root, grandparent and parent of a Tree along with the application as shown in the following code:</p>
+<p>Let us declare the root, grandparent and parent as shown below:</p>
+<p>WHATSON? fd3087bf-61d3-49c9-8b94-affa1bca95bf</p>
+<pre>
+
+class DemoArea extends JScrollPane
+                   implements TreeWillExpandListener {
+        .......
+        .......
+
+        private TreeNode createNodes() {
+            DefaultMutableTreeNode root;
+            DefaultMutableTreeNode grandparent;
+            DefaultMutableTreeNode parent;
+
+            root = new DefaultMutableTreeNode("San Francisco");
+
+            grandparent = new DefaultMutableTreeNode("Potrero Hill");
+            root.add(grandparent);
+
+            parent = new DefaultMutableTreeNode("Restaurants");
+            grandparent.add(parent);
+            
+            dummyParent = parent;
+            return root;
+        }
+
+</pre>
+<p>You can load above declared nodes to the tree as shown in the following code:</p>
+<p>WHATSON? 6992e400-4391-4bff-b10f-7dadc2c4e2f8</p>
+<pre>
+TreeNode rootNode = createNodes();
+tree = new JTree(rootNode);
+tree.addTreeExpansionListener(this);
+tree.addTreeWillExpandListener(this);
+.......
+.......
+setViewportView(tree);
+</pre>
+<p>Now, you can load children lazily to the application whenever the parent node <code>Restaurants</code> is visible in the application. To do this, let us declare two children in a separate method and call that method as shown in the following code:</p>
+<p>WHATSON? b0ecc3d4-8883-4891-b96f-a7250ea14c18</p>
+<pre>
+private void LoadLazyChildren(){
+            DefaultMutableTreeNode child;
+            child = new DefaultMutableTreeNode("Thai Barbeque");
+            dummyParent.add(child);
+            child = new DefaultMutableTreeNode("Goat Hill Pizza");
+            dummyParent.add(child);
+            textArea.append(" Thai Barbeque and Goat Hill Pizza are loaded lazily");
+        }
+
+        .......
+        .......
+
+public void treeWillExpand(TreeExpansionEvent e) 
+                    throws ExpandVetoException {
+            saySomething("You are about to expand node ", e);
+            int n = JOptionPane.showOptionDialog(
+                this, willExpandText, willExpandTitle,
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                willExpandOptions,
+                willExpandOptions[1]);
+           
+        LoadLazyChildren();
+        }
+</pre>
+<p>See 
+<a class="TutorialLink" target="_top" href="../events/treewillexpandlistener.html">How to Write a Tree-Will-Expand Listener</a> for a description of Tree-Will-Expand listeners.</p>
+<h2><a name="api" id="api">The Tree API</a></h2>
+<p>The tree API is quite extensive. The following tables list just a bit of the API, concentrating on the following categories:</p>
+<ul>
+<li><a href="#overviewapi">Tree-Related Classes and Interfaces</a></li>
+<li><a href="#creatingapi">Creating and Setting Up a Tree</a> 
+</li>
+<li><a href="#selectionapi">Implementing Selection</a></li>
+<li><a href="#expandapi">Showing and Hiding Nodes</a></li>
+</ul>
+<p>For more information about the tree API, see the API documentation for 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/javax/swing/JTree.html"><code>JTree</code></a> and for the various classes and interfaces in the 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/javax/swing/tree/package-summary.html">tree package</a>. Also refer to <a href="jcomponent.html">The JComponent Class</a> for information on the API <code>JTree</code> inherits from its superclass.</p>
+<p>The <code>boolean</code> argument, if present, specifies how the tree should determine whether a node should be displayed as a leaf. If the argument is false (the default), any node without children is displayed as a leaf. If the argument is true, a node is a leaf only if its 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/javax/swing/tree/TreeNode.html#getAllowsChildren--"><code>getAllowsChildren</code></a> method returns false.</p>
+<p>
+</p>
+<h2><a name="eg" id="eg">Examples that Use Trees</a></h2>
+<p>This table lists examples that use <code>JTree</code> and where those examples are described.</p>
+<p>If you are programming in JavaFX, see
+<a class="OutsideLink" target="_blank" href="http://docs.oracle.com/javase/8/javafx/user-interface-tutorial/tree-view.htm">Tree View</a>.</p>

@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>How-to-Use-SpringLayout-The-Java-Tutorials---------------------Creating-a-GUI-With-JFCSwing--Laying-Out-Components-Within-a-Container.html</title></head>
+<body>
+<h1>How to Use SpringLayout</h1>
+<p>If you are interested in using JavaFX to create your GUI, see
+Working With Layouts in JavaFX.</p>
+<p>The 
+<code>SpringLayout</code> class was added in JDK version 1.4 to support layout in GUI builders. <code>SpringLayout</code> is a very flexible layout manager that can emulate many of the features of other layout managers. <code>SpringLayout</code> is, however, very low-level and as such you really should only use it with a GUI builder, rather than attempting to code a spring layout manager by hand.</p>
+<p>This section begins with a simple example showing all the things you need to remember to create your first spring layout  and what happens when you forget them! Later it presents utility methods that let you lay out components in a couple of different types of grids.</p>
+<p>Here are pictures of some of the layouts we will cover:</p>
+<h2>How Spring Layouts Work</h2>
+<p>Spring layouts do their job by defining directional relationships, or <i>constraints</i>, between the edges of components. For example, you might define that the left edge of one component is a fixed distance (5 pixels, say) from the right edge of another component.</p>
+<p>In a <code>SpringLayout</code>, the position of each edge is dependent on the position of just one other edge. If a constraint is subsequently added to create a new binding for an edge, the previous binding is discarded and the edge remains dependent on a single edge.</p>
+<p>Unlike many layout managers, <code>SpringLayout</code> does not automatically set the location of the components it manages. If you hand-code a GUI that uses <code>SpringLayout</code>, remember to initialize component locations by constraining the west/east and north/south locations. Depending on the constraints you use, you may also need to set the size of the container explicitly.</p>
+<p>Components define <em>edge</em> properties, which are connected by <code>Spring</code> instances. Each spring has four properties  its <em>minimum</em>, <em>preferred</em>, and <em>maximum</em> values, and its actual (current) <em>value</em>. The springs associated with each component are collected into a <code>SpringLayout.Constraints</code> object.</p>
+<p>An instance of the <code>Spring</code> class holds three properties that characterize its behavior: the minimum, preferred, and maximum values. Each of these properties may be involved in defining its fourth, value, property based on a series of rules.</p>
+<p>An instance of the <code>Spring</code> class can be visualized as a mechanical spring that provides a corrective force as the spring is compressed or stretched away from its preferred value. This force is modelled as linear function of the distance from the preferred value, but with two different constants -- one for the compressional force and one for the tensional one. Those constants are specified by the minimum and maximum values of the spring such that a spring at its minimum value produces an equal and opposite force to that which is created when it is at its maximum value. The difference between the preferred and minimum values, therefore, represents the ease with which the spring can be compressed. The difference between its maximum and preferred values indicates the ease with which the <code>Spring</code> can be extended.</p>
+<p>Based on this, a <code>SpringLayout</code> can be visualized as a set of objects that are connected by a set of springs on their edges.</p>
+<h2>Example: SpringDemo</h2>
+<p>This section takes you through the typical steps of specifying the constraints for a container that uses <code>SpringLayout</code>. The first example, 
+<code>SpringDemo1.java</code>, is an extremely simple application that features a label and a text field in a content pane controlled by a spring layout. Here is the relevant code:</p>
+<p>WHATSON? 917c4960-66e1-4976-a0a6-ffc065a0b5aa</p>
+<pre>
+public class SpringDemo1 {
+    public static void main(String[] args) {
+        ...
+        Container contentPane = frame.getContentPane();
+        SpringLayout layout = new SpringLayout();
+        contentPane.setLayout(layout);
+        contentPane.add(new JLabel("Label: "));
+        contentPane.add(new JTextField("Text field", 15));
+        ...
+        frame.pack();
+        frame.setVisible(true);
+    }
+}
+</pre>
+<p>Click the Launch button to run SpringDemo1 using 
+Java™ Web Start (download JDK 7 or later). Alternatively, to compile and run the example yourself, consult the example index.</p>
+<p>Here is what the GUI looks like when it first comes up:</p>
+<p>Here is what it looks like when it is resized to be bigger:</p>
+<p>Obviously, we have some problems. Not only does the frame come up way too small, but even when it is resized the components are all located at (0,0). This happens because we have set no springs specifying the components' positions and the width of the container. One small consolation is that at least the components are at their preferred sizes  we get that for free from the default springs created by <code>SpringLayout</code> for each component.</p>
+<p>Our next example, 
+<code>SpringDemo2.java</code>, improves the situation a bit by specifying locations for each component.Click the Launch button to run SpringDemo2 using 
+Java™ Web Start (download JDK 7 or later). Alternatively, to compile and run the example yourself, consult the example index.</p>
+<p>In this example, we will specify that the components should appear in a single row, with 5 pixels between them. The following code specifies the location of the label:</p>
+<p>WHATSON? 1b460767-c2a0-437d-bf04-176fe638c88b</p>
+<pre>
+//Adjust constraints for the label so it's at (5,5).
+layout.putConstraint(SpringLayout.WEST, label,
+                     5,
+                     SpringLayout.WEST, contentPane);
+layout.putConstraint(SpringLayout.NORTH, label,
+                     5,
+                     SpringLayout.NORTH, contentPane);
+</pre>
+<p>The first <code>putConstraint</code> call specifies that the label's left (west) edge should be 5 pixels from its container's left edge. This translates to an <em>x</em> coordinate of 5. The second <code>putConstraint</code> call sets up a similar relationship between the top (north) edges of the label and its container, resulting in a <em>y</em> coordinate of 5.</p>
+<p>Here is the code that sets up the location of the text field:</p>
+<p>WHATSON? ff9d8055-c567-4384-90fb-03bf39a13714</p>
+<pre>
+//Adjust constraints for the text field so it's at
+//(<em>&lt;label's right edge&gt;</em> + 5, 5).
+layout.putConstraint(SpringLayout.WEST, textField,
+                     5,
+                     SpringLayout.EAST, label);
+layout.putConstraint(SpringLayout.NORTH, textField,
+                     5,
+                     SpringLayout.NORTH, contentPane);
+</pre>
+<p>The first <code>putConstraint</code> call makes the text field's left (west) edge be 5 pixels away from the label's right (east) edge. The second <code>putConstraint</code> call is just like the second call in the first snippet, and has the same effect of setting the component's <em>y</em> coordinate to 5.</p>
+<p>The previous example still has the problem of the container coming up too small. But when we resize the window, the components are in the right place:</p>
+<p>To make the container initially appear at the right size, we need to set the springs that define the right (east) and bottom (south) edges of the container itself. No constraints for the right and bottom container edges are set by default. The size of the container is defined by setting these constraints. 
+<code>SpringDemo3.java</code> shows how to do this. Click the Launch button to run SpringDemo3 using 
+Java™ Web Start (download JDK 7 or later). Alternatively, to compile and run the example yourself, consult the example index.</p>
+<p>Here is the code that sets the container's springs:</p>
+<p>WHATSON? c21e4325-7e8b-4f6a-ab11-26fc526905a0</p>
+<pre>
+layout.putConstraint(SpringLayout.EAST, contentPane,
+                     5,
+                     SpringLayout.EAST, textField);
+layout.putConstraint(SpringLayout.SOUTH, contentPane,
+                     5,
+                     SpringLayout.SOUTH, textField);
+</pre>
+<p>The first <code>putConstraint</code> call makes the container's right edge be 5 pixels to the right of the text field's right edge. The second one makes its bottom edge be 5 pixels beyond the bottom edge of the tallest component (which, for simplicity's sake, we've assumed is the text field).</p>
+<p>Finally, the window comes up at the right size:</p>
+<p>When we make the window larger we can see the spring layout in action, distributing the extra space between the available components.</p>
+<p>In this case the spring layout has chosen to give all the extra space to the text field. Although it seems like the spring layout treats labels and text fields differently, spring layout has no special knowledge of any Swing or AWT components. It relies on the values of a component's minimum, preferred, and maximum size properties. The next section discusses how spring layout uses these properties, and why they can cause uneven space distribution.</p>
+<h2>Springs and Component Size</h2>
+<p>A <code>SpringLayout</code> object automatically installs <code>Spring</code>s for the height and width of each component that the <code>SpringLayout</code> controls. These springs are essentially covers for the component's <code>getMinimumSize</code>, <code>getPreferredSize</code>, and <code>getMaximumSize</code> methods. By "covers" we mean that not only are the springs <em>initialized</em> with the appropriate values from these methods, but also that the springs <em>track</em> those values. For example, the <code>Spring</code> object that represents the width of a component is a special kind of spring that simply delegates its implementation to the relevant size methods of the component. That way the spring stays in sync with the size methods as the characteristics of the component change.</p>
+<p>When a component's <code>getMaximumSize</code> and <code>getPreferredSize</code> methods return the same value, <code>SpringLayout</code> interprets this as meaning that the component should not be stretched. <code>JLabel</code> and <code>JButton</code> are examples of components implemented this way. For this reason, the label in the SpringDemo3 example does not stretch.</p>
+<p>The <code>getMaximumSize</code> method of some components, such as <code>JTextField</code>, returns the value <code>Integer.MAX_VALUE</code> for the width and height of its maximum size, indicating that the component can grow to any size. For this reason, when the SpringDemo3 window is enlarged, <code>SpringLayout</code> distributes all the extra space to the only springs that can grow  those determining the size of the text field.</p>
+<h2>More About the SpringLayout API</h2>
+<p>The SpringDemo examples used the <code>SpringLayout</code> method <code>putConstraint</code> to set the springs associated with each component. The <code>putConstraint</code> method is a convenience method that lets you modify a component's constraints without needing to use the full spring layout API. Here, again, is the code from <code>SpringDemo3</code> that sets the location of the label:</p>
+<p>WHATSON? f3ad0983-0ca4-4aa8-bb05-e5d7f7eabc05</p>
+<pre>
+layout.putConstraint(SpringLayout.WEST, label,
+                     5,
+                     SpringLayout.WEST, contentPane);
+layout.putConstraint(SpringLayout.NORTH, label,
+                     5,
+                     SpringLayout.NORTH, contentPane);
+</pre>
+<p>Here is equivalent code that uses the <code>SpringLayout.Constraints</code> and <code>Spring</code> classes directly:</p>
+<p>WHATSON? b8125194-c2d7-414e-a54c-c9c4f70ddac2</p>
+<pre>
+SpringLayout.Constraints  contentPaneCons = 
+        layout.getConstraints(contentPane);
+contentPaneCons.setX(Spring.sum(Spring.constant(5),
+                          contentPaneCons
+                          .getConstraint(SpringLayout.WEST)));
+contentPaneCons.setY(Spring.sum(Spring.constant(5),
+                          contentPaneCons
+                          .getConstraint(SpringLayout.NORTH)));
+</pre>
+<p>To see the entire demo converted to use this API, look at 
+<code>SpringDemo4.java</code>. That file also includes a more polished (and much longer) version of the code that sets the container's size. Click the Launch button to run SpringDemo4 using 
+Java™ Web Start (download JDK 7 or later). Alternatively, to compile and run the example yourself, consult the example index.</p>
+<p>As the preceding snippets imply, <code>SpringLayout</code> and <code>SpringLayout.Constraints</code> tend to use different conventions for describing springs. The <code>SpringLayout</code> API uses edges to define its constraints. Springs connect edges to establish linear relations between them. Edges are defined by components, using the following constants:</p>
+<ul>
+<li><code>SpringLayout.NORTH</code> specifies the top edge of a component's bounding rectangle.</li>
+<li><code>SpringLayout.SOUTH</code> specifies the bottom edge of a component's bounding rectangle.</li>
+<li><code>SpringLayout.EAST</code> specifies the right edge of a component's bounding rectangle.</li>
+<li><code>SpringLayout.WEST</code> specifies the left edge of a component's bounding rectangle.</li>
+<li><code>SpringLayout.BASELINE</code> specifies the baseline of a component.</li>
+<li><code>SpringLayout.HORIZONTAL_CENTER</code> specifies the horizontal center of a component's bounding rectangle.</li>
+<li><code>SpringLayout.VERTICAL_CENTER</code> specifies the vertical center of a component's bounding rectangle.</li>
+</ul>
+<p>Edges differ from <code>Spring</code> objects The <code>SpringLayout.Constraints</code> class knows about edges, but only has <code>Spring</code> objects for the following properties:</p>
+<ul>
+<li><em>x</em></li>
+<li><em>y</em></li>
+<li><em>width</em></li>
+<li><em>height</em></li>
+</ul>
+<p>Each <code>Constraints</code> object maintains the following relationships between its springs and the edges they represent:</p>
+<p>WHATSON? 430c6805-4fea-406c-b93c-432aa8e86c66</p>
+<pre>
+ west = x
+north = y
+ east = x + width
+south = y + height
+</pre>
+<p>If you are confused, do not worry. The next section presents utility methods you can use to accomplish some common layout tasks without knowing anything about the spring layout API. 
+</p>
+<h2>Utility Methods for Grids</h2>
+<p>Because the <code>SpringLayout</code> class was created for GUI builders, setting up individual springs for a layout can be cumbersome to code by hand. This section presents a couple of methods you can use to install all the springs needed to lay out a group of components in a grid. These methods emulate some of the features of the <code>GridLayout</code>, <code>GridBagLayout</code>, and <code>BoxLayout</code> classes.</p>
+<p>The two methods, called <code>makeGrid</code> and <code>makeCompactGrid</code>, are defined in 
+<code>SpringUtilities.java</code>. Both methods work by grouping the components together into rows and columns and using the <code>Spring.max</code> method to make a width or height spring that makes a row or column big enough for all the components in it. In the <code>makeCompactGrid</code> method the same width or height spring is used for all components in a particular column or row, respectively. In the <code>makeGrid</code> method, by contrast, the width and height springs are shared by every component in the container, forcing them all to be the same size. Furthermore, factory methods are provided by 
+<code>Spring</code> for creating different kinds of springs, including springs that depend on other springs.</p>
+<p>Let us see these methods in action. Our first example, implemented in the source file 
+<code>SpringGrid.java</code>, displays a bunch of numbers in text fields. The center text field is much wider than the others. Just as with <code>GridLayout</code>, having one large cell forces all the cells to be equally large. Click the Launch button to run SpringGrid using 
+Java™ Web Start (download JDK 7 or later). Alternatively, to compile and run the example yourself, consult the example index.</p>
+<p>Here is the code that creates and lays out the text fields in SpringGrid:</p>
+<p>WHATSON? 9d3f07f3-327f-4fbe-ae41-dc2947c3f927</p>
+<pre>
+JPanel panel = new JPanel(new SpringLayout());
+for (int i = 0; i &lt; 9; i++) {
+    JTextField textField = new JTextField(Integer.toString(i));
+    ...<em>//when i==4, put long text in the text field</em>...
+    panel.add(textField);
+}
+...
+SpringUtilities.makeGrid(panel,
+                         3, 3, //rows, cols
+                         5, 5, //initialX, initialY
+                         5, 5);//xPad, yPad
+</pre>
+<p>Now let us look at an example, in the source file 
+<code>SpringCompactGrid.java</code>, that uses the <code>makeCompactGrid</code> method instead of <code>makeGrid</code>. This example displays lots of numbers to show off spring layout's ability to minimize the space required. Click the Launch button to run SpringCompactGrid using 
+Java™ Web Start (download JDK 7 or later). Alternatively, to compile and run the example yourself, consult the example index.</p>
+<p>Here is what the SpringCompactGrid GUI looks like:</p>
+<p>Here is the code that creates and lays out the text fields in SpringCompactGrid:</p>
+<p>WHATSON? 1d1bd258-5da5-4fb2-a97c-ad0051b73503</p>
+<pre>
+JPanel panel = new JPanel(new SpringLayout());
+
+int rows = 10;
+int cols = 10;
+for (int r = 0; r &lt; rows; r++) {
+    for (int c = 0; c &lt; cols; c++) {
+        int anInt = (int) Math.pow(r, c);
+        JTextField textField =
+                new JTextField(Integer.toString(anInt));
+        panel.add(textField);
+    }
+}
+
+//Lay out the panel.
+SpringUtilities.makeCompactGrid(panel, //parent
+                                rows, cols,
+                                3, 3,  //initX, initY
+                                3, 3); //xPad, yPad
+</pre>
+<p>One of the handiest uses for the <code>makeCompactGrid</code> method is associating labels with components, where the labels are in one column and the components in another. The file 
+<code>SpringForm.java</code> uses <code>makeCompactGrid</code> in this way, as the following figure demonstrates.</p>
+<p>Click the Launch button to run SpringForm using 
+Java™ Web Start (download JDK 7 or later). Alternatively, to compile and run the example yourself, consult the example index.</p>
+<p>Here is the code that creates and lays out the label-text field pairs in SpringForm:</p>
+<p>WHATSON? 33113d88-1d7e-490a-bee4-0a118fb1a51f</p>
+<pre>
+String[] labels = {"Name: ", "Fax: ", "Email: ", "Address: "};
+int numPairs = labels.length;
+
+//Create and populate the panel.
+JPanel p = new JPanel(new SpringLayout());
+for (int i = 0; i &lt; numPairs; i++) {
+    JLabel l = new JLabel(labels[i], JLabel.TRAILING);
+    p.add(l);
+    JTextField textField = new JTextField(10);
+    l.setLabelFor(textField);
+    p.add(textField);
+}
+
+//Lay out the panel.
+SpringUtilities.makeCompactGrid(p,
+                                numPairs, 2, //rows, cols
+                                6, 6,        //initX, initY
+                                6, 6);       //xPad, yPad
+</pre>
+<p>Because we are using a real layout manager instead of absolute positioning, the layout manager responds dynamically to changes in components involved. For example, if the names of the labels are localized, the spring layout produces a configuration that gives the first column more or less room, as needed. And as the following figure shows, when the window is resized, the flexibly sized components  the text fields  take all the excess space, while the labels stick to what they need.</p>
+<p>Our last example of the <code>makeCompactGrid</code> method, in 
+<code>SpringBox.java</code>, shows some buttons configured to be laid out in a single row. Click the Launch button to run SpringBox using 
+Java™ Web Start (download JDK 7 or later). Alternatively, to compile and run the example yourself, consult the example index.</p>
+<p>Note that the behavior is almost identical to that of <code>BoxLayout</code> in the case of a single row. Not only are the components laid out as <code>BoxLayout</code> would arrange them but the minimum, preferred, and maximum sizes of the container that uses the <code>SpringLayout</code> return the same results that <code>BoxLayout</code> would. Here is the call to <code>makeCompactGrid</code> that produces this layout:</p>
+<p>WHATSON? 516c4522-2bf2-4a68-a517-5c5b1eecc459</p>
+<pre>
+//Lay out the buttons in one row and as many columns
+//as necessary, with 6 pixels of padding all around.
+SpringUtilities.makeCompactGrid(contentPane, 1,
+                                contentPane.getComponentCount(),
+                                6, 6, 6, 6);
+</pre>
+<p>Let us look at what happens when we resize this window. This is an odd special case that is worth taking note of as you may run into it by accident in your first layouts.</p>
+<p>Nothing moved! That is because none of the components (buttons) or the spacing between them was defined to be stretchable. In this case the spring layout calculates a maximum size for the parent container that is equal to its preferred size, meaning the parent container itself is not stretchable. It would perhaps be less confusing if the AWT refused to resize a window that was not stretchable, but it does not. The layout manager cannot do anything sensible here as none of the components will take up the required space. Instead of crashing, it just does nothing, leaving all the components as they were.</p>
+<h2>The SpringLayout API</h2>
+<p>The API for using <code>SpringLayout</code> is spread across three classes:</p>
+<ul>
+<li><code>SpringLayout</code></li>
+<li><code>SpringLayout.Constraints</code></li>
+<li><code>Spring</code></li>
+</ul>
+<p>Despite the name, springs returned by <code>constant</code> are mutable. To make a layout work out, <code>SpringLayout</code> might be forced to adjust a "constant" spring. For this reason, you should avoid reusing constant springs unless (1) you truly want the springs to always be precisely alike and (2) other springs provide some flexibility in the layout.</p>
+<h2>Examples that Use SpringLayout</h2>
+<p>The following table lists some examples that use spring layout.</p>
+</body>
+</html>

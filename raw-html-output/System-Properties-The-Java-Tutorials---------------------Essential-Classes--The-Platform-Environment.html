@@ -1,0 +1,71 @@
+<h1>System Properties</h1>
+<p>In <a href="properties.html">Properties</a>, we examined the way an application can use <code>Properties</code> objects to maintain its configuration. The Java platform itself uses a <code>Properties</code> object to maintain its own configuration. The <code>System</code> class maintains a <code>Properties</code> object that describes the configuration of the current working environment. System properties include information about the current user, the current version of the Java runtime, and the character used to separate components of a file path name.</p>
+<p>The following table describes some of the most important system properties</p>
+<h2>Reading System Properties</h2>
+<p>The <code>System</code> class has two methods used to read system properties: <code>getProperty</code> and <code>getProperties</code>.</p>
+<p>The <code>System</code> class has two different versions of <code>getProperty</code>. Both retrieve the value of the property named in the argument list. The simpler of the two <code>getProperty</code> methods takes a single argument, a property key For example, to get the value of <code>path.separator</code>, use the following statement:</p>
+<p>WHATSON? 50712994-2426-42a0-a8cd-7753ab53c4e1</p>
+<pre>
+System.getProperty("path.separator");
+</pre>
+<p>The <code>getProperty</code> method returns a string containing the value of the property. If the property does not exist, this version of <code>getProperty</code> returns null.</p>
+<p>The other version of <code>getProperty</code> requires two <code>String</code> arguments: the first argument is the key to look up and the second argument is a default value to return if the key cannot be found or if it has no value. For example, the following invocation of <code>getProperty</code> looks up the <code>System</code> property called <code>subliminal.message</code>. This is not a valid system property, so instead of returning null, this method returns the default value provided as a second argument: "<code>Buy StayPuft Marshmallows!</code>"</p>
+<p>WHATSON? 9e9b45f8-8ec8-47e9-83cd-db7670943be9</p>
+<pre>
+System.getProperty("subliminal.message", "Buy StayPuft Marshmallows!");
+</pre>
+<p>The last method provided by the <code>System</code> class to access property values is the <code>getProperties</code> method, which returns a 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/util/Properties.html"><code>Properties</code></a> object. This object contains a complete set of system property definitions.</p>
+<h2>Writing System Properties</h2>
+<p>To modify the existing set of system properties, use <code>System.setProperties</code>. This method takes a <code>Properties</code> object that has been initialized to contain the properties to be set. This method replaces the entire set of system properties with the new set represented by the <code>Properties</code> object.</p>
+<p>The next example, 
+<a class="SourceLink" target="_blank" href="examples/PropertiesTest.java" onclick="showCode('../../displayCode.html', 'examples/PropertiesTest.java'); return false;"><code>PropertiesTest</code></a>, creates a <code>Properties</code> object and initializes it from
+<a class="SourceLink" target="_blank" href="examples/myProperties.txt" onclick="showCode('../../displayCode.html', 'examples/myProperties.txt'); return false;"><code>myProperties.txt</code></a>
+.</p>
+<p>WHATSON? 7471646f-5b03-4ab2-ab16-c55a976ebd88</p>
+<pre>
+subliminal.message=Buy StayPuft Marshmallows!
+</pre>
+<p><code>PropertiesTest</code> then uses <code>System.setProperties</code> to install the new <code>Properties</code> objects as the current set of system properties.</p>
+<p>WHATSON? 92b6541b-b790-495e-8e29-39e6762882ae</p>
+<pre>
+
+import java.io.FileInputStream;
+import java.util.Properties;
+
+public class PropertiesTest {
+    public static void main(String[] args)
+        throws Exception {
+
+        // set up new properties object
+        // from file "myProperties.txt"
+        FileInputStream propFile =
+            new FileInputStream( "myProperties.txt");
+        Properties p =
+            new Properties(System.getProperties());
+        p.load(propFile);
+
+        // set the system properties
+        System.setProperties(p);
+        // display new properties
+        System.getProperties().list(System.out);
+    }
+}
+</pre>
+<p>Note how <code>PropertiesTest</code> creates the <code>Properties</code> object, <code>p</code>, which is used as the argument to <code>setProperties</code>:</p>
+<p>WHATSON? fe550953-eafd-4614-9375-9d453239cf50</p>
+<pre>
+Properties p = new Properties(System.getProperties());
+</pre>
+<p>This statement initializes the new properties object, <code>p</code>, with the current set of system properties, which in the case of this small application, is the set of properties initialized by the runtime system. Then the application loads additional properties into <code>p</code> from the file <code>myProperties.txt</code> and sets the system properties to <code>p</code>. This has the effect of adding the properties listed in <code>myProperties.txt</code> to the set of properties created by the runtime system at startup. Note that an application can create <code>p</code> without any default <code>Properties</code> object, like this:</p>
+<p>WHATSON? 7afaec03-4e57-4f7c-854b-314bf5da8572</p>
+<pre>
+Properties p = new Properties();
+</pre>
+<p>Also note that the value of system properties can be overwritten! For example, if <code>myProperties.txt</code> contains the following line, the <code>java.vendor</code> system property will be overwritten:</p>
+<p>WHATSON? ac8fc222-1157-46ed-85af-71561da5ef29</p>
+<pre>
+java.vendor=Acme Software Company
+</pre>
+<p>In general, be careful not to overwrite system properties.</p>
+<p>The <code>setProperties</code> method changes the set of system properties for the current running application. These changes are not persistent. That is, changing the system properties within an application will not affect future invocations of the Java interpreter for this or any other application. The runtime system re-initializes the system properties each time its starts up. If changes to system properties are to be persistent, then the application must write the values to some file before exiting and read them in again upon startup.</p>

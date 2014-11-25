@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Nested-Classes-The-Java-Tutorials---------------------Learning-the-Java-Language--Classes-and-Objects.html</title></head>
+<body>
+<h1>Nested Classes</h1>
+<p>The Java programming language allows you to define a class within another class. Such a class is called a <i>nested class</i> and is illustrated here:</p>
+<p>WHATSON? bd639925-45a0-472d-b1d9-3b4bb7158be7</p>
+<pre>
+class OuterClass {
+    ...
+    class NestedClass {
+        ...
+    }
+}
+</pre>
+<p>WHATSON? 25031f52-3e5c-4ce7-8500-4c55c7cc68ff</p>
+<pre>
+class OuterClass {
+    ...
+    static class StaticNestedClass {
+        ...
+    }
+    class InnerClass {
+        ...
+    }
+}
+</pre>
+<p>A nested class is a member of its enclosing class. Non-static nested classes (inner classes) have access to other members of the enclosing class, even if they are declared private. Static nested classes do not have access to other members of the enclosing class. As a member of the <code>OuterClass</code>, a nested class can be declared <code>private</code>, <code>public</code>, <code>protected</code>, or <i>package private</i>. (Recall that outer classes can only be declared <code>public</code> or <i>package private</i>.)</p>
+<h2>Why Use Nested Classes?</h2>
+<p>Compelling reasons for using nested classes include the following:</p>
+<ul>
+
+<li><p><strong>It is a way of logically grouping classes that are only used in one place</strong>: If a class is useful to only one other class, then it is logical to embed it in that class and keep the two together. Nesting such "helper classes" makes their package more streamlined.</p></li>
+
+<li><p><strong>It increases encapsulation</strong>: Consider two top-level classes, A and B, where B needs access to members of A that would otherwise be declared <code>private</code>. By hiding class B within class A, A's members can be declared private and B can access them. In addition, B itself can be hidden from the outside world.</p></li>
+
+<li><p><strong>It can lead to more readable and maintainable code</strong>: Nesting small classes within top-level classes places the code closer to where it is used.</p></li>
+</ul>
+<p><strong>It is a way of logically grouping classes that are only used in one place</strong>: If a class is useful to only one other class, then it is logical to embed it in that class and keep the two together. Nesting such "helper classes" makes their package more streamlined.</p>
+<p><strong>It increases encapsulation</strong>: Consider two top-level classes, A and B, where B needs access to members of A that would otherwise be declared <code>private</code>. By hiding class B within class A, A's members can be declared private and B can access them. In addition, B itself can be hidden from the outside world.</p>
+<p><strong>It can lead to more readable and maintainable code</strong>: Nesting small classes within top-level classes places the code closer to where it is used.</p>
+<h2>Static Nested Classes</h2>
+<p>As with class methods and variables, a static nested class is associated with its outer class. And like static class methods, a static nested class cannot refer directly to instance variables or methods defined in its enclosing class: it can use them only through an object reference.</p>
+<p>Static nested classes are accessed using the enclosing class name:</p>
+<p>WHATSON? 97b04512-0f20-481c-a883-2a1aa48111cc</p>
+<pre>
+OuterClass.StaticNestedClass
+</pre>
+<p>For example, to create an object for the static nested class, use this syntax:</p>
+<p>WHATSON? 55600fff-43cd-43b6-9963-6f6a36ffe427</p>
+<pre>
+OuterClass.StaticNestedClass nestedObject =
+     new OuterClass.StaticNestedClass();
+</pre>
+<h2>Inner Classes</h2>
+<p>As with instance methods and variables, an inner class is associated with an instance of its enclosing class and has direct access to that object's methods and fields. Also, because an inner class is associated with an instance, it cannot define any static members itself.</p>
+<p>Objects that are instances of an inner class exist <i>within</i> an instance of the outer class. Consider the following classes:</p>
+<p>WHATSON? 34e6cfea-a09e-45ff-ad7b-a55d08b78866</p>
+<pre>
+class OuterClass {
+    ...
+    class InnerClass {
+        ...
+    }
+}
+
+</pre>
+<p>An instance of <code>InnerClass</code> can exist only within an instance of <code>OuterClass</code> and has direct access to the methods and fields of its enclosing instance.</p>
+<p>To instantiate an inner class, you must first instantiate the outer class. Then, create the inner object within the outer object with this syntax:</p>
+<p>WHATSON? 75941598-c725-4079-9db1-99be8ec6ec47</p>
+<pre>
+OuterClass.InnerClass innerObject = outerObject.new InnerClass();
+</pre>
+<p>There are two special kinds of inner classes:
+local classes and
+anonymous classes.</p>
+<h2>Shadowing</h2>
+<p>If a declaration of a type (such as a member variable or a parameter name) in a particular scope (such as an inner class or a method definition) has the same name as another declaration in the enclosing scope, then the declaration <em>shadows</em> the declaration of the enclosing scope. You cannot refer to a shadowed declaration by its name alone. The following example,
+<code>ShadowTest</code>, demonstrates this:</p>
+<p>WHATSON? 521d61fa-6b95-4b95-94a3-1075d0e82bed</p>
+<pre>
+ 
+public class ShadowTest {
+
+    public int x = 0;
+
+    class FirstLevel {
+
+        public int x = 1;
+
+        void methodInFirstLevel(int x) {
+            System.out.println("x = " + x);
+            System.out.println("this.x = " + this.x);
+            System.out.println("ShadowTest.this.x = " + ShadowTest.this.x);
+        }
+    }
+
+    public static void main(String... args) {
+        ShadowTest st = new ShadowTest();
+        ShadowTest.FirstLevel fl = st.new FirstLevel();
+        fl.methodInFirstLevel(23);
+    }
+}
+</pre>
+<p>The following is the output of this example:</p>
+<p>WHATSON? 6d1d30aa-7937-49b1-9f8d-07e1a9133dd5</p>
+<pre>x = 23
+this.x = 1
+ShadowTest.this.x = 0</pre>
+<p>This example defines three variables named <code>x</code>: the member variable of the class <code>ShadowTest</code>, the member variable of the inner class <code>FirstLevel</code>, and the parameter in the method <code>methodInFirstLevel</code>. The variable <code>x</code> defined as a parameter of the method <code>methodInFirstLevel</code> shadows the variable of the inner class <code>FirstLevel</code>. Consequently, when you use the variable <code>x</code> in the method <code>methodInFirstLevel</code>, it refers to the method parameter. To refer to the member variable of the inner class <code>FirstLevel</code>, use the keyword <code>this</code> to represent the enclosing scope:</p>
+<p>WHATSON? 96be3e1d-1d7c-4045-ae80-264f3ccba410</p>
+<pre>System.out.println("this.x = " + this.x);</pre>
+<p>Refer to member variables that enclose larger scopes by the class name to which they belong. For example, the following statement accesses the member variable of the class <code>ShadowTest</code> from the method <code>methodInFirstLevel</code>:</p>
+<p>WHATSON? b7099020-77c4-4efd-8868-22a457d88f6a</p>
+<pre>System.out.println("ShadowTest.this.x = " + ShadowTest.this.x);</pre>
+<h2>Serialization</h2>
+<p>
+Serialization of inner classes, including
+local and
+anonymous classes, is strongly discouraged. When the Java compiler compiles certain constructs, such as inner classes, it creates <em>synthetic constructs</em>; these are classes, methods, fields, and other constructs that do not have a corresponding construct in the source code. Synthetic constructs enable Java compilers to implement new Java language features without changes to the JVM. However, synthetic constructs can vary among different Java compiler implementations, which means that <code>.class</code> files can vary among different implementations as well. Consequently, you may have compatibility issues if you serialize an inner class and then deserialize it with a different JRE implementation. See the section
+Implicit and Synthetic Parameters in the section
+Obtaining Names of Method Parameters for more information about the synthetic constructs generated when an inner class is compiled.</p>
+</body>
+</html>

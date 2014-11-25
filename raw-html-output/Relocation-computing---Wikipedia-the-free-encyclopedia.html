@@ -1,0 +1,141 @@
+<h1 id="firstHeading" class="firstHeading" lang="en"><span dir="auto">Relocation (computing)</span></h1>
+<p><b>Relocation</b> is the process of assigning load addresses to various parts of a program and adjusting the code and data in the program to reflect the assigned addresses.<sup id="cite_ref-1" class="reference"><a href="#cite_note-1"><span>[</span>1<span>]</span></a></sup> A <a href="/wiki/Linker_(computing)" title="Linker (computing)">linker</a> usually performs relocation in conjunction with <b>symbol resolution</b>, the process of searching files and libraries to replace symbolic references or names of <a href="/wiki/Library_(computer_science)" title="Library (computer science)" class="mw-redirect">libraries</a> with actual usable addresses in <a href="/wiki/Primary_storage" title="Primary storage" class="mw-redirect">memory</a> before running a program.</p>
+<p>Relocation is typically done by the linker at <a href="/wiki/Link_time" title="Link time">link time</a>, but it can also be done at <a href="/wiki/Run_time_(program_lifecycle_phase)" title="Run time (program lifecycle phase)">run time</a> by a relocating <a href="/wiki/Loader_(computing)" title="Loader (computing)">loader</a>, or by the running program itself. Some architectures avoid relocation entirely by deferring address assignment to run time; this is known as <a href="/wiki/Zero_address_arithmetic" title="Zero address arithmetic">zero address arithmetic</a>.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Relocation_procedure"><span class="tocnumber">1</span> <span class="toctext">Relocation procedure</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Relocation_table"><span class="tocnumber">2</span> <span class="toctext">Relocation table</span></a>
+<ul>
+<li class="toclevel-2 tocsection-3"><a href="#16-bit_Windows"><span class="tocnumber">2.1</span> <span class="toctext">16-bit Windows</span></a></li>
+<li class="toclevel-2 tocsection-4"><a href="#32-bit_Windows"><span class="tocnumber">2.2</span> <span class="toctext">32-bit Windows</span></a></li>
+<li class="toclevel-2 tocsection-5"><a href="#64-bit_Windows"><span class="tocnumber">2.3</span> <span class="toctext">64-bit Windows</span></a></li>
+<li class="toclevel-2 tocsection-6"><a href="#Unix-like_systems"><span class="tocnumber">2.4</span> <span class="toctext">Unix-like systems</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-7"><a href="#Example"><span class="tocnumber">3</span> <span class="toctext">Example</span></a></li>
+<li class="toclevel-1 tocsection-8"><a href="#See_also"><span class="tocnumber">4</span> <span class="toctext">See also</span></a></li>
+<li class="toclevel-1 tocsection-9"><a href="#References"><span class="tocnumber">5</span> <span class="toctext">References</span></a></li>
+</ul>
+<ul>
+<li class="toclevel-2 tocsection-3"><a href="#16-bit_Windows"><span class="tocnumber">2.1</span> <span class="toctext">16-bit Windows</span></a></li>
+<li class="toclevel-2 tocsection-4"><a href="#32-bit_Windows"><span class="tocnumber">2.2</span> <span class="toctext">32-bit Windows</span></a></li>
+<li class="toclevel-2 tocsection-5"><a href="#64-bit_Windows"><span class="tocnumber">2.3</span> <span class="toctext">64-bit Windows</span></a></li>
+<li class="toclevel-2 tocsection-6"><a href="#Unix-like_systems"><span class="tocnumber">2.4</span> <span class="toctext">Unix-like systems</span></a></li>
+</ul>
+<p></p>
+<h2><span class="mw-headline" id="Relocation_procedure">Relocation procedure</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Relocation_(computing)&amp;action=edit&amp;section=1" title="Edit section: Relocation procedure">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Relocation is typically done in two steps:</p>
+<ol>
+<li>Each <a href="/wiki/Object_file" title="Object file">object file</a> has various <a href="/wiki/Memory_segmentation" title="Memory segmentation">sections</a> like <a href="/wiki/Code_segment" title="Code segment">code</a>, <a href="/wiki/Data_segment" title="Data segment">data</a>, <a href="/wiki/.bss" title=".bss">.bss</a> etc. To combine all the objects to a single executable, the linker merges all sections of similar type into a single section of that type. The linker then assigns run time addresses to each section and each symbol. At this point, the code (functions) and data (global variables) will have unique run time addresses.</li>
+<li>Each section refers to one or more symbols which should be modified so that they point to the correct run time addresses based on information stored in a <b>relocation table</b> in the object file.</li>
+</ol>
+<h2><span class="mw-headline" id="Relocation_table">Relocation table</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Relocation_(computing)&amp;action=edit&amp;section=2" title="Edit section: Relocation table">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>The relocation table is a list of <a href="/wiki/Pointer_(computer_programming)" title="Pointer (computer programming)">pointers</a> created by the <a href="/wiki/Compiler" title="Compiler">compiler</a> or <a href="/wiki/Assembler_(computer_programming)#Assembler" title="Assembler (computer programming)" class="mw-redirect">assembler</a> and stored in the object or executable file. Each entry in the table, or "fixup", is a <a href="/wiki/Pointer_(computer_programming)" title="Pointer (computer programming)">pointer</a> to an address in the object code that must be changed when the loader relocates the program. Fixups are designed to support relocation of the program as a complete unit. In some cases, each fixup in the table is itself relative to a base address of zero, so the fixups themselves must be changed as the loader moves through the table.<sup id="cite_ref-2" class="reference"><a href="#cite_note-2"><span>[</span>2<span>]</span></a></sup></p>
+<p>In some architectures a fixup that crosses certain boundaries (such as a segment boundary) or that is not aligned on a word boundary is illegal and flagged as an error by the linker.<sup id="cite_ref-3" class="reference"><a href="#cite_note-3"><span>[</span>3<span>]</span></a></sup></p>
+<h3><span class="mw-headline" id="16-bit_Windows">16-bit Windows</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Relocation_(computing)&amp;action=edit&amp;section=3" title="Edit section: 16-bit Windows">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Far <a href="/wiki/Pointer_(computer_programming)" title="Pointer (computer programming)">pointers</a> (<a href="/wiki/32-bit" title="32-bit">32-bit</a> pointers with <a href="/wiki/X86_memory_segmentation" title="X86 memory segmentation">segment</a>:offset, used to address 20-bit 640 <a href="/wiki/Kilobyte" title="Kilobyte">KB</a> <a href="/wiki/Computer_storage" title="Computer storage" class="mw-redirect">memory</a> space available to <a href="/wiki/DOS" title="DOS">DOS</a> <a href="/wiki/Computer_program" title="Computer program">programs</a>), which point to code or data within an <a href="/wiki/DOS_executable" title="DOS executable" class="mw-redirect">DOS executable</a> (<a href="/wiki/EXE" title="EXE" class="mw-redirect">EXE</a>) do not have absolute segments, because the actual <a href="/wiki/Memory_address" title="Memory address">address</a> of code/data depends on where the program is loaded in memory and this is not known until the program is loaded.</p>
+<p>Instead, segments are relative values in the DOS EXE file. These segments need to be corrected, when the executable has been loaded into memory. The EXE <a href="/wiki/Loader_(computing)" title="Loader (computing)">loader</a> uses a relocation table to find the segments which need to be adjusted.</p>
+<h3><span class="mw-headline" id="32-bit_Windows">32-bit Windows</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Relocation_(computing)&amp;action=edit&amp;section=4" title="Edit section: 32-bit Windows">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>With 32-bit Windows operating systems it is not mandatory to provide relocation tables for EXE files, since they are the first image loaded into the virtual address space and thus will be loaded at their preferred base address.</p>
+<p>For both DLLs and for EXEs which opt into <a href="/wiki/Address_Space_Layout_Randomisation" title="Address Space Layout Randomisation" class="mw-redirect">Address Space Layout Randomisation</a> - an exploit mitigation technique introduced with Windows Vista, relocation tables once again become mandatory because of the possibility that the binary may be dynamically moved before being executed, even though they are still the first thing loaded in the virtual address space.</p>
+<h3><span class="mw-headline" id="64-bit_Windows">64-bit Windows</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Relocation_(computing)&amp;action=edit&amp;section=5" title="Edit section: 64-bit Windows">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>When running native 64-bit binaries on Windows Vista and above, ASLR (Address Space Layout Randomization) is mandatory<sup class="noprint Inline-Template Template-Fact" style="white-space:nowrap;">[<i><a href="/wiki/Wikipedia:Citation_needed" title="Wikipedia:Citation needed"><span title="This claim needs references to reliable sources. (January 2014)">citation needed</span></a></i>]</sup>, and thus relocation sections cannot be omitted by the compiler.</p>
+<h3><span class="mw-headline" id="Unix-like_systems">Unix-like systems</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Relocation_(computing)&amp;action=edit&amp;section=6" title="Edit section: Unix-like systems">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>The ELF executable format and SO shared library format used by most Unix-like systems allows several types of relocation to be defined.</p>
+<h2><span class="mw-headline" id="Example">Example</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Relocation_(computing)&amp;action=edit&amp;section=7" title="Edit section: Example">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>The following example uses Donald Knuth's <a href="/wiki/MIX" title="MIX">MIX</a> architecture and MIXAL assembly language. The principles are the same for any architecture, though the details will change.</p>
+<ul>
+<li>(A) Program <i>SUBR</i> is compiled to produce object file(B), shown as both machine code and assembler. The compiler may start the compiled code at an arbitrary location, often location zero as shown. Location 13 contains the machine code for the jump instruction to statement <i>ST</i> in location 5.</li>
+<li>(C) If <i>SUBR</i> is later linked with other code it may be stored at a location other than zero. In this example the linker places it at location 120. The address in the jump instruction, which is now at location 133, must be <b>relocated</b> to point to the new location of the code for statement <i>ST</i>, now 125. [1 61 shown in the instruction is the MIX machine code representation of 125].</li>
+<li>(D) When the program is loaded into memory to run it may be loaded at some location other than the one assigned by the linker. This example shows <i>SUBR</i> now at location 300. The address in the jump instruction, now at 313, needs to be relocated again so that it points to the updated location of <i>ST</i>, 305. [4 49 is the MIX machine representation of 305].</li>
+</ul>
+<p><a href="/wiki/File:Relocation_example.tif" class="image"><img alt="Relocation example.tif" src="//upload.wikimedia.org/wikipedia/commons/thumb/b/b1/Relocation_example.tif/lossy-page1-334px-Relocation_example.tif.jpg" width="334" height="435" srcset="//upload.wikimedia.org/wikipedia/commons/thumb/b/b1/Relocation_example.tif/lossy-page1-501px-Relocation_example.tif.jpg 1.5x, //upload.wikimedia.org/wikipedia/commons/thumb/b/b1/Relocation_example.tif/lossy-page1-668px-Relocation_example.tif.jpg 2x" data-file-width="1275" data-file-height="1660"></a></p>
+<h2><span class="mw-headline" id="See_also">See also</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Relocation_(computing)&amp;action=edit&amp;section=8" title="Edit section: See also">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul>
+<li><a href="/wiki/Linker_(computing)" title="Linker (computing)">Linker (computing)</a></li>
+<li><a href="/wiki/Library_(computing)" title="Library (computing)">Library (computing)</a></li>
+<li><a href="/wiki/Object_file" title="Object file">Object file</a></li>
+<li><a href="/wiki/Prebinding" title="Prebinding">Prebinding</a></li>
+<li><a href="/wiki/Static_library" title="Static library">Static library</a></li>
+<li><a href="/wiki/Self-relocation" title="Self-relocation">Self-relocation</a></li>
+<li><a href="/wiki/Position-independent_code" title="Position-independent code">Position-independent code</a></li>
+<li><a href="/wiki/Rebasing" title="Rebasing">Rebasing</a></li>
+</ul>
+<h2><span class="mw-headline" id="References">References</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Relocation_(computing)&amp;action=edit&amp;section=9" title="Edit section: References">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ol class="references">
+<li id="cite_note-1"><span class="mw-cite-backlink"><b><a href="#cite_ref-1">^</a></b></span> <span class="reference-text"><span class="citation book"><a href="/wiki/John_R._Levine" title="John R. Levine">John R. Levine</a> (October 1999). "Chapter 1: Linking and Loading". <i>Linkers and Loaders</i>. Morgan-Kauffman. p. 5. <a href="/wiki/International_Standard_Book_Number" title="International Standard Book Number">ISBN</a> <a href="/wiki/Special:BookSources/1-55860-496-0" title="Special:BookSources/1-55860-496-0">1-55860-496-0</a>.</span><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3ARelocation+%28computing%29&amp;rft.atitle=Linkers+and+Loaders&amp;rft.au=John+R.+Levine&amp;rft.aulast=John+R.+Levine&amp;rft.btitle=Chapter+1%3A+Linking+and+Loading&amp;rft.date=October+1999&amp;rft.genre=bookitem&amp;rft.isbn=1-55860-496-0&amp;rft.pages=5&amp;rft.pub=Morgan-Kauffman&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook" class="Z3988"><span style="display:none;"> </span></span></span></li>
+<li id="cite_note-2"><span class="mw-cite-backlink"><b><a href="#cite_ref-2">^</a></b></span> <span class="reference-text"><span class="citation book"><a href="/wiki/John_R._Levine" title="John R. Levine">John R. Levine</a> (October 1999). "Chapter 3: Object Files". <i>Linkers and Loaders</i>. Morgan-Kauffman. <a href="/wiki/International_Standard_Book_Number" title="International Standard Book Number">ISBN</a> <a href="/wiki/Special:BookSources/1-55860-496-0" title="Special:BookSources/1-55860-496-0">1-55860-496-0</a>.</span><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3ARelocation+%28computing%29&amp;rft.atitle=Linkers+and+Loaders&amp;rft.au=John+R.+Levine&amp;rft.aulast=John+R.+Levine&amp;rft.btitle=Chapter+3%3A+Object+Files&amp;rft.date=October+1999&amp;rft.genre=bookitem&amp;rft.isbn=1-55860-496-0&amp;rft.pub=Morgan-Kauffman&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook" class="Z3988"><span style="display:none;"> </span></span></span></li>
+<li id="cite_note-3"><span class="mw-cite-backlink"><b><a href="#cite_ref-3">^</a></b></span> <span class="reference-text"><span class="citation web"><a rel="nofollow" class="external text" href="http://web.archive.org/web/20070324041806/http://vmlinux.org/~jakov/community.borland.com/15961.html">"Borland article #15961: Coping with 'Fixup Overflow' messages"</a>. Archived from <a rel="nofollow" class="external text" href="http://vmlinux.org/~jakov/community.borland.com/15961.html">the original</a> on 2007-03-24<span class="reference-accessdate">. Retrieved 2007-01-15</span>.</span><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3ARelocation+%28computing%29&amp;rft.btitle=Borland+article+%2315961%3A+Coping+with+%27Fixup+Overflow%27+messages&amp;rft.genre=book&amp;rft_id=http%3A%2F%2Fvmlinux.org%2F~jakov%2Fcommunity.borland.com%2F15961.html&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook" class="Z3988"><span style="display:none;"> </span></span></span></li>
+</ol>
+<ul>
+<li class="nv-view"><a href="/wiki/Template:Application_binary_interface" title="Template:Application binary interface"><span title="View this template" style=";;background:none transparent;border:none;;">v</span></a></li>
+<li class="nv-talk"><a href="/w/index.php?title=Template_talk:Application_binary_interface&amp;action=edit&amp;redlink=1" class="new" title="Template talk:Application binary interface (page does not exist)"><span title="Discuss this template" style=";;background:none transparent;border:none;;">t</span></a></li>
+<li class="nv-edit"><a class="external text" href="//en.wikipedia.org/w/index.php?title=Template:Application_binary_interface&amp;action=edit"><span title="Edit this template" style=";;background:none transparent;border:none;;">e</span></a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Data_structure_alignment" title="Data structure alignment">Alignment</a></li>
+<li><a href="/wiki/Calling_convention" title="Calling convention">Calling convention</a></li>
+<li><a href="/wiki/Call_stack" title="Call stack">Call stack</a></li>
+<li><a href="/wiki/Library_(computing)" title="Library (computing)">Library</a>
+<ul>
+<li><a href="/wiki/Static_library" title="Static library">static</a></li>
+</ul>
+</li>
+<li><a href="/wiki/Machine_code" title="Machine code">Machine code</a></li>
+<li><a href="/wiki/Memory_segmentation" title="Memory segmentation">Memory segmentation</a></li>
+<li><a href="/wiki/Name_mangling" title="Name mangling">Name mangling</a></li>
+<li><a href="/wiki/Object_code" title="Object code">Object code</a></li>
+<li><a href="/wiki/Opaque_pointer" title="Opaque pointer">Opaque pointer</a></li>
+<li><a href="/wiki/Position-independent_code" title="Position-independent code">Position-independent code</a></li>
+<li><a href="/wiki/Register_allocation" title="Register allocation">Register allocation</a></li>
+<li><strong class="selflink">Relocation</strong></li>
+<li><a href="/wiki/System_call" title="System call">System call</a></li>
+<li><a href="/wiki/Virtual_method_table" title="Virtual method table">Virtual method table</a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Static_library" title="Static library">static</a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Binary_code_compatibility" title="Binary code compatibility">Binary code compatibility</a></li>
+<li><a href="/wiki/Foreign_function_interface" title="Foreign function interface">Foreign function interface</a></li>
+<li><a href="/wiki/Language_binding" title="Language binding">Language binding</a></li>
+<li><a href="/wiki/Linker_(computing)" title="Linker (computing)">Linker</a>
+<ul>
+<li><a href="/wiki/Dynamic_linker" title="Dynamic linker">dynamic</a></li>
+</ul>
+</li>
+<li><a href="/wiki/Loader_(computing)" title="Loader (computing)">Loader</a></li>
+<li><a href="/wiki/Year_2038_problem" title="Year 2038 problem">Year 2038 problem</a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Dynamic_linker" title="Dynamic linker">dynamic</a></li>
+</ul>
+<ul>
+<li class="nv-view"><a href="/wiki/Template:Executables" title="Template:Executables"><span title="View this template" style=";;background:none transparent;border:none;;">v</span></a></li>
+<li class="nv-talk"><a href="/wiki/Template_talk:Executables" title="Template talk:Executables"><span title="Discuss this template" style=";;background:none transparent;border:none;;">t</span></a></li>
+<li class="nv-edit"><a class="external text" href="//en.wikipedia.org/w/index.php?title=Template:Executables&amp;action=edit"><span title="Edit this template" style=";;background:none transparent;border:none;;">e</span></a></li>
+</ul>
+<ul>
+<li><a href="/wiki/A.out" title="A.out">a.out</a></li>
+<li><a href="/wiki/Arm_Image_Format" title="Arm Image Format">AIF</a></li>
+<li><a href="/wiki/COFF" title="COFF">COFF</a></li>
+<li><a href="/wiki/CMD_file_(CP/M)" title="CMD file (CP/M)">CMD</a></li>
+<li><a href="/wiki/COM_file" title="COM file">COM</a></li>
+<li><a href="/wiki/ECOFF" title="ECOFF">ECOFF</a></li>
+<li><a href="/wiki/Executable_and_Linkable_Format" title="Executable and Linkable Format">ELF</a></li>
+<li><a href="/wiki/GOFF" title="GOFF">GOFF</a></li>
+<li><a href="/wiki/Amiga_Hunk" title="Amiga Hunk">Hunk</a></li>
+<li><a href="/wiki/Mach-O" title="Mach-O">Mach-O</a></li>
+<li><a href="/wiki/DOS_MZ_executable" title="DOS MZ executable">MZ</a></li>
+<li><a href="/wiki/New_Executable" title="New Executable">NE</a></li>
+<li><a href="/wiki/Relocatable_Object_Module_Format" title="Relocatable Object Module Format">OMF</a></li>
+<li><a href="/wiki/OS/360_Object_File_Format" title="OS/360 Object File Format">OS/360</a></li>
+<li><a href="/wiki/Portable_Executable" title="Portable Executable">PE</a></li>
+<li><a href="/wiki/Preferred_Executable_Format" title="Preferred Executable Format">PEF</a></li>
+<li><a href="/wiki/XCOFF" title="XCOFF">XCOFF</a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Comparison_of_executable_file_formats" title="Comparison of executable file formats">Comparison of formats</a></li>
+<li><a href="/wiki/.exe" title=".exe">.exe</a></li>
+</ul>

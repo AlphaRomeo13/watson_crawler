@@ -1,0 +1,208 @@
+<h1 id="firstHeading" class="firstHeading" lang="en"><span dir="auto">Fiber (computer science)</span></h1>
+<p>In <a href="/wiki/Computer_science" title="Computer science">computer science</a>, a <b>fiber</b> is a particularly lightweight <a href="/wiki/Thread_of_execution" title="Thread of execution" class="mw-redirect">thread of execution</a>.</p>
+<p>Like threads, fibers share <a href="/wiki/Address_space" title="Address space">address space</a>. However, fibers use <a href="/wiki/Computer_multitasking#Cooperative_multitasking.2Ftime-sharing" title="Computer multitasking">co-operative multitasking</a> while threads use <a href="/wiki/Pre-emptive_multitasking" title="Pre-emptive multitasking" class="mw-redirect">pre-emptive multitasking</a>. Threads often depend on the kernel's thread scheduler to preempt a busy thread and resume another thread; fibers yield themselves to run another fiber while executing. The article on <a href="/wiki/Thread_(computer_science)#Processes.2C_kernel_threads.2C_user_threads.2C_and_fibers" title="Thread (computer science)" class="mw-redirect">threads</a> contains more on the distinction between threads and fibers.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Fibers_and_coroutines"><span class="tocnumber">1</span> <span class="toctext">Fibers and coroutines</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Advantages_and_disadvantages"><span class="tocnumber">2</span> <span class="toctext">Advantages and disadvantages</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#Operating_system_support"><span class="tocnumber">3</span> <span class="toctext">Operating system support</span></a></li>
+<li class="toclevel-1 tocsection-4"><a href="#See_also"><span class="tocnumber">4</span> <span class="toctext">See also</span></a></li>
+<li class="toclevel-1 tocsection-5"><a href="#References"><span class="tocnumber">5</span> <span class="toctext">References</span></a></li>
+<li class="toclevel-1 tocsection-6"><a href="#External_links"><span class="tocnumber">6</span> <span class="toctext">External links</span></a></li>
+</ul>
+<p></p>
+<h2><span class="mw-headline" id="Fibers_and_coroutines">Fibers and coroutines</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Fiber_(computer_science)&amp;action=edit&amp;section=1" title="Edit section: Fibers and coroutines">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Fibers describe essentially the same concept as <a href="/wiki/Coroutine" title="Coroutine">coroutines</a>. The distinction, if there is any, is that coroutines are a language-level construct, a form of <a href="/wiki/Control_flow" title="Control flow">control flow</a>, while fibers are a systems-level construct, viewed as threads that happen not to run concurrently. Priority is contentious; fibers may be viewed as an implementation of coroutines,<sup id="cite_ref-flounder_1-0" class="reference"><a href="#cite_note-flounder-1"><span>[</span>1<span>]</span></a></sup> or as a substrate on which to implement coroutines.<sup id="cite_ref-msdn-wrap_2-0" class="reference"><a href="#cite_note-msdn-wrap-2"><span>[</span>2<span>]</span></a></sup></p>
+<h2><span class="mw-headline" id="Advantages_and_disadvantages">Advantages and disadvantages</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Fiber_(computer_science)&amp;action=edit&amp;section=2" title="Edit section: Advantages and disadvantages">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Because fibers multitask cooperatively, <a href="/wiki/Thread_safety" title="Thread safety">thread safety</a> is less of an issue than with preemptively scheduled threads, and synchronization constructs including <a href="/wiki/Spinlock" title="Spinlock">spinlocks</a> and <a href="/wiki/Atomic_operation" title="Atomic operation" class="mw-redirect">atomic operations</a> are unnecessary when writing fibered code, as they are implicitly synchronized. However, many libraries yield a fiber implicitly as a method of conducting <a href="/wiki/Non-blocking_I/O" title="Non-blocking I/O" class="mw-redirect">non-blocking I/O</a>; as such, some caution and documentation reading is advised. A disadvantage is that fibers cannot utilize <a href="/wiki/Multiprocessor" title="Multiprocessor" class="mw-redirect">multiprocessor</a> machines without also using preemptive threads; however, an <a href="/wiki/Thread_(computer_science)#Models" title="Thread (computer science)" class="mw-redirect">M:N threading model</a> with no more preemptive threads than CPU cores can be more efficient than either pure fibers or pure preemptive threading.</p>
+<p>In modern server programs fibers are being used to soft block themselves to allow their one threaded parent programs to continue working. In this design, fibers are being used mostly for i/o access which does not need cpu processing. So, the main program can go on what it is doing. Fibers yield control to the one threaded main program and when related i/o operation event occurred in the operating system like i/o operation has been completed; fibers go on where they left off.</p>
+<h2><span class="mw-headline" id="Operating_system_support">Operating system support</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Fiber_(computer_science)&amp;action=edit&amp;section=3" title="Edit section: Operating system support">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Less support from the <a href="/wiki/Operating_system" title="Operating system">operating system</a> is needed for fibers than for threads. They can be implemented in modern <a href="/wiki/Unix" title="Unix">Unix</a> systems using the library functions <a href="/wiki/Setcontext" title="Setcontext">getcontext, setcontext and swapcontext</a> in <a href="/w/index.php?title=Ucontext.h&amp;action=edit&amp;redlink=1" class="new" title="Ucontext.h (page does not exist)">ucontext.h</a>, as in <a href="/wiki/GNU_Portable_Threads" title="GNU Portable Threads">GNU Portable Threads</a>.</p>
+<p>On <a href="/wiki/Microsoft_Windows" title="Microsoft Windows">Microsoft Windows</a>, fibers are created using the ConvertThreadToFiber and CreateFiber calls; a fiber that is currently suspended may be resumed in any thread. Fiber-local storage, analogous to <a href="/wiki/Thread-local_storage" title="Thread-local storage">thread-local storage</a>, may be used to create unique copies of variables.<sup id="cite_ref-msdn-fibers_3-0" class="reference"><a href="#cite_note-msdn-fibers-3"><span>[</span>3<span>]</span></a></sup></p>
+<p><a href="/wiki/Symbian_OS" title="Symbian OS" class="mw-redirect">Symbian OS</a> uses a similar concept to fibers in its Active Scheduler. An <a href="/wiki/Active_object_(Symbian_OS)" title="Active object (Symbian OS)">active object</a> contains one fiber to be executed by the Active Scheduler when one of several outstanding asynchronous calls complete. Several Active objects can be waiting to execute (based on priority) and each one must restrict its own execution time.</p>
+<h2><span class="mw-headline" id="See_also">See also</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Fiber_(computer_science)&amp;action=edit&amp;section=4" title="Edit section: See also">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul>
+<li><a href="/wiki/Getcontext" title="Getcontext" class="mw-redirect">getcontext/setcontext library routines</a></li>
+<li><a href="/wiki/Green_threads" title="Green threads">Green threads</a></li>
+</ul>
+<h2><span class="mw-headline" id="References">References</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Fiber_(computer_science)&amp;action=edit&amp;section=5" title="Edit section: References">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ol class="references">
+<li id="cite_note-flounder-1"><span class="mw-cite-backlink"><b><a href="#cite_ref-flounder_1-0">^</a></b></span> <span class="reference-text"><a rel="nofollow" class="external text" href="http://www.flounder.com/fibers.htm">A Fiber Class</a></span></li>
+<li id="cite_note-msdn-wrap-2"><span class="mw-cite-backlink"><b><a href="#cite_ref-msdn-wrap_2-0">^</a></b></span> <span class="reference-text"><a rel="nofollow" class="external text" href="http://msdn.microsoft.com/msdnmag/issues/03/09/CoroutinesinNET/default.aspx">Implementing Coroutines for .NET by Wrapping the Unmanaged Fiber API</a>, Ajai Shankar, <a href="/wiki/MSDN_Magazine" title="MSDN Magazine" class="mw-redirect">MSDN Magazine</a></span></li>
+<li id="cite_note-msdn-fibers-3"><span class="mw-cite-backlink"><b><a href="#cite_ref-msdn-fibers_3-0">^</a></b></span> <span class="reference-text"><a rel="nofollow" class="external text" href="http://msdn2.microsoft.com/en-us/library/ms682661.aspx">Fibers</a>, <a href="/wiki/MSDN_Library" title="MSDN Library" class="mw-redirect">MSDN Library</a></span></li>
+</ol>
+<h2><span class="mw-headline" id="External_links">External links</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Fiber_(computer_science)&amp;action=edit&amp;section=6" title="Edit section: External links">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul>
+<li><a rel="nofollow" class="external text" href="http://www.gnu.org/software/pth/">GNU Portable threads</a></li>
+<li><a rel="nofollow" class="external text" href="http://freecode.com/projects/libpcl/">Portable Coroutine Library</a> at <a href="/wiki/Freecode" title="Freecode">Freecode</a></li>
+<li><a rel="nofollow" class="external text" href="http://www.thinkmeta.de/en/fiberpool_overview.html">Fiber Pool</a> A multicore-capable C++ framework based on fibers for Microsoft Windows.</li>
+<li><a rel="nofollow" class="external text" href="http://state-threads.sourceforge.net/index.html">State Threads</a></li>
+<li><a rel="nofollow" class="external text" href="http://dunkels.com/adam/pt/">Protothreads</a></li>
+<li><a rel="nofollow" class="external text" href="https://github.com/Adaptv/ribs2">ribs2</a></li>
+</ul>
+<ul>
+<li class="nv-view"><a href="/wiki/Template:Parallel_computing" title="Template:Parallel computing"><span title="View this template" style=";;background:none transparent;border:none;;">v</span></a></li>
+<li class="nv-talk"><a href="/wiki/Template_talk:Parallel_computing" title="Template talk:Parallel computing"><span title="Discuss this template" style=";;background:none transparent;border:none;;">t</span></a></li>
+<li class="nv-edit"><a class="external text" href="//en.wikipedia.org/w/index.php?title=Template:Parallel_computing&amp;action=edit"><span title="Edit this template" style=";;background:none transparent;border:none;;">e</span></a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Cloud_computing" title="Cloud computing">Cloud computing</a></li>
+<li><a href="/wiki/High-performance_computing" title="High-performance computing" class="mw-redirect">High-performance computing</a></li>
+<li><a href="/wiki/Computer_cluster" title="Computer cluster">Cluster computing</a></li>
+<li><a href="/wiki/Distributed_computing" title="Distributed computing">Distributed computing</a></li>
+<li><a href="/wiki/Grid_computing" title="Grid computing">Grid computing</a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Bit-level_parallelism" title="Bit-level parallelism">Bit</a></li>
+<li><a href="/wiki/Instruction-level_parallelism" title="Instruction-level parallelism">Instruction</a></li>
+<li><a href="/wiki/Data_parallelism" title="Data parallelism">Data</a></li>
+<li><a href="/wiki/Memory-level_parallelism" title="Memory-level parallelism">Memory</a></li>
+<li><a href="/wiki/Task_parallelism" title="Task parallelism">Task</a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Temporal_multithreading" title="Temporal multithreading">Temporal multithreading</a></li>
+<li><a href="/wiki/Simultaneous_multithreading" title="Simultaneous multithreading">Simultaneous multithreading</a>
+<ul>
+<li><a href="/wiki/Hyper-threading" title="Hyper-threading">Hyper-threading</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li><a href="/wiki/Hyper-threading" title="Hyper-threading">Hyper-threading</a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Amdahl%27s_law" title="Amdahl's law">Amdahl's law</a></li>
+<li><a href="/wiki/Gustafson%27s_law" title="Gustafson's law">Gustafson's law</a></li>
+<li><a href="/wiki/Cost_efficiency" title="Cost efficiency">Cost efficiency</a></li>
+<li><a href="/wiki/Karp%E2%80%93Flatt_metric" title="Karp–Flatt metric">Karp–Flatt metric</a></li>
+<li><a href="/wiki/Parallel_slowdown" title="Parallel slowdown">slowdown</a></li>
+<li><a href="/wiki/Speedup" title="Speedup">speedup</a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Process_(computing)" title="Process (computing)">Process</a></li>
+<li><a href="/wiki/Thread_(computing)" title="Thread (computing)">Thread</a></li>
+<li><strong class="selflink">Fiber</strong></li>
+<li><a href="/wiki/Parallel_random-access_machine" title="Parallel random-access machine">PRAM</a></li>
+<li><a href="/wiki/Instruction_window" title="Instruction window">Instruction window</a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Multiprocessing" title="Multiprocessing">Multiprocessing</a></li>
+<li><a href="/wiki/Memory_coherence" title="Memory coherence">Memory coherency</a></li>
+<li><a href="/wiki/Cache_coherence" title="Cache coherence">Cache coherency</a></li>
+<li><a href="/wiki/Cache_invalidation" title="Cache invalidation">Cache invalidation</a></li>
+<li><a href="/wiki/Barrier_(computer_science)" title="Barrier (computer science)">Barrier</a></li>
+<li><a href="/wiki/Synchronization_(computer_science)" title="Synchronization (computer science)">Synchronization</a></li>
+<li><a href="/wiki/Application_checkpointing" title="Application checkpointing">Application checkpointing</a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Parallel_programming_model" title="Parallel programming model">Models</a>
+<ul>
+<li><a href="/wiki/Implicit_parallelism" title="Implicit parallelism">Implicit parallelism</a></li>
+<li><a href="/wiki/Explicit_parallelism" title="Explicit parallelism">Explicit parallelism</a></li>
+<li><a href="/wiki/Concurrency_(computer_science)" title="Concurrency (computer science)">Concurrency</a></li>
+</ul>
+</li>
+<li><a href="/wiki/Flynn%27s_taxonomy" title="Flynn's taxonomy">Flynn's taxonomy</a>
+<ul>
+<li><a href="/wiki/SISD" title="SISD">SISD</a></li>
+<li><a href="/wiki/SIMD" title="SIMD">SIMD</a></li>
+<li><a href="/wiki/MISD" title="MISD">MISD</a></li>
+<li><a href="/wiki/MIMD" title="MIMD">MIMD</a>
+<ul>
+<li><a href="/wiki/SPMD" title="SPMD">SPMD</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="/wiki/Thread_(computing)" title="Thread (computing)">Thread</a></li>
+<li><a href="/wiki/Non-blocking_algorithm" title="Non-blocking algorithm">Non-blocking algorithm</a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Implicit_parallelism" title="Implicit parallelism">Implicit parallelism</a></li>
+<li><a href="/wiki/Explicit_parallelism" title="Explicit parallelism">Explicit parallelism</a></li>
+<li><a href="/wiki/Concurrency_(computer_science)" title="Concurrency (computer science)">Concurrency</a></li>
+</ul>
+<ul>
+<li><a href="/wiki/SISD" title="SISD">SISD</a></li>
+<li><a href="/wiki/SIMD" title="SIMD">SIMD</a></li>
+<li><a href="/wiki/MISD" title="MISD">MISD</a></li>
+<li><a href="/wiki/MIMD" title="MIMD">MIMD</a>
+<ul>
+<li><a href="/wiki/SPMD" title="SPMD">SPMD</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li><a href="/wiki/SPMD" title="SPMD">SPMD</a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Multiprocessor" title="Multiprocessor" class="mw-redirect">Multiprocessor</a>
+<ul>
+<li><a href="/wiki/Symmetric_multiprocessing" title="Symmetric multiprocessing">Symmetric</a></li>
+<li><a href="/wiki/Asymmetric_multiprocessing" title="Asymmetric multiprocessing">Asymmetric</a></li>
+</ul>
+</li>
+<li><a href="/wiki/Semiconductor_memory" title="Semiconductor memory">Memory</a>
+<ul>
+<li><a href="/wiki/Non-uniform_memory_access" title="Non-uniform memory access">NUMA</a></li>
+<li><a href="/wiki/Cache-only_memory_architecture" title="Cache-only memory architecture">COMA</a></li>
+<li><a href="/wiki/Distributed_memory" title="Distributed memory">distributed</a></li>
+<li><a href="/wiki/Shared_memory" title="Shared memory">shared</a></li>
+<li><a href="/wiki/Distributed_shared_memory" title="Distributed shared memory">distributed shared</a></li>
+</ul>
+</li>
+<li><a href="/wiki/Massively_parallel_(computing)" title="Massively parallel (computing)">MPP</a></li>
+<li><a href="/wiki/Superscalar" title="Superscalar">Superscalar</a></li>
+<li><a href="/wiki/Vector_processor" title="Vector processor">Vector processor</a></li>
+<li><a href="/wiki/Supercomputer" title="Supercomputer">Supercomputer</a></li>
+<li><a href="/wiki/Beowulf_cluster" title="Beowulf cluster">Beowulf cluster</a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Symmetric_multiprocessing" title="Symmetric multiprocessing">Symmetric</a></li>
+<li><a href="/wiki/Asymmetric_multiprocessing" title="Asymmetric multiprocessing">Asymmetric</a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Non-uniform_memory_access" title="Non-uniform memory access">NUMA</a></li>
+<li><a href="/wiki/Cache-only_memory_architecture" title="Cache-only memory architecture">COMA</a></li>
+<li><a href="/wiki/Distributed_memory" title="Distributed memory">distributed</a></li>
+<li><a href="/wiki/Shared_memory" title="Shared memory">shared</a></li>
+<li><a href="/wiki/Distributed_shared_memory" title="Distributed shared memory">distributed shared</a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Ateji_PX" title="Ateji PX">Ateji PX</a></li>
+<li><a href="/wiki/POSIX_Threads" title="POSIX Threads">POSIX Threads</a></li>
+<li><a href="/wiki/OpenMP" title="OpenMP">OpenMP</a></li>
+<li><a href="/wiki/OpenHMPP" title="OpenHMPP">OpenHMPP</a></li>
+<li><a href="/wiki/OpenACC" title="OpenACC">OpenACC</a></li>
+<li><a href="/wiki/Parallel_Virtual_Machine" title="Parallel Virtual Machine">PVM</a></li>
+<li><a href="/wiki/Message_Passing_Interface" title="Message Passing Interface">MPI</a></li>
+<li><a href="/wiki/Unified_Parallel_C" title="Unified Parallel C">UPC</a></li>
+<li><a href="/wiki/Threading_Building_Blocks" title="Threading Building Blocks">TBB</a></li>
+<li><a href="/wiki/Boost_(C%2B%2B_libraries)#Multithreading_.E2.80.93_Boost.Thread" title="Boost (C++ libraries)">Boost.Thread</a></li>
+<li><a href="/wiki/Global_Arrays" title="Global Arrays">Global Arrays</a></li>
+<li><a href="/wiki/Charm%2B%2B" title="Charm++">Charm++</a></li>
+<li><a href="/wiki/Cilk" title="Cilk">Cilk</a>/<a href="/wiki/Cilk_Plus" title="Cilk Plus">Cilk Plus</a></li>
+<li><a href="/wiki/Coarray_Fortran" title="Coarray Fortran">Coarray Fortran</a></li>
+<li><a href="/wiki/OpenCL" title="OpenCL">OpenCL</a></li>
+<li><a href="/wiki/CUDA" title="CUDA">CUDA</a></li>
+<li><a href="/wiki/Dryad_(programming)" title="Dryad (programming)">Dryad</a></li>
+<li><a href="/wiki/C%2B%2B_AMP" title="C++ AMP">C++ AMP</a></li>
+<li><a href="/wiki/Parallel_LINQ" title="Parallel LINQ" class="mw-redirect">PLINQ</a></li>
+<li><a href="/wiki/Parallel_Extensions#Task_Parallel_Library" title="Parallel Extensions">TPL</a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Embarrassingly_parallel" title="Embarrassingly parallel">Embarrassingly parallel</a></li>
+<li><a href="/wiki/Software_lockout" title="Software lockout">Software lockout</a></li>
+<li><a href="/wiki/Scalability" title="Scalability">Scalability</a></li>
+<li><a href="/wiki/Race_condition#Computing" title="Race condition">Race condition</a></li>
+<li><a href="/wiki/Deadlock" title="Deadlock">Deadlock</a></li>
+<li><a href="/wiki/Deadlock#Livelock" title="Deadlock">Livelock</a></li>
+<li><a href="/wiki/Resource_starvation" title="Resource starvation">Starvation</a></li>
+<li><a href="/wiki/Deterministic_algorithm" title="Deterministic algorithm">Deterministic algorithm</a></li>
+<li><a href="/wiki/Parallel_slowdown" title="Parallel slowdown">Parallel slowdown</a></li>
+</ul>
+<ul>
+<li><img alt="Category" src="//upload.wikimedia.org/wikipedia/en/thumb/4/48/Folder_Hexagonal_Icon.svg/16px-Folder_Hexagonal_Icon.svg.png" width="16" height="14" srcset="//upload.wikimedia.org/wikipedia/en/thumb/4/48/Folder_Hexagonal_Icon.svg/24px-Folder_Hexagonal_Icon.svg.png 1.5x, //upload.wikimedia.org/wikipedia/en/thumb/4/48/Folder_Hexagonal_Icon.svg/32px-Folder_Hexagonal_Icon.svg.png 2x" data-file-width="36" data-file-height="31"> <a href="/wiki/Category:Parallel_computing" title="Category:Parallel computing">Category: parallel computing</a></li>
+<li><img alt="" src="//upload.wikimedia.org/wikipedia/en/thumb/4/4a/Commons-logo.svg/12px-Commons-logo.svg.png" width="12" height="16" srcset="//upload.wikimedia.org/wikipedia/en/thumb/4/4a/Commons-logo.svg/18px-Commons-logo.svg.png 1.5x, //upload.wikimedia.org/wikipedia/en/thumb/4/4a/Commons-logo.svg/24px-Commons-logo.svg.png 2x" data-file-width="1024" data-file-height="1376"> Media related to <a href="//commons.wikimedia.org/wiki/Category:parallel_computing" class="extiw" title="commons:Category:parallel computing">parallel computing</a> at Wikimedia Commons</li>
+</ul>

@@ -10,12 +10,14 @@ class WikipediaSpider(CrawlSpider):
     name = "wikipedia"
     allowed_domains = ["wikipedia.org"]
     start_urls = [
-                    "http://en.wikipedia.org/wiki/Abstract_data_type",
-                    "http://en.wikipedia.org/wiki/Linked_list"
+                    "http://en.wikipedia.org/wiki/Abstract_type",
+                    "http://en.wikipedia.org/wiki/Hash_table",
+                    "http://en.wikipedia.org/wiki/Search_tree"
     ]
 
     rules = (
         #Rule(LinkExtractor(allow=(r'(.*?computer_science\)$)|(.*?abstract_data_type\)$)|(.*?_programming\)$)|(.*?_programming$)'), restrict_xpaths=('//*[@id="mw-content-text"]')), callback='parse_item', follow=True),
+        #Rule(LinkExtractor(allow=(), restrict_xpaths=('//*[@id="mw-content-text"]')), callback='parse_item', follow=False),
     )
 
     def parse_item(self, response):

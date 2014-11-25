@@ -1,0 +1,180 @@
+<h1>Deploying a Java Web Start Application</h1>
+<p>To deploy your Java Web Start application, first compile the source code, package it as a JAR file, and sign the JAR file.</p>
+<p>Java Web Start applications are launched by using the Java Network Launch Protocol (JNLP). Hence, you must create a JNLP file to deploy your application.</p>
+<p>The Deployment Toolkit script contains useful JavaScript functions that can be used to deploy Java Web Start applications on a web page.</p>
+<p>If you are unfamiliar with these deployment technologies, review the 
+<a class="TutorialLink" target="_top" href="../deploymentInDepth/index.html">Deployment In-Depth</a> lesson before proceeding.</p>
+<p>Here are some step-by-step instructions to package and deploy your application. The Dynamic Tree Demo application is used to illustrate the deployment of Java Web Start applications. You might want to set up build scripts to execute some of the following steps.</p>
+<p>Click the following Launch button to launch the Dynamic Tree Demo application.</p>
+<ol>
+<li>Compile your application's Java code and make sure that all class files and resources such as images are in a separate directory.
+<p>In the Dynamic Tree Demo application, the compiled classes are placed in the <code>build/classes/webstartComponentArch</code> directory.</p>
+</li>
+<li>Create a text file that contains any JAR file manifest attributes that your applet needs.
+<p>For the DynamicTree Demo applet, create a file named <code>mymanifest.txt</code> in the <code>build/classes</code> directory, and add the <code>Permissions</code>, <code>Codebase</code>, and <code>Application-Name</code> attributes. The applet does not require access to the user's system resources, so use <code>sandbox</code> for the permissions. Use the domain from which you will load the sample for the code base, for example, <code>myserver.com</code>. Add the following attributes to the <code>mymanifest.txt</code> file. </p>
+<div class="codeblock"><pre>
+Permissions: sandbox
+Codebase: myserver.com
+Application-Name: Dynamic Tree Demo
+</pre></div>    
+<p>Other manifest attributes are available to restrict an applet to using only trusted code, and to provide security for applets that need to make calls between privileged Java code and sandbox Java code, or have JavaScript code that calls the applet. See the
+<a class="TutorialLink" target="_top" href="../jar/secman.html">Enhancing Security with Manifest Attributes</a> lesson to learn more about the manifest attributes that are available.</p></li>
+<li>Create a JAR file containing your application's class files and resources. Include the manifest attributes in the <code>mymanifest.txt</code> file that you created in the previous step.
+<p>For example, the following command creates a JAR file with the class files in the <code>build/classes/webstartComponentArch</code> directory and the manifest file in the <code>build/classes</code> directory.</p>
+<div class="codeblock"><pre>
+% cd build/classes
+% jar cvfm  DynamicTreeDemo.jar  mymanifest.txt webstartComponentArch
+</pre></div>    
+<p>See the 
+<a class="TutorialLink" target="_top" href="../jar/index.html">Packaging Programs in JAR Files</a> lesson to learn more about creating and using JAR files.</p></li>
+<li>Sign the JAR file for your applet and time stamp the signature. Use a valid, current code signing certificate issued by a trusted certificate authority to provide your users with assurance that it is safe to run the applet.
+<p>See the
+<a class="TutorialLink" target="_top" href="../jar/signing.html">Signing JAR Files</a> lesson for more information.</p>
+<p>If you want to use a signed JNLP file for security, create the JNLP file as described in the next step and include it in the JAR file before the JAR file is signed. See
+<a class="OutsideLink" target="_blank" href="http://docs.oracle.com/javase/8/docs/technotes/guides/deploy/signed_jnlp.html">Signed JNLP Files</a> in the Java Platform, Standard Edition Deployment Guide for information.</p></li>
+<li>Create a JNLP file that describes how your application should be launched.
+<p>Here is the JNLP file that is used to launch the Dynamic Tree Demo application. Permissions are not requested for this application so it runs in the security sandbox. The source for 
+<a class="SourceLink" target="_blank" href="examples/webstart_ComponentArch_DynamicTreeDemo/src/dynamictree_webstart.jnlp" onclick="showCode('../../displayCode.html', 'examples/webstart_ComponentArch_DynamicTreeDemo/src/dynamictree_webstart.jnlp'); return false;"><code><code>dynamictree_webstart.jnlp</code></code></a> follows:</p>
+<div class="codeblock"><pre>    
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;jnlp spec="1.0+" codebase=
+"http://docs.oracle.com/javase/tutorialJWS/samples/deployment/webstart_ComponentArch_DynamicTreeDemo" 
+    href="dynamictree_webstart.jnlp"&gt;
+    &lt;information&gt;
+        &lt;title&gt;Dynamic Tree Demo&lt;/title&gt;
+        &lt;vendor&gt;Dynamic Team&lt;/vendor&gt;
+    &lt;/information&gt;
+    &lt;resources&gt;
+        &lt;!-- Application Resources --&gt;
+        &lt;j2se version="1.7+"
+              href="http://java.sun.com/products/autodl/j2se"/&gt;
+        &lt;jar href="DynamicTreeDemo.jar"
+            main="true" /&gt;
+
+    &lt;/resources&gt;
+    &lt;application-desc
+         name="Dynamic Tree Demo Application"
+         main-class=
+           "webstartComponentArch.DynamicTreeApplication"
+         width="300"
+         height="300"&gt;
+     &lt;/application-desc&gt;
+     &lt;update check="background"/&gt;
+&lt;/jnlp&gt;                                   
+</pre></div>
+<a class="TutorialLink" target="_top" href="../deploymentInDepth/jnlpFileSyntax.html">Structure of the JNLP File</a> describes the JNLP file syntax and options.
+<div class="note"><hr><strong>Note:</strong> The <code>codebase</code> and <code>href</code> attributes are optional when deploying Java Web Start applications that will run on at least the Java SE 6 update 18 release or later. You must specify the <code>codebase</code> and <code>href</code> attributes when deploying Java Web Start applications that will run with previous releases of the Java Runtime Environment software.
+<hr></div> 
+</li>
+<li>Create the HTML page from which your application will be launched. Invoke Deployment Toolkit functions to deploy the Java Web Start application.
+<p>In the example, the Dynamic Tree Demo application is deployed in 
+<a class="SourceLink" target="_blank" href="examples/dist/webstart_ComponentArch_DynamicTreeDemo/JavaWebStartAppPage.html" onclick="showCode('../../displayCode.html', 'examples/dist/webstart_ComponentArch_DynamicTreeDemo/JavaWebStartAppPage.html'); return false;"><code><code>JavaWebStartAppPage.html</code></code></a>.</p>
+<div class="codeblock"><pre>
+&lt;body&gt;
+    &lt;!-- ... --&gt;
+    &lt;script src=
+      "https://www.java.com/js/deployJava.js"&gt;&lt;/script&gt;
+    &lt;script&gt;
+        // using JavaScript to get location of JNLP
+        // file relative to HTML page
+        var dir = location.href.substring(0,
+            location.href.lastIndexOf('/')+1);
+        var url = dir + "dynamictree_webstart.jnlp";
+        deployJava.createWebStartLaunchButton(url, '1.7.0');
+    &lt;/script&gt;
+    &lt;!-- ... --&gt;
+&lt;/body&gt;
+</pre></div>
+<p>If you are not sure whether your end users will have the JavaScript interpreter enabled in their browsers, you can deploy the Java Web Start application directly by creating a link to the JNLP file as follows:</p>
+<div class="codeblock"><pre>
+&lt;a href="/<em>absolute path to JNLP file</em>/dynamictree_webstart.jnlp"&gt;Launch Notepad Application&lt;/a&gt;
+</pre></div>
+<p>If you deploy the Java Web Start application with a direct link, you cannot take advantage of the additional checks that the Deployment Toolkit functions provide. See 
+<a class="TutorialLink" target="_top" href="../deploymentInDepth/createWebStartLaunchButtonFunction.html">Deploying a Java Web Start Application</a> in the Deployment In-Depth lesson for details.</p>
+</li>
+<li>Place the application's JAR file, JNLP file, and HTML page in the appropriate folders.
+<p>For this example, place <code>DynamicTreeDemo.jar</code>, <code>dynamictree_webstart.jnlp</code>, and <code>JavaWebStartAppPage.html</code> in the same directory on the local machine or a web server. A web server is preferred. To run from the local machine, you must add your application to the exception site list, which is managed from the Security tab of the Java Control Panel.</p>
+</li>
+<li>Open the application's HTML page in a browser to view the application. Agree to run the application when prompted. Check the Java Console log for error and debugging messages.</li>
+</ol>
+<p>In the Dynamic Tree Demo application, the compiled classes are placed in the <code>build/classes/webstartComponentArch</code> directory.</p>
+<p>For the DynamicTree Demo applet, create a file named <code>mymanifest.txt</code> in the <code>build/classes</code> directory, and add the <code>Permissions</code>, <code>Codebase</code>, and <code>Application-Name</code> attributes. The applet does not require access to the user's system resources, so use <code>sandbox</code> for the permissions. Use the domain from which you will load the sample for the code base, for example, <code>myserver.com</code>. Add the following attributes to the <code>mymanifest.txt</code> file. </p>
+<p>WHATSON? 3569fe1e-f838-4493-9b38-47ad57d43a34</p>
+<pre>
+Permissions: sandbox
+Codebase: myserver.com
+Application-Name: Dynamic Tree Demo
+</pre>
+<p>Other manifest attributes are available to restrict an applet to using only trusted code, and to provide security for applets that need to make calls between privileged Java code and sandbox Java code, or have JavaScript code that calls the applet. See the
+<a class="TutorialLink" target="_top" href="../jar/secman.html">Enhancing Security with Manifest Attributes</a> lesson to learn more about the manifest attributes that are available.</p>
+<p>For example, the following command creates a JAR file with the class files in the <code>build/classes/webstartComponentArch</code> directory and the manifest file in the <code>build/classes</code> directory.</p>
+<p>WHATSON? 80e1dab4-b799-49fa-b0db-01cbbfcb3d72</p>
+<pre>
+% cd build/classes
+% jar cvfm  DynamicTreeDemo.jar  mymanifest.txt webstartComponentArch
+</pre>
+<p>See the 
+<a class="TutorialLink" target="_top" href="../jar/index.html">Packaging Programs in JAR Files</a> lesson to learn more about creating and using JAR files.</p>
+<p>See the
+<a class="TutorialLink" target="_top" href="../jar/signing.html">Signing JAR Files</a> lesson for more information.</p>
+<p>If you want to use a signed JNLP file for security, create the JNLP file as described in the next step and include it in the JAR file before the JAR file is signed. See
+<a class="OutsideLink" target="_blank" href="http://docs.oracle.com/javase/8/docs/technotes/guides/deploy/signed_jnlp.html">Signed JNLP Files</a> in the Java Platform, Standard Edition Deployment Guide for information.</p>
+<p>Here is the JNLP file that is used to launch the Dynamic Tree Demo application. Permissions are not requested for this application so it runs in the security sandbox. The source for 
+<a class="SourceLink" target="_blank" href="examples/webstart_ComponentArch_DynamicTreeDemo/src/dynamictree_webstart.jnlp" onclick="showCode('../../displayCode.html', 'examples/webstart_ComponentArch_DynamicTreeDemo/src/dynamictree_webstart.jnlp'); return false;"><code><code>dynamictree_webstart.jnlp</code></code></a> follows:</p>
+<p>WHATSON? 79f2e675-ff84-4d95-8c12-633999027f46</p>
+<pre>    
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;jnlp spec="1.0+" codebase=
+"http://docs.oracle.com/javase/tutorialJWS/samples/deployment/webstart_ComponentArch_DynamicTreeDemo" 
+    href="dynamictree_webstart.jnlp"&gt;
+    &lt;information&gt;
+        &lt;title&gt;Dynamic Tree Demo&lt;/title&gt;
+        &lt;vendor&gt;Dynamic Team&lt;/vendor&gt;
+    &lt;/information&gt;
+    &lt;resources&gt;
+        &lt;!-- Application Resources --&gt;
+        &lt;j2se version="1.7+"
+              href="http://java.sun.com/products/autodl/j2se"/&gt;
+        &lt;jar href="DynamicTreeDemo.jar"
+            main="true" /&gt;
+
+    &lt;/resources&gt;
+    &lt;application-desc
+         name="Dynamic Tree Demo Application"
+         main-class=
+           "webstartComponentArch.DynamicTreeApplication"
+         width="300"
+         height="300"&gt;
+     &lt;/application-desc&gt;
+     &lt;update check="background"/&gt;
+&lt;/jnlp&gt;                                   
+</pre>
+<p>In the example, the Dynamic Tree Demo application is deployed in 
+<a class="SourceLink" target="_blank" href="examples/dist/webstart_ComponentArch_DynamicTreeDemo/JavaWebStartAppPage.html" onclick="showCode('../../displayCode.html', 'examples/dist/webstart_ComponentArch_DynamicTreeDemo/JavaWebStartAppPage.html'); return false;"><code><code>JavaWebStartAppPage.html</code></code></a>.</p>
+<p>WHATSON? fd2dbe5d-9e0c-4811-8e2c-1f16a387b527</p>
+<pre>
+&lt;body&gt;
+    &lt;!-- ... --&gt;
+    &lt;script src=
+      "https://www.java.com/js/deployJava.js"&gt;&lt;/script&gt;
+    &lt;script&gt;
+        // using JavaScript to get location of JNLP
+        // file relative to HTML page
+        var dir = location.href.substring(0,
+            location.href.lastIndexOf('/')+1);
+        var url = dir + "dynamictree_webstart.jnlp";
+        deployJava.createWebStartLaunchButton(url, '1.7.0');
+    &lt;/script&gt;
+    &lt;!-- ... --&gt;
+&lt;/body&gt;
+</pre>
+<p>If you are not sure whether your end users will have the JavaScript interpreter enabled in their browsers, you can deploy the Java Web Start application directly by creating a link to the JNLP file as follows:</p>
+<p>WHATSON? 8bb729bc-849b-4ce2-8da4-87f48bbe51f1</p>
+<pre>
+&lt;a href="/<em>absolute path to JNLP file</em>/dynamictree_webstart.jnlp"&gt;Launch Notepad Application&lt;/a&gt;
+</pre>
+<p>If you deploy the Java Web Start application with a direct link, you cannot take advantage of the additional checks that the Deployment Toolkit functions provide. See 
+<a class="TutorialLink" target="_top" href="../deploymentInDepth/createWebStartLaunchButtonFunction.html">Deploying a Java Web Start Application</a> in the Deployment In-Depth lesson for details.</p>
+<p>For this example, place <code>DynamicTreeDemo.jar</code>, <code>dynamictree_webstart.jnlp</code>, and <code>JavaWebStartAppPage.html</code> in the same directory on the local machine or a web server. A web server is preferred. To run from the local machine, you must add your application to the exception site list, which is managed from the Security tab of the Java Control Panel.</p>
+<p>
+<a class="TutorialLink" target="_top" href="examplesIndex.html#DynamicTreeDemo">Download source code</a> for the <em>Dynamic Tree Demo</em> example to experiment further.</p>

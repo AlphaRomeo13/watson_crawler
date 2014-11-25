@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>How-to-Use-Scroll-Panes-The-Java-Tutorials---------------------Creating-a-GUI-With-JFCSwing--Using-Swing-Components.html</title></head>
+<body>
+<h1>How to Use Scroll Panes</h1>
+<p>A 
+<code>JScrollPane</code> provides a scrollable view of a component. When screen real estate is limited, use a scroll pane to display a component that is large or one whose size can change dynamically. Other containers used to save screen space include split panes and tabbed panes.</p>
+<p>The code to create a scroll pane can be minimal. For example, here's a picture of a demo program that puts a text area in a scroll pane because the text area's size grows dynamically as text is appended to it: 
+</p>
+<p>Here's the code that creates the text area, makes it the scroll pane's client, and adds the scroll pane to a container:</p>
+<p>WHATSON? 81b329b8-f17c-411c-9b08-589a95ca3578</p>
+<pre>
+<em>//In a container that uses a BorderLayout:</em>
+textArea = new JTextArea(5, 30);
+...
+<b>JScrollPane scrollPane = new JScrollPane(textArea);</b>
+...
+setPreferredSize(new Dimension(450, 110));
+...
+add(scrollPane, BorderLayout.CENTER);
+</pre>
+<p>The boldface line of code creates the <code>JScrollPane</code>, specifying the text area as the scroll pane's client. The program doesn't invoke any methods on the <code>JScrollPane</code> object, since the scroll pane handles everything automatically: creating the scroll bars when necessary, redrawing the client when the user moves the scroll knobs, and so on.</p>
+<p>You might have noticed that the preceding code sets the preferred size of the scroll pane's container. In the Java look and feel, this preferred size happens to be a bit less tall than required for the text area to display the 5 rows that we requested when creating it, so the scroll bar initially displays a vertical scroll bar. If we didn't restrict the size of the scroll pane's container, the scroll pane would be big enough for the text area to display the full 5 rows and 30 columns specified with the <code>JTextArea</code> constructor. Refer to Sizing a Scroll Pane for information about techniques for making a scroll pane the size you want.</p>
+<p>The rest of this section discusses the following topics:</p>
+<ul>
+<li>How a Scroll Pane Works</li>
+<li>Setting the Scroll Bar Policy</li>
+<li>Providing Custom Decorations</li>
+<li>Implementing a Scrolling-Savvy Client</li>
+<li>Sizing a Scroll Pane</li>
+<li>Dynamically Changing the Client's Size</li>
+<li>The Scroll Pane API</li>
+<li>Examples that Use Scroll Panes</li>
+</ul>
+<p></p>
+<h2>How a Scroll Pane Works</h2>
+<p>Here is a snapshot of an application that uses a customized scroll pane to view a photograph:</p>
+<p>The scroll pane in this application looks very different from the one in the previous demo program. Rather than displaying text, this scroll pane contains a image. The scroll pane also has two scroll bars, a row header, a column header, and four corners, three of which have been customized. <!-- ***************** boilerplate stuff **************** --></p>
+<ol>
+<li>Click the Launch button to run ScrollDemo using 
+Java™ Web Start (download JDK 7 or later). Alternatively, to compile and run the example yourself, consult the example index.<img src="../../images/jws-launch-button.png" width="88" height="23" align="bottom" alt="Launches the ScrollDemo example"><br>
+<p><!--  ******* end boilerplate stuff  *******  -->
+ <!-- ======================================== -->
+ <!-- 
+
+<div class="note"><hr /><strong>Try this:</strong>&nbsp;
+<ol>
+<li> Run ScrollDemo (
+download JDK 7 or later).    Or, to compile and run the example yourself,
+     consult the
+     example index.
+--></p>
+</li>
+<li>Move the knobs on the scroll bars. Watch the image scroll and the horizontal and vertical rulers scroll along.</li>
+<li>If you have a mouse with a wheel (which is generally between the mouse buttons) use the mouse wheel to scroll the image vertically.</li>
+<li>Click the <strong>cm</strong> toggle in the upper left corner of the scroll pane. The units on the row and column headers change to inches (or back to centimeters).</li>
+<li>Click the arrow buttons on the scroll bars. Also, try clicking on the track above or below the knob on the vertical scroll bar, or to the left or right of the horizontal one.</li>
+<li>Move the cursor over the image and press the cursor. Continuing to press the cursor, drag to a point outside the image and pause. The visible area of the image moves toward the cursor. This scroll-by-dragging functionality is enabled by the scroll pane, and with the <code>JComponent</code> API, but it is implemented by the custom component that displays the image.</li>
+<li>Resize the window. Notice that the scroll bars disappear when the scroll pane is large enough to display the entire image and reappear again when the scroll pane is too small to show the entire image.</li>
+</ol>
+<p><!--  ******* end boilerplate stuff  *******  -->
+ <!-- ======================================== -->
+ <!-- 
+
+<div class="note"><hr /><strong>Try this:</strong>&nbsp;
+<ol>
+<li> Run ScrollDemo (
+download JDK 7 or later).    Or, to compile and run the example yourself,
+     consult the
+     example index.
+--></p>
+<p>The ScrollDemo program establishes the scroll pane's client when creating the scroll pane:</p>
+<p>WHATSON? 2ac1379c-ca2c-4906-80bc-60098a42b706</p>
+<pre>
+//<em>Where the member variables are declared:</em>
+private ScrollablePicture picture;
+...
+//<em>Where the GUI is created:</em>
+picture = new ScrollablePicture(<em> ... </em>);
+JScrollPane pictureScrollPane = new JScrollPane(picture);
+</pre>
+<p>The scroll pane's client is also known as the <em>view</em> or <em>viewport view</em>. You can change the client dynamically by calling the <code>setViewportView</code> method. Note that <code>JScrollPane</code> has no corresponding <code>getViewportView</code> method. If you need to refer to the client object again, you can either cache it in a variable or invoke <code>getViewport().getViewportView()</code> on the scroll pane.</p>
+<p>When the user manipulates the scroll bars in a scroll pane, the area of the client that is visible changes accordingly. This picture shows the relationship between the scroll pane and its client and indicates the classes that the scroll pane commissions to help:</p>
+<p>A scroll pane uses a 
+<code>JViewport</code> instance to manage the visible area of the client. The viewport is responsible for positioning and sizing the client, based on the positions of the scroll bars, and displaying it.</p>
+<p>A scroll pane may use two separate instances of 
+<code>JScrollBar</code> for the scroll bars. The scroll bars provide the interface for the user to manipulate the visible area. The following figure shows the three areas of a scroll bar: the knob (sometimes called the <em>thumb</em>), the (arrow) buttons, and the track.</p>
+<p>When the user moves the knob on the vertical scroll bar up and down, the visible area of the client moves up and down. Similarly, when the user moves the knob on the horizontal scroll bar to the right and left, the visible area of the client moves back and forth accordingly. The position of the knob relative to its track is proportionally equal to the position of the visible area relative to the client. In the Java look and feel and some others, the size of the knob gives a visual clue as to how much of the client is visible.</p>
+<p>By clicking an arrow button, the user can scroll by a <em>unit increment</em>. By clicking within the track, the user can scroll by a <em>block increment</em>. If the user has a mouse with a wheel, then the user can scroll vertically using the mouse wheel. The amount that the mouse wheel scrolls is platform dependent. For example, by default on Windows XP, the mouse wheel scrolls three unit increments; the Mouse control panel allows you to specify a different number of unit increments or to use a block increment instead. More information about unit and block increments is in Implementing a Scrolling-Savvy Client.</p>
+<p>Typical programs don't directly instantiate or call methods on a viewport or scroll bar. Instead, programs achieve their scrolling behavior using the <code>JScrollPane</code> API and the API discussed in Implementing a Scrolling-Savvy Client. Some scrolling-savvy components such as <code>JList</code>, <code>JTable</code>, and <code>JTree</code> also provide additional API to help you affect their scrolling behavior.</p>
+<h2>Setting the Scroll Bar Policy</h2>
+<p>On startup, the scroll pane in the <code>ScrollDemo</code> application has two scroll bars. If you make the window large, both scroll bars disappear because they are no longer needed. If you then shrink the height of the window without changing its width, the vertical scroll bar reappears. Further experimentation will show that in this application both scroll bars disappear and reappear as needed. This behavior is controlled by the scroll pane's <em>scroll bar policy</em>, Actually, it's two policies: each scroll bar has its own.</p>
+<p><code>ScrollDemo</code> doesn't explicitly set the scroll pane's scroll bar policies  it uses the default. You can set the policies when you create the scroll pane or change them dynamically.</p>
+<p>Of the constructors provided by <code>JScrollPane</code>, these two let you set the scroll bar policies when you create the scroll pane:</p>
+<p>WHATSON? a97a1292-c3b3-4c5a-9f8f-bb76caa5fde9</p>
+<pre>
+JScrollPane(Component, int, int)
+JScrollPane(int, int)
+</pre>
+<p>The first <code>int</code> specifies the policy for the vertical scroll bar; the second specifies the policy for the horizontal scroll bar. You can also set the policies dynamically with the <code>setHorizontalScrollBarPolicy</code> and <code>setVerticalScrollBarPolicy</code> methods. With both the constructors and the methods, use one of the following constants defined in the 
+<code>ScrollPaneConstants</code> interface (which is implemented by <code>JScrollPane</code>):</p>
+<h2>Providing Custom Decorations</h2>
+<p>The area drawn by a scroll pane consists of up to nine parts: the center, four sides, and four corners. The center is the only component that is always present in all scroll panes. Besides scroll bars, the sides can contain column and row headers. A corner component is visible only if both sides that intersect at that corner contain visible components.</p>
+<p>As shown in the figure, the scroll pane in <code>ScrollDemo</code> has custom row and column headers. Additionally, because all four sides are populated, all four corners are present. The program customizes three of the corners  two just fill their area with the same color as the <code>Rule</code>s, and the other contains a toggle button. The fourth corner, the lower right corner, is the default provided by the scroll pane. Notice that because the row and column headers are always present in this example, the toggle button is also always present.</p>
+<p>If a corner contains a control that the user needs access to all the time, make sure the sides that intersect at the corner are always present. For example, if this application placed the toggle in the lower right corner where the scroll bars intersect, then the toggle would disappear if the user resized the window and even one of the scroll bars disappeared.</p>
+<p>The scroll pane's row and column headers are provided by a custom <code>JComponent</code> subclass, 
+<code>Rule</code>, that draws a ruler in centimeters or inches. Here's the code that creates and sets the scroll pane's row and column headers:</p>
+<p>WHATSON? 38c0be12-f31c-4a2d-93ab-5817b3dd6d1e</p>
+<pre>
+<em>//Where the member variables are defined:</em>
+private Rule columnView;
+private Rule rowView;
+...
+<em>//Where the GUI is initialized:</em>
+ImageIcon bee = createImageIcon("images/flyingBee.jpg");
+...
+//Create the row and column headers.
+columnView = new Rule(Rule.HORIZONTAL, true);
+rowView = new Rule(Rule.VERTICAL, true);
+
+...
+<strong>pictureScrollPane.setColumnHeaderView(columnView);</strong>
+<strong>pictureScrollPane.setRowHeaderView(rowView);</strong>
+</pre>
+<p>You can use any component for a scroll pane's row and column headers. The scroll pane puts the row and column headers in <code>JViewPort</code>s of their own. Thus, when scrolling horizontally, the column header follows along, and when scrolling vertically, the row header follows along. Make sure the row and column have the same width and height as the view, because JScrollPane does not enforce these values to have the same size. If one differs from the other, you are likely to not get the desired behavior.</p>
+<p>As a <code>JComponent</code> subclass, our custom <code>Rule</code> class puts its rendering code in its <code>paintComponent</code> method. The <code>Rule</code> rendering code takes care to draw only within the current clipping bounds, to ensure speedy scrolling. Your custom row and column headers should do the same.</p>
+<p>You can also use any component for the corners of a scroll pane. <code>ScrollDemo</code> illustrates this by putting a toggle button in the upper left corner, and custom 
+<code>Corner</code> objects in the upper right and lower left corners. Here's the code that creates the <code>Corner</code> objects and calls <code>setCorner</code> to place them:</p>
+<p>WHATSON? 65903232-fbc7-46a5-bc31-7a02cc9b40b2</p>
+<pre>
+//Create the corners.
+JPanel buttonCorner = new JPanel(); //use FlowLayout
+isMetric = new JToggleButton("cm", true);
+isMetric.setFont(new Font("SansSerif", Font.PLAIN, 11));
+isMetric.setMargin(new Insets(2,2,2,2));
+isMetric.addItemListener(this);
+buttonCorner.add(isMetric);
+...
+//Set the corners.
+<strong>pictureScrollPane.setCorner(JScrollPane.UPPER_LEFT_CORNER,
+                            buttonCorner);
+pictureScrollPane.setCorner(JScrollPane.LOWER_LEFT_CORNER,
+                            new Corner());
+pictureScrollPane.setCorner(JScrollPane.UPPER_RIGHT_CORNER,
+                            new Corner());</strong>
+</pre>
+<p>Remember that the size of each corner is determined by the size of the sides intersecting there. For some components you must take care that the specific instance of the component fits in its corner. For example, the program sets the font and margins on the toggle button so that it fits within the space established by the headers. It's not an issue with the <code>Corner</code> class because that class colors its entire bounds, whatever they happen to be, with a solid color.</p>
+<p>As you can see from the code, constants indicate the corner positions. This figure shows the constant for each position:</p>
+<p>The constants are defined in the 
+<code>ScrollPaneConstants</code> interface, which <code>JScrollPane</code> implements.</p>
+<h2>Implementing a Scrolling-Savvy Client</h2>
+<p>To customize the way that a client component interacts with its scroll pane, you can make the component implement the 
+<code>Scrollable</code> interface. By implementing <code>Scrollable</code>, a client can specify both the size of the viewport used to view it and the amount to scroll for clicks on the different controls on a scroll bar. You can also specify if the view should track the size of the viewport. This is typically used when the viewport is bigger than the view, but the view should fill the available space.</p>
+<p>WHATSON? 59d177fc-0488-463d-a379-9dd95fd49887</p>
+<pre>
+scrollPane.getVerticalScrollBar().setUnitIncrement(10);
+</pre>
+<p>Here again are the three control areas of a scroll bar: the knob, the buttons, and the track.</p>
+<p>You might have noticed when manipulating the scroll bars in <code>ScrollDemo</code> that clicking the buttons scrolls the image to a tick boundary. You might also have noticed that clicking in the track scrolls the picture by a "screenful". More generally, the button scrolls the visible area by a unit increment and the track scrolls the visible area by a block increment. The behavior you see in the example is not the scroll pane's default behavior, but is specified by the client in its implementation of the <code>Scrollable</code> interface.</p>
+<p>The client for the <code>ScrollDemo</code> program is 
+<code>ScrollablePicture</code>. <code>ScrollablePicture</code> is a subclass of <code>JLabel</code> that provides implementations of all five <code>Scrollable</code> methods:</p>
+<ul>
+<li><code>getScrollableBlockIncrement</code></li>
+<li><code>getScrollableUnitIncrement</code></li>
+<li><code>getPreferredScrollableViewportSize</code></li>
+<li><code>getScrollableTracksViewportHeight</code></li>
+<li><code>getScrollableTracksViewportWidth</code></li>
+</ul>
+<p><code>ScrollablePicture</code> implements the <code>Scrollable</code> interface primarily to affect the unit and block increments. However, it must provide implementations for all five methods. Thus, it provides reasonable defaults for the other three methods that you might want to copy for your scrolling-savvy classes.</p>
+<p>The scroll pane calls the client's <code>getScrollableUnitIncrement</code> method whenever the user clicks one of the buttons on the scroll bar. This is true as long as the client implements Scrollable. This method returns the number of pixels to scroll. An obvious implementation of this method returns the number of pixels between tick marks on the header rulers. <code>ScrollablePicture</code>, however, does something different: It returns the value required to position the image on a tick mark boundary. Here's the implementation:</p>
+<p>WHATSON? dc6c1fb6-b2ba-4b98-a52d-24428dec8a14</p>
+<pre>
+public int getScrollableUnitIncrement(Rectangle visibleRect,
+                                      int orientation,
+                                      int direction) {
+    //Get the current position.
+    int currentPosition = 0;
+    if (orientation == SwingConstants.HORIZONTAL) {
+        currentPosition = visibleRect.x;
+    } else {
+        currentPosition = visibleRect.y;
+    }
+
+    //Return the number of pixels between currentPosition
+    //and the nearest tick mark in the indicated direction.
+    if (direction &lt; 0) {
+        int newPosition = currentPosition -
+                         (currentPosition / maxUnitIncrement)
+                          * maxUnitIncrement;
+        return (newPosition == 0) ? maxUnitIncrement : newPosition;
+    } else {
+        return ((currentPosition / maxUnitIncrement) + 1)
+                 * maxUnitIncrement
+                 - currentPosition;
+    }
+}
+</pre>
+<p>If the image is already on a tick mark boundary, this method returns the number of pixels between ticks. Otherwise, it returns the number of pixels from the current location to the nearest tick.</p>
+<p>Likewise, the scroll pane calls the client's <code>getScrollableBlockIncrement</code> method each time the user clicks on the track, but only if the client implements Scrollable. Here's <code>ScrollablePicture</code>'s implementation of this method:</p>
+<p>WHATSON? d78b3345-e351-44cc-a7eb-9c8c653b3fb0</p>
+<pre>
+public int getScrollableBlockIncrement(Rectangle visibleRect,
+                                       int orientation,
+                                       int direction) {
+    if (orientation == SwingConstants.HORIZONTAL)
+        return visibleRect.width - maxUnitIncrement;
+    else
+        return visibleRect.height - maxUnitIncrement;
+}
+</pre>
+<p>This method returns the height of the visible rectangle minus a tick mark. This behavior is typical, but true if scrolling vertically, otherwise, it's the width.A block increment should be slightly smaller than the viewport to leave a little of the previous visible area for context. For example, a text area might leave one or two lines of text for context and a table might leave a row or column (depending on the scroll direction).</p>
+<p><code>ScrollablePicture.java</code> has one more bit of code that's not required by the <code>Scrollable</code> interface, but is common in scrollable components: a mouse motion listener that lets the user scroll the picture by dragging from it. The boldface code in the following snippet implements scrolling by dragging:</p>
+<p>WHATSON? d0d00056-be1b-4b00-8a66-5d6ec5e3070d</p>
+<pre>
+public class ScrollablePicture extends JLabel
+                               implements Scrollable,
+                                          <b>MouseMotionListener</b> {
+    ...
+    public ScrollablePicture(...) {
+        ...
+        <b>setAutoscrolls(true);</b> //enable synthetic drag events
+        <b>addMouseMotionListener(this);</b> //handle mouse drags
+    }
+    ...
+    <b>public void mouseDragged(MouseEvent e) {</b>
+        //The user is dragging us, so scroll!
+        <b>Rectangle r = new Rectangle(e.getX(), e.getY(), 1, 1);
+        scrollRectToVisible(r);
+    }</b>
+...
+}
+</pre>
+<p>This snippet scrolls the picture whenever the user drags from the picture to a location outside the picture and pauses. The <code>setAutoscrolls</code> method is defined by <code>JComponent</code> for the purpose of assisting  but not implementing  scrolling by dragging. Setting the autoscrolls property to <code>true</code> makes the component fire synthetic mouse-dragged events even when the mouse isn't moving (because it stopped, mid-drag, outside the component). It's up to the component's mouse motion listener to listen for these events and react accordingly.</p>
+<h2>Sizing a Scroll Pane</h2>
+<p>Unless you explicitly set a scroll pane's preferred size, the scroll pane computes it based on the preferred size of its nine components (the viewport, and, if present, the two scroll bars, the row and column headers, and the four corners). The largest factor, and the one most programmers care about, is the size of the viewport used to display the client.</p>
+<p>If the client is not scrolling-savvy, then the scroll pane sizes itself so that the client displays at its preferred size. For typical unsavvy clients, this makes the scroll pane redundant. That is, the scroll pane has no scroll bars because the client's preferred size is big enough to display the entire client. In this case, if the client doesn't change size dynamically, you should probably limit the size of the scroll pane by setting its preferred size or the preferred size of its container.</p>
+<p>If the client is scrolling-savvy, then the scroll pane uses the value returned by the client's <code>getPreferredScrollableViewportSize</code> method to compute the size of its viewport. Implementations of this method generally report a preferred size for scrolling that's smaller than the component's standard preferred size. For example, by default, the value returned by <code>JList</code>'s implementation of <code>getPreferredScrollableViewportSize</code> is just big enough to display eight rows.</p>
+<p>Scrolling-savvy classes, like lists, tables, text components, and trees, often provide one or more methods that let programmers affect the size returned from <code>getPreferredScrollableViewportSize</code>. For example, you can set the number of visible rows in a list or a tree by calling the <code>setVisibleRowCount</code> method. The list or tree takes care of figuring out the size needed to display that number of rows.</p>
+<p>Refer to Methods in Other Classes Related to Scrolling for information about scrolling-related methods provided by classes other than <code>JScrollPane</code>. And remember  if you don't like the value that <code>getPreferredScrollableViewportSize</code> returns, you can always set the preferred size of the scroll pane or its container.</p>
+<h2>Dynamically Changing the Client's Size</h2>
+<p>Changing the size of a scroll pane's client is a two-step process. First, set the client's preferred size. Then, call <code>revalidate</code> on the client to let the scroll pane know that it should update itself and its scroll bars. Let's look at an example.</p>
+<p>Here's a picture of an application that changes the client's size whenever the user places a circle whose bounds fall outside of the client's current bounds. The program also changes the client's size when the user clears the drawing area:</p>
+<p>You can find the full source code for this example in 
+<code>ScrollDemo2.java</code>, which is based on an example provided by tutorial reader John Vella. You can run ScrollDemo2 ( 
+download JDK 7 or later).</p>
+<p>Here's the code that changes the drawing area's size when necessary:</p>
+<p>WHATSON? d5ce56ed-98e8-492b-8b30-fa5ac99fc35c</p>
+<pre>
+if (changed) {
+    //Update client's preferred size because
+    //the area taken up by the graphics has
+    //gotten larger or smaller (if cleared).
+    drawingArea.setPreferredSize(<em>/* the new size */</em>);
+
+    //Let the scroll pane know to update itself
+    //and its scroll bars.
+    drawingArea.revalidate();
+}
+</pre>
+<p>Note that when the client changes size, the scroll bars adjust. The scroll pane doesn't resize, nor does the viewport.</p>
+<p>Refer to <code>SplitPaneDemo</code> for another example in which the client object changes size.</p>
+<h2>The Scroll Pane API</h2>
+<p>The following tables list the commonly used scroll-related constructors and methods. Other methods you are most likely to invoke on a <code>JScrollPane</code> object are those such as <code>setPreferredSize</code> that its superclasses provide. See The JComponent API for tables of commonly used inherited methods.</p>
+<p>The API for using scroll panes falls into these categories:</p>
+<ul>
+<li>Setting Up the Scroll Pane</li>
+<li>Decorating the Scroll Pane</li>
+<li>Implementing a Scrolling-Savvy Client</li>
+<li>Methods in Other Classes Related to Scrolling</li>
+</ul>
+<h2>Examples that Use Scroll Panes</h2>
+<p>This table shows the examples that use <code>JScrollPane</code> and where those examples are described.</p>
+<p>If you are programming in JavaFX, see
+Scroll Pane.</p>
+</body>
+</html>

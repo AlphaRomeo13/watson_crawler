@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>How-to-Use-Tool-Bars-The-Java-Tutorials---------------------Creating-a-GUI-With-JFCSwing--Using-Swing-Components.html</title></head>
+<body>
+<h1>How to Use Tool Bars</h1>
+<p>A 
+<code>JToolBar</code> is a container that groups several components  usually buttons with icons  into a row or column. Often, tool bars provide easy access to functionality that is also in menus. How to Use Actions describes how to provide the same functionality in menu items and tool bar buttons. 
+</p>
+<p>The following images show an application named <code>ToolBarDemo</code> that contains a tool bar above a text area. Click the Launch button to run ToolBarDemo using 
+Java™ Web Start (download JDK 7 or later). Alternatively, to compile and run it yourself, consult the example index.</p>
+<p>By default, the user can drag the tool bar to another edge of its container or out into a window of its own. The next figure shows how the application looks after the user has dragged the tool bar to the right edge of its container.</p>
+<p>For the drag behavior to work correctly, the tool bar must be in a container that uses the 
+<code>BorderLayout</code> layout manager. The component that the tool bar affects is generally in the center of the container. The tool bar must be the only other component in the container, and it must not be in the center.</p>
+<p>The next figure shows how the application looks after the user has dragged the tool bar outside its window.</p>
+<p>The following code creates the tool bar and adds it to a container. You can find the entire program in 
+<code>ToolBarDemo.java</code>. 
+</p>
+<p>WHATSON? 60994cbb-f607-43fd-b392-a964a703a741</p>
+<pre>
+public class ToolBarDemo extends JPanel
+                         implements ActionListener {
+    ...
+    public ToolBarDemo() {
+        super(new BorderLayout());
+        ...
+        JToolBar toolBar = new JToolBar("Still draggable");
+        addButtons(toolBar);
+        ...
+        setPreferredSize(new Dimension(450, 130));
+        add(toolBar, BorderLayout.PAGE_START);
+        add(scrollPane, BorderLayout.CENTER);
+    }
+    ...
+}
+</pre>
+<p>This code positions the tool bar above the scroll pane by placing both components in a panel controlled by a border layout, with the tool bar in the <code>PAGE_START</code> position and the scroll pane in the <code>CENTER</code> position. Because the scroll pane is in the center and no other components except the tool bar are in the container, by default the tool bar can be dragged to other edges of the container. The tool bar can also be dragged out into its own window, in which case the window has the title "Still draggable", as specified by the <code>JToolBar</code> constructor.</p>
+<h2>Creating Tool Bar Buttons</h2>
+<p>The buttons in the tool bar are ordinary <code>JButton</code> instances that use images from the Java Look and Feel Graphics Repository. Use images from the 
+Java Look and Feel Graphics Repository if your tool bar has the Java look and feel.</p>
+<p>Here is the code that creates the buttons and adds them to the tool bar.</p>
+<p>WHATSON? cef7c39c-569f-4caa-a036-a4b37f342916</p>
+<pre>
+protected void addButtons(JToolBar toolBar) {
+    JButton button = null;
+
+    //first button
+    button = makeNavigationButton("Back24", PREVIOUS,
+                                  "Back to previous something-or-other",
+                                  "Previous");
+    toolBar.add(button);
+
+    //second button
+    button = makeNavigationButton("Up24", UP,
+                                  "Up to something-or-other",
+                                  "Up");
+    toolBar.add(button);
+
+    <em>...//similar code for creating and adding the third button...</em>
+}
+
+protected JButton makeNavigationButton(String imageName,
+                                       String actionCommand,
+                                       String toolTipText,
+                                       String altText) {
+    //Look for the image.
+    String imgLocation = "images/"
+                         + imageName
+                         + ".gif";
+    URL imageURL = ToolBarDemo.class.getResource(imgLocation);
+
+    //Create and initialize the button.
+    JButton button = new JButton();
+    button.setActionCommand(actionCommand);
+    button.setToolTipText(toolTipText);
+    button.addActionListener(this);
+
+    if (imageURL != null) {                      //image found
+        button.setIcon(new ImageIcon(imageURL, altText));
+    } else {                                     //no image found
+        button.setText(altText);
+        System.err.println("Resource not found: " + imgLocation);
+    }
+
+    return button;
+}
+</pre>
+<p>The first call to <code>makeNavigationButton</code> creates the image for the first button, using the 24x24 "Back" navigation image in the graphics repository. 
+</p>
+<p>Besides finding the image for the button, the <code>makeNavigationButton</code> method also creates the button, sets the strings for its action command and tool tip text, and adds the action listener for the button. If the image is missing, the method prints an error message and adds text to the button, so that the button is still usable.</p>
+<p>If any buttons in your tool bar duplicate the functionality of other components, such as menu items, you should probably create and add the tool bar buttons as described in 
+How to Use Actions.</p>
+<h2>Customizing Tool Bars</h2>
+<p>By adding a few lines of code to the preceding example, we can demonstrate some more tool bar features:</p>
+<ul>
+<li>Using <code>setFloatable(false)</code> to make a tool bar immovable.</li>
+<li>Using <code>setRollover(true)</code> to visually indicate tool bar buttons when the user passes over them with the cursor.</li>
+<li>Adding a separator to a tool bar.</li>
+<li>Adding a non-button component to a tool bar.</li>
+</ul>
+<p>You can see these features by running ToolBarDemo2. Click the Launch button to run ToolBarDemo2 using 
+Java™ Web Start (download JDK 7 or later). Alternatively, to compile and run it yourself, consult the example index.</p>
+<p>You can find the entire code for this program in 
+<code>ToolBarDemo2.java</code>. Below you can see a picture of a new UI using these customized features.</p>
+<p>Because the tool bar can no longer be dragged, it no longer has bumps at its left edge. Here is the code that turns off dragging:</p>
+<p>WHATSON? b926f8c9-2803-44c2-a194-a1ec665d7067</p>
+<pre>
+toolBar.setFloatable(false);
+</pre>
+<p>The tool bar is in rollover mode, so the button under the cursor has a visual indicator. The kind of visual indicator depends on the look and feel. For example, the Metal look and feel uses a gradient effect to indicate the button under the cursor while other types of look and feel use borders for this purpose. Here is the code that sets rollover mode:</p>
+<p>WHATSON? 271cb9e4-f67b-4d34-ba4b-cf33203731aa</p>
+<pre>
+toolBar.setRollover(true);
+</pre>
+<p>Another visible difference in the example above is that the tool bar contains two new components, which are preceded by a blank space called a separator. Here is the code that adds the separator:</p>
+<p>WHATSON? 39564046-11ed-40de-aac6-12d314b0dba2</p>
+<pre>
+toolBar.addSeparator();
+</pre>
+<p>Here is the code that adds the new components:</p>
+<p>WHATSON? 5b65f260-9e79-43b3-a7a6-8da5f303608f</p>
+<pre>
+//fourth button
+button = new JButton("Another button");
+...
+toolBar.add(button);
+
+//fifth component is NOT a button!
+JTextField textField = new JTextField("A text field");
+...
+toolBar.add(textField);
+</pre>
+<p>You can easily make the tool bar components either top-aligned or bottom-aligned instead of centered by invoking the <code>setAlignmentY</code> method. For example, to align the tops of all the components in a tool bar, invoke <code>setAlignmentY(TOP_ALIGNMENT)</code> on each component. Similarly, you can use the <code>setAlignmentX</code> method to specify the alignment of components when the tool bar is vertical. This layout flexibility is possible because tool bars use <code>BoxLayout</code> to position their components. For more information, see 
+How to Use BoxLayout.</p>
+<h2>The Tool Bar API</h2>
+<p>The following table lists the commonly used 
+<code>JToolBar</code> constructors and methods. Other methods you might call are listed in the API tables in The JComponent Class. 
+</p>
+<p>
+ You can associate a button with an <code>Action</code> using the <code>setAction(Action)</code> method defined by the <code>AbstractButton</code>.</p>
+<h2>Examples That Use Tool Bars</h2>
+<p>This table lists examples that use <code>JToolBar</code> and points to where those examples are described.</p>
+</body>
+</html>

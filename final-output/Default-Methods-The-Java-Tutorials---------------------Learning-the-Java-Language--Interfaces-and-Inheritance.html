@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Default-Methods-The-Java-Tutorials---------------------Learning-the-Java-Language--Interfaces-and-Inheritance.html</title></head>
+<body>
+<h1>Default Methods</h1>
+<p>The section
+Interfaces describes an example that involves manufacturers of computer-controlled cars who publish industry-standard interfaces that describe which methods can be invoked to operate their cars. What if those computer-controlled car manufacturers add new functionality, such as flight, to their cars? These manufacturers would need to specify new methods to enable other companies (such as electronic guidance instrument manufacturers) to adapt their software to flying cars. Where would these car manufacturers declare these new flight-related methods? If they add them to their original interfaces, then programmers who have implemented those interfaces would have to rewrite their implementations. If they add them as static methods, then programmers would regard them as utility methods, not as essential, core methods.</p>
+<p>Default methods enable you to add new functionality to the interfaces of your libraries and ensure binary compatibility with code written for older versions of those interfaces.</p>
+<p>Consider the following interface,
+<code>TimeClient</code>, as described in
+Answers to Questions and Exercises: Interfaces:</p>
+<p>WHATSON? eb79d592-3fd8-496e-9985-7e89a20db407</p>
+<pre>
+
+import java.time.*; 
+ 
+public interface TimeClient {
+    void setTime(int hour, int minute, int second);
+    void setDate(int day, int month, int year);
+    void setDateAndTime(int day, int month, int year,
+                               int hour, int minute, int second);
+    LocalDateTime getLocalDateTime();
+}
+</pre>
+<p>The following class,
+<code>SimpleTimeClient</code>, implements <code>TimeClient</code>:</p>
+<p>WHATSON? d2573690-638f-42ca-b9cf-ee71f6c17b81</p>
+<pre>
+
+package defaultmethods;
+
+import java.time.*;
+import java.lang.*;
+import java.util.*;
+
+public class SimpleTimeClient implements TimeClient {
+    
+    private LocalDateTime dateAndTime;
+    
+    public SimpleTimeClient() {
+        dateAndTime = LocalDateTime.now();
+    }
+    
+    public void setTime(int hour, int minute, int second) {
+        LocalDate currentDate = LocalDate.from(dateAndTime);
+        LocalTime timeToSet = LocalTime.of(hour, minute, second);
+        dateAndTime = LocalDateTime.of(currentDate, timeToSet);
+    }
+    
+    public void setDate(int day, int month, int year) {
+        LocalDate dateToSet = LocalDate.of(day, month, year);
+        LocalTime currentTime = LocalTime.from(dateAndTime);
+        dateAndTime = LocalDateTime.of(dateToSet, currentTime);
+    }
+    
+    public void setDateAndTime(int day, int month, int year,
+                               int hour, int minute, int second) {
+        LocalDate dateToSet = LocalDate.of(day, month, year);
+        LocalTime timeToSet = LocalTime.of(hour, minute, second); 
+        dateAndTime = LocalDateTime.of(dateToSet, timeToSet);
+    }
+    
+    public LocalDateTime getLocalDateTime() {
+        return dateAndTime;
+    }
+    
+    public String toString() {
+        return dateAndTime.toString();
+    }
+    
+    public static void main(String... args) {
+        TimeClient myTimeClient = new SimpleTimeClient();
+        System.out.println(myTimeClient.toString());
+    }
+}
+</pre>
+<p>Suppose that you want to add new functionality to the <code>TimeClient</code> interface, such as the ability to specify a time zone through a
+<code>ZonedDateTime</code> object (which is like a
+<code>LocalDateTime</code> object except that it stores time zone information):</p>
+<p>WHATSON? d6f5ed4a-719f-44c0-b570-55bf0976a955</p>
+<pre>
+public interface TimeClient {
+    void setTime(int hour, int minute, int second);
+    void setDate(int day, int month, int year);
+    void setDateAndTime(int day, int month, int year,
+        int hour, int minute, int second);
+    LocalDateTime getLocalDateTime();                           
+    <strong>ZonedDateTime getZonedDateTime(String zoneString);</strong>
+}
+</pre>
+<p>Following this modification to the <code>TimeClient</code> interface, you would also have to modify the class <code>SimpleTimeClient</code> and implement the method <code>getZonedDateTime</code>. However, rather than leaving <code>getZonedDateTime</code> as <code>abstract</code> (as in the previous example), you can instead define a <em>default implementation</em>. (Remember that an
+abstract method is a method declared without an implementation.)</p>
+<p>WHATSON? a25a84c7-8394-4270-be37-aa40814c85d1</p>
+<pre>
+
+package defaultmethods;
+ 
+import java.time.*;
+
+public interface TimeClient {
+    void setTime(int hour, int minute, int second);
+    void setDate(int day, int month, int year);
+    void setDateAndTime(int day, int month, int year,
+                               int hour, int minute, int second);
+    LocalDateTime getLocalDateTime();
+    
+    static ZoneId getZoneId (String zoneString) {
+        try {
+            return ZoneId.of(zoneString);
+        } catch (DateTimeException e) {
+            System.err.println("Invalid time zone: " + zoneString +
+                "; using default time zone instead.");
+            return ZoneId.systemDefault();
+        }
+    }
+        
+    default ZonedDateTime getZonedDateTime(String zoneString) {
+        return ZonedDateTime.of(getLocalDateTime(), getZoneId(zoneString));
+    }
+}
+</pre>
+<p>You specify that a method definition in an interface is a default method with the <code>default</code> keyword at the beginning of the method signature. All method declarations in an interface, including default methods, are implicitly <code>public</code>, so you can omit the <code>public</code> modifier.</p>
+<p>With this interface, you do not have to modify the class <code>SimpleTimeClient</code>, and this class (and any class that implements the interface <code>TimeClient</code>), will have the method <code>getZonedDateTime</code> already defined. The following example,
+<code>TestSimpleTimeClient</code>, invokes the method <code>getZonedDateTime</code> from an instance of <code>SimpleTimeClient</code>:</p>
+<p>WHATSON? a173866e-39b4-4650-acc3-bad4701cb781</p>
+<pre>
+
+package defaultmethods;
+ 
+import java.time.*;
+import java.lang.*;
+import java.util.*;
+
+public class TestSimpleTimeClient {
+    public static void main(String... args) {
+        TimeClient myTimeClient = new SimpleTimeClient();
+        System.out.println("Current time: " + myTimeClient.toString());
+        System.out.println("Time in California: " +
+            myTimeClient.getZonedDateTime("Blah blah").toString());
+    }
+}
+</pre>
+<h2>Extending Interfaces That Contain Default Methods</h2>
+<p>When you extend an interface that contains a default method, you can do the following:</p>
+<ul>
+    <li>Not mention the default method at all, which lets your extended interface inherit the default method.</li>
+    <li>Redeclare the default method, which makes it <code>abstract</code>.</li>
+    <li>Redefine the default method, which overrides it.</li>
+</ul>
+<p>Suppose that you extend the interface <code>TimeClient</code> as follows:</p>
+<p>WHATSON? 50e163af-a0b6-4ba3-bf7b-3579045ac20e</p>
+<pre>
+public interface AnotherTimeClient extends TimeClient { }
+</pre>
+<p>Any class that implements the interface <code>AnotherTimeClient</code> will have the implementation specified by the default method <code>TimeClient.getZonedDateTime</code>.</p>
+<p>Suppose that you extend the interface <code>TimeClient</code> as follows:</p>
+<p>WHATSON? 05c9390b-921f-4533-8a4a-db386520996c</p>
+<pre>
+public interface AbstractZoneTimeClient extends TimeClient {
+    public ZonedDateTime getZonedDateTime(String zoneString);
+}
+</pre>
+<p>Any class that implements the interface <code>AbstractZoneTimeClient</code> will have to implement the method <code>getZonedDateTime</code>; this method is an <code>abstract</code> method like all other nondefault (and nonstatic) methods in an interface.</p>
+<p>Suppose that you extend the interface <code>TimeClient</code> as follows:</p>
+<p>WHATSON? 0357d86e-879e-4ac3-bff9-67ce4984348a</p>
+<pre>
+public interface HandleInvalidTimeZoneClient extends TimeClient {
+    default public ZonedDateTime getZonedDateTime(String zoneString) {
+        try {
+            return ZonedDateTime.of(getLocalDateTime(),ZoneId.of(zoneString)); 
+        } catch (DateTimeException e) {
+            System.err.println("Invalid zone ID: " + zoneString +
+                "; using the default time zone instead.");
+            return ZonedDateTime.of(getLocalDateTime(),ZoneId.systemDefault());
+        }
+    }
+}
+</pre>
+<p>Any class that implements the interface <code>HandleInvalidTimeZoneClient</code> will use the implementation of <code>getZonedDateTime</code> specified by this interface instead of the one specified by the interface <code>TimeClient</code>.</p>
+<h2>Static Methods</h2>
+<p>In addition to default methods, you can define
+static methods  in interfaces. (A static method is a method that is associated with the class in which it is defined rather than with any object. Every instance of the class shares its static methods.) This makes it easier for you to organize helper methods in your libraries; you can keep static methods specific to an interface in the same interface rather than in a separate class. The following example defines a static method that retrieves a
+<code>ZoneId</code> object corresponding to a time zone identifier; it uses the system default time zone if there is no <code>ZoneId</code> object corresponding to the given identifier. (As a result, you can simplify the method <code>getZonedDateTime</code>):</p>
+<p>WHATSON? f2ea5d95-c5c6-43d8-adcc-5abdfd9b9aaa</p>
+<pre>
+public interface TimeClient {
+    // ...
+    static public ZoneId getZoneId (String zoneString) {
+        try {
+            return ZoneId.of(zoneString);
+        } catch (DateTimeException e) {
+            System.err.println("Invalid time zone: " + zoneString +
+                "; using default time zone instead.");
+            return ZoneId.systemDefault();
+        }
+    }
+
+    default public ZonedDateTime getZonedDateTime(String zoneString) {
+        return ZonedDateTime.of(getLocalDateTime(), getZoneId(zoneString));
+    }    
+}
+</pre>
+<p>Like static methods in classes, you specify that a method definition in an interface is a static method with the <code>static</code> keyword at the beginning of the method signature. All method declarations in an interface, including static methods, are implicitly <code>public</code>, so you can omit the <code>public</code> modifier.</p>
+<h2>Integrating Default Methods into Existing Libraries</h2>
+<p>Default methods enable you to add new functionality to existing interfaces and ensure binary compatibility with code written for older versions of those interfaces. In particular, default methods enable you to add methods that accept lambda expressions as parameters to existing interfaces. This section demonstrates how the
+<code>Comparator</code> interface has been enhanced with default and static methods.</p>
+<p>Consider the <code>Card</code> and <code>Deck</code> classes as described in
+Questions and Exercises: Classes. This example rewrites the
+<code>Card</code> and 
+<code>Deck</code> classes as interfaces. The <code>Card</code> interface contains two <code>enum</code> types (<code>Suit</code> and <code>Rank</code>) and two abstract methods (<code>getSuit</code> and <code>getRank</code>):</p>
+<p>WHATSON? 72541fce-1575-4b6d-a074-88fc3da367aa</p>
+<pre>
+
+package defaultmethods;
+
+public interface Card extends Comparable&lt;Card&gt; {
+    
+    public enum Suit { 
+        DIAMONDS (1, "Diamonds"), 
+        CLUBS    (2, "Clubs"   ), 
+        HEARTS   (3, "Hearts"  ), 
+        SPADES   (4, "Spades"  );
+        
+        private final int value;
+        private final String text;
+        Suit(int value, String text) {
+            this.value = value;
+            this.text = text;
+        }
+        public int value() {return value;}
+        public String text() {return text;}
+    }
+    
+    public enum Rank { 
+        DEUCE  (2 , "Two"  ),
+        THREE  (3 , "Three"), 
+        FOUR   (4 , "Four" ), 
+        FIVE   (5 , "Five" ), 
+        SIX    (6 , "Six"  ), 
+        SEVEN  (7 , "Seven"),
+        EIGHT  (8 , "Eight"), 
+        NINE   (9 , "Nine" ), 
+        TEN    (10, "Ten"  ), 
+        JACK   (11, "Jack" ),
+        QUEEN  (12, "Queen"), 
+        KING   (13, "King" ),
+        ACE    (14, "Ace"  );
+        private final int value;
+        private final String text;
+        Rank(int value, String text) {
+            this.value = value;
+            this.text = text;
+        }
+        public int value() {return value;}
+        public String text() {return text;}
+    }
+    
+    public Card.Suit getSuit();
+    public Card.Rank getRank();
+}
+</pre>
+<p>The <code>Deck</code> interface contains various methods that manipulate cards in a deck:</p>
+<p>WHATSON? df733876-f02d-410e-8757-3e1f7231a388</p>
+<pre>
+
+package defaultmethods; 
+ 
+import java.util.*;
+import java.util.stream.*;
+import java.lang.*;
+ 
+public interface Deck {
+    
+    List&lt;Card&gt; getCards();
+    Deck deckFactory();
+    int size();
+    void addCard(Card card);
+    void addCards(List&lt;Card&gt; cards);
+    void addDeck(Deck deck);
+    void shuffle();
+    void sort();
+    void sort(Comparator&lt;Card&gt; c);
+    String deckToString();
+
+    Map&lt;Integer, Deck&gt; deal(int players, int numberOfCards)
+        throws IllegalArgumentException;
+
+}
+</pre>
+<p>The class
+<code>PlayingCard</code> implements the interface <code>Card</code>, and the class
+<code>StandardDeck</code> implements the interface <code>Deck</code>.</p>
+<p>The class <code>StandardDeck</code> implements the abstract method <code>Deck.sort</code> as follows:</p>
+<p>WHATSON? f23be4c0-454d-4bac-9f70-d855b2972d22</p>
+<pre>
+public class StandardDeck implements Deck {
+    
+    private List&lt;Card&gt; entireDeck;
+    
+    // ...
+    
+    public void sort() {
+        Collections.sort(entireDeck);
+    }
+    
+    // ...
+}
+</pre>
+<p>The method <code>Collections.sort</code> sorts an instance of <code>List</code> whose element type implements the interface
+<code>Comparable</code>. The member <code>entireDeck</code> is an instance of <code>List</code> whose elements are of the type <code>Card</code>, which extends <code>Comparable</code>. The class <code>PlayingCard</code> implements the
+<code>Comparable.compareTo</code> method as follows:</p>
+<p>WHATSON? 14aeb6a9-4f8e-4f7f-b779-67ae0a71a15a</p>
+<pre>
+public int hashCode() {
+    return ((suit.value()-1)*13)+rank.value();
+}
+
+public int compareTo(Card o) {
+    return this.hashCode() - o.hashCode();
+}
+</pre>
+<p>The method <code>compareTo</code> causes the method <code>StandardDeck.sort()</code> to sort the deck of cards first by suit, and then by rank.</p>
+<p>What if you want to sort the deck first by rank, then by suit? You would need to implement the
+<code>Comparator</code> interface to specify new sorting criteria, and use the method
+<code>sort(List&lt;T&gt; list, Comparator&lt;? super T&gt; c)</code> (the version of the <code>sort</code> method that includes a <code>Comparator</code> parameter). You can define the following method in the class <code>StandardDeck</code>:</p>
+<p>WHATSON? 9c6d76b4-5b57-47eb-b36f-d49a968ae862</p>
+<pre>
+public void sort(Comparator&lt;Card&gt; c) {
+    Collections.sort(entireDeck, c);
+}  
+</pre>
+<p>With this method, you can specify how the method <code>Collections.sort</code> sorts instances of the <code>Card</code> class. One way to do this is to implement the <code>Comparator</code> interface to specify how you want the cards sorted. The example
+<code>SortByRankThenSuit</code> does this:
+</p>
+<p>WHATSON? bed44acb-1ecf-403e-b0e2-d48ea927a335</p>
+<pre>
+
+package defaultmethods;
+
+import java.util.*;
+import java.util.stream.*;
+import java.lang.*;
+
+public class SortByRankThenSuit implements Comparator&lt;Card&gt; {
+    public int compare(Card firstCard, Card secondCard) {
+        int compVal =
+            firstCard.getRank().value() - secondCard.getRank().value();
+        if (compVal != 0)
+            return compVal;
+        else
+            return firstCard.getSuit().value() - secondCard.getSuit().value(); 
+    }
+}
+</pre>
+<p>The following invocation sorts the deck of playing cards first by rank, then by suit:</p>
+<p>WHATSON? 90f95c24-9cc4-4e30-9407-d8f4938e1e54</p>
+<pre>
+StandardDeck myDeck = new StandardDeck();
+myDeck.shuffle();
+myDeck.sort(new SortByRankThenSuit());
+</pre>
+<p>However, this approach is too verbose; it would be better if you could specify <em>what</em> you want to sort, not <em>how</em> you want to sort. Suppose that you are the developer who wrote the <code>Comparator</code> interface. What default or static methods could you add to the <code>Comparator</code> interface to enable other developers to more easily specify sort criteria?</p>
+<p>To start, suppose that you want to sort the deck of playing cards by rank, regardless of suit. You can invoke the <code>StandardDeck.sort</code> method as follows:</p>
+<p>WHATSON? 6cfc85b4-632d-4083-974a-0a3563e1f0ce</p>
+<pre>
+StandardDeck myDeck = new StandardDeck();
+myDeck.shuffle();
+myDeck.sort(
+    (firstCard, secondCard) -&gt;
+        firstCard.getRank().value() - secondCard.getRank().value()
+); 
+</pre>
+<p>Because the interface <code>Comparator</code> is a
+functional interface, you can use a lambda expression as an argument for the <code>sort</code> method. In this example, the lambda expression compares two integer values.</p>
+<p>It would be simpler for your developers if they could create a <code>Comparator</code> instance by invoking the method <code>Card.getRank</code> only. In particular, it would be helpful if your developers could create a <code>Comparator</code> instance that compares any object that can return a numerical value from a method such as <code>getValue</code> or <code>hashCode</code>. The <code>Comparator</code> interface has been enhanced with this ability with the static method
+<code>comparing</code>:</p>
+<p>WHATSON? 3de92eb7-afcb-41d8-9d1e-758ec8f8b10f</p>
+<pre>
+myDeck.sort(Comparator.comparing((card) -&gt; card.getRank()));  
+</pre>
+<p>In this example, you can use a
+method reference instead:</p>
+<p>WHATSON? 99b414cf-29eb-457e-8f6f-4b8435d794d9</p>
+<pre>
+myDeck.sort(Comparator.comparing(Card::getRank));  
+</pre>
+<p>This invocation better demonstrates <em>what</em> to sort rather than <em>how</em> to do it.</p>
+<p>The <code>Comparator</code> interface has been enhanced with other versions of the static method <code>comparing</code> such as  
+<code>comparingDouble</code> and
+<code>comparingLong</code> that enable you to create <code>Comparator</code> instances that compare other data types.</p>
+<p>Suppose that your developers would like to create a <code>Comparator</code> instance that could compare objects with more than one criteria. For example, how would you sort the deck of playing cards first by rank, and then by suit? As before, you could use a lambda expression to specify these sort criteria:</p>
+<p>WHATSON? 695b6d3a-f3b6-450f-9224-0dcc7d553533</p>
+<pre>
+StandardDeck myDeck = new StandardDeck();
+myDeck.shuffle();
+myDeck.sort(
+    (firstCard, secondCard) -&gt; {
+        int compare =
+            firstCard.getRank().value() - secondCard.getRank().value();
+        if (compare != 0)
+            return compare;
+        else
+            return firstCard.getSuit().value() - secondCard.getSuit().value();
+    }      
+); 
+</pre>
+<p>It would be simpler for your developers if they could build a <code>Comparator</code> instance from a series of <code>Comparator</code> instances. The <code>Comparator</code> interface has been enhanced with this ability with the default method
+<code>thenComparing</code>:</p>
+<p>WHATSON? f2ab9c06-ef75-4981-9076-b4776fbd3022</p>
+<pre>
+myDeck.sort(
+    Comparator
+        .comparing(Card::getRank)
+        .thenComparing(Comparator.comparing(Card::getSuit)));
+</pre>
+<p>The <code>Comparator</code> interface has been enhanced with other versions of the default method <code>thenComparing</code> (such as  
+<code>thenComparingDouble</code> and
+<code>thenComparingLong</code>) that enable you to build <code>Comparator</code> instances that compare other data types.</p>
+<p>Suppose that your developers would like to create a <code>Comparator</code> instance that enables them to sort a collection of objects in reverse order. For example, how would you sort the deck of playing cards first by descending order of rank, from Ace to Two (instead of from Two to Ace)? As before, you could specify another lambda expression. However, it would be simpler for your developers if they could reverse an existing <code>Comparator</code> by invoking a method. The <code>Comparator</code> interface has been enhanced with this ability with the default method
+<code>reversed</code>:</p>
+<p>WHATSON? b0a4118f-ad43-4aa3-b53a-2070246ebe77</p>
+<pre>
+myDeck.sort(
+    Comparator.comparing(Card::getRank)
+        .reversed()
+        .thenComparing(Comparator.comparing(Card::getSuit)));
+</pre>
+<p>This example demonstrates how the <code>Comparator</code> interface has been enhanced with default methods, static methods, lambda expressions, and method references to create more expressive library methods whose functionality programmers can quickly deduce by looking at how they are invoked. Use these constructs to enhance the interfaces in your libraries.</p>
+</body>
+</html>

@@ -1,0 +1,113 @@
+<h1>Non-Reifiable Types</h1>
+<p>The section
+<a class="TutorialLink" target="_top" href="erasure.html">Type Erasure</a> discusses the process where the compiler removes information related to type parameters and type arguments. Type erasure has consequences related to variable arguments (also known as <em>varargs</em> ) methods whose varargs formal parameter has a non-reifiable type. See the section
+<a class="TutorialLink" target="_top" href="../javaOO/arguments.html#varargs">Arbitrary Number of Arguments</a> in
+<a class="TutorialLink" target="_top" href="../javaOO/arguments.html">Passing Information to a Method or a Constructor</a> for more information about varargs methods.</p>
+<p>This page covers the following topics:</p>
+<ul>
+<li><a href="#non-reifiable-types">Non-Reifiable Types</a></li>
+<li><a href="#heap_pollution">Heap Pollution</a></li>
+<li><a href="#vulnerabilities">Potential Vulnerabilities of Varargs Methods with Non-Reifiable Formal Parameters</a></li>
+<li><a href="#suppressing">Preventing Warnings from Varargs Methods with Non-Reifiable Formal Parameters</a></li>
+</ul>
+<h2><a name="non-reifiable-types" id="non-reifiable-types">Non-Reifiable Types</a></h2>
+<p>
+A <em>reifiable</em> type is a type whose type information is fully available at runtime. This includes primitives, non-generic types, raw types, and invocations of unbound wildcards.</p>
+<p>
+<em>Non-reifiable types</em> are types where information has been removed at compile-time by type erasure — invocations of generic types that are not defined as unbounded wildcards. A non-reifiable type does not have all of its information available at runtime. Examples of non-reifiable types are <tt>List&lt;String&gt;</tt> and <tt>List&lt;Number&gt;</tt>; the JVM cannot tell the difference between these types at runtime. As shown in
+<a class="TutorialLink" target="_top" href="restrictions.html">Restrictions on Generics</a>, there are certain situations where non-reifiable types cannot be used: in an <tt>instanceof</tt> expression, for example, or as an element in an array.</p>
+<h2><a name="heap_pollution" id="heap_pollution">Heap Pollution</a></h2>
+<p><em>Heap pollution</em> occurs when a variable of a parameterized type refers to an object that is not of that parameterized type. This situation occurs if the program performed some operation that gives rise to an unchecked warning at compile-time. An <em>unchecked warning</em> is generated if, either at compile-time (within the limits of the compile-time type checking rules) or at runtime, the correctness of an operation involving a parameterized type (for example, a cast or method call) cannot be verified. For example, heap pollution occurs when mixing raw types and parameterized types, or when performing unchecked casts.</p>
+<p>
+In normal situations, when all code is compiled at the same time, the compiler issues an unchecked warning to draw your attention to potential heap pollution. If you compile sections of your code separately, it is difficult to detect the potential risk of heap pollution. If you ensure that your code compiles without warnings, then no heap pollution can occur.</p>
+<h2><a name="vulnerabilities" id="vulnerabilities">Potential Vulnerabilities of Varargs Methods with Non-Reifiable Formal Parameters</a></h2>
+<p>Generic methods that include vararg input parameters can cause heap pollution.</p>
+<p>
+Consider the following <tt>ArrayBuilder</tt> class:</p>
+<p>WHATSON? ac0ac1b2-0190-4211-a4f1-d8d95200f056</p>
+<pre>
+public class ArrayBuilder {
+
+  public static &lt;T&gt; void addToList (List&lt;T&gt; listArg, T... elements) {
+    for (T x : elements) {
+      listArg.add(x);
+    }
+  }
+
+  public static void faultyMethod(List&lt;String&gt;... l) {
+    Object[] objectArray = l;     // Valid
+    objectArray[0] = Arrays.asList(42);
+    String s = l[0].get(0);       // ClassCastException thrown here
+  }
+
+}
+</pre>
+<p>
+The following example, <tt>HeapPollutionExample</tt> uses the <tt>ArrayBuiler</tt> class:</p>
+<p>WHATSON? db965c7f-919f-4a44-8b70-a4f749f4a576</p>
+<pre>
+public class HeapPollutionExample {
+
+  public static void main(String[] args) {
+
+    List&lt;String&gt; stringListA = new ArrayList&lt;String&gt;();
+    List&lt;String&gt; stringListB = new ArrayList&lt;String&gt;();
+
+    ArrayBuilder.addToList(stringListA, "Seven", "Eight", "Nine");
+    ArrayBuilder.addToList(stringListB, "Ten", "Eleven", "Twelve");
+    List&lt;List&lt;String&gt;&gt; listOfStringLists =
+      new ArrayList&lt;List&lt;String&gt;&gt;();
+    ArrayBuilder.addToList(listOfStringLists,
+      stringListA, stringListB);
+
+    ArrayBuilder.faultyMethod(Arrays.asList("Hello!"), Arrays.asList("World!"));
+  }
+}
+</pre>
+<p>
+When compiled, the following warning is produced by the definition of the <tt>ArrayBuilder.addToList</tt> method:</p>
+<p>WHATSON? 6a67f9d6-8802-4c27-9a19-e6fce9a80638</p>
+<pre>
+warning: [varargs] Possible heap pollution from parameterized vararg type T
+</pre>
+<p>When the compiler encounters a varargs method, it translates the varargs formal parameter into an array. However, the Java programming language does not permit the creation of arrays of parameterized types. In the method <code>ArrayBuilder.addToList</code>, the compiler translates the varargs formal parameter <code>T... elements</code> to the formal parameter <code>T[] elements</code>, an array. However, because of type erasure, the compiler converts the varargs formal parameter to <code>Object[] elements</code>. Consequently, there is a possibility of heap pollution.</p>
+<p>
+The following statement assigns the varargs formal parameter <code>l</code> to the <code>Object</code> array <code>objectArgs</code>:</p>
+<p>WHATSON? f4ac5cdb-5c0a-4605-8752-012a3f2f026a</p>
+<pre>
+Object[] objectArray = l;
+</pre>
+<p>This statement can potentially introduce heap pollution. A value that does match the parameterized type of the varargs formal parameter <code>l</code> can be assigned to the variable <code>objectArray</code>, and thus can be assigned to <code>l</code>. However, the compiler does not generate an unchecked warning at this statement. The compiler has already generated a warning when it translated the varargs formal parameter <code>List&lt;String&gt;... l</code> to the formal parameter <code>List[] l</code>. This statement is valid; the variable <code>l</code> has the type <code>List[]</code>, which is a subtype of <code>Object[]</code>.</p>
+<p>Consequently, the compiler does not issue a warning or error if you assign a <code>List</code> object of any type to any array component of the <code>objectArray</code> array as shown by this statement:</p>
+<p>WHATSON? cd8df2ab-d2d5-46b3-aeef-573b188f2ae8</p>
+<pre>
+objectArray[0] = Arrays.asList(42);
+</pre>
+<p>This statement assigns to the first array component of the <code>objectArray</code> array with a <code>List</code> object that contains one object of type <code>Integer</code>.</p>
+<p>Suppose you invoke <code>ArrayBuilder.faultyMethod</code> with the following statement:</p>
+<p>WHATSON? 6c18261d-a72f-4da1-a248-c442e248ed8e</p>
+<pre>
+ArrayBuilder.faultyMethod(Arrays.asList("Hello!"), Arrays.asList("World!"));
+</pre>
+<p>At runtime, the JVM throws a <code>ClassCastException</code> at the following statement:</p>
+<p>WHATSON? 585a93dc-f419-4d24-ae63-35ca5c361bde</p>
+<pre>
+// ClassCastException thrown here
+String s = l[0].get(0);
+</pre>
+<p>The object stored in the first array component of the variable <code>l</code> has the type <code>List&lt;Integer&gt;</code>, but this statement is expecting an object of type <code>List&lt;String&gt;</code>.</p>
+<h2><a name="suppressing" id="suppressing">Prevent Warnings from Varargs Methods with Non-Reifiable Formal Parameters</a></h2>
+<p>If you declare a varargs method that has parameters of a parameterized type, and you ensure that the body of the method does not throw a <code>ClassCastException</code> or other similar exception due to improper handling of the varargs formal parameter, you can prevent the warning that the compiler generates for these kinds of varargs methods by adding the following annotation to static and non-constructor method declarations:</p>
+<p>WHATSON? 6d2f866d-909c-4a13-9826-4e37c9a1bd60</p>
+<pre>
+@SafeVarargs
+</pre>
+<p>The <code>@SafeVarargs</code> annotation is a documented part of the method's contract; this annotation asserts that the implementation of the method will not improperly handle the varargs formal parameter.</p>
+<p>
+It is also possible, though less desirable, to suppress such warnings by adding the following to the method declaration:</p>
+<p>WHATSON? 8882521d-09cf-4a4e-819c-7ee6aca949ae</p>
+<pre>
+@SuppressWarnings({"unchecked", "varargs"})
+</pre>
+<p>However, this approach does not suppress warnings generated from the method's call site.  If you are unfamiliar with the <code>@SuppressWarnings</code> syntax, see
+<a class="TutorialLink" target="_top" href="../../java/annotations/index.html">Annotations</a>.</p>

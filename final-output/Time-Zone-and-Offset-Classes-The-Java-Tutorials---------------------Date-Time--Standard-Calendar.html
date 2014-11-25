@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Time-Zone-and-Offset-Classes-The-Java-Tutorials---------------------Date-Time--Standard-Calendar.html</title></head>
+<body>
+<h1>Time Zone and Offset Classes</h1>
+<p>
+A <em>time zone</em> is a region of the earth where the same standard time is used. Each time zone is described by an identifier and usually has the format <em>region/city</em> (<tt>Asia/Tokyo</tt>) and an offset from Greenwich/UTC time. For example, the offset for Tokyo is <tt>+09:00</tt>.</p>
+<h2>ZoneId and ZoneOffset</h2>
+<p>
+The Date-Time API provides two classes for specifying a time zone or an offset:</p>
+<ul>
+<li><tt>ZoneId</tt> specifies a time zone identifier and provides rules for converting between an <tt>Instant</tt> and a <tt>LocalDateTime</tt>.</li>
+<li><tt>ZoneOffset</tt> specifies a time zone offset from Greenwich/UTC time.</li>
+</ul>
+<p>
+Offsets from Greenwich/UTC time are usually defined in whole hours, but there are exceptions. The following code, from the
+<code><tt>TimeZoneId</tt></code> example, prints a list of all time zones that use offsets from Greenwich/UTC that are not defined in whole hours.</p>
+<p>WHATSON? 52b42dc0-25a7-4f66-8ebe-d1d07211bedc</p>
+<pre>
+Set&lt;String&gt; allZones = ZoneId.getAvailableZoneIds();
+LocalDateTime dt = LocalDateTime.now();
+
+// Create a List using the set of zones and sort it.
+List&lt;String&gt; zoneList = new ArrayList&lt;String&gt;(allZones);
+Collections.sort(zoneList);
+
+...
+
+for (String s : zoneList) {
+    ZoneId zone = ZoneId.of(s);
+    ZonedDateTime zdt = dt.atZone(zone);
+    ZoneOffset offset = zdt.getOffset();
+    int secondsOfHour = offset.getTotalSeconds() % (60 * 60);
+    String out = String.format("%35s %10s%n", zone, offset);
+
+    // Write only time zones that do not have a whole hour offset
+    // to standard out.
+    if (secondsOfHour != 0) {
+        System.out.printf(out);
+    }
+    ...
+}
+</pre>
+<p>
+This example prints the following list to standard out:</p>
+<p>WHATSON? 2cf4b959-6fa1-4e58-afb7-1d75067f3f0b</p>
+<pre>
+      America/Caracas     -04:30
+     America/St_Johns     -02:30
+        Asia/Calcutta     +05:30
+         Asia/Colombo     +05:30
+           Asia/Kabul     +04:30
+       Asia/Kathmandu     +05:45
+        Asia/Katmandu     +05:45
+         Asia/Kolkata     +05:30
+         Asia/Rangoon     +06:30
+          Asia/Tehran     +04:30
+   Australia/Adelaide     +09:30
+Australia/Broken_Hill     +09:30
+     Australia/Darwin     +09:30
+      Australia/Eucla     +08:45
+        Australia/LHI     +10:30
+  Australia/Lord_Howe     +10:30
+      Australia/North     +09:30
+      Australia/South     +09:30
+ Australia/Yancowinna     +09:30
+  Canada/Newfoundland     -02:30
+         Indian/Cocos     +06:30
+                 Iran     +04:30
+              NZ-CHAT     +12:45
+      Pacific/Chatham     +12:45
+    Pacific/Marquesas     -09:30
+      Pacific/Norfolk     +11:30
+</pre>
+<p>
+The <tt>TimeZoneId</tt> example also prints a list of all time zone IDs to a file called 
+<code><tt>timeZones</tt></code>.</p>
+<h2>The Date-Time Classes</h2>
+<p>
+The Date-Time API provides three temporal-based classes that work with time zones:</p>
+<ul>
+<li><tt>ZonedDateTime</tt> handles a date and time with a corresponding time zone with a time zone offset from Greenwich/UTC.</li>
+<li><tt>OffsetDateTime</tt> handles a date and time with a corresponding time zone offset from Greenwich/UTC, without a time zone ID.</li>
+<li><tt>OffsetTime</tt> handles time with a corresponding time zone offset from Greenwich/UTC, without a time zone ID.</li>
+</ul>
+<p>
+When would you use <tt>OffsetDateTime</tt> instead of <tt>ZonedDateTime</tt>? If you are writing complex software that models its own rules for date and time calculations based on geographic locations, or if you are storing time-stamps in a database that track only absolute offsets from Greenwich/UTC time, then you might want to use <tt>OffsetDateTime</tt>. Also, XML and other network formats define date-time transfer as <tt>OffsetDateTime</tt> or <tt>OffsetTime</tt>.</p>
+<p>
+Although all three classes maintain an offset from Greenwich/UTC time, only <tt>ZonedDateTime</tt> uses the
+<tt>ZoneRules</tt>, part of the <tt>java.time.zone</tt> package, to determine how an offset varies for a particular time zone. For example, most time zones experience a gap (typically of 1 hour) when moving the clock forward to daylight saving time, and a time overlap when moving the clock back to standard time and the last hour before the transition is repeated. The <tt>ZonedDateTime</tt> class accommodates this scenario, whereas the <tt>OffsetDateTime</tt> and <tt>OffsetTime</tt> classes, which do not have access to the <tt>ZoneRules</tt>, do not.</p>
+<h3>ZonedDateTime</h3>
+<p>
+The 
+ZonedDateTime class, in effect, combines the
+<tt>LocalDateTime</tt> class with the
+<tt>ZoneId</tt> class. It is used to represent a full date (year, month, day) and time (hour, minute, second, nanosecond) with a time zone (region/city, such as <tt>Europe/Paris</tt>).</p>
+<p>
+The following code, from the
+<code><tt>Flight</tt></code> example, defines the departure time for a flight from San Francisco to Tokyo as a <tt>ZonedDateTime</tt> in the America/Los Angeles time zone.  The <tt>withZoneSameInstant</tt> and <tt>plusMinutes</tt> methods are used to create an instance of <tt>ZonedDateTime</tt> that represents the projected arrival time in Tokyo, after the 650 minute flight. The <tt>ZoneRules.isDaylightSavings</tt> method determines whether it is daylight saving time when the flight arrives in Tokyo.</p>
+<p>
+A <tt>DateTimeFormatter</tt> object is used to format the <tt>ZonedDateTime</tt> instances for printing:</p>
+<p>WHATSON? 41800008-02f9-410c-8080-c2baf000e0e5</p>
+<pre>
+DateTimeFormatter format = DateTimeFormatter.ofPattern("MMM d yyyy  hh:mm a");
+
+// Leaving from San Francisco on July 20, 2013, at 7:30 p.m.
+LocalDateTime leaving = LocalDateTime.of(2013, Month.JULY, 20, 19, 30);
+ZoneId leavingZone = ZoneId.of("America/Los_Angeles"); 
+ZonedDateTime departure = ZonedDateTime.of(leaving, leavingZone);
+
+try {
+    String out1 = departure.format(format);
+    System.out.printf("LEAVING:  %s (%s)%n", out1, leavingZone);
+} catch (DateTimeException exc) {
+    System.out.printf("%s can't be formatted!%n", departure);
+    throw exc;
+}
+
+// Flight is 10 hours and 50 minutes, or 650 minutes
+ZoneId arrivingZone = ZoneId.of("Asia/Tokyo"); 
+<strong>ZonedDateTime arrival = departure.withZoneSameInstant(arrivingZone)
+                                 .plusMinutes(650);</strong>
+
+try {
+    String out2 = arrival.format(format);
+    System.out.printf("ARRIVING: %s (%s)%n", out2, arrivingZone);
+} catch (DateTimeException exc) {
+    System.out.printf("%s can't be formatted!%n", arrival);
+    throw exc;
+}
+
+if (arrivingZone.getRules().isDaylightSavings(arrival.toInstant())) 
+    System.out.printf("  (%s daylight saving time will be in effect.)%n",
+                      arrivingZone);
+else
+    System.out.printf("  (%s standard time will be in effect.)%n",
+                      arrivingZone);
+</pre>
+<p>
+This produces the following output:</p>
+<p>WHATSON? 7c7e3c90-9d71-417a-b43f-f9d54167afd7</p>
+<pre>
+LEAVING:  Jul 20 2013  07:30 PM (America/Los_Angeles)
+ARRIVING: Jul 21 2013  10:20 PM (Asia/Tokyo)
+  (Asia/Tokyo standard time will be in effect.)
+</pre>
+<h3>OffsetDateTime</h3>
+<p>
+The 
+OffsetDateTime class, in effect, combines the 
+<tt>LocalDateTime</tt> class with the
+<tt>ZoneOffset</tt> class. It is used to represent a full date (year, month, day) and time (hour, minute, second, nanosecond) with an offset from Greenwich/UTC time (+/-hours:minutes, such as <tt>+06:00</tt> or <tt>-08:00</tt>).</p>
+<p>
+The following example uses <tt>OffsetDateTime</tt> with the <tt>TemporalAdjuster.lastDay</tt> method to find the last Thursday in July 2013.</p>
+<p>WHATSON? 607649b7-a48c-4d19-a109-db3c809fff6d</p>
+<pre>
+// Find the last Thursday in July 2013.
+LocalDateTime localDate = LocalDateTime.of(2013, Month.JULY, 20, 19, 30);
+ZoneOffset offset = ZoneOffset.of("-08:00");
+
+OffsetDateTime offsetDate = OffsetDateTime.of(localDate, offset);
+OffsetDateTime lastThursday =
+        offsetDate.with(TemporalAdjusters.lastInMonth(DayOfWeek.THURSDAY));
+System.out.printf("The last Thursday in July 2013 is the %sth.%n",
+                   lastThursday.getDayOfMonth());
+</pre>
+<p>
+The output from running this code is:</p>
+<p>WHATSON? 4a23c397-be79-49b5-a70b-a118307d1400</p>
+<pre>
+The last Thursday in July 2013 is the 25th.
+</pre>
+<h3>OffsetTime</h3>
+<p>
+The 
+OffsetTime class, in effect, combines the
+<tt>LocalTime</tt> class with the
+<tt>ZoneOffset</tt> class. It is used to represent time (hour, minute, second, nanosecond) with an offset from Greenwich/UTC time (+/-hours:minutes, such as <tt>+06:00</tt> or <tt>-08:00</tt>).</p>
+<p>
+The <tt>OffsetTime</tt> class is used in the same situations as the <tt>OffsetDateTime</tt> class, but when tracking the date is not needed.</p>
+</body>
+</html>

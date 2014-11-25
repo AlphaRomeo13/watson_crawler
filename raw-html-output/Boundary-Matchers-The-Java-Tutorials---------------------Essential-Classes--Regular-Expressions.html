@@ -1,0 +1,60 @@
+<h1>Boundary Matchers</h1>
+<p>Until now, we've only been interested in whether or not a match is found <i>at some location</i> within a particular input string. We never cared about <i>where</i> in the string the match was taking place.</p>
+<p>You can make your pattern matches more precise by specifying such information with <i>boundary matchers</i>. For example, maybe you're interested in finding a particular word, but only if it appears at the beginning or end of a line. Or maybe you want to know if the match is taking place on a word boundary, or at the end of the previous match.</p>
+<p>The following table lists and explains all the boundary matchers.</p>
+<p>The following examples demonstrate the use of boundary matchers <code>^</code> and <code>$</code>. As noted above, <code>^</code> matches the beginning of a line, and <code>$</code> matches the end.</p>
+<p>WHATSON? 463e995c-1be3-449f-a8f6-b8679f8b979f</p>
+<pre> 
+Enter your regex: ^dog$
+Enter input string to search: dog
+I found the text "dog" starting at index 0 and ending at index 3.
+
+Enter your regex: ^dog$
+Enter input string to search:       dog
+No match found.
+
+Enter your regex: \s*dog$
+Enter input string to search:             dog
+I found the text "            dog" starting at index 0 and ending at index 15.
+
+Enter your regex: ^dog\w*
+Enter input string to search: dogblahblah
+I found the text "dogblahblah" starting at index 0 and ending at index 11.
+</pre>
+<p>The first example is successful because the pattern occupies the entire input string. The second example fails because the input string contains extra whitespace at the beginning. The third example specifies an expression that allows for unlimited white space, followed by "dog" on the end of the line. The fourth example requires "dog" to be present at the beginning of a line followed by an unlimited number of word characters.</p>
+<p>To check if a pattern begins and ends on a word boundary (as opposed to a substring within a longer string), just use <code>\b</code> on either side; for example, <code>\bdog\b</code></p>
+<p>WHATSON? 38bfd80c-d92f-486e-b80d-3924406e5442</p>
+<pre> 
+
+Enter your regex: \bdog\b
+Enter input string to search: The dog plays in the yard.
+I found the text "dog" starting at index 4 and ending at index 7.
+
+Enter your regex: \bdog\b
+Enter input string to search: The doggie plays in the yard.
+No match found.
+</pre>
+<p>To match the expression on a non-word boundary, use <code>\B</code> instead:</p>
+<p>WHATSON? 5dd0acdf-807b-4364-8c54-f02ebd568d47</p>
+<pre> 
+Enter your regex: \bdog\B
+Enter input string to search: The dog plays in the yard.
+No match found.
+
+Enter your regex: \bdog\B
+Enter input string to search: The doggie plays in the yard.
+I found the text "dog" starting at index 4 and ending at index 7.
+</pre>
+<p>To require the match to occur only at the end of the previous match, use <code>\G</code>:</p>
+<p>WHATSON? 4e98bfe3-4aee-431d-a05f-36d6682b2ef0</p>
+<pre> 
+Enter your regex: dog 
+Enter input string to search: dog dog
+I found the text "dog" starting at index 0 and ending at index 3.
+I found the text "dog" starting at index 4 and ending at index 7.
+
+Enter your regex: \Gdog 
+Enter input string to search: dog dog
+I found the text "dog" starting at index 0 and ending at index 3.
+</pre>
+<p>Here the second example finds only one match, because the second occurrence of "dog" does not start at the end of the previous match.</p>

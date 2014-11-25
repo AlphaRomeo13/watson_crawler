@@ -1,0 +1,106 @@
+<h1 id="firstHeading" class="firstHeading" lang="en"><span dir="auto">Run-time type information</span></h1>
+<p>In computer programming, <b>RTTI</b> (<b>Run-Time Type Information</b>, or <b>Run-Time Type Identification</b><sup class="noprint Inline-Template Template-Fact" style="white-space:nowrap;">[<i><a href="/wiki/Wikipedia:Citation_needed" title="Wikipedia:Citation needed"><span title="This claim needs references to reliable sources. (July 2013)">citation needed</span></a></i>]</sup>) refers to a <a href="/wiki/C%2B%2B" title="C++">C++</a> mechanism that exposes information about an object's <a href="/wiki/Data_type" title="Data type">data type</a> at <a href="/wiki/Run_time_(program_lifecycle_phase)" title="Run time (program lifecycle phase)">runtime</a>. Run-time type information can apply to simple data types, such as integers and characters, or to generic types. This is a C++ specialization of a more general concept called <a href="/wiki/Type_introspection" title="Type introspection">type introspection</a>. Similar mechanisms are also known in other programming languages, such as Delphi (Object Pascal).</p>
+<p>In the original C++ design, <a href="/wiki/Bjarne_Stroustrup" title="Bjarne Stroustrup">Bjarne Stroustrup</a> did not include run-time type information, because he thought this mechanism was frequently misused.<sup id="cite_ref-1" class="reference"><a href="#cite_note-1"><span>[</span>1<span>]</span></a></sup></p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Features"><span class="tocnumber">1</span> <span class="toctext">Features</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#C.2B.2B_Example"><span class="tocnumber">2</span> <span class="toctext">C++ Example</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#See_also"><span class="tocnumber">3</span> <span class="toctext">See also</span></a></li>
+<li class="toclevel-1 tocsection-4"><a href="#References"><span class="tocnumber">4</span> <span class="toctext">References</span></a></li>
+</ul>
+<p></p>
+<h2><span class="mw-headline" id="Features">Features</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Run-time_type_information&amp;action=edit&amp;section=1" title="Edit section: Features">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>The <code><a href="/wiki/Dynamic_cast" title="Dynamic cast">dynamic_cast</a>&lt;&gt;</code> operation and <code><a href="/wiki/Typeid" title="Typeid">typeid</a></code> operator in C++ are part of RTTI.</p>
+<p>The C++ run-time type information permits performing safe <a href="/wiki/Type_conversion" title="Type conversion">typecasts</a> and manipulate type information at run time.</p>
+<p>RTTI is available only for classes which are <a href="/wiki/Polymorphism_(computer_science)" title="Polymorphism (computer science)">polymorphic</a>, which means they have at least one <a href="/wiki/Virtual_method" title="Virtual method" class="mw-redirect">virtual method</a>. In practice, this is not a limitation because base classes must have a <a href="/wiki/Virtual_destructor" title="Virtual destructor" class="mw-redirect">virtual destructor</a> to allow objects of derived classes to perform proper cleanup if they are deleted from a base pointer.</p>
+<p>RTTI is optional with some compilers; the programmer can choose at compile time whether to include the function. There may be a resource cost to making RTTI available even if the program does not use it.</p>
+<h2><span class="mw-headline" id="C.2B.2B_Example">C++ Example</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Run-time_type_information&amp;action=edit&amp;section=2" title="Edit section: C++ Example">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>WHATSON? 4b584f54-9853-4420-a403-dadeed185339</p>
+<pre class="de1">
+<span class="coMULTI">/* A base class pointer can point to objects of any class which is derived 
+ * from it. RTTI is useful to identify which type (derived class) of object is 
+ * pointed to by a base class pointer.
+ */</span>
+ 
+<span class="co2">#include &lt;iostream&gt;</span>
+ 
+<span class="kw2">class</span> Base
+<span class="br0">{</span>
+<span class="kw2">public</span><span class="sy4">:</span>
+    Base<span class="br0">(</span><span class="br0">)</span> <span class="br0">{</span> <span class="br0">}</span> 
+    <span class="kw2">virtual</span> ~Base<span class="br0">(</span><span class="br0">)</span> <span class="br0">{</span> <span class="br0">}</span> 
+ 
+    <span class="kw2">virtual</span> <span class="kw4">void</span> hello<span class="br0">(</span><span class="br0">)</span> 
+    <span class="br0">{</span>
+        std<span class="sy4">::</span><span class="kw3">cout</span> <span class="sy1">&lt;&lt;</span> <span class="st0">"in Base"</span><span class="sy4">;</span>
+    <span class="br0">}</span>
+<span class="br0">}</span><span class="sy4">;</span>
+ 
+<span class="kw2">class</span> Derived <span class="sy4">:</span> <span class="kw2">public</span> Base
+<span class="br0">{</span>
+<span class="kw2">public</span><span class="sy4">:</span>
+    <span class="kw4">void</span> hello<span class="br0">(</span><span class="br0">)</span> 
+    <span class="br0">{</span>
+        std<span class="sy4">::</span><span class="kw3">cout</span> <span class="sy1">&lt;&lt;</span> <span class="st0">"in Derived"</span><span class="sy4">;</span>
+    <span class="br0">}</span>
+<span class="br0">}</span><span class="sy4">;</span>
+ 
+<span class="kw4">int</span> main<span class="br0">(</span><span class="br0">)</span>
+<span class="br0">{</span>
+    Base<span class="sy2">*</span> basePointer <span class="sy1">=</span> <span class="kw3">new</span> Derived<span class="br0">(</span><span class="br0">)</span><span class="sy4">;</span>
+    Derived<span class="sy2">*</span> derivedPointer <span class="sy1">=</span> <span class="kw2">NULL</span><span class="sy4">;</span>
+ 
+    <span class="co1">//To find whether basePointer is pointing to Derived type of object</span>
+    derivedPointer <span class="sy1">=</span> <span class="kw2">dynamic_cast</span><span class="sy1">&lt;</span>Derived<span class="sy2">*</span><span class="sy1">&gt;</span><span class="br0">(</span>basePointer<span class="br0">)</span><span class="sy4">;</span>
+ 
+    <span class="kw1">if</span> <span class="br0">(</span>derivedPointer <span class="sy3">!</span><span class="sy1">=</span> <span class="kw2">NULL</span><span class="br0">)</span>
+    <span class="br0">{</span>
+        std<span class="sy4">::</span><span class="kw3">cout</span> <span class="sy1">&lt;&lt;</span> <span class="st0">"basePointer is pointing to a Derived class object"</span><span class="sy4">;</span> <span class="co1">//Identified</span>
+    <span class="br0">}</span>
+    <span class="kw1">else</span>
+    <span class="br0">{</span>
+        std<span class="sy4">::</span><span class="kw3">cout</span> <span class="sy1">&lt;&lt;</span> <span class="st0">"basePointer is NOT pointing to a Derived class object"</span><span class="sy4">;</span>
+    <span class="br0">}</span>
+ 
+    <span class="co1">//Requires virtual destructor </span>
+    <span class="kw3">delete</span> basePointer<span class="sy4">;</span>
+    basePointer <span class="sy1">=</span> <span class="kw2">NULL</span><span class="sy4">;</span>
+ 
+    <span class="kw1">return</span> <span class="nu0">0</span><span class="sy4">;</span>
+<span class="br0">}</span>
+</pre>
+<p>An instance where RTTI is used is illustrated below:</p>
+<p>WHATSON? 0bede1a9-ff5c-4051-9cf8-e1b0b6b404ab</p>
+<pre class="de1">
+<span class="kw2">class</span> Base
+<span class="br0">{</span>
+<span class="kw2">public</span><span class="sy4">:</span>  
+    <span class="kw2">virtual</span> ~Base<span class="br0">(</span><span class="br0">)</span><span class="br0">{</span><span class="br0">}</span>
+<span class="br0">}</span><span class="sy4">;</span>
+ 
+<span class="kw2">class</span> Derived <span class="sy4">:</span> <span class="kw2">public</span> Base
+<span class="br0">{</span>
+<span class="kw2">public</span><span class="sy4">:</span>
+    Derived<span class="br0">(</span><span class="br0">)</span> <span class="br0">{</span><span class="br0">}</span>
+    <span class="kw2">virtual</span> ~Derived<span class="br0">(</span><span class="br0">)</span> <span class="br0">{</span><span class="br0">}</span>
+ 
+    <span class="kw4">int</span> compare <span class="br0">(</span>Derived<span class="sy3">&amp;</span> ref<span class="br0">)</span><span class="sy4">;</span>
+<span class="br0">}</span><span class="sy4">;</span>
+ 
+<span class="kw4">int</span> myComparisonMethodForGenericSort <span class="br0">(</span>Base<span class="sy3">&amp;</span> ref1, Base<span class="sy3">&amp;</span> ref2<span class="br0">)</span>
+<span class="br0">{</span>
+    Derived<span class="sy3">&amp;</span> d <span class="sy1">=</span> <span class="kw2">dynamic_cast</span><span class="sy1">&lt;</span>Derived<span class="sy3">&amp;</span><span class="sy1">&gt;</span><span class="br0">(</span>ref1<span class="br0">)</span><span class="sy4">;</span> <span class="co1">//RTTI used here</span>
+    <span class="co1">//Note: If the cast is not successful, RTTI enables the process to throw a bad_cast exception</span>
+ 
+    <span class="kw1">return</span> d.<span class="me1">compare</span> <span class="br0">(</span><span class="kw2">dynamic_cast</span><span class="sy1">&lt;</span>Derived<span class="sy3">&amp;</span><span class="sy1">&gt;</span><span class="br0">(</span>ref2<span class="br0">)</span><span class="br0">)</span><span class="sy4">;</span>
+<span class="br0">}</span>
+</pre>
+<h2><span class="mw-headline" id="See_also">See also</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Run-time_type_information&amp;action=edit&amp;section=3" title="Edit section: See also">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul>
+<li><a href="/wiki/Reflection_(computer_science)" title="Reflection (computer science)" class="mw-redirect">Reflection</a></li>
+</ul>
+<h2><span class="mw-headline" id="References">References</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Run-time_type_information&amp;action=edit&amp;section=4" title="Edit section: References">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ol class="references">
+<li id="cite_note-1"><span class="mw-cite-backlink"><b><a href="#cite_ref-1">^</a></b></span> <span class="reference-text"><span class="citation web"><a href="/wiki/Bjarne_Stroustrup" title="Bjarne Stroustrup">Bjarne Stroustrup</a>. <a rel="nofollow" class="external text" href="http://www.stroustrup.com/hopl2.pdf">"A History of C++: 1979—1991"</a>. p. 50<span class="reference-accessdate">. Retrieved 2009-05-18</span>.</span><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3ARun-time+type+information&amp;rft.au=Bjarne+Stroustrup&amp;rft.aulast=Bjarne+Stroustrup&amp;rft.btitle=A+History+of+C%2B%2B%3A+1979%E2%80%941991&amp;rft.genre=book&amp;rft_id=http%3A%2F%2Fwww.stroustrup.com%2Fhopl2.pdf&amp;rft.pages=50&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook" class="Z3988"><span style="display:none;"> </span></span></span></li>
+</ol>

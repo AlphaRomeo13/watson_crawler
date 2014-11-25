@@ -1,0 +1,72 @@
+<h1>Parsing and Formatting</h1>
+<p>
+The temporal-based classes in the Date-Time API provide <tt>parse</tt> methods for parsing a string that contains date and time information. These classes also provide <tt>format</tt> methods for formatting temporal-based objects for display. In both cases, the process is similar: you provide a pattern to the <tt>DateTimeFormatter</tt> to create a formatter object. This formatter is then passed to the <tt>parse</tt> or <tt>format</tt> method.</p>
+<p>
+The <tt>DateTimeFormatter</tt> class provides numerous
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/time/format/DateTimeFormatter.html#predefined">predefined formatters</a>, or you can define your own.</p>
+<p>
+The <tt>parse</tt> and the <tt>format</tt> methods throw an exception if a problem occurs during the conversion process. Therefore, your parse code should catch the <tt>DateTimeParseException</tt> error and your format code should catch the <tt>DateTimeException</tt> error. For more information on exception handing, see
+<a class="TutorialLink" target="_top" href="../../essential/exceptions/handling.html">Catching and Handling Exceptions</a>.</p>
+<p>
+The <tt>DateTimeFormatter</tt> class is both immutable and thread-safe; it can (and should) be assigned to a static constant where appropriate.</p>
+<h2>Parsing</h2>
+<p>
+The one-argument
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/time/LocalDate.html#parse-java.lang.CharSequence-"><tt>parse(CharSequence)</tt></a> method in the <tt>LocalDate</tt> class uses the <tt>ISO_LOCAL_DATE</tt> formatter. To specify a different formatter, you can use the two-argument
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/time/LocalDate.html#parse-java.lang.CharSequence-java.time.format.DateTimeFormatter-"><tt>parse(CharSequence, DateTimeFormatter)</tt></a> method. The following example uses the predefined <tt>BASIC_ISO_DATE</tt> formatter, which uses the format <tt>19590709</tt> for July 9, 1959.</p>
+<p>WHATSON? 9ee289b2-cbb4-4c29-b4a9-8a8b452b354e</p>
+<pre>
+String in = ...;
+LocalDate date = LocalDate.parse(in, DateTimeFormatter.BASIC_ISO_DATE);
+</pre>
+<p>
+You can also define a formatter using your own pattern. The following code, from the
+<a class="SourceLink" target="_blank" href="examples/Parse.java" onclick="showCode('../../displayCode.html', 'examples/Parse.java'); return false;"><code><tt>Parse</tt></code></a> example, creates a formatter that applies a format of "MMM d yyyy". This format specifies three characters to represent the month, one digit to represent day of the month, and four digits to represent the year. A formatter created using this pattern would recognize strings such as "Jan 3 2003" or "Mar 23 1994". However, to specify the format as "MMM dd yyyy", with two characters for day of the month, then you would have to always use two characters, padding with a zero for a one-digit date: "Jun 03 2003".</p>
+<p>WHATSON? 05a1956d-5234-4a3e-814b-fbb3f93e7941</p>
+<pre>
+String input = ...;
+try {
+    DateTimeFormatter formatter =
+                      DateTimeFormatter.ofPattern("MMM d yyyy");
+    LocalDate date = LocalDate.parse(input, formatter);
+    System.out.printf("%s%n", date);
+}
+catch (DateTimeParseException exc) {
+    System.out.printf("%s is not parsable!%n", input);
+    throw exc;      // Rethrow the exception.
+}
+// 'date' has been successfully parsed
+</pre>
+<p>
+The documentation for the <tt>DateTimeFormatter</tt> class specifies the
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/time/format/DateTimeFormatter.html#patterns">full list of symbols</a> that you can use to specify a pattern for formatting or parsing.</p>
+<p>
+The <tt>StringConverter</tt> example on the
+<a class="TutorialLink" target="_top" href="nonIso.html">Non-ISO Date Conversion</a> page provides another example of a date formatter.</p>
+<h2>Formatting</h2>
+<p>
+The
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/time/LocalDate.html#format-java.time.format.DateTimeFormatter-"><tt>format(DateTimeFormatter)</tt></a> method converts a temporal-based object to a string representation using the specified format. The following code, from the
+<a class="SourceLink" target="_blank" href="examples/Flight.java" onclick="showCode('../../displayCode.html', 'examples/Flight.java'); return false;"><code><tt>Flight</tt></code></a> example, converts an instance of <tt>ZonedDateTime</tt> using the format "MMM d yyy  hh:mm a". The date is defined in the same manner as was used for the previous parsing example, but this pattern also includes the hour, minutes, and a.m. and p.m. components.</p>
+<p>WHATSON? c6fee58a-5e09-4924-8d67-f1c2f10d3fe6</p>
+<pre>
+ZoneId leavingZone = ...;
+ZonedDateTime departure = ...;
+
+try {
+    DateTimeFormatter format = DateTimeFormatter.ofPattern("MMM d yyyy  hh:mm a");
+    String out = departure.format(format);
+    System.out.printf("LEAVING:  %s (%s)%n", out, leavingZone);
+}
+catch (DateTimeException exc) {
+    System.out.printf("%s can't be formatted!%n", departure);
+    throw exc;
+}
+</pre>
+<p>
+The output for this example, which prints both the arrival and departure time, is as follows:</p>
+<p>WHATSON? e96335d8-834c-45b6-b804-27bec4fd1c57</p>
+<pre>
+LEAVING:  Jul 20 2013  07:30 PM (America/Los_Angeles)
+ARRIVING: Jul 21 2013  10:20 PM (Asia/Tokyo)
+</pre>

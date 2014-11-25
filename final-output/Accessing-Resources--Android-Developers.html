@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Accessing-Resources--Android-Developers.html</title></head>
+<body>
+<h1>Accessing Resources</h1>
+<h2>Quickview</h2>
+<ul>
+    <li>Resources can be referenced from code using integers from <code>R.java</code>, such as
+<code>R.drawable.myimage</code></li>
+    <li>Resources can be referenced from resources using a special XML syntax, such as <code>@drawable/myimage</code></li>
+    <li>You can also access your app resources with methods in
+<code>Resources</code></li>
+  </ul>
+<h2>Key classes</h2>
+<ol>
+    <li><code>Resources</code></li>
+  </ol>
+<h2>In this document</h2>
+<ol>
+    <li>Accessing Resources from Code</li>
+    <li>Accessing Resources from XML
+      <ol>
+        <li>Referencing style attributes</li>
+      </ol>
+    </li>
+    <li>Accessing Platform Resources</li>
+  </ol>
+<ol>
+        <li>Referencing style attributes</li>
+      </ol>
+<h2>See also</h2>
+<ol>
+    <li>Providing Resources</li>
+    <li>Resource Types</li>
+  </ol>
+<p>Once you provide a resource in your application (discussed in Providing Resources), you can apply it by
+referencing its resource ID. All resource IDs are defined in your project's <code>R</code> class, which
+the <code>aapt</code> tool automatically generates.</p>
+<p>When your application is compiled, <code>aapt</code> generates the <code>R</code> class, which contains
+resource IDs for all the resources in your <code>res/</code> directory. For each type of resource, there is an <code>R</code> subclass (for example,
+<code>R.drawable</code> for all drawable resources), and for each resource of that type, there is a static
+integer (for example, <code>R.drawable.icon</code>). This integer is the resource ID that you can use
+to retrieve your resource.</p>
+<p>Although the <code>R</code> class is where resource IDs are specified, you should never need to
+look there to discover a resource ID. A resource ID is always composed of:</p>
+<ul>
+  <li>The <em>resource type</em>: Each resource is grouped into a "type," such as <code>string</code>, <code>drawable</code>, and <code>layout</code>. For more about the different types, see Resource Types.
+  </li>
+  <li>The <em>resource name</em>, which is either: the filename,
+excluding the extension; or the value in the XML <code>android:name</code> attribute, if the
+resource is a simple value (such as a string).</li>
+</ul>
+<p>There are two ways you can access a resource:</p>
+<ul>
+  <li><strong>In code:</strong> Using a static integer from a sub-class of your <code>R</code>
+class, such as:
+    <pre>R.string.hello</pre>
+    <p><code>string</code> is the resource type and <code>hello</code> is the resource name. There are many
+Android APIs that can access your resources when you provide a resource ID in this format. See
+Accessing Resources in Code.</p>
+  </li>
+  <li><strong>In XML:</strong> Using a special XML syntax that also corresponds to
+the resource ID defined in your <code>R</code> class, such as:
+    <pre>@string/hello</pre>
+    <p><code>string</code> is the resource type and <code>hello</code> is the resource name. You can use this
+syntax in an XML resource any place where a value is expected that you provide in a resource. See Accessing Resources from XML.</p>
+  </li>
+</ul>
+<p>WHATSON? 46bfdc8e-8ae7-4d79-b69b-bd8fe321b51d</p>
+<pre>R.string.hello</pre>
+<p><code>string</code> is the resource type and <code>hello</code> is the resource name. There are many
+Android APIs that can access your resources when you provide a resource ID in this format. See
+Accessing Resources in Code.</p>
+<p>WHATSON? 051ed419-df34-4c84-978c-3d3d4431bccc</p>
+<pre>@string/hello</pre>
+<p><code>string</code> is the resource type and <code>hello</code> is the resource name. You can use this
+syntax in an XML resource any place where a value is expected that you provide in a resource. See Accessing Resources from XML.</p>
+<h2>Accessing Resources in Code </h2>
+<p>You can use a resource in code by passing the resource ID as a method parameter. For
+example, you can set an <code>ImageView</code> to use the <code>res/drawable/myimage.png</code>
+resource using <code>setImageResource()</code>:</p>
+<p>WHATSON? 5980f485-f612-4fe7-b8ce-070b38888c0c</p>
+<pre>
+ImageView imageView = (ImageView) findViewById(R.id.myimageview);
+imageView.setImageResource(<strong>R.drawable.myimage</strong>);
+</pre>
+<p>You can also retrieve individual resources using methods in <code>Resources</code>, which you can get an instance of
+with <code>getResources()</code>.</p>
+<h2>Access to Original Files</h2>
+<p>While uncommon, you might need access your original files and directories. If you do, then
+saving your files in <code>res/</code> won't work for you, because the only way to read a resource from
+<code>res/</code> is with the resource ID. Instead, you can save your resources in the
+<code>assets/</code> directory.</p>
+<p>Files saved in the <code>assets/</code> directory are <em>not</em> given a resource
+ID, so you can't reference them through the <code>R</code> class or from XML resources. Instead, you can
+query files in the <code>assets/</code> directory like a normal file system and read raw data using
+<code>AssetManager</code>.</p>
+<p>However, if all you require is the ability to read raw data (such as a video or audio file),
+then save the file in the <code>res/raw/</code> directory and read a stream of bytes using <code>openRawResource()</code>.</p>
+<h3>Syntax</h3>
+<p>Here's the syntax to reference a resource in code:</p>
+<p>WHATSON? 4b2d9a18-0ef2-4096-afe6-865b2d4feae5</p>
+<pre>
+[<em>&lt;package_name&gt;</em>.]R.<em>&lt;resource_type&gt;</em>.<em>&lt;resource_name&gt;</em>
+</pre>
+<ul>
+  <li><em><code>&lt;package_name&gt;</code></em> is the name of the package in which the resource is located (not
+required when referencing resources from your own package).</li>
+  <li><em><code>&lt;resource_type&gt;</code></em> is the <code>R</code> subclass for the resource type.</li>
+  <li><em><code>&lt;resource_name&gt;</code></em> is either the resource filename
+without the extension or the <code>android:name</code> attribute value in the XML element (for simple
+values).</li>
+</ul>
+<p>See Resource Types for
+more information about each resource type and how to reference them.</p>
+<h3>Use cases</h3>
+<p>There are many methods that accept a resource ID parameter and you can retrieve resources using
+methods in <code>Resources</code>. You can get an instance of  <code>Resources</code> with <code>Context.getResources()</code>.</p>
+<p>Here are some examples of accessing resources in code:</p>
+<p>WHATSON? 95ded797-5961-4400-9c8d-b4631a96ac27</p>
+<pre>
+// Load a background for the current screen from a drawable resource
+<code>getWindow()</code>.<code>setBackgroundDrawableResource</code>(<strong>R.drawable.my_background_image</strong>) ;
+
+// Set the Activity title by getting a string from the Resources object, because
+//  this method requires a CharSequence rather than a resource ID
+<code>getWindow()</code>.<code>setTitle</code>(getResources().<code>getText</code>(<strong>R.string.main_title</strong>));
+
+// Load a custom layout for the current screen
+<code>setContentView</code>(<strong>R.layout.main_screen</strong>);
+
+// Set a slide in animation by getting an Animation from the Resources object
+mFlipper.<code>setInAnimation</code>(AnimationUtils.loadAnimation(this,
+        <strong>R.anim.hyperspace_in</strong>));
+
+// Set the text on a TextView object using a resource ID
+TextView msgTextView = (TextView) findViewById(<strong>R.id.msg</strong>);
+msgTextView.<code>setText</code>(<strong>R.string.hello_message</strong>);
+</pre>
+<p><strong>Caution:</strong> You should never modify the <code>R.java</code> file by hand—it is generated by the <code>aapt</code> tool when your project is
+compiled. Any changes are overridden next time you compile.</p>
+<h2>Accessing Resources from XML</h2>
+<p>You can define values for some XML attributes and elements using a
+reference to an existing resource. You will often do this when creating layout files, to
+supply strings and images for your widgets.</p>
+<p>For example, if you add a <code>Button</code> to your layout, you should use
+a string resource for the button text:</p>
+<p>WHATSON? 9e842b6b-4f0c-41e0-9ced-5a0882e49201</p>
+<pre>
+&lt;Button
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:text="<strong>@string/submit</strong>" /&gt;
+</pre>
+<h3>Syntax</h3>
+<p>Here is the syntax to reference a resource in an XML resource:</p>
+<p>WHATSON? 6d2ec98e-0f6d-4d29-a172-9e47d12634db</p>
+<pre>
+@[<em>&lt;package_name&gt;</em>:]<em>&lt;resource_type&gt;</em>/<em>&lt;resource_name&gt;</em>
+</pre>
+<ul>
+  <li><code>&lt;package_name&gt;</code> is the name of the package in which the resource is located (not
+required when referencing resources from the same package)</li>
+  <li><code>&lt;resource_type&gt;</code> is the
+<code>R</code> subclass for the resource type</li>
+  <li><code>&lt;resource_name&gt;</code> is either the resource filename
+without the extension or the <code>android:name</code> attribute value in the XML element (for simple
+values).</li>
+</ul>
+<p>See Resource Types for
+more information about each resource type and how to reference them.</p>
+<h3>Use cases</h3>
+<p>In some cases you must use a resource for a value in XML (for example, to apply a drawable image
+to a widget), but you can also use a resource in XML any place that accepts a simple value. For
+example, if you have the following resource file that includes a color resource and a string resource:</p>
+<p>WHATSON? a266c703-ccb4-439d-a9ef-08e5b26bd0a8</p>
+<pre>
+&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;resources&gt;
+   &lt;color name="opaque_red"&gt;#f00&lt;/color&gt;
+   &lt;string name="hello"&gt;Hello!&lt;/string&gt;
+&lt;/resources&gt;
+</pre>
+<p>You can use these resources in the following layout file to set the text color and
+text string:</p>
+<p>WHATSON? e5850d61-baf8-4189-8b96-5d92b007a275</p>
+<pre>
+&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;EditText xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:textColor="<strong>@color/opaque_red</strong>"
+    android:text="<strong>@string/hello</strong>" /&gt;
+</pre>
+<p>In this case you don't need to specify the package name in the resource reference because the
+resources are from your own package. To
+reference a system resource, you would need to include the package name. For example:</p>
+<p>WHATSON? 8fae41af-58ff-412f-9119-f2eb7bea8429</p>
+<pre>
+&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;EditText xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:textColor="<strong>@android:color/secondary_text_dark</strong>"
+    android:text="@string/hello" /&gt;
+</pre>
+<p><strong>Note:</strong> You should use string resources at 
+all times, so that your application can be localized for other languages. 
+For information about creating alternative
+resources (such as localized strings), see Providing Alternative
+Resources. For a complete guide to localizing your application for other languages,
+see Localization.</p>
+<p>You can even use resources in XML to create aliases. For example, you can create a
+drawable resource that is an alias for another drawable resource:</p>
+<p>WHATSON? e74eef6c-271f-4da1-b512-202513e69212</p>
+<pre>
+&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;bitmap xmlns:android="http://schemas.android.com/apk/res/android"
+    android:src="@drawable/other_drawable" /&gt;
+</pre>
+<p>This sounds redundant, but can be very useful when using alternative resource. Read more about
+Creating alias resources.</p>
+<h3>Referencing style attributes</h3>
+<p>A style attribute resource allows you to reference the value
+of an attribute in the currently-applied theme. Referencing a style attribute allows you to
+customize the look of UI elements by styling them to match standard variations supplied by the
+current theme, instead of supplying a hard-coded value. Referencing a style attribute
+essentially says, "use the style that is defined by this attribute, in the current theme."</p>
+<p>To reference a style attribute, the name syntax is almost identical to the normal resource
+format, but instead of the at-symbol (<code>@</code>), use a question-mark (<code>?</code>), and the
+resource type portion is optional. For instance:</p>
+<p>WHATSON? 1876706d-a9ce-4233-ab3c-a51380d1d4ad</p>
+<pre>
+?[<em>&lt;package_name&gt;</em>:][<em>&lt;resource_type&gt;</em>/]<em>&lt;resource_name&gt;</em>
+</pre>
+<p>For example, here's how you can reference an attribute to set the text color to match the
+"primary" text color of the system theme:</p>
+<p>WHATSON? 2c523e18-3b94-46dc-b2ff-3b3c1220d84e</p>
+<pre>
+&lt;EditText id="text"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:textColor="<strong>?android:textColorSecondary</strong>"
+    android:text="@string/hello_world" /&gt;
+</pre>
+<p>Here, the <code>android:textColor</code> attribute specifies the name of a style attribute
+in the current theme. Android now uses the value applied to the <code>android:textColorSecondary</code>
+style attribute as the value for <code>android:textColor</code> in this widget. Because the system
+resource tool knows that an attribute resource is expected in this context,
+you do not need to explicitly state the type (which would be
+<code>?android:attr/textColorSecondary</code>)—you can exclude the <code>attr</code> type.</p>
+<h2>Accessing Platform Resources</h2>
+<p>Android contains a number of standard resources, such as styles, themes, and layouts. To
+access these resource, qualify your resource reference with the
+<code>android</code> package name. For example, Android provides a layout resource you can use for
+list items in a <code>ListAdapter</code>:</p>
+<p>WHATSON? 93956421-625b-4ef8-946e-12ce1ec1a36b</p>
+<pre>
+<code>setListAdapter</code>(new <code>ArrayAdapter</code>&lt;String&gt;(this, <strong>android.R.layout.simple_list_item_1</strong>, myarray));
+</pre>
+<p>In this example, <code>simple_list_item_1</code> is a layout resource defined by the
+platform for items in a <code>ListView</code>. You can use this instead of creating
+your own layout for list items. For more information, see the
+List View developer guide.</p>
+<h1>Accessing Resources</h1>
+<h2>Quickview</h2>
+<ul>
+    <li>Resources can be referenced from code using integers from <code>R.java</code>, such as
+<code>R.drawable.myimage</code></li>
+    <li>Resources can be referenced from resources using a special XML syntax, such as <code>@drawable/myimage</code></li>
+    <li>You can also access your app resources with methods in
+<code>Resources</code></li>
+  </ul>
+<h2>Key classes</h2>
+<ol>
+    <li><code>Resources</code></li>
+  </ol>
+<h2>In this document</h2>
+<ol>
+    <li>Accessing Resources from Code</li>
+    <li>Accessing Resources from XML
+      <ol>
+        <li>Referencing style attributes</li>
+      </ol>
+    </li>
+    <li>Accessing Platform Resources</li>
+  </ol>
+<ol>
+        <li>Referencing style attributes</li>
+      </ol>
+<h2>See also</h2>
+<ol>
+    <li>Providing Resources</li>
+    <li>Resource Types</li>
+  </ol>
+<p>Once you provide a resource in your application (discussed in Providing Resources), you can apply it by
+referencing its resource ID. All resource IDs are defined in your project's <code>R</code> class, which
+the <code>aapt</code> tool automatically generates.</p>
+<p>When your application is compiled, <code>aapt</code> generates the <code>R</code> class, which contains
+resource IDs for all the resources in your <code>res/</code> directory. For each type of resource, there is an <code>R</code> subclass (for example,
+<code>R.drawable</code> for all drawable resources), and for each resource of that type, there is a static
+integer (for example, <code>R.drawable.icon</code>). This integer is the resource ID that you can use
+to retrieve your resource.</p>
+<p>Although the <code>R</code> class is where resource IDs are specified, you should never need to
+look there to discover a resource ID. A resource ID is always composed of:</p>
+<ul>
+  <li>The <em>resource type</em>: Each resource is grouped into a "type," such as <code>string</code>, <code>drawable</code>, and <code>layout</code>. For more about the different types, see Resource Types.
+  </li>
+  <li>The <em>resource name</em>, which is either: the filename,
+excluding the extension; or the value in the XML <code>android:name</code> attribute, if the
+resource is a simple value (such as a string).</li>
+</ul>
+<p>There are two ways you can access a resource:</p>
+<ul>
+  <li><strong>In code:</strong> Using a static integer from a sub-class of your <code>R</code>
+class, such as:
+    <pre>R.string.hello</pre>
+    <p><code>string</code> is the resource type and <code>hello</code> is the resource name. There are many
+Android APIs that can access your resources when you provide a resource ID in this format. See
+Accessing Resources in Code.</p>
+  </li>
+  <li><strong>In XML:</strong> Using a special XML syntax that also corresponds to
+the resource ID defined in your <code>R</code> class, such as:
+    <pre>@string/hello</pre>
+    <p><code>string</code> is the resource type and <code>hello</code> is the resource name. You can use this
+syntax in an XML resource any place where a value is expected that you provide in a resource. See Accessing Resources from XML.</p>
+  </li>
+</ul>
+<p>WHATSON? b5a19d85-de25-4a12-b294-c5eb43eb5186</p>
+<pre>R.string.hello</pre>
+<p><code>string</code> is the resource type and <code>hello</code> is the resource name. There are many
+Android APIs that can access your resources when you provide a resource ID in this format. See
+Accessing Resources in Code.</p>
+<p>WHATSON? fc7e998d-9b43-496e-9dc3-e96791aeb2a4</p>
+<pre>@string/hello</pre>
+<p><code>string</code> is the resource type and <code>hello</code> is the resource name. You can use this
+syntax in an XML resource any place where a value is expected that you provide in a resource. See Accessing Resources from XML.</p>
+<h2>Accessing Resources in Code </h2>
+<p>You can use a resource in code by passing the resource ID as a method parameter. For
+example, you can set an <code>ImageView</code> to use the <code>res/drawable/myimage.png</code>
+resource using <code>setImageResource()</code>:</p>
+<p>WHATSON? 71548916-74d9-4d9d-8aa8-630175484cba</p>
+<pre>
+ImageView imageView = (ImageView) findViewById(R.id.myimageview);
+imageView.setImageResource(<strong>R.drawable.myimage</strong>);
+</pre>
+<p>You can also retrieve individual resources using methods in <code>Resources</code>, which you can get an instance of
+with <code>getResources()</code>.</p>
+<h2>Access to Original Files</h2>
+<p>While uncommon, you might need access your original files and directories. If you do, then
+saving your files in <code>res/</code> won't work for you, because the only way to read a resource from
+<code>res/</code> is with the resource ID. Instead, you can save your resources in the
+<code>assets/</code> directory.</p>
+<p>Files saved in the <code>assets/</code> directory are <em>not</em> given a resource
+ID, so you can't reference them through the <code>R</code> class or from XML resources. Instead, you can
+query files in the <code>assets/</code> directory like a normal file system and read raw data using
+<code>AssetManager</code>.</p>
+<p>However, if all you require is the ability to read raw data (such as a video or audio file),
+then save the file in the <code>res/raw/</code> directory and read a stream of bytes using <code>openRawResource()</code>.</p>
+<h3>Syntax</h3>
+<p>Here's the syntax to reference a resource in code:</p>
+<p>WHATSON? 2c0167c2-eab1-4eaf-88ff-81267a1307d9</p>
+<pre>
+[<em>&lt;package_name&gt;</em>.]R.<em>&lt;resource_type&gt;</em>.<em>&lt;resource_name&gt;</em>
+</pre>
+<ul>
+  <li><em><code>&lt;package_name&gt;</code></em> is the name of the package in which the resource is located (not
+required when referencing resources from your own package).</li>
+  <li><em><code>&lt;resource_type&gt;</code></em> is the <code>R</code> subclass for the resource type.</li>
+  <li><em><code>&lt;resource_name&gt;</code></em> is either the resource filename
+without the extension or the <code>android:name</code> attribute value in the XML element (for simple
+values).</li>
+</ul>
+<p>See Resource Types for
+more information about each resource type and how to reference them.</p>
+<h3>Use cases</h3>
+<p>There are many methods that accept a resource ID parameter and you can retrieve resources using
+methods in <code>Resources</code>. You can get an instance of  <code>Resources</code> with <code>Context.getResources()</code>.</p>
+<p>Here are some examples of accessing resources in code:</p>
+<p>WHATSON? b068dec2-c9f9-4f5b-99b5-b04da430eeac</p>
+<pre>
+// Load a background for the current screen from a drawable resource
+<code>getWindow()</code>.<code>setBackgroundDrawableResource</code>(<strong>R.drawable.my_background_image</strong>) ;
+
+// Set the Activity title by getting a string from the Resources object, because
+//  this method requires a CharSequence rather than a resource ID
+<code>getWindow()</code>.<code>setTitle</code>(getResources().<code>getText</code>(<strong>R.string.main_title</strong>));
+
+// Load a custom layout for the current screen
+<code>setContentView</code>(<strong>R.layout.main_screen</strong>);
+
+// Set a slide in animation by getting an Animation from the Resources object
+mFlipper.<code>setInAnimation</code>(AnimationUtils.loadAnimation(this,
+        <strong>R.anim.hyperspace_in</strong>));
+
+// Set the text on a TextView object using a resource ID
+TextView msgTextView = (TextView) findViewById(<strong>R.id.msg</strong>);
+msgTextView.<code>setText</code>(<strong>R.string.hello_message</strong>);
+</pre>
+<p><strong>Caution:</strong> You should never modify the <code>R.java</code> file by hand—it is generated by the <code>aapt</code> tool when your project is
+compiled. Any changes are overridden next time you compile.</p>
+<h2>Accessing Resources from XML</h2>
+<p>You can define values for some XML attributes and elements using a
+reference to an existing resource. You will often do this when creating layout files, to
+supply strings and images for your widgets.</p>
+<p>For example, if you add a <code>Button</code> to your layout, you should use
+a string resource for the button text:</p>
+<p>WHATSON? 3606741c-244c-40a7-ab6a-17414c6a2c8c</p>
+<pre>
+&lt;Button
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:text="<strong>@string/submit</strong>" /&gt;
+</pre>
+<h3>Syntax</h3>
+<p>Here is the syntax to reference a resource in an XML resource:</p>
+<p>WHATSON? 980854b2-8369-4b0a-b6e9-28f3a1122f17</p>
+<pre>
+@[<em>&lt;package_name&gt;</em>:]<em>&lt;resource_type&gt;</em>/<em>&lt;resource_name&gt;</em>
+</pre>
+<ul>
+  <li><code>&lt;package_name&gt;</code> is the name of the package in which the resource is located (not
+required when referencing resources from the same package)</li>
+  <li><code>&lt;resource_type&gt;</code> is the
+<code>R</code> subclass for the resource type</li>
+  <li><code>&lt;resource_name&gt;</code> is either the resource filename
+without the extension or the <code>android:name</code> attribute value in the XML element (for simple
+values).</li>
+</ul>
+<p>See Resource Types for
+more information about each resource type and how to reference them.</p>
+<h3>Use cases</h3>
+<p>In some cases you must use a resource for a value in XML (for example, to apply a drawable image
+to a widget), but you can also use a resource in XML any place that accepts a simple value. For
+example, if you have the following resource file that includes a color resource and a string resource:</p>
+<p>WHATSON? e45644cc-97ed-4f30-915d-386d2f8b28a9</p>
+<pre>
+&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;resources&gt;
+   &lt;color name="opaque_red"&gt;#f00&lt;/color&gt;
+   &lt;string name="hello"&gt;Hello!&lt;/string&gt;
+&lt;/resources&gt;
+</pre>
+<p>You can use these resources in the following layout file to set the text color and
+text string:</p>
+<p>WHATSON? f73b3e9d-6925-4965-b463-1d8779497ea8</p>
+<pre>
+&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;EditText xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:textColor="<strong>@color/opaque_red</strong>"
+    android:text="<strong>@string/hello</strong>" /&gt;
+</pre>
+<p>In this case you don't need to specify the package name in the resource reference because the
+resources are from your own package. To
+reference a system resource, you would need to include the package name. For example:</p>
+<p>WHATSON? f4eefa10-cd81-4597-872f-0ba8a15b2701</p>
+<pre>
+&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;EditText xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:textColor="<strong>@android:color/secondary_text_dark</strong>"
+    android:text="@string/hello" /&gt;
+</pre>
+<p><strong>Note:</strong> You should use string resources at 
+all times, so that your application can be localized for other languages. 
+For information about creating alternative
+resources (such as localized strings), see Providing Alternative
+Resources. For a complete guide to localizing your application for other languages,
+see Localization.</p>
+<p>You can even use resources in XML to create aliases. For example, you can create a
+drawable resource that is an alias for another drawable resource:</p>
+<p>WHATSON? 3295c477-2a0d-4b8f-bf3c-b92f92a2e7f7</p>
+<pre>
+&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;bitmap xmlns:android="http://schemas.android.com/apk/res/android"
+    android:src="@drawable/other_drawable" /&gt;
+</pre>
+<p>This sounds redundant, but can be very useful when using alternative resource. Read more about
+Creating alias resources.</p>
+<h3>Referencing style attributes</h3>
+<p>A style attribute resource allows you to reference the value
+of an attribute in the currently-applied theme. Referencing a style attribute allows you to
+customize the look of UI elements by styling them to match standard variations supplied by the
+current theme, instead of supplying a hard-coded value. Referencing a style attribute
+essentially says, "use the style that is defined by this attribute, in the current theme."</p>
+<p>To reference a style attribute, the name syntax is almost identical to the normal resource
+format, but instead of the at-symbol (<code>@</code>), use a question-mark (<code>?</code>), and the
+resource type portion is optional. For instance:</p>
+<p>WHATSON? 150f6380-07e1-4a56-8a42-6886b84c76bd</p>
+<pre>
+?[<em>&lt;package_name&gt;</em>:][<em>&lt;resource_type&gt;</em>/]<em>&lt;resource_name&gt;</em>
+</pre>
+<p>For example, here's how you can reference an attribute to set the text color to match the
+"primary" text color of the system theme:</p>
+<p>WHATSON? c0d7711d-e59b-4d48-809d-70c5cdfb3f43</p>
+<pre>
+&lt;EditText id="text"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:textColor="<strong>?android:textColorSecondary</strong>"
+    android:text="@string/hello_world" /&gt;
+</pre>
+<p>Here, the <code>android:textColor</code> attribute specifies the name of a style attribute
+in the current theme. Android now uses the value applied to the <code>android:textColorSecondary</code>
+style attribute as the value for <code>android:textColor</code> in this widget. Because the system
+resource tool knows that an attribute resource is expected in this context,
+you do not need to explicitly state the type (which would be
+<code>?android:attr/textColorSecondary</code>)—you can exclude the <code>attr</code> type.</p>
+<h2>Accessing Platform Resources</h2>
+<p>Android contains a number of standard resources, such as styles, themes, and layouts. To
+access these resource, qualify your resource reference with the
+<code>android</code> package name. For example, Android provides a layout resource you can use for
+list items in a <code>ListAdapter</code>:</p>
+<p>WHATSON? b2bf6461-76fe-4a27-8f54-9171fbb8c9ca</p>
+<pre>
+<code>setListAdapter</code>(new <code>ArrayAdapter</code>&lt;String&gt;(this, <strong>android.R.layout.simple_list_item_1</strong>, myarray));
+</pre>
+<p>In this example, <code>simple_list_item_1</code> is a layout resource defined by the
+platform for items in a <code>ListView</code>. You can use this instead of creating
+your own layout for list items. For more information, see the
+List View developer guide.</p>
+</body>
+</html>

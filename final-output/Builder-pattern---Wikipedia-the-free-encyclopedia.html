@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Builder-pattern---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Builder pattern</h1>
+<p>The <b>builder pattern</b> is an object creation software design pattern. Unlike the abstract factory pattern and the factory method pattern whose intention is to enable polymorphism, the intention of the builder pattern is to find a solution to the telescoping constructor anti-pattern. The telescoping constructor anti-pattern occurs when the increase of object constructor parameter combination leads to an exponential list of constructors. Instead of using numerous constructors, the builder pattern uses another object, a builder, that receives each initialization parameter step by step and then returns the resulting constructed object at once.</p>
+<p>The builder pattern has another benefit. It can be used for objects that contain flat data (html code, SQL query, X.509 certificate...), that is to say, data that can't be easily edited. This type of data cannot be edited step by step and must be edited at once. The best way to construct such an object is to use a builder class.</p>
+<p>Builder often builds a Composite. Often, designs start out using Factory Method (less complicated, more customizable, subclasses proliferate) and evolve toward Abstract Factory, Prototype, or Builder (more flexible, more complex) as the designer discovers where more flexibility is needed. Sometimes creational patterns are complementary: Builder can use one of the other patterns to implement which components are built. Builders are good candidates for a fluent interface.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Definition</li>
+<li>2 Structure</li>
+<li>3 Pseudocode</li>
+<li>4 C# Example</li>
+<li>5 C++ Example</li>
+<li>6 See also</li>
+<li>7 References</li>
+<li>8 External links</li>
+</ul>
+<p></p>
+<h2>Definition</h2>
+<p>The intent of the Builder design pattern is to separate the construction of a complex object from its representation. By doing so the same construction process can create different representations. </p>
+<h2>Structure</h2>
+<h2>Pseudocode</h2>
+<p>We have a <code>Car</code> class. The problem is that a car has many options. The combination of each option would lead to a huge list of constructors for this class. So we will create a builder class, <code>CarBuilder</code>. We will send to the <code>CarBuilder</code> each car option step by step and then construct the final car with the right options:</p>
+<p>WHATSON? 0e0a9a4b-909b-4735-add7-261bb726d050</p>
+<pre>
+<code><b>class</b> Car <b>is</b>
+  Can have GPS, trip computer and various numbers of seats. Can be a city car, a sports car, or a cabriolet.
+
+<b>class</b> CarBuilder <b>is</b>
+  <b>method</b> getResult() <b>is</b>
+      <b>output: </b> a <i>Car</i> with the right options
+    Construct and return the car.
+
+  <b>method</b> setSeats(number) <b>is</b>
+      <b>input: </b> the <i>number</i> of seats the car may have.
+    Tell the builder the number of seats.
+
+  <b>method</b> setCityCar() <b>is</b>
+    Make the builder remember that the car is a city car.
+
+  <b>method</b> setCabriolet() <b>is</b>
+    Make the builder remember that the car is a cabriolet.
+
+  <b>method</b> setSportsCar() <b>is</b>
+    Make the builder remember that the car is a sports car.
+
+  <b>method</b> setTripComputer() <b>is</b>
+    Make the builder remember that the car has a trip computer.
+
+  <b>method</b> unsetTripComputer() <b>is</b>
+    Make the builder remember that the car does not have a trip computer.
+
+  <b>method</b> setGPS() <b>is</b>
+    Make the builder remember that the car has a global positioning system.
+
+  <b>method</b> unsetGPS() <b>is</b>
+    Make the builder remember that the car does not have a global positioning system.
+
+<b>Construct</b> a CarBuilder called <i>carBuilder</i>
+carBuilder.setSeats(2)
+carBuilder.setSportsCar()
+carBuilder.setTripComputer()
+carBuilder.unsetGPS()
+car := carBuilder.getResult()
+</code>
+</pre>
+<h2>C# Example</h2>
+<p>This pattern creates object based on the Interface, but also lets the subclass decide which class to instantiate. It also has finer control over the construction process. There is a concept of Director in Builder Pattern implementation. The director actually creates the object and also runs a few tasks after that.</p>
+<p>WHATSON? 0799471d-6888-4334-a577-eec7c023894f</p>
+<pre>
+//IVSR: Builder Pattern
+    public interface IBuilder
+    {
+        string RunBuilderTask1();
+        string RunBuilderTask2();
+    }
+ 
+    public class Builder1 : IBuilder
+    {
+ 
+        #region IBuilder Members
+ 
+        public string RunBuilderTask1()
+        {
+            throw new ApplicationException("Task1");
+        }
+ 
+        public string RunBuilderTask2()
+        {
+            throw new ApplicationException("Task2");
+        }
+ 
+        #endregion
+    }
+ 
+    public class Builder2 : IBuilder
+    {
+        #region IBuilder Members
+ 
+        public string RunBuilderTask1()
+        {
+            return "Task3";
+        }
+ 
+        public string RunBuilderTask2()
+        {
+            return "Task4";
+        }
+ 
+        #endregion
+    }
+ 
+    public class Director
+    {
+        public IBuilder CreateBuilder(int type)
+        {
+            IBuilder builder = null;
+            if (type == 1)
+                builder = new Builder1();
+            else
+                builder = new Builder2();
+            builder.RunBuilderTask1();
+            builder.RunBuilderTask2();
+            return builder;
+        }
+    }
+</pre>
+<p>In case of Builder pattern you can see the Director is actually using CreateBuilder to create the instance of the builder. So when the Builder is actually created, we can also invoke a few common task in it.</p>
+<p><br></p>
+<h2>C++ Example</h2>
+<p>WHATSON? c9eda0b8-0876-4acd-b62f-0ae6bc539784</p>
+<pre>
+#include &lt;iostream&gt;
+ 
+ 
+using namespace std;
+ 
+ 
+ 
+class X {
+ 
+	public:
+		class Builder {
+ 
+			private:
+ 
+				Builder();
+				~Builder();
+				static Builder INSTANCE;
+ 
+			public:
+ 
+				static Builder* getInstance() {
+					return &amp;INSTANCE;
+				}
+ 
+				X* build();
+ 
+				int a;
+				int b;
+				int c;
+ 
+				Builder* setA(int i);
+				Builder* setB(int i);
+				Builder* setC(int i);
+		};
+ 
+ 
+ 
+	private:
+ 
+		X(Builder*);
+		~X();
+		//
+		int a;
+		int b;
+		int c;
+ 
+	public:
+ 
+		void f() {
+			cout &lt;&lt; "***" &lt;&lt; endl;
+			cout &lt;&lt; a &lt;&lt; endl;
+			cout &lt;&lt; b &lt;&lt; endl;
+			cout &lt;&lt; c &lt;&lt; endl;
+		}
+};
+ 
+//////////////////// X::
+ 
+X::X(Builder* b) :
+		a(0), b(0), c(0) {
+ 
+	this-&gt;a = b-&gt;a;
+	this-&gt;b = b-&gt;b;
+	this-&gt;c = b-&gt;c;
+ 
+}
+ 
+X::~X() {
+	delete this;
+}
+ 
+ 
+//////////////////// X::Builder::
+ 
+X::Builder X::Builder::INSTANCE;
+ 
+X::Builder::Builder() {
+ 
+}
+ 
+X::Builder::~Builder() {
+	delete this;
+}
+ 
+X* X::Builder::build() {
+	X* x = new X(this);
+	return x;
+}
+ 
+ 
+X::Builder* X::Builder::setA(int i) {
+	this-&gt;a = i;
+	return &amp;INSTANCE;
+}
+ 
+X::Builder* X::Builder::setB(int i) {
+	this-&gt;b = i;
+	return &amp;INSTANCE;
+}
+ 
+X::Builder* X::Builder::setC(int i) {
+	this-&gt;c = i;
+	return &amp;INSTANCE;
+}
+ 
+//////////////////// int main(void)
+ 
+int main(void) {
+ 
+	X* x = X::Builder::getInstance()-&gt;setA(2)-&gt;setB(8)-&gt;setC(16)-&gt;build();
+	x-&gt;f();
+ 
+	X* y = X::Builder::getInstance()-&gt;setA(32)-&gt;setB(64)-&gt;setC(128)-&gt;build();
+ 
+	y-&gt;f();
+	x-&gt;f();
+ 
+	return 0;
+}
+</pre>
+<h2>See also</h2>
+<ul>
+<li>Currying</li>
+</ul>
+</body>
+</html>

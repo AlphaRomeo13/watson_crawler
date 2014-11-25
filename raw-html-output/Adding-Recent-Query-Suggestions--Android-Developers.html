@@ -1,0 +1,340 @@
+<h1 itemprop="name">Adding Recent Query Suggestions</h1>
+<h2>In this document</h2>
+<ol>
+<li><a href="#TheBasics">The Basics</a></li>
+<li><a href="#RecentQueryContentProvider">Creating a Content Provider</a></li>
+<li><a href="#RecentQuerySearchableConfiguration">Modifying the Searchable
+Configuration</a></li>
+<li><a href="#SavingQueries">Saving Queries</a></li>
+<li><a href="#ClearingSuggestionData">Clearing the Suggestion Data</a></li>
+</ol>
+<h2>Key classes</h2>
+<ol>
+<li><code><a href="/reference/android/provider/SearchRecentSuggestions.html">SearchRecentSuggestions</a></code></li>
+<li><code><a href="/reference/android/content/SearchRecentSuggestionsProvider.html">SearchRecentSuggestionsProvider</a></code></li>
+</ol>
+<h2>See also</h2>
+<ol>
+<li><a href="searchable-config.html">Searchable Configuration</a></li>
+</ol>
+<p>When using the Android search dialog or search widget, you can provide search suggestions based
+on recent search
+queries. For example, if a user previously searched for "puppies," then that query appears as a
+suggestion once he or she begins typing the same query. Figure 1 shows an example of a search dialog
+with recent query suggestions.</p>
+<p>Before you begin, you need to implement the search dialog or a search widget for basic searches
+in your application.
+If you haven't, see <a href="search-dialog.html">Creating a Search Interface</a>.</p>
+<h2 id="TheBasics">The Basics</h2>
+<p class="img-caption"><strong>Figure 1.</strong> Screenshot of a search dialog with recent query
+suggestions.</p>
+<p>Recent query suggestions are simply saved searches. When the user selects one of
+the suggestions, your searchable activity receives a <code><a href="/reference/android/content/Intent.html#ACTION_SEARCH">ACTION_SEARCH</a></code> intent with the suggestion as the search query, which your
+searchable activity already handles (as described in <a href="search-dialog.html">Creating a Search
+Interface</a>).</p>
+<p>To provide recent queries suggestions, you need to:</p>
+<ul>
+  <li>Implement a searchable activity, as described in <a href="/guide/topics/search/search-dialog.html">Creating a Search Interface</a>.</li>
+  <li>Create a content provider that extends <code><a href="/reference/android/content/SearchRecentSuggestionsProvider.html">SearchRecentSuggestionsProvider</a></code> and declare it in your application manifest.</li>
+  <li>Modify the searchable configuration with information about the content provider that
+provides search suggestions.</li>
+  <li>Save queries to your content provider each time a search is executed.</li>
+</ul>
+<p>Just as the Android system displays the search dialog, it also displays the
+search suggestions below the dialog or search widget. All you need to do is provide a source from
+which the system can retrieve suggestions.</p>
+<p>When the system identifies that your activity is searchable and provides search
+suggestions, the following procedure takes place as soon as the user begins typing a query:</p>
+<ol>
+  <li>The system takes the search query text (whatever has been typed so far) and performs a
+query to the content provider that contains your suggestions.</li>
+  <li>Your content provider returns a <code><a href="/reference/android/database/Cursor.html">Cursor</a></code> that points to all
+suggestions that match the search query text.</li>
+  <li>The system displays the list of suggestions provided by the Cursor.</li>
+</ol>
+<p>Once the recent query suggestions are displayed, the following might happen:</p>
+<ul>
+  <li>If the user types another key, or changes the query in any way, the aforementioned steps are
+repeated and the suggestion list is updated.</li>
+  <li>If the user executes the search, the suggestions are ignored and the search is delivered
+to your searchable activity using the normal <code><a href="/reference/android/content/Intent.html#ACTION_SEARCH">ACTION_SEARCH</a></code>
+intent.</li>
+  <li>If the user selects a suggestion, an
+<code><a href="/reference/android/content/Intent.html#ACTION_SEARCH">ACTION_SEARCH</a></code> intent is delivered to your searchable activity using
+the suggested text as the query.</li>
+</ul>
+<p>The <code><a href="/reference/android/content/SearchRecentSuggestionsProvider.html">SearchRecentSuggestionsProvider</a></code> class that
+you extend for your content provider automatically does the work described above, so there's
+actually very little code to write.</p>
+<h2 id="RecentQueryContentProvider">Creating a Content Provider</h2>
+<p>The content provider that you need for recent query suggestions must be an implementation
+of <code><a href="/reference/android/content/SearchRecentSuggestionsProvider.html">SearchRecentSuggestionsProvider</a></code>. This class does practically everything
+for you. All you have to do is write a class constructor that executes one line of code.</p>
+<p>For example, here's a complete implementation of a content provider for recent query
+suggestions:</p>
+<p>WHATSON? d7073b90-c4ca-425b-ae8d-0f858ad7c362</p>
+<pre>
+public class MySuggestionProvider extends SearchRecentSuggestionsProvider {
+    public final static String AUTHORITY = "com.example.MySuggestionProvider";
+    public final static int MODE = DATABASE_MODE_QUERIES;
+
+    public MySuggestionProvider() {
+        setupSuggestions(AUTHORITY, MODE);
+    }
+}
+</pre>
+<p>The call to <code><a href="/reference/android/content/SearchRecentSuggestionsProvider.html#setupSuggestions(java.lang.String,%20int)">setupSuggestions()</a></code> passes the name of the search authority and a
+database mode. The search authority can be any unique string, but the best practice is to use a
+fully qualified name for your content provider
+(package name followed by the provider's class name; for example,
+"com.example.MySuggestionProvider"). The database mode must include <code><a href="/reference/android/content/SearchRecentSuggestionsProvider.html#DATABASE_MODE_QUERIES">DATABASE_MODE_QUERIES</a></code> and can optionally include
+<code><a href="/reference/android/content/SearchRecentSuggestionsProvider.html#DATABASE_MODE_2LINES">DATABASE_MODE_2LINES</a></code>, which adds another column
+to the suggestions table that allows you to provide a second line of text with each suggestion. For
+example, if you want to provide two lines in each suggestion:</p>
+<p>WHATSON? eb4bee6b-b34e-4ce2-91e6-b2201d7deb96</p>
+<pre>
+public final static int MODE = DATABASE_MODE_QUERIES | DATABASE_MODE_2LINES;
+</pre>
+<p>Now declare the content provider in your application manifest with the same authority
+string used in your <code><a href="/reference/android/content/SearchRecentSuggestionsProvider.html">SearchRecentSuggestionsProvider</a></code> class (and in the
+searchable configuration). For example:</p>
+<p>WHATSON? 51193b14-ec55-44f5-81b1-dcc336488d1b</p>
+<pre>
+&lt;application&gt;
+    &lt;provider android:name=".MySuggestionProvider"
+              android:authorities="com.example.MySuggestionProvider" /&gt;
+    ...
+&lt;/application&gt;
+</pre>
+<h2 id="RecentQuerySearchableConfiguration">Modifying the Searchable Configuration</h2>
+<p>To configure the system to use your suggestions provider, you need to add
+the <code>android:searchSuggestAuthority</code> and <code>android:searchSuggestSelection</code> attributes to
+the <code>&lt;searchable&gt;</code> element in your searchable configuration file. For example:</p>
+<p>WHATSON? 9194cd5c-987c-49c9-826f-3c0daeb177b7</p>
+<pre>
+&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;searchable xmlns:android="http://schemas.android.com/apk/res/android"
+    android:label="@string/app_label"
+    android:hint="@string/search_hint"
+    <b>android:searchSuggestAuthority="com.example.MySuggestionProvider"
+    android:searchSuggestSelection=" ?"</b> &gt;
+&lt;/searchable&gt;
+</pre>
+<p>The value for <code>android:searchSuggestAuthority</code> should be a fully qualified name for
+your content provider that exactly matches the authority used in the content provider (the <code>AUTHORITY</code> string in the above example).
+</p>
+<p>The value for <code>android:searchSuggestSelection</code> must be a single question mark, preceded by
+a space (<code>" ?"</code>), which is simply a placeholder for the SQLite selection argument (which is
+automatically replaced by the query text entered by the user).</p>
+<h2 id="SavingQueries">Saving Queries</h2>
+<p>To populate your collection of recent queries, add each query
+received by your searchable activity to your <code><a href="/reference/android/content/SearchRecentSuggestionsProvider.html">SearchRecentSuggestionsProvider</a></code>. To do this, create an instance of <code><a href="/reference/android/provider/SearchRecentSuggestions.html">SearchRecentSuggestions</a></code> and call <code><a href="/reference/android/provider/SearchRecentSuggestions.html#saveRecentQuery(java.lang.String,%20java.lang.String)">saveRecentQuery()</a></code> each time
+your searchable activity receives a query. For example, here's how you can save the query during
+your activity's <code><a href="/reference/android/app/Activity.html#onCreate(android.os.Bundle)">onCreate()</a></code> method:</p>
+<p>WHATSON? 792152f7-c5c9-484d-8be4-f8f8604df5b5</p>
+<pre>
+@Override
+public void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    setContentView(R.layout.main);
+
+    Intent intent  = getIntent();
+
+    if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
+        String query = intent.getStringExtra(SearchManager.QUERY);
+        SearchRecentSuggestions suggestions = new SearchRecentSuggestions(this,
+                MySuggestionProvider.AUTHORITY, MySuggestionProvider.MODE);
+        suggestions.saveRecentQuery(query, null);
+    }
+}
+</pre>
+<p>The <code><a href="/reference/android/content/SearchRecentSuggestionsProvider.html">SearchRecentSuggestionsProvider</a></code> constructor requires the
+same authority and database mode declared by your content provider.</p>
+<p>The <code><a href="/reference/android/provider/SearchRecentSuggestions.html#saveRecentQuery(java.lang.String,%20java.lang.String)">saveRecentQuery()</a></code> method takes
+the search query string as the first parameter and, optionally, a second string to include as the
+second line of the suggestion (or null). The second parameter is only used if you've enabled
+two-line mode for the search suggestions with <code><a href="/reference/android/content/SearchRecentSuggestionsProvider.html#DATABASE_MODE_2LINES">DATABASE_MODE_2LINES</a></code>. If you have enabled
+two-line mode, then the query text is also matched against this second line when the system
+looks for matching suggestions.</p>
+<h2 id="ClearingSuggestionData">Clearing the Suggestion Data</h2>
+<p>To protect the user's privacy, you should always provide a way for the user to clear the recent
+query suggestions. To clear the query history, call <code><a href="/reference/android/provider/SearchRecentSuggestions.html#clearHistory()">clearHistory()</a></code>. For example:</p>
+<p>WHATSON? aba97eb5-45ec-415b-828e-533282acb091</p>
+<pre>
+SearchRecentSuggestions suggestions = new SearchRecentSuggestions(this,
+        HelloSuggestionProvider.AUTHORITY, HelloSuggestionProvider.MODE);
+suggestions.clearHistory();
+</pre>
+<p>Execute this from your choice of a "Clear Search History" menu item,
+preference item, or button. You should also provide a confirmation dialog to
+verify that the user wants to delete their search history.</p>
+<h1 itemprop="name">Adding Recent Query Suggestions</h1>
+<h2>In this document</h2>
+<ol>
+<li><a href="#TheBasics">The Basics</a></li>
+<li><a href="#RecentQueryContentProvider">Creating a Content Provider</a></li>
+<li><a href="#RecentQuerySearchableConfiguration">Modifying the Searchable
+Configuration</a></li>
+<li><a href="#SavingQueries">Saving Queries</a></li>
+<li><a href="#ClearingSuggestionData">Clearing the Suggestion Data</a></li>
+</ol>
+<h2>Key classes</h2>
+<ol>
+<li><code><a href="/reference/android/provider/SearchRecentSuggestions.html">SearchRecentSuggestions</a></code></li>
+<li><code><a href="/reference/android/content/SearchRecentSuggestionsProvider.html">SearchRecentSuggestionsProvider</a></code></li>
+</ol>
+<h2>See also</h2>
+<ol>
+<li><a href="searchable-config.html">Searchable Configuration</a></li>
+</ol>
+<p>When using the Android search dialog or search widget, you can provide search suggestions based
+on recent search
+queries. For example, if a user previously searched for "puppies," then that query appears as a
+suggestion once he or she begins typing the same query. Figure 1 shows an example of a search dialog
+with recent query suggestions.</p>
+<p>Before you begin, you need to implement the search dialog or a search widget for basic searches
+in your application.
+If you haven't, see <a href="search-dialog.html">Creating a Search Interface</a>.</p>
+<h2 id="TheBasics">The Basics</h2>
+<p class="img-caption"><strong>Figure 1.</strong> Screenshot of a search dialog with recent query
+suggestions.</p>
+<p>Recent query suggestions are simply saved searches. When the user selects one of
+the suggestions, your searchable activity receives a <code><a href="/reference/android/content/Intent.html#ACTION_SEARCH">ACTION_SEARCH</a></code> intent with the suggestion as the search query, which your
+searchable activity already handles (as described in <a href="search-dialog.html">Creating a Search
+Interface</a>).</p>
+<p>To provide recent queries suggestions, you need to:</p>
+<ul>
+  <li>Implement a searchable activity, as described in <a href="/guide/topics/search/search-dialog.html">Creating a Search Interface</a>.</li>
+  <li>Create a content provider that extends <code><a href="/reference/android/content/SearchRecentSuggestionsProvider.html">SearchRecentSuggestionsProvider</a></code> and declare it in your application manifest.</li>
+  <li>Modify the searchable configuration with information about the content provider that
+provides search suggestions.</li>
+  <li>Save queries to your content provider each time a search is executed.</li>
+</ul>
+<p>Just as the Android system displays the search dialog, it also displays the
+search suggestions below the dialog or search widget. All you need to do is provide a source from
+which the system can retrieve suggestions.</p>
+<p>When the system identifies that your activity is searchable and provides search
+suggestions, the following procedure takes place as soon as the user begins typing a query:</p>
+<ol>
+  <li>The system takes the search query text (whatever has been typed so far) and performs a
+query to the content provider that contains your suggestions.</li>
+  <li>Your content provider returns a <code><a href="/reference/android/database/Cursor.html">Cursor</a></code> that points to all
+suggestions that match the search query text.</li>
+  <li>The system displays the list of suggestions provided by the Cursor.</li>
+</ol>
+<p>Once the recent query suggestions are displayed, the following might happen:</p>
+<ul>
+  <li>If the user types another key, or changes the query in any way, the aforementioned steps are
+repeated and the suggestion list is updated.</li>
+  <li>If the user executes the search, the suggestions are ignored and the search is delivered
+to your searchable activity using the normal <code><a href="/reference/android/content/Intent.html#ACTION_SEARCH">ACTION_SEARCH</a></code>
+intent.</li>
+  <li>If the user selects a suggestion, an
+<code><a href="/reference/android/content/Intent.html#ACTION_SEARCH">ACTION_SEARCH</a></code> intent is delivered to your searchable activity using
+the suggested text as the query.</li>
+</ul>
+<p>The <code><a href="/reference/android/content/SearchRecentSuggestionsProvider.html">SearchRecentSuggestionsProvider</a></code> class that
+you extend for your content provider automatically does the work described above, so there's
+actually very little code to write.</p>
+<h2 id="RecentQueryContentProvider">Creating a Content Provider</h2>
+<p>The content provider that you need for recent query suggestions must be an implementation
+of <code><a href="/reference/android/content/SearchRecentSuggestionsProvider.html">SearchRecentSuggestionsProvider</a></code>. This class does practically everything
+for you. All you have to do is write a class constructor that executes one line of code.</p>
+<p>For example, here's a complete implementation of a content provider for recent query
+suggestions:</p>
+<p>WHATSON? 76d37ba0-bb0f-4396-b173-344078f83d53</p>
+<pre>
+public class MySuggestionProvider extends SearchRecentSuggestionsProvider {
+    public final static String AUTHORITY = "com.example.MySuggestionProvider";
+    public final static int MODE = DATABASE_MODE_QUERIES;
+
+    public MySuggestionProvider() {
+        setupSuggestions(AUTHORITY, MODE);
+    }
+}
+</pre>
+<p>The call to <code><a href="/reference/android/content/SearchRecentSuggestionsProvider.html#setupSuggestions(java.lang.String,%20int)">setupSuggestions()</a></code> passes the name of the search authority and a
+database mode. The search authority can be any unique string, but the best practice is to use a
+fully qualified name for your content provider
+(package name followed by the provider's class name; for example,
+"com.example.MySuggestionProvider"). The database mode must include <code><a href="/reference/android/content/SearchRecentSuggestionsProvider.html#DATABASE_MODE_QUERIES">DATABASE_MODE_QUERIES</a></code> and can optionally include
+<code><a href="/reference/android/content/SearchRecentSuggestionsProvider.html#DATABASE_MODE_2LINES">DATABASE_MODE_2LINES</a></code>, which adds another column
+to the suggestions table that allows you to provide a second line of text with each suggestion. For
+example, if you want to provide two lines in each suggestion:</p>
+<p>WHATSON? 4b173cec-86c4-4442-83cb-f80fc00acf04</p>
+<pre>
+public final static int MODE = DATABASE_MODE_QUERIES | DATABASE_MODE_2LINES;
+</pre>
+<p>Now declare the content provider in your application manifest with the same authority
+string used in your <code><a href="/reference/android/content/SearchRecentSuggestionsProvider.html">SearchRecentSuggestionsProvider</a></code> class (and in the
+searchable configuration). For example:</p>
+<p>WHATSON? 8f5a71f3-5bc9-4831-8ce3-8262ac92353e</p>
+<pre>
+&lt;application&gt;
+    &lt;provider android:name=".MySuggestionProvider"
+              android:authorities="com.example.MySuggestionProvider" /&gt;
+    ...
+&lt;/application&gt;
+</pre>
+<h2 id="RecentQuerySearchableConfiguration">Modifying the Searchable Configuration</h2>
+<p>To configure the system to use your suggestions provider, you need to add
+the <code>android:searchSuggestAuthority</code> and <code>android:searchSuggestSelection</code> attributes to
+the <code>&lt;searchable&gt;</code> element in your searchable configuration file. For example:</p>
+<p>WHATSON? 302d1bb9-796e-46da-b679-eacbd1a5e29c</p>
+<pre>
+&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;searchable xmlns:android="http://schemas.android.com/apk/res/android"
+    android:label="@string/app_label"
+    android:hint="@string/search_hint"
+    <b>android:searchSuggestAuthority="com.example.MySuggestionProvider"
+    android:searchSuggestSelection=" ?"</b> &gt;
+&lt;/searchable&gt;
+</pre>
+<p>The value for <code>android:searchSuggestAuthority</code> should be a fully qualified name for
+your content provider that exactly matches the authority used in the content provider (the <code>AUTHORITY</code> string in the above example).
+</p>
+<p>The value for <code>android:searchSuggestSelection</code> must be a single question mark, preceded by
+a space (<code>" ?"</code>), which is simply a placeholder for the SQLite selection argument (which is
+automatically replaced by the query text entered by the user).</p>
+<h2 id="SavingQueries">Saving Queries</h2>
+<p>To populate your collection of recent queries, add each query
+received by your searchable activity to your <code><a href="/reference/android/content/SearchRecentSuggestionsProvider.html">SearchRecentSuggestionsProvider</a></code>. To do this, create an instance of <code><a href="/reference/android/provider/SearchRecentSuggestions.html">SearchRecentSuggestions</a></code> and call <code><a href="/reference/android/provider/SearchRecentSuggestions.html#saveRecentQuery(java.lang.String,%20java.lang.String)">saveRecentQuery()</a></code> each time
+your searchable activity receives a query. For example, here's how you can save the query during
+your activity's <code><a href="/reference/android/app/Activity.html#onCreate(android.os.Bundle)">onCreate()</a></code> method:</p>
+<p>WHATSON? 0691600d-45fa-4988-83ca-71644d4a06bf</p>
+<pre>
+@Override
+public void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    setContentView(R.layout.main);
+
+    Intent intent  = getIntent();
+
+    if (Intent.ACTION_SEARCH.equals(intent.getAction())) {
+        String query = intent.getStringExtra(SearchManager.QUERY);
+        SearchRecentSuggestions suggestions = new SearchRecentSuggestions(this,
+                MySuggestionProvider.AUTHORITY, MySuggestionProvider.MODE);
+        suggestions.saveRecentQuery(query, null);
+    }
+}
+</pre>
+<p>The <code><a href="/reference/android/content/SearchRecentSuggestionsProvider.html">SearchRecentSuggestionsProvider</a></code> constructor requires the
+same authority and database mode declared by your content provider.</p>
+<p>The <code><a href="/reference/android/provider/SearchRecentSuggestions.html#saveRecentQuery(java.lang.String,%20java.lang.String)">saveRecentQuery()</a></code> method takes
+the search query string as the first parameter and, optionally, a second string to include as the
+second line of the suggestion (or null). The second parameter is only used if you've enabled
+two-line mode for the search suggestions with <code><a href="/reference/android/content/SearchRecentSuggestionsProvider.html#DATABASE_MODE_2LINES">DATABASE_MODE_2LINES</a></code>. If you have enabled
+two-line mode, then the query text is also matched against this second line when the system
+looks for matching suggestions.</p>
+<h2 id="ClearingSuggestionData">Clearing the Suggestion Data</h2>
+<p>To protect the user's privacy, you should always provide a way for the user to clear the recent
+query suggestions. To clear the query history, call <code><a href="/reference/android/provider/SearchRecentSuggestions.html#clearHistory()">clearHistory()</a></code>. For example:</p>
+<p>WHATSON? 5260947f-5dc7-4bf8-b45d-31a23d32156d</p>
+<pre>
+SearchRecentSuggestions suggestions = new SearchRecentSuggestions(this,
+        HelloSuggestionProvider.AUTHORITY, HelloSuggestionProvider.MODE);
+suggestions.clearHistory();
+</pre>
+<p>Execute this from your choice of a "Clear Search History" menu item,
+preference item, or button. You should also provide a confirmation dialog to
+verify that the user wants to delete their search history.</p>

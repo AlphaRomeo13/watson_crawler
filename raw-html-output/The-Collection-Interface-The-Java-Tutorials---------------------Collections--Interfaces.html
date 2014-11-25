@@ -1,0 +1,169 @@
+<h1>The Collection Interface</h1>
+<p>A 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/util/Collection.html"><code>Collection</code></a> represents a group of objects known as its elements. The <code>Collection</code> interface is used to pass around collections of objects where maximum generality is desired. For example, by convention all general-purpose collection implementations have a constructor that takes a <code>Collection</code> argument. This constructor, known as a <i>conversion constructor</i>, initializes the new collection to contain all of the elements in the specified collection, whatever the given collection's subinterface or implementation type. In other words, it allows you to <i>convert</i> the collection's type.</p>
+<p>Suppose, for example, that you have a <code>Collection&lt;String&gt; c</code>, which may be a <code>List</code>, a <code>Set</code>, or another kind of <code>Collection</code>. This idiom creates a new <code>ArrayList</code> (an implementation of the <code>List</code> interface), initially containing all the elements in <code>c</code>.</p>
+<p>WHATSON? e7363f68-b977-47c4-8047-fd5874da748a</p>
+<pre>
+List&lt;String&gt; list = new ArrayList&lt;String&gt;(c);
+</pre>
+<p>WHATSON? dcf38358-9c16-4f81-a5bb-5862fcb365a7</p>
+<pre>
+List&lt;String&gt; list = new ArrayList&lt;&gt;(c);
+</pre>
+<p>
+The <code>Collection</code> interface contains methods that perform basic operations, such as <code>int size()</code>, <code>boolean isEmpty()</code>, 
+<code>boolean contains(Object element)</code>, <code>boolean add(E element)</code>, <code>boolean remove(Object element)</code>, and 
+<code>Iterator&lt;E&gt; iterator()</code>.
+</p>
+<p>
+ It also contains
+methods that operate on entire collections, such as <code>boolean containsAll(Collection&lt;?&gt; c)</code>, 
+<code>boolean addAll(Collection&lt;? extends E&gt; c)</code>, 
+ <code>boolean removeAll(Collection&lt;?&gt; c)</code>, <code>boolean retainAll(Collection&lt;?&gt; c)</code>, and  
+<code>void clear()</code>.
+</p>
+<p>
+ Additional methods for array operations
+(such as <code>Object[] toArray()</code> and <code>&lt;T&gt; T[] toArray(T[] a)</code> exist as well.
+</p>
+<p>
+In JDK 8 and later, the <code>Collection</code> interface also exposes methods <code>Stream&lt;E&gt; stream()</code> and <code>Stream&lt;E&gt; parallelStream()</code>, for obtaining sequential or parallel streams from the underlying collection. 
+
+(See the lesson entitled
+<a class="TutorialLink" target="_top" href="../../collections/streams/index.html">Aggregate Operations</a> for more information about using streams.)
+</p>
+<p>The <code>Collection</code> interface does about what you'd expect given that a <code>Collection</code> represents a group of objects. It has methods that tell you how many elements are in the collection (<code>size</code>, <code>isEmpty</code>), methods that check whether a given object is in the collection (<code>contains</code>), methods that add and remove an element from the collection (<code>add</code>, <code>remove</code>), and methods that provide an iterator over the collection (<code>iterator</code>).</p>
+<p>The <code>add</code> method is defined generally enough so that it makes sense for collections that allow duplicates as well as those that don't. It guarantees that the <code>Collection</code> will contain the specified element after the call completes, and returns <code>true</code> if the <code>Collection</code> changes as a result of the call. Similarly, the <code>remove</code> method is designed to remove a single instance of the specified element from the <code>Collection</code>, assuming that it contains the element to start with, and to return <code>true</code> if the <code>Collection</code> was modified as a result. <a name="Traversing" id="Traversing"></a></p>
+<h2>Traversing Collections</h2>
+<p>There are three ways to traverse collections: (1) using aggregate operations (2) with the <code>for-each</code> construct and (3) by using <code>Iterator</code>s. <a name="ForEach" id="ForEach"></a></p>
+<h3>Aggregate Operations</h3>
+<p>
+In JDK 8 and later, the preferred method of iterating over a collection is to obtain a stream 
+and perform aggregate operations on it.
+Aggregate operations are often used in conjunction with lambda expressions
+to make programming more expressive, using less lines of code. The following code sequentially iterates through a collection of shapes and prints 
+out the red objects:
+</p>
+<p>WHATSON? 20488114-c797-4b86-82e6-5f68757d3982</p>
+<pre>
+myShapesCollection.stream()
+.filter(e -&gt; e.getColor() == Color.RED)
+.forEach(e -&gt; System.out.println(e.getName()));
+</pre>
+<p>
+Likewise, you could easily request a parallel stream, which might make sense 
+if the collection is large enough and your computer has enough cores:
+</p>
+<p>WHATSON? e29884cd-3a48-4744-a579-495e3d5ed280</p>
+<pre>
+myShapesCollection.parallelStream()
+.filter(e -&gt; e.getColor() == Color.RED)
+.forEach(e -&gt; System.out.println(e.getName()));
+</pre>
+<p>
+There are many different ways to collect data with this API. For example,  you might want to convert 
+the elements of a <code>Collection</code> to <code>String</code> objects, then join them, separated by commas:
+</p>
+<p>WHATSON? dee24690-dbb2-4e73-9331-c774fe2c9b39</p>
+<pre>
+    String joined = elements.stream()
+    .map(Object::toString)
+    .collect(Collectors.joining(", "));
+</pre>
+<p>
+Or perhaps sum the salaries of all employees:
+</p>
+<p>WHATSON? 9ff77f50-c2a0-4c6e-9c68-b48fbb5a905d</p>
+<pre>
+int total = employees.stream()
+.collect(Collectors.summingInt(Employee::getSalary)));
+</pre>
+<p>
+These are but a few examples of what you can do with streams and 
+aggregate operations.
+For more information and examples, see the lesson entitled
+<a class="TutorialLink" target="_top" href="../../collections/streams/index.html">Aggregate Operations</a>.
+</p>
+<p>
+The Collections framework has always provided a number of so-called "bulk operations" as part of its API. 
+These include methods that operate on entire collections, such as <code>containsAll</code>, <code>addAll</code>, <code>removeAll</code>, etc. 
+Do not confuse those methods with the aggregate operations that were introduced in JDK 8.
+The key difference between the new aggregate operations and the existing bulk operations
+ (<code>containsAll</code>, <code>addAll</code>, etc.) is that the old versions are all <em>mutative</em>, meaning that
+  they all modify the underlying collection. In contrast, the new aggregate operations <em>do not</em>
+modify the underlying collection. When using the new aggregate operations and lambda expressions, you must
+take care to avoid mutation so as not to introduce problems in the future, should your code be run later from a parallel stream.
+
+
+
+
+</p>
+<h3>for-each Construct</h3>
+<p>The <code>for-each</code> construct allows you to concisely traverse a collection or array using a <code>for</code> loop  see 
+<a class="TutorialLink" target="_top" href="../../java/nutsandbolts/for.html">The for Statement</a>. The following code uses the <code>for-each</code> construct to print out each element of a collection on a separate line.</p>
+<p>WHATSON? f6b37e5d-ff06-4bbf-994a-3ce8c4937f12</p>
+<pre>
+for (Object o : collection)
+    System.out.println(o);
+</pre>
+<h3><a name="Iterator" id="Iterator">Iterators</a></h3>
+<p>An 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/util/Iterator.html"><code>Iterator</code></a> is an object that enables you to traverse through a collection and to remove elements from the collection selectively, if desired. You get an <code>Iterator</code> for a collection by calling its <code>iterator</code> method. The following is the <code>Iterator</code> interface.</p>
+<p>WHATSON? febd67db-34a0-462e-93b6-860cf2b1a9c2</p>
+<pre>
+public interface Iterator&lt;E&gt; {
+    boolean hasNext();
+    E next();
+    void remove(); //optional
+}
+</pre>
+<p>The <code>hasNext</code> method returns <code>true</code> if the iteration has more elements, and the <code>next</code> method returns the next element in the iteration. The <code>remove</code> method removes the last element that was returned by <code>next</code> from the underlying <code>Collection</code>. The <code>remove</code> method may be called only once per call to <code>next</code> and throws an exception if this rule is violated.</p>
+<p>Note that <code>Iterator.remove</code> is the <i>only</i> safe way to modify a collection during iteration; the behavior is unspecified if the underlying collection is modified in any other way while the iteration is in progress.</p>
+<p>Use <code>Iterator</code> instead of the <code>for-each</code> construct when you need to:</p>
+<ul>
+<li>Remove the current element. The <code>for-each</code> construct hides the iterator, so you cannot call <code>remove</code>. Therefore, the <code>for-each</code> construct is not usable for filtering.</li>
+<li>Iterate over multiple collections in parallel.</li>
+</ul>
+<p>The following method shows you how to use an <code>Iterator</code> to filter an arbitrary <code>Collection</code>  that is, traverse the collection removing specific elements.</p>
+<p>WHATSON? 279187f7-ec55-4f4a-bb23-93beb1bd0238</p>
+<pre>
+static void filter(Collection&lt;?&gt; c) {
+    for (Iterator&lt;?&gt; it = c.iterator(); it.hasNext(); )
+        if (!cond(it.next()))
+            it.remove();
+}
+</pre>
+<p>This simple piece of code is polymorphic, which means that it works for <i>any</i> <code>Collection</code> regardless of implementation. This example demonstrates how easy it is to write a polymorphic algorithm using the Java Collections Framework.</p>
+<h2>Collection Interface Bulk Operations</h2>
+<p><i>Bulk operations</i> perform an operation on an entire <code>Collection</code>. You could implement these shorthand operations using the basic operations, though in most cases such implementations would be less efficient. The following are the bulk operations:</p>
+<ul>
+<li><code>containsAll</code>  returns <code>true</code> if the target <code>Collection</code> contains all of the elements in the specified <code>Collection</code>.</li>
+<li><code>addAll</code>  adds all of the elements in the specified <code>Collection</code> to the target <code>Collection</code>.</li>
+<li><code>removeAll</code>  removes from the target <code>Collection</code> all of its elements that are also contained in the specified <code>Collection</code>.</li>
+<li><code>retainAll</code>  removes from the target <code>Collection</code> all its elements that are <i>not</i> also contained in the specified <code>Collection</code>. That is, it retains only those elements in the target <code>Collection</code> that are also contained in the specified <code>Collection</code>.</li>
+<li><code>clear</code>  removes all elements from the <code>Collection</code>.</li>
+</ul>
+<p>The <code>addAll</code>, <code>removeAll</code>, and <code>retainAll</code> methods all return <code>true</code> if the target <code>Collection</code> was modified in the process of executing the operation.</p>
+<p>As a simple example of the power of bulk operations, consider the following idiom to remove <i>all</i> instances of a specified element, <code>e</code>, from a <code>Collection</code>, <code>c</code>.</p>
+<p>WHATSON? 18e1583b-98ad-474c-a93c-bed1e32cb946</p>
+<pre>
+c.removeAll(Collections.singleton(e));
+</pre>
+<p>More specifically, suppose you want to remove all of the <code>null</code> elements from a <code>Collection</code>.</p>
+<p>WHATSON? e0fe08a6-fafd-4ce5-bbbc-f0318dd905b6</p>
+<pre>
+c.removeAll(Collections.singleton(null));
+</pre>
+<p>This idiom uses <code>Collections.singleton</code>, which is a static factory method that returns an immutable <code>Set</code> containing only the specified element. <a name="ArrayOps" id="ArrayOps"></a></p>
+<h2>Collection Interface Array Operations</h2>
+<p>The <code>toArray</code> methods are provided as a bridge between collections and older APIs that expect arrays on input. The array operations allow the contents of a <code>Collection</code> to be translated into an array. The simple form with no arguments creates a new array of <code>Object</code>. The more complex form allows the caller to provide an array or to choose the runtime type of the output array.</p>
+<p>For example, suppose that <code>c</code> is a <code>Collection</code>. The following snippet dumps the contents of <code>c</code> into a newly allocated array of <code>Object</code> whose length is identical to the number of elements in <code>c</code>.</p>
+<p>WHATSON? c9c23b0c-421e-443a-9d90-e5ab8c290c55</p>
+<pre>
+Object[] a = c.toArray();
+</pre>
+<p>Suppose that <code>c</code> is known to contain only strings (perhaps because <code>c</code> is of type <code>Collection&lt;String&gt;</code>). The following snippet dumps the contents of <code>c</code> into a newly allocated array of <code>String</code> whose length is identical to the number of elements in <code>c</code>.</p>
+<p>WHATSON? 84300974-0d8b-4432-aa46-12f101e83ce9</p>
+<pre>
+String[] a = c.toArray(new String[0]);
+</pre>

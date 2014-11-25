@@ -1,0 +1,264 @@
+<h1>How to Use File Choosers</h1>
+<p>File choosers provide a GUI for navigating the file system, and then either choosing a file or directory from a list, or entering the name of a file or directory. To display a file chooser, you usually use the <code>JFileChooser</code> API to show a modal <a href="dialog.html">dialog</a> containing the file chooser. Another way to present a file chooser is to add an instance of 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/javax/swing/JFileChooser.html"><code>JFileChooser</code></a> to a container.</p>
+<p>If you intend to distribute your program as a sandbox Java Web Start application, then instead of using the <code>JFileChooser</code> API you should use the file services provided by the JNLP API. These services  <code>FileOpenService</code> and <code>FileSaveService</code>  not only provide support for choosing files in a restricted environment, but also take care of actually opening and saving them. An example of using these services is in <a href="../examples/components/index.html#JWSFileChooserDemo">JWSFileChooserDemo</a>. Documentation for using the JNLP API can be found in the 
+<a class="TutorialLink" target="_top" href="../../deployment/webstart/index.html">Java Web Start</a> lesson.</p>
+<p>Click the Launch button to run JWSFileChooserDemo using 
+<a class="OutsideLink" target="_blank" href="http://www.oracle.com/technetwork/java/javase/javawebstart/index.html">Java™ Web Start</a> (<a href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">download JDK 7 or later</a>). Alternatively, to compile and run the example yourself, consult the <a href="../examples/components/index.html#JWSFileChooserDemo">example index</a>.</p>
+<p>When working with the <code>JWSFileChooserDemo</code> example, be careful not to lose files that you need. Whenever you click the save button and select an existing file, this demo brings up the File Exists dialog box with a request to replace the file. Accepting the request overwrites the file.</p>
+<p>The rest of this section discusses how to use the <code>JFileChooser</code> API. A <code>JFileChooser</code> object only presents the GUI for choosing files. Your program is responsible for doing something with the chosen file, such as opening or saving it. Refer to 
+<a class="TutorialLink" target="_top" href="../../essential/io/index.html">Basic I/O</a> for information on how to read and write files.</p>
+<p>The <code>JFileChooser</code> API makes it easy to bring up open and save dialogs. The type of look and feel determines what these standard dialogs look like and how they differ. In the Java look and feel, the save dialog looks the same as the open dialog, except for the title on the dialog's window and the text on the button that approves the operation. Here is a picture of a standard open dialog in the Java look and feel:</p>
+<p>Here is a picture of an application called <code>FileChooserDemo</code> that brings up an open dialog and a save dialog.</p>
+<ol>
+<li>Compile and run the example, consult the <a href="../examples/components/index.html#FileChooserDemo">example index</a>.</li>
+<li>Click the Open a File button. Navigate around the file chooser, choose a file, and click the dialog's Open button.</li>
+<li>Use the Save a File button to bring up a save dialog. Try to use all of the controls on the file chooser.</li>
+<li>In the source file 
+<a class="SourceLink" target="_blank" href="../examples/components/FileChooserDemoProject/src/components/FileChooserDemo.java" onclick="showCode('../../displayCode.html', '../examples/components/FileChooserDemoProject/src/components/FileChooserDemo.java'); return false;"><code>FileChooserDemo.java</code></a>, change the file selection mode to directories-only mode. (Search for <code>DIRECTORIES_ONLY</code> and uncomment the line that contains it.) Then compile and run the example again. You will only be able to see and select directories, not ordinary files.</li>
+</ol>
+<p>Bringing up a standard open dialog requires only two lines of code:</p>
+<p>WHATSON? ed0b437a-0587-4891-b049-e39903a4ffd7</p>
+<pre>
+//Create a file chooser
+final JFileChooser fc = new JFileChooser();
+...
+<em>//In response to a button click:</em>
+int returnVal = fc.showOpenDialog(<em>aComponent</em>);
+</pre>
+<p>The argument to the <code>showOpenDialog</code> method specifies the parent component for the dialog. The parent component affects the position of the dialog and the frame that the dialog depends on. For example, the Java look and feel places the dialog directly over the parent component. If the parent component is in a frame, then the dialog is dependent on that frame. This dialog disappears when the frame is minimized and reappears when the frame is maximized.</p>
+<p>By default, a file chooser that has not been shown before displays all files in the user's home directory. You can specify the file chooser's initial directory by using one of <code>JFileChooser</code>'s other constructors, or you can set the directory with the <code>setCurrentDirectory</code> method.</p>
+<p>The call to <code>showOpenDialog</code> appears in the <code>actionPerformed</code> method of the Open a File button's action listener:</p>
+<p>WHATSON? 28ac1bf3-d55f-4c54-a3b2-933687a2f33f</p>
+<pre>
+public void actionPerformed(ActionEvent e) {
+    //Handle open button action.
+    if (e.getSource() == openButton) {
+        int returnVal = fc.showOpenDialog(FileChooserDemo.this);
+
+        if (returnVal == JFileChooser.APPROVE_OPTION) {
+            File file = fc.getSelectedFile();
+            //This is where a real application would open the file.
+            log.append("Opening: " + file.getName() + "." + newline);
+        } else {
+            log.append("Open command cancelled by user." + newline);
+        }
+   } ...
+}
+</pre>
+<p>The <code>show<em>Xxx</em>Dialog</code> methods return an integer that indicates whether the user selected a file. Depending on how you use a file chooser, it is often sufficient to check whether the return value is <code>APPROVE_OPTION</code> and then not to change any other value. To get the chosen file (or directory, if you set up the file chooser to allow directory selections), call the <code>getSelectedFile</code> method on the file chooser. This method returns an instance of 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/io/File.html"><code>File</code></a>.</p>
+<p>The example obtains the name of the file and uses it in the log message. You can call other methods on the <code>File</code> object, such as <code>getPath</code>, <code>isDirectory</code>, or <code>exists</code> to obtain information about the file. You can also call other methods such as <code>delete</code> and <code>rename</code> to change the file in some way. Of course, you might also want to open or save the file by using one of the reader or writer classes provided by the Java platform. See 
+<a class="TutorialLink" target="_top" href="../../essential/io/index.html">Basic I/O</a> for information about using readers and writers to read and write data to the file system.</p>
+<p>The example program uses the same instance of the <code>JFileChooser</code> class to display a standard save dialog. This time the program calls <code>showSaveDialog</code>:</p>
+<p>WHATSON? 6c88e287-c86d-41a2-9898-509e6997dc28</p>
+<pre>
+int returnVal = fc.showSaveDialog(FileChooserDemo.this);
+</pre>
+<p>By using the same file chooser instance to display its open and save dialogs, the program reaps the following benefits:</p>
+<ul>
+<li>The chooser remembers the current directory between uses, so the open and save versions automatically share the same current directory.</li>
+<li>You have to customize only one file chooser, and the customizations apply to both the open and save versions.</li>
+</ul>
+<p>Finally, the example program has commented-out lines of code that let you change the file selection mode. For example, the following line of code makes the file chooser able to select only directories, and not files:</p>
+<p>WHATSON? c7ae37d0-c916-4417-8eb4-dc0496e7a8a1</p>
+<pre>
+fc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+</pre>
+<p>Another possible selection mode is <code>FILES_AND_DIRECTORIES</code>. The default is <code>FILES_ONLY</code>. The following picture shows an open dialog with the file selection mode set to <code>DIRECTORIES_ONLY</code>. Note that, in the Java look and feel at least, only directories are visible  not files.</p>
+<p>If you want to create a file chooser for a task other than opening or saving, or if you want to customize the file chooser, keep reading. 
+We will discuss the following topics:
+
+</p>
+<ul>
+<li> <a href="#advancedexample">Another Example: FileChooserDemo2</a></li>
+<li> <a href="#customtask">Using a File Chooser for a Custom Task</a></li>
+<li> <a href="#filters">Filtering the List of Files</a></li>
+<li> <a href="#fileview">Customizing the File View</a></li>
+<li> <a href="#accessory">Providing an Accessory Component</a></li>
+<li> <a href="#api">The File Chooser API</a></li>
+<li> <a href="#eg">Examples that Use File Choosers</a></li>
+</ul>
+<h2><a name="advancedexample__1" id="advancedexample__1">Another Example: FileChooserDemo2</a></h2>
+<p>Let us look at <a href="../examples/components/index.html#FileChooserDemo2"><code>FileChooserDemo2</code></a> example, a modified version of the previous demo program that uses more of the <code>JFileChooser</code> API. This example uses a file chooser that has been customized in several ways. Like the original example, the user invokes a file chooser with the push of a button. Here is a picture of the file chooser:</p>
+<p>As the figure shows, this file chooser has been customized for a special task (Attach), provides a user-choosable file filter (Just Images), uses a special file view for image files, and has an accessory component that displays a thumbnail sketch of the currently selected image file.</p>
+<p>The remainder of this section shows you the code that creates and customizes this file chooser. See the <a href="../examples/components/index.html#FileChooserDemo2">example index</a> for links to all the files required by this example.</p>
+<h2><a name="customtask" id="customtask">Using a File Chooser for a Custom Task</a></h2>
+<p>As you have seen, the <code>JFileChooser</code> class provides the <code>showOpenDialog</code> method for displaying an open dialog and the <code>showSaveDialog</code> method for displaying a save dialog.</p>
+<p>The class has another method, <code>showDialog</code>, for displaying a file chooser for a custom task in a dialog. In the Java look and feel, the only difference between this dialog and the other file chooser dialogs is the title on the dialog window and the label on the approve button. Here is the code from <code>FileChooserDemo2</code> that brings up the file chooser dialog for the Attach task:</p>
+<p>WHATSON? c48209a9-112b-48a7-b750-8fa6c5c1400b</p>
+<pre>
+JFileChooser fc = new JFileChooser();
+int returnVal = fc.showDialog(FileChooserDemo2.this, "Attach");
+</pre>
+<p>The first argument to the <code>showDialog</code> method is the parent component for the dialog. The second argument is a <code>String</code> object that provides both the title for the dialog window and the label for the approve button.</p>
+<p>Once again, the file chooser doesn't do anything with the selected file. The program is responsible for implementing the custom task for which the file chooser was created.</p>
+<h2><a name="filters" id="filters">Filtering the List of Files</a></h2>
+<p>By default, a file chooser displays all of the files and directories that it detects, except for hidden files. A program can apply one or more <em>file filters</em> to a file chooser so that the chooser shows only some files. The file chooser calls the filter's <code>accept</code> method for each file to determine whether it should be displayed. A file filter accepts or rejects a file based on criteria such as file type, size, ownership, and so on. Filters affect the list of files displayed by the file chooser. The user can enter the name of any file even if it is not displayed.</p>
+<p><code>JFileChooser</code> supports three different kinds of filtering. The filters are checked in the order listed here. For example, an application-controlled filter sees only those files accepted by the built-in filtering.</p>
+<p>WHATSON? 6b0f9427-da63-49fa-b7cd-63647219ad48</p>
+<pre>
+fc.addChoosableFileFilter(new ImageFilter());
+</pre>
+<p>WHATSON? bd3de6b7-e491-49ce-9b42-e720cc4ccfc7</p>
+<pre>
+fc.setAcceptAllFileFilterUsed(false);
+</pre>
+<p>WHATSON? b5722d4c-28dc-4758-b77a-af9c242c0dfb</p>
+<pre>
+public boolean accept(File f) {
+    <strong>if (f.isDirectory()) {
+        return true;
+    }</strong>
+
+    String extension = Utils.getExtension(f);
+    if (extension != null) {
+        if (extension.equals(Utils.tiff) ||
+            extension.equals(Utils.tif) ||
+            extension.equals(Utils.gif) ||
+            extension.equals(Utils.jpeg) ||
+            extension.equals(Utils.jpg) ||
+            extension.equals(Utils.png)) {
+                return true;
+        } else {
+            return false;
+        }
+    }
+
+    return false;
+}
+</pre>
+<p>The preceding code sample uses the <code>getExtension</code> method and several string constants from 
+<a class="SourceLink" target="_blank" href="../examples/components/FileChooserDemo2Project/src/components/Utils.java" onclick="showCode('../../displayCode.html', '../examples/components/FileChooserDemo2Project/src/components/Utils.java'); return false;"><code>Utils.java</code></a>, shown here:</p>
+<p>WHATSON? caf8ef08-1a7d-4b55-8b2b-eb28a21d813b</p>
+<pre>
+public class Utils {
+
+    public final static String jpeg = "jpeg";
+    public final static String jpg = "jpg";
+    public final static String gif = "gif";
+    public final static String tiff = "tiff";
+    public final static String tif = "tif";
+    public final static String png = "png";
+
+    /*
+     * Get the extension of a file.
+     */  
+    public static String getExtension(File f) {
+        String ext = null;
+        String s = f.getName();
+        int i = s.lastIndexOf('.');
+
+        if (i &gt; 0 &amp;&amp;  i &lt; s.length() - 1) {
+            ext = s.substring(i+1).toLowerCase();
+        }
+        return ext;
+    }
+}
+</pre>
+<h2><a name="fileview" id="fileview">Customizing the File View</a></h2>
+<p>In the Java look and feel, the chooser's list shows each file's name and displays a small icon that represents whether the file is a true file or a directory. You can customize this <em>file view</em> by creating a custom subclass of 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/javax/swing/filechooser/FileView.html"><code>FileView</code></a> and using an instance of the class as an argument to the <code>setFileView</code> method. The example uses an instance of a custom class, implemented in 
+<a class="SourceLink" target="_blank" href="../examples/components/FileChooserDemo2Project/src/components/ImageFileView.java" onclick="showCode('../../displayCode.html', '../examples/components/FileChooserDemo2Project/src/components/ImageFileView.java'); return false;"><code>ImageFileView.java</code></a>, as the file chooser's file view.</p>
+<p>WHATSON? bd472247-5045-4ec0-a856-95cef2fcc86e</p>
+<pre>
+fc.setFileView(new ImageFileView());
+</pre>
+<p>The <code>ImageFileView</code> class shows a different icon for each type of image accepted by the image filter described previously.</p>
+<p>The <code>ImageFileView</code> class overrides the five abstract methods defined in the <code>FileView</code> as follows.</p>
+<p>WHATSON? 04250e80-95a5-4e47-8d72-2c7a065803a2</p>
+<pre>
+public String getTypeDescription(File f) {
+    String extension = Utils.getExtension(f);
+    String type = null;
+
+    if (extension != null) {
+        if (extension.equals(Utils.jpeg) ||
+            extension.equals(Utils.jpg)) {
+            type = "JPEG Image";
+        } else if (extension.equals(Utils.gif)){
+            type = "GIF Image";
+        } else if (extension.equals(Utils.tiff) ||
+                   extension.equals(Utils.tif)) {
+            type = "TIFF Image";
+        } else if (extension.equals(Utils.png)){
+            type = "PNG Image";
+        }
+    }
+    return type;
+}
+</pre>
+<p>WHATSON? a74d1005-59d9-4372-a741-f9bd9bbe88da</p>
+<pre>
+public Icon getIcon(File f) {
+    String extension = Utils.getExtension(f);
+    Icon icon = null;
+
+    if (extension != null) {
+        if (extension.equals(Utils.jpeg) ||
+            extension.equals(Utils.jpg)) {
+            icon = jpgIcon;
+        } else if (extension.equals(Utils.gif)) {
+            icon = gifIcon;
+        } else if (extension.equals(Utils.tiff) ||
+                   extension.equals(Utils.tif)) {
+            icon = tiffIcon;
+        } else if (extension.equals(Utils.png)) {
+            icon = pngIcon;
+        }
+    }
+    return icon;
+}
+</pre>
+<h2><a name="accessory" id="accessory">Providing an Accessory Component</a></h2>
+<p>The customized file chooser in <code>FileChooserDemo2</code> has an accessory component. If the currently selected item is a PNG, JPEG, TIFF, or GIF image, the accessory component displays a thumbnail sketch of the image. Otherwise, the accessory component is empty. Aside from a previewer, probably the most common use for the accessory component is a panel with more controls on it such as checkboxes that toggle between features.</p>
+<p>The example calls the <code>setAccessory</code> method to establish an instance of the <code>ImagePreview</code> class, implemented in 
+<a class="SourceLink" target="_blank" href="../examples/components/FileChooserDemo2Project/src/components/ImagePreview.java" onclick="showCode('../../displayCode.html', '../examples/components/FileChooserDemo2Project/src/components/ImagePreview.java'); return false;"><code>ImagePreview.java</code></a>, as the chooser's accessory component:</p>
+<p>WHATSON? 7a0018d6-0be9-4655-8e62-b81d96d60978</p>
+<pre>
+fc.setAccessory(new ImagePreview(fc));
+</pre>
+<p>Any object that inherits from the <code>JComponent</code> class can be an accessory component. The component should have a preferred size that looks good in the file chooser.</p>
+<p>The file chooser fires a property change event when the user selects an item in the list. A program with an accessory component must register to receive these events to update the accessory component whenever the selection changes. In the example, the <code>ImagePreview</code> object itself registers for these events. This keeps all the code related to the accessory component together in one class.</p>
+<p>Here is the example's implementation of the <code>propertyChange</code> method, which is the method called when a property change event is fired:</p>
+<p>WHATSON? 3ea7ed10-ae00-4433-8138-35128cedc2ae</p>
+<pre>
+//<em>where member variables are declared</em>
+File file = null;
+...
+public void propertyChange(PropertyChangeEvent e) {
+    boolean update = false;
+    String prop = e.getPropertyName();
+
+    //If the directory changed, don't show an image.
+    if (JFileChooser.DIRECTORY_CHANGED_PROPERTY.equals(prop)) {
+        file = null;
+        update = true;
+
+    //If a file became selected, find out which one.
+    } else if (JFileChooser.SELECTED_FILE_CHANGED_PROPERTY.equals(prop)) {
+        file = (File) e.getNewValue();
+        update = true;
+    }
+
+    //Update the preview accordingly.
+    if (update) {
+        thumbnail = null;
+        if (isShowing()) {
+            loadImage();
+            repaint();
+        }
+    }
+}
+</pre>
+<p>If <code>SELECTED_FILE_CHANGED_PROPERTY</code> is the property that changed, this method obtains a <code>File</code> object from the file chooser. The <code>loadImage</code> and <code>repaint</code> methods use the <code>File</code> object to load the image and repaint the accessory component.</p>
+<h2><a name="api" id="api">The File Chooser API</a></h2>
+<p>The API for using file choosers falls into these categories:</p>
+<ul>
+<li><a href="#show">Creating and Showing the File Chooser</a></li>
+<li><a href="#selection">Selecting Files and Directories</a></li>
+<li><a href="#navigation">Navigating the File Chooser's List</a></li>
+<li><a href="#customization">Customizing the File Chooser</a></li>
+</ul>
+<h2><a name="eg" id="eg">Examples That Use File Choosers</a></h2>
+<p>This table shows the examples that use file choosers and points to where those examples are described.</p>

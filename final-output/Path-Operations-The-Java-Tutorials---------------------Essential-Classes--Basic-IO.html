@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Path-Operations-The-Java-Tutorials---------------------Essential-Classes--Basic-IO.html</title></head>
+<body>
+<h1>Path Operations</h1>
+<p>The 
+<code>Path</code> class includes various methods that can be used to obtain information about the path, access elements of the path, convert the path to other forms, or extract portions of a path. There are also methods for matching the path string and methods for removing redundancies in a path. This lesson addresses these <code>Path</code> methods, sometimes called <em>syntactic</em> operations, because they operate on the path itself and don't access the file system.</p>
+<p>This section covers the following:</p>
+<ul>
+<li>Creating a Path</li>
+<li>Retrieving Information About a Path</li>
+<li>Removing Redundancies from a Path</li>
+<li>Converting a Path</li>
+<li>Joining Two Paths</li>
+<li>Creating a Path Between Two Paths</li>
+<li>Comparing Two Paths</li>
+</ul>
+<h2>Creating a Path</h2>
+<p>A <code>Path</code> instance contains the information used to specify the location of a file or directory. At the time it is defined, a <code>Path</code> is provided with a series of one or more names. A root element or a file name might be included, but neither are required. A <code>Path</code> might consist of just a single directory or file name.</p>
+<p>You can easily create a <code>Path</code> object by using one of the following <code>get</code> methods from the 
+<code>Paths</code> (note the plural) helper class:</p>
+<p>WHATSON? 3484c877-012e-4e67-bb9e-a25ea376e2dd</p>
+<pre>
+Path p1 = Paths.get("/tmp/foo");
+Path p2 = Paths.get(args[0]);
+Path p3 = Paths.get(URI.create("file:///Users/joe/FileTest.java"));
+</pre>
+<p>The <code>Paths.get</code> method is shorthand for the following code:</p>
+<p>WHATSON? 113105e9-6077-4b1c-bdd9-5023c69bd689</p>
+<pre>
+Path p4 = FileSystems.getDefault().getPath("/users/sally");
+</pre>
+<p>The following example creates <code>/u/joe/logs/foo.log</code> assuming your home directory is <code>/u/joe</code>, or <code>C:\joe\logs\foo.log</code> if you are on Windows.</p>
+<p>WHATSON? 5cdfc30c-abc9-4cd4-b452-8a98b1e63d8d</p>
+<pre>
+Path p5 = Paths.get(System.getProperty("user.home"),"logs", "foo.log");
+</pre>
+<h2>Retrieving Information about a Path</h2>
+<p>You can think of the <code>Path</code> as storing these name elements as a sequence. The highest element in the directory structure would be located at index 0. The lowest element in the directory structure would be located at index <code>[n-1]</code>, where <code>n</code> is the number of name elements in the <code>Path</code>. Methods are available for retrieving individual elements or a subsequence of the <code>Path</code> using these indexes.</p>
+<p>The examples in this lesson use the following directory structure.</p>
+<p></p>
+<p>The following code snippet defines a <code>Path</code> instance and then invokes several methods to obtain information about the path:</p>
+<p>WHATSON? a1243089-ab33-4147-97f6-767ab12083fa</p>
+<pre>
+// None of these methods requires that the file corresponding
+// to the Path exists.
+// Microsoft Windows syntax
+Path path = Paths.get("C:\\home\\joe\\foo");
+
+// Solaris syntax
+Path path = Paths.get("/home/joe/foo");
+
+System.out.format("toString: %s%n", path.toString());
+System.out.format("getFileName: %s%n", path.getFileName());
+System.out.format("getName(0): %s%n", path.getName(0));
+System.out.format("getNameCount: %d%n", path.getNameCount());
+System.out.format("subpath(0,2): %s%n", path.subpath(0,2));
+System.out.format("getParent: %s%n", path.getParent());
+System.out.format("getRoot: %s%n", path.getRoot());
+</pre>
+<p>Here is the output for both Windows and the Solaris OS:</p>
+<p>The previous example shows the output for an absolute path. In the following example, a relative path is specified:</p>
+<p>WHATSON? 74f57e4e-5f01-4e74-a9a8-e6b3dce8cc0c</p>
+<pre>
+// Solaris syntax
+Path path = Paths.get("sally/bar");
+or
+// Microsoft Windows syntax
+Path path = Paths.get("sally\\bar");
+</pre>
+<p>Here is the output for Windows and the Solaris OS:</p>
+<h2>Removing Redundancies From a Path</h2>
+<p>Many file systems use "." notation to denote the current directory and ".." to denote the parent directory. You might have a situation where a <code>Path</code> contains redundant directory information. Perhaps a server is configured to save its log files in the "<code>/dir/logs/.</code>" directory, and you want to delete the trailing "<code>/.</code>" notation from the path.</p>
+<p>The following examples both include redundancies:</p>
+<p>WHATSON? 5df0e04d-6a6d-474f-992b-58c9f629a8c2</p>
+<pre>
+/home/./joe/foo
+/home/sally/../joe/foo
+</pre>
+<p>The <code>normalize</code> method removes any redundant elements, which includes any "<code>.</code>" or "<code><em>directory</em>/..</code>" occurrences. Both of the preceding examples normalize to <code>/home/joe/foo</code>.</p>
+<p>It is important to note that <code>normalize</code> doesn't check at the file system when it cleans up a path. It is a purely syntactic operation. In the second example, if <code>sally</code> were a symbolic link, removing <code>sally/..</code> might result in a <code>Path</code> that no longer locates the intended file.</p>
+<p>To clean up a path while ensuring that the result locates the correct file, you can use the <code>toRealPath</code> method. This method is described in the next section, 
+Converting a Path.</p>
+<h2>Converting a Path</h2>
+<p>You can use three methods to convert the <code>Path</code>. If you need to convert the path to a string that can be opened from a browser, you can use 
+<code>toUri</code>. For example:</p>
+<p>WHATSON? 1d814efd-7bc8-4555-94c8-954fa3f3f5f1</p>
+<pre>
+Path p1 = Paths.get("/home/logfile");
+// Result is <strong>file:///home/logfile</strong>
+System.out.format("%s%n", p1.toUri());
+</pre>
+<p>The 
+<code>toAbsolutePath</code> method converts a path to an absolute path. If the passed-in path is already absolute, it returns the same <code>Path</code> object. The <code>toAbsolutePath</code> method can be very helpful when processing user-entered file names. For example:</p>
+<p>WHATSON? dee27784-8c41-49df-b874-8d9e7304ccc3</p>
+<pre>
+public class FileTest {
+    public static void main(String[] args) {
+
+        if (args.length &lt; 1) {
+            System.out.println("usage: FileTest file");
+            System.exit(-1);
+        }
+
+        // Converts the input string to a Path object.
+        Path inputPath = Paths.get(args[0]);
+
+        <strong>// Converts the input Path
+        // to an absolute path.
+        // Generally, this means prepending
+        // the current working
+        // directory.  If this example
+        // were called like this:
+        //     java FileTest foo
+        // the getRoot and getParent methods
+        // would return null
+        // on the original "inputPath"
+        // instance.  Invoking getRoot and
+        // getParent on the "fullPath"
+        // instance returns expected values.
+        Path fullPath = inputPath.toAbsolutePath();</strong>
+    }
+}
+</pre>
+<p>The <code>toAbsolutePath</code> method converts the user input and returns a <code>Path</code> that returns useful values when queried. The file does not need to exist for this method to work.</p>
+<p>The 
+<code>toRealPath</code> method returns the <em>real</em> path of an existing file. This method performs several operations in one:</p>
+<ul>
+<li>If <code>true</code> is passed to this method and the file system supports symbolic links, this method resolves any symbolic links in the path.</li>
+<li>If the <code>Path</code> is relative, it returns an absolute path.</li>
+<li>If the <code>Path</code> contains any redundant elements, it returns a path with those elements removed.</li>
+</ul>
+<p>This method throws an exception if the file does not exist or cannot be accessed. You can catch the exception when you want to handle any of these cases. For example:</p>
+<p>WHATSON? 16f89d39-3715-480e-84c0-5da786e1ee5e</p>
+<pre>
+try {
+    Path fp = path.toRealPath();
+} catch (NoSuchFileException x) {
+    System.err.format("%s: no such" + " file or directory%n", path);
+    // Logic for case when file doesn't exist.
+} catch (IOException x) {
+    System.err.format("%s%n", x);
+    // Logic for other sort of file error.
+}
+</pre>
+<h2>Joining Two Paths</h2>
+<p>You can combine paths by using the <code>resolve</code> method. You pass in a <em>partial path</em> , which is a path that does not include a root element, and that partial path is appended to the original path.</p>
+<p>For example, consider the following code snippet:</p>
+<p>WHATSON? e568ac95-e4b6-49a5-95fe-2f9f5cbfde9d</p>
+<pre>
+// Solaris
+Path p1 = Paths.get("/home/joe/foo");
+// Result is <strong>/home/joe/foo/bar</strong>
+System.out.format("%s%n", p1.resolve("bar"));
+
+or
+
+// Microsoft Windows
+Path p1 = Paths.get("C:\\home\\joe\\foo");
+// Result is <strong>C:\home\joe\foo\bar</strong>
+System.out.format("%s%n", p1.resolve("bar"));
+</pre>
+<p>Passing an absolute path to the <code>resolve</code> method returns the passed-in path:</p>
+<p>WHATSON? 9c4cec96-d90e-4501-a7b5-696994b7154a</p>
+<pre>
+// Result is <strong>/home/joe</strong>
+Paths.get("foo").resolve("/home/joe");
+</pre>
+<h2>Creating a Path Between Two Paths</h2>
+<p>A common requirement when you are writing file I/O code is the capability to construct a path from one location in the file system to another location. You can meet this using the <code>relativize</code> method. This method constructs a path originating from the original path and ending at the location specified by the passed-in path. The new path is <em>relative</em> to the original path.</p>
+<p>For example, consider two relative paths defined as <code>joe</code> and <code>sally</code>:</p>
+<p>WHATSON? 93aafcc5-8953-42b8-b861-aa1c83d35d8a</p>
+<pre>
+Path p1 = Paths.get("joe");
+Path p2 = Paths.get("sally");
+</pre>
+<p>In the absence of any other information, it is assumed that <code>joe</code> and <code>sally</code> are siblings, meaning nodes that reside at the same level in the tree structure. To navigate from <code>joe</code> to <code>sally</code>, you would expect to first navigate one level up to the parent node and then down to <code>sally</code>:</p>
+<p>WHATSON? 2c2f521a-f907-40f2-aba9-f36c5c6c4781</p>
+<pre>
+// Result is <strong>../sally</strong>
+Path p1_to_p2 = p1.relativize(p2);
+// Result is <strong>../joe</strong>
+Path p2_to_p1 = p2.relativize(p1);
+</pre>
+<p>Consider a slightly more complicated example:</p>
+<p>WHATSON? 30ca3905-babb-47e5-8ab8-b06316e6e662</p>
+<pre>
+Path p1 = Paths.get("home");
+Path p3 = Paths.get("home/sally/bar");
+// Result is <strong>sally/bar</strong>
+Path p1_to_p3 = p1.relativize(p3);
+// Result is <strong>../..</strong>
+Path p3_to_p1 = p3.relativize(p1);
+</pre>
+<p>In this example, the two paths share the same node, <code>home</code>. To navigate from <code>home</code> to <code>bar</code>, you first navigate one level down to <code>sally</code> and then one more level down to <code>bar</code>. Navigating from <code>bar</code> to <code>home</code> requires moving up two levels.</p>
+<p>A relative path cannot be constructed if only one of the paths includes a root element. If both paths include a root element, the capability to construct a relative path is system dependent.</p>
+<p>The recursive 
+<code><code>Copy</code></code> example uses the <code>relativize</code> and <code>resolve</code> methods.</p>
+<h2>Comparing Two Paths</h2>
+<p>The <code>Path</code> class supports 
+<code>equals</code>, enabling you to test two paths for equality. The 
+<code>startsWith</code> and 
+<code>endsWith</code> methods enable you to test whether a path begins or ends with a particular string. These methods are easy to use. For example:</p>
+<p>WHATSON? d4fb4314-a619-4d74-8df7-5d13ca470240</p>
+<pre>
+Path path = ...;
+Path otherPath = ...;
+Path beginning = Paths.get("/home");
+Path ending = Paths.get("foo");
+
+if (path.equals(otherPath)) {
+    // <em>equality logic here</em>
+} else if (path.startsWith(beginning)) {
+    // <em>path begins with "/home"</em>
+} else if (path.endsWith(ending)) {
+    // <em>path ends with "foo"</em>
+}
+</pre>
+<p>The <code>Path</code> class implements the 
+<code>Iterable</code> interface. The 
+<code>iterator</code> method returns an object that enables you to iterate over the name elements in the path. The first element returned is that closest to the root in the directory tree. The following code snippet iterates over a path, printing each name element:</p>
+<p>WHATSON? f24a4408-5c57-4f87-88ac-d8a72f4aa9c4</p>
+<pre>
+Path path = ...;
+for (Path name: path) {
+    System.out.println(name);
+}
+</pre>
+<p>The <code>Path</code> class also implements the 
+<code>Comparable</code> interface. You can compare <code>Path</code> objects by using <code>compareTo</code> which is useful for sorting.</p>
+<p>You can also put <code>Path</code> objects into a <code>Collection</code>. See the 
+Collections trail for more information about this powerful feature.</p>
+<p>When you want to verify that two <code>Path</code> objects locate the same file, you can use the <code>isSameFile</code> method, as described in 
+Checking Whether Two Paths Locate the Same File.</p>
+</body>
+</html>

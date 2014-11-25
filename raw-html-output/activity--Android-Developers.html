@@ -1,0 +1,970 @@
+<h1 itemprop="name">&lt;activity&gt;</h1>
+<p>WHATSON? ef58982e-9dcb-4474-a549-75d65e72345d</p>
+<pre class="stx">&lt;activity android:<a href="#embedded">allowEmbedded</a>=["true" | "false"]
+          android:<a href="#reparent">allowTaskReparenting</a>=["true" | "false"]
+          android:<a href="#always">alwaysRetainTaskState</a>=["true" | "false"]
+          android:<a href="#autoremrecents">autoRemoveFromRecents</a>=["true" | "false"]
+          android:<a href="#banner">banner</a>="<i>drawable resource</i>"
+          android:<a href="#clear">clearTaskOnLaunch</a>=["true" | "false"]
+          android:<a href="#config">configChanges</a>=["mcc", "mnc", "locale",
+                                 "touchscreen", "keyboard", "keyboardHidden",
+                                 "navigation", "screenLayout", "fontScale", "uiMode",
+                                 "orientation", "screenSize", "smallestScreenSize"]
+          android:<a href="#dlmode">documentLaunchMode</a>=["intoExisting", "always",
+                                  "none", "never"]
+          android:<a href="#enabled">enabled</a>=["true" | "false"]
+          android:<a href="#exclude">excludeFromRecents</a>=["true" | "false"]
+          android:<a href="#exported">exported</a>=["true" | "false"]
+          android:<a href="#finish">finishOnTaskLaunch</a>=["true" | "false"]
+          android:<a href="#hwaccel">hardwareAccelerated</a>=["true" | "false"]
+          android:<a href="#icon">icon</a>="<i>drawable resource</i>"
+          android:<a href="#label">label</a>="<i>string resource</i>"
+          android:<a href="#lmode">launchMode</a>=["multiple" | "singleTop" |
+                              "singleTask" | "singleInstance"]
+          android:<a href="#maxRecents">maxRecents</a>="<i>integer</i>"
+          android:<a href="#multi">multiprocess</a>=["true" | "false"]
+          android:<a href="#nm">name</a>="<i>string</i>"
+          android:<a href="#nohist">noHistory</a>=["true" | "false"]  <!-- ##api level 3## -->
+          android:<a href="#parent">parentActivityName</a>="<i>string</i>" <!-- api level 16 -->
+          android:<a href="#prmsn">permission</a>="<i>string</i>"
+          android:<a href="#proc">process</a>="<i>string</i>"
+          android:<a href="#relinquish">relinquishTaskIdentity</a>=["true" | "false"]
+          android:<a href="#screen">screenOrientation</a>=["unspecified" | "behind" |
+                                     "landscape" | "portrait" |
+                                     "reverseLandscape" | "reversePortrait" |
+                                     "sensorLandscape" | "sensorPortrait" |
+                                     "userLandscape" | "userPortrait" |
+                                     "sensor" | "fullSensor" | "nosensor" |
+                                     "user" | "fullUser" | "locked"]
+          android:<a href="#state">stateNotNeeded</a>=["true" | "false"]
+          android:<a href="#aff">taskAffinity</a>="<i>string</i>"
+          android:<a href="#theme">theme</a>="<i>resource or theme</i>"
+          android:<a href="#uioptions">uiOptions</a>=["none" | "splitActionBarWhenNarrow"]
+          android:<a href="#wsoft">windowSoftInputMode</a>=["stateUnspecified",
+                                       "stateUnchanged", "stateHidden",
+                                       "stateAlwaysHidden", "stateVisible",
+                                       "stateAlwaysVisible", "adjustUnspecified",
+                                       "adjustResize", "adjustPan"] &gt;   <!-- ##api level 3## -->
+    . . .
+&lt;/activity&gt;</pre>
+<p>The default value of this attribute is <code>false</code>.
+</p>
+<p>
+If this attribute is not set, the value set by the corresponding
+<code><a href="/guide/topics/manifest/application-element.html#reparent">allowTaskReparenting</a></code>
+attribute of the <code><a href="/guide/topics/manifest/application-element.html">&lt;application&gt;</a></code> element
+applies to the activity.  The default value is "<code>false</code>".
+</p>
+<p>
+Normally when an activity is started, it's associated with the task of
+the activity that started it and it stays there for its entire lifetime.
+You can use this attribute to force it to be re-parented to the task it
+has an affinity for when its current task is no longer displayed.
+Typically, it's used to cause the activities of an application to move
+to the main task associated with that application.
+</p>
+<p>
+For example, if an e-mail message contains a link to a web page, clicking
+the link brings up an activity that can display the page.  That activity
+is defined by the browser application, but is launched as part of the e-mail
+task.  If it's reparented to the browser task, it will be shown when the
+browser next comes to the front, and will be absent when the e-mail task
+again comes forward.
+</p>
+<p>
+The affinity of an activity is defined by the
+<code><a href="#aff">taskAffinity</a></code> attribute.  The affinity
+of a task is determined by reading the affinity of its root activity.
+Therefore, by definition, a root activity is always in a task with the
+same affinity.  Since activities with "<code>singleTask</code>" or
+"<code>singleInstance</code>" launch modes can only be at the root of a task,
+re-parenting is limited to the "<code>standard</code>" and "<code>singleTop</code>"
+modes.  (See also the <code><a href="#lmode">launchMode</a></code>
+attribute.)
+</p>
+<p>
+Normally, the system clears a task (removes all activities from the stack
+above the root activity) in certain situations when the user re-selects that
+task from the home screen.  Typically, this is done if the user hasn't visited
+the task for a certain amount of time, such as 30 minutes.
+</p>
+<p>
+However, when this attribute is "<code>true</code>", users will always return
+to the task in its last state, regardless of how they get there.  This is
+useful, for example, in an application like the web browser where there is
+a lot of state (such as multiple open tabs) that users would not like to lose.
+</p>
+<p>The system uses the banner to represent an app in
+the Android TV home screen. Since the banner is displayed only in the home screen, it
+should only be specified by applications with an activity that handles the
+<code><a href="/reference/android/content/Intent.html#CATEGORY_LEANBACK_LAUNCHER">CATEGORY_LEANBACK_LAUNCHER</a></code> intent.</p>
+<p>This attribute must be set as a reference to a drawable resource containing
+the image (for example <code>"@drawable/banner"</code>). There is no default banner.
+</p>
+<p>
+See <a href="/design/tv/patterns.html#banner">
+Banners</a> in the UI Patterns for TV design guide, and <a href="/training/tv/start/start.html#banner">
+Provide a home screen banner</a> in Get Started with TV Apps for more information.
+</p>
+<p>
+When the value is "<code>true</code>", every time users start the task again, they
+are brought to its root activity regardless of what they were last doing in
+the task and regardless of whether they used the <em>Back</em> or <em>Home</em> button to
+leave it. When the value is "<code>false</code>", the task may be cleared of activities in
+some situations (see the
+<code><a href="#always">alwaysRetainTaskState</a></code> attribute), but not always.
+</p>
+<p>
+Suppose, for example, that someone launches activity P from the home screen,
+and from there goes to activity Q.  The user next presses <em>Home</em>, and then returns
+to activity P.  Normally, the user would see activity Q, since that is what they
+were last doing in P's task.  However, if P set this flag to "<code>true</code>", all
+of the activities on top of it (Q in this case) were removed when the user pressed
+<em>Home</em> and the task went to the background.  So the user sees only P when returning
+to the task.
+</p>
+<p>
+If this attribute and <code><a href="#reparent">allowTaskReparenting</a></code>
+are both "<code>true</code>", any activities that can be re-parented are moved to
+the task they share an affinity with; the remaining activities are then dropped,
+as described above.
+</p>
+<p class="note"><strong>Note:</strong> Using this attribute should be
+avoided and used only as a last resort. Please read <a href="/guide/topics/resources/runtime-changes.html">Handling Runtime Changes</a> for more
+information about how to properly handle a restart due to a configuration change.</p>
+<p>
+Any or all of the following strings are valid values for this attribute. Multiple values are
+separated by '<code>|</code>' — for example, "<code>locale|navigation|orientation</code>".
+</p>
+<p class="note"><strong>Note:</strong> If your application targets API level 13 or higher (as
+declared by the <a href="/guide/topics/manifest/uses-sdk-element.html#min"><code>minSdkVersion</code></a> and <a href="/guide/topics/manifest/uses-sdk-element.html#target"><code>targetSdkVersion</code></a> attributes), then you should also declare the <code>"screenSize"</code>
+configuration, because it also changes when a device switches between portrait and landscape
+orientations.</p>
+<p><em>Added in API level 13.</em></p>
+<p><em>Added in API level 13.</em></p>
+<p>
+All of these configuration changes can impact the resource values seen by the
+application.  Therefore, when <code><code><a href="/reference/android/app/Activity.html#onConfigurationChanged(android.content.res.Configuration)">onConfigurationChanged()</a></code></code> is called, it will generally be necessary to again
+retrieve all resources (including view layouts, drawables, and so on) to correctly
+handle the change.
+</p>
+<p>This attribute has four values which produce the following effects when the user opens a document
+with the application:</p>
+<p class="note"><strong>Note:</strong> For values other than "<code>none</code>" and "<code>never</code>" the
+activity must be defined with <code>launchMode="standard"</code>. If this attribute is not specified,
+<code>documentLaunchMode="none"</code> is used.</p>
+<p>
+The <code><a href="/guide/topics/manifest/application-element.html">&lt;application&gt;</a>
+</code> element has its own<code>
+<a href="/guide/topics/manifest/application-element.html#enabled">enabled</a></code>
+attribute that applies to all application components, including activities.  The
+<code><a href="/guide/topics/manifest/application-element.html">&lt;application&gt;</a></code>
+and <code>&lt;activity&gt;</code> attributes must both be "<code>true</code>" (as they both
+are by default) for the system to be able to instantiate the activity.  If either
+is "<code>false</code>", it cannot be instantiated.
+</p>
+<p>
+The default value depends on whether the activity contains intent filters.  The
+absence of any filters means that the activity can be invoked only by specifying
+its exact class name.  This implies that the activity is intended only for
+application-internal use (since others would not know the class name).  So in
+this case, the default value is "<code>false</code>".
+On the other hand, the presence of at least one filter implies that the activity
+is intended for external use, so the default value is "<code>true</code>".
+</p>
+<p>
+This attribute is not the only way to limit an activity's exposure to other
+applications.  You can also use a permission to limit the external entities that
+can invoke the activity  (see the
+<code><a href="/guide/topics/manifest/activity-element.html#prmsn">permission</a></code>
+attribute).
+</p>
+<p>
+If this attribute and
+<code><a href="/guide/topics/manifest/activity-element.html#reparent">allowTaskReparenting</a></code>
+are both "<code>true</code>", this attribute trumps the other.  The affinity of the
+activity is ignored.  The activity is not re-parented, but destroyed.
+</p>
+<p>Starting from Android 3.0, a hardware-accelerated OpenGL renderer is
+available to applications, to improve performance for many common 2D graphics
+operations. When the hardware-accelerated renderer is enabled, most operations
+in Canvas, Paint, Xfermode, ColorFilter, Shader, and Camera are accelerated.
+This results in smoother animations, smoother scrolling, and improved
+responsiveness overall, even for applications that do not explicitly make use
+the framework's OpenGL libraries. Because of the increased resources required to
+enable hardware acceleration, your app will consume more RAM.</p>
+<p>Note that not all of the OpenGL 2D operations are accelerated. If you enable
+the hardware-accelerated renderer, test your application to ensure that it can
+make use of the renderer without errors.</p>
+<p>
+This attribute must be set as a reference to a drawable resource containing
+the image definition.  If it is not set, the icon specified for the application
+as a whole is used instead (see the
+<code><a href="/guide/topics/manifest/application-element.html">&lt;application&gt;</a></code>
+element's <code><a href="/guide/topics/manifest/application-element.html#icon">icon</a></code> attribute).
+</p>
+<p>
+The activity's icon — whether set here or by the
+<code><a href="/guide/topics/manifest/application-element.html">&lt;application&gt;</a></code>
+element — is also the default icon for all the activity's intent filters (see the
+<code><a href="/guide/topics/manifest/intent-filter-element.html">&lt;intent-filter&gt;</a></code> element's
+<code><a href="/guide/topics/manifest/intent-filter-element.html#icon">icon</a></code> attribute).
+</p>
+<p>
+If this attribute is not set, the label set for the application as a whole is
+used instead (see the <code><a href="/guide/topics/manifest/application-element.html">&lt;application&gt;</a></code> element's
+<code><a href="/guide/topics/manifest/application-element.html#label">label</a></code> attribute).
+</p>
+<p>
+The activity's label — whether set here or by the
+<code><a href="/guide/topics/manifest/application-element.html">&lt;application&gt;</a></code> element — is also the
+default label for all the activity's intent filters (see the
+<code><a href="/guide/topics/manifest/intent-filter-element.html">&lt;intent-filter&gt;</a></code> element's
+<code><a href="/guide/topics/manifest/intent-filter-element.html#label">label</a></code> attribute).
+</p>
+<p>
+The label should be set as a reference to a string resource, so that
+it can be localized like other strings in the user interface.
+However, as a convenience while you're developing the application,
+it can also be set as a raw string.
+</p>
+<p style="margin-left: 2em">"<code>standard</code>"
+<br>"<code>singleTop</code>"
+<br>"<code>singleTask</code>"
+<br>"<code>singleInstance</code>"</p>
+<p>
+The default mode is "<code>standard</code>".
+</p>
+<p>
+As shown in the table below, the modes fall into two main groups, with
+"<code>standard</code>" and "<code>singleTop</code>" activities on one side, and
+"<code>singleTask</code>" and "<code>singleInstance</code>" activities on the other.
+An activity with the "<code>standard</code>" or "<code>singleTop</code>" launch mode
+can be instantiated multiple times.  The instances can belong to any task
+and can be located anywhere in the activity stack.  Typically, they're
+launched into the task that called
+<code><code><a href="/reference/android/content/Context.html#startActivity(android.content.Intent)">startActivity()</a></code></code>
+(unless the Intent object contains a
+<code><code><a href="/reference/android/content/Intent.html#FLAG_ACTIVITY_NEW_TASK">FLAG_ACTIVITY_NEW_TASK</a></code></code>
+instruction, in which case a different task is chosen — see the
+<a href="#aff">taskAffinity</a> attribute).
+</p>
+<p>
+In contrast, "<code>singleTask</code>" and "<code>singleInstance</code>" activities
+can only begin a task.  They are always at the root of the activity stack.
+Moreover, the device can hold only one instance of the activity at a time
+— only one such task.
+</p>
+<p>
+The "<code>standard</code>" and "<code>singleTop</code>" modes differ from each other
+in just one respect:  Every time there's a new intent for a "<code>standard</code>"
+activity, a new instance of the class is created to respond to that intent.
+Each instance handles a single intent.
+Similarly, a new instance of a "<code>singleTop</code>" activity may also be
+created to handle a new intent.  However, if the target task already has an
+existing instance of the activity at the top of its stack, that instance
+will receive the new intent (in an
+<code><a href="/reference/android/app/Activity.html#onNewIntent(android.content.Intent)">onNewIntent()</a></code> call);
+a new instance is not created.
+In other circumstances — for example, if an existing instance of the
+"<code>singleTop</code>" activity is in the target task, but not at the top of
+the stack, or if it's at the top of a stack, but not in the target task
+— a new instance would be created and pushed on the stack.
+</p>
+<p>Similarly, if you
+<a href="/training/implementing-navigation/ancestral.html">navigate
+up</a> to an activity on the current stack, the behavior is determined by the
+parent activity's launch mode. If the parent activity has launch mode <code>singleTop</code> (or the <code>up</code> intent contains <code><a href="/reference/android/content/Intent.html#FLAG_ACTIVITY_CLEAR_TOP">FLAG_ACTIVITY_CLEAR_TOP</a></code>), the parent is brought to the
+top of the stack, and its state is preserved. The navigation intent is received
+by the parent activity's <code><a href="/reference/android/app/Activity.html#onNewIntent(android.content.Intent)">onNewIntent()</a></code>
+method.  If the parent activity has launch mode <code>standard</code> (and the
+<code>up</code> intent does not contain <code><a href="/reference/android/content/Intent.html#FLAG_ACTIVITY_CLEAR_TOP">FLAG_ACTIVITY_CLEAR_TOP</a></code>), the current activity and its
+parent are both popped off the stack, and a new instance of the parent activity
+is created to receive the navigation intent.
+</p>
+<p>
+The "<code>singleTask</code>" and "<code>singleInstance</code>" modes also differ from
+each other in only one respect:  A "<code>singleTask</code>" activity allows other
+activities to be part of its task. It's always at the root of its task, but
+other activities (necessarily "<code>standard</code>" and "<code>singleTop</code>"
+activities) can be launched into that task.  A "<code>singleInstance</code>"
+activity, on the other hand, permits no other activities to be part of its task.
+It's the only activity in the task.  If it starts another activity, that
+activity is assigned to a different task — as if <code>FLAG_ACTIVITY_NEW_TASK</code> was in the intent.
+</p>
+<p>As shown in the table above, <code>standard</code> is the default mode and is
+appropriate for most types of activities. <code>SingleTop</code> is also a
+common and useful launch mode for many types of activities. The other modes
+— <code>singleTask</code> and <code>singleInstance</code> — are
+<span style="color:red">not appropriate for most applications</span>,
+since they result in an interaction model that is likely to be unfamiliar to
+users and is very different from most other applications.
+
+</p>
+<p>Regardless of the launch mode that you choose, make sure to test the usability
+of the activity during launch and when navigating back to it from
+other activities and tasks using the <em>Back</em> button. </p>
+<p>For more information on launch modes and their interaction with Intent
+flags, see the
+<a href="/guide/components/tasks-and-back-stack.html">Tasks and Back Stack</a>
+document.
+</p>
+<p>
+Normally, a new instance of an activity is launched into the process of the
+application that defined it, so all instances of the activity run in the same
+process.  However, if this flag is set to "<code>true</code>", instances of the
+activity can run in multiple processes, allowing the system to create instances
+wherever they are used (provided permissions allow it), something that is almost
+never necessary or desirable.
+</p>
+<p>Once you publish your application, you <a href="http://android-developers.blogspot.com/2011/06/things-that-cannot-change.html">should not
+change this name</a> (unless you've set <code><a href="#exported">android:exported</a>="false"</code>).</p>
+<p>
+There is no default.  The name must be specified.
+</p>
+<p>
+A value of "<code>true</code>" means that the activity will not leave a
+historical trace.  It will not remain in the activity stack for the task,
+so the user will not be able to return to it.
+</p>
+<p>
+This attribute was introduced in API Level 3.
+</p>
+<p>The system reads this attribute to determine which activity should be started when
+  the user presses the Up button in the action bar. The system can also use this information to
+  synthesize a back stack of activities with <code><a href="/reference/android/app/TaskStackBuilder.html">TaskStackBuilder</a></code>.</p>
+<p>To support API levels 4 - 16, you can also declare the parent activity with a <code>&lt;meta-data&gt;</code> element that specifies a value for <code>"android.support.PARENT_ACTIVITY"</code>.
+For example:</p>
+<p>WHATSON? cfcca511-746a-491e-88f7-fdd164b74298</p>
+<pre>
+&lt;activity
+    android:name="com.example.app.ChildActivity"
+    android:label="@string/title_child_activity"
+    android:parentActivityName="com.example.myfirstapp.MainActivity" &gt;
+    &lt;!-- Parent activity meta-data to support API level 4+ --&gt;
+    &lt;meta-data
+        android:name="android.support.PARENT_ACTIVITY"
+        android:value="com.example.app.MainActivity" /&gt;
+&lt;/activity&gt;
+</pre>
+<p>For more information about declaring the parent activity to support Up navigation,
+read <a href="/training/implementing-navigation/ancestral.html">Providing Up
+Navigation</a>.</p>
+<p>
+This attribute was introduced in API Level 16.
+</p>
+<p>
+If this attribute is not set, the permission set by the
+<code><a href="/guide/topics/manifest/application-element.html">&lt;application&gt;</a></code>
+element's
+<code><a href="/guide/topics/manifest/application-element.html#prmsn">permission</a></code>
+attribute applies to the activity.  If neither attribute is set, the activity is
+not protected by a permission.
+</p>
+<p>
+For more information on permissions, see the
+<a href="/guide/topics/manifest/manifest-intro.html#sectperm">Permissions</a>
+section in the introduction and another document,
+<a href="/guide/topics/security/security.html">Security and
+Permissions</a>.
+</p>
+<p>
+If the name assigned to this attribute begins with a colon (':'), a new
+process, private to the application, is created when it's needed and
+the activity runs in that process.
+If the process name begins with a lowercase character, the activity will run
+in a global process of that name, provided that it has permission to do so.
+This allows components in different applications to share a process, reducing
+resource usage.
+</p>
+<p>The <code><a href="/guide/topics/manifest/application-element.html">&lt;application&gt;</a></code> element's
+<code><a href="/guide/topics/manifest/application-element.html#proc">process</a></code>
+attribute can set a different default process name for all components.
+</p>
+<p>This attribute set to "<code>true</code>" also permits the activity's use of the
+<code><a href="/reference/android/app/ActivityManager.TaskDescription.html">ActivityManager.TaskDescription</a></code> to change labels, colors
+and icons in the <a href="/guide/components/recents.html">overview screen</a>.</p>
+<p>The value can be any one of the following strings:</p>
+<p class="note"><strong>Note:</strong> When you declare one of the landscape or portrait values,
+it is considered a hard requirement for the orientation in which the activity runs. As such,
+the value you declare enables filtering by services such as Google Play so your application is
+available only to devices that support the orientation required by your activities. For
+example, if you declare either <code>"landscape"</code>, <code>"reverseLandscape"</code>, or
+<code>"sensorLandscape"</code>, then your application will be available only to devices that support
+landscape orientation. However, you should also explicitly declare that
+your application requires either portrait or landscape orientation with the <a href="/guide/topics/manifest/uses-feature-element.html"><code>&lt;uses-feature&gt;</code></a>
+element. For example, <code>&lt;uses-feature
+android:name="android.hardware.screen.portrait"/&gt;</code>. This is purely a filtering behavior
+provided by Google Play (and other services that support it) and the platform itself does not
+control whether your app can be installed when a device supports only certain orientations.</p>
+<p>
+Normally, before an activity is temporarily shut down to save resources, its
+<code><code><a href="/reference/android/app/Activity.html#onSaveInstanceState(android.os.Bundle)">onSaveInstanceState()</a></code></code>
+method is called.  This method stores the current state of the activity in a
+<code><a href="/reference/android/os/Bundle.html">Bundle</a></code> object, which is then passed to
+<code><code><a href="/reference/android/app/Activity.html#onCreate(android.os.Bundle)">onCreate()</a></code></code> when the activity
+is restarted.  If this attribute is set to "<code>true</code>",
+<code>onSaveInstanceState()</code> may not be called and <code>onCreate()</code> will
+be passed <code>null</code> instead of the Bundle — just as it was when the
+activity started for the first time.
+</p>
+<p>
+A "<code>true</code>" setting ensures that the activity can be restarted in the
+absence of retained state.  For example, the activity that displays the
+home screen uses this setting to make sure that it does not get removed if it
+crashes for some reason.
+</p>
+<p>
+The affinity determines two things — the task that the activity is re-parented
+to (see the <code><a href="/guide/topics/manifest/activity-element.html#reparent">allowTaskReparenting</a></code>
+attribute) and the task that will house the activity when it is launched
+with the <code><code><a href="/reference/android/content/Intent.html#FLAG_ACTIVITY_NEW_TASK">FLAG_ACTIVITY_NEW_TASK</a></code></code>
+flag.
+</p>
+<p>
+By default, all activities in an application have the same affinity.  You
+can set this attribute to group them differently, and even place
+activities defined in different applications within the same task.  To
+specify that the activity does not have an affinity for any task, set
+it to an empty string.
+
+</p>
+<p>
+If this attribute is not set, the activity inherits the affinity set
+for the application (see the
+<code><a href="/guide/topics/manifest/application-element.html">&lt;application&gt;</a></code>
+element's
+<code><a href="/guide/topics/manifest/application-element.html#aff">taskAffinity</a></code>
+attribute).  The name of the default affinity for an application is
+the package name set by the
+<code><a href="/guide/topics/manifest/manifest-element.html">&lt;manifest&gt;</a></code>
+element.
+</p>
+<p>
+If this attribute is not set, the activity inherits the theme set for the
+application as a whole — from the
+<code><a href="/guide/topics/manifest/application-element.html">&lt;application&gt;</a></code>
+element's
+<code><a href="/guide/topics/manifest/application-element.html#theme">theme</a></code>
+attribute.  If that attribute is also not set, the default system theme is used. For more
+information, see the <a href="/guide/topics/ui/themes.html">Styles and Themes</a> developer guide.
+</p>
+<p>Must be one of the following values.</p>
+<p>For more information about the action bar, see the <a href="/guide/topics/ui/actionbar.html">Action Bar</a> developer guide.</p>
+<p>This attribute was added in API level 14.</p>
+<ul>
+<li>The state of the soft keyboard — whether it is hidden or visible
+— when the activity becomes the focus of user attention.</li>
+
+<li>The adjustment made to the activity's main window — whether it is
+resized smaller to make room for the soft keyboard or whether its contents
+pan to make the current focus visible when part of the window is covered by
+the soft keyboard.</li>
+</ul>
+<p>
+The setting must be one of the values listed in the following table, or a
+combination of one "<code>state...</code>" value plus one "<code>adjust...</code>"
+value.  Setting multiple values in either group — multiple
+"<code>state...</code>" values, for example — has undefined results.
+Individual values are separated by a vertical bar (<code>|</code>).  For example:
+</p>
+<p>WHATSON? 89284252-d0a1-4481-a47f-1d1c1e94f07f</p>
+<pre>&lt;activity android:windowSoftInputMode="stateVisible|adjustResize" . . . &gt;</pre>
+<p>
+Values set here (other than "<code>stateUnspecified</code>" and
+"<code>adjustUnspecified</code>") override values set in the theme.
+</p>
+<p>
+       This is the default setting for the behavior of the soft keyboard.
+       </p>
+<p>
+       This is the default setting for the behavior of the main window.
+       </p>
+<p>
+This attribute was introduced in API Level 3.
+</p>
+<h1 itemprop="name">&lt;activity&gt;</h1>
+<p>WHATSON? c2de7145-48b0-421f-887a-d3f04e8f080e</p>
+<pre class="stx">&lt;activity android:<a href="#embedded">allowEmbedded</a>=["true" | "false"]
+          android:<a href="#reparent">allowTaskReparenting</a>=["true" | "false"]
+          android:<a href="#always">alwaysRetainTaskState</a>=["true" | "false"]
+          android:<a href="#autoremrecents">autoRemoveFromRecents</a>=["true" | "false"]
+          android:<a href="#banner">banner</a>="<i>drawable resource</i>"
+          android:<a href="#clear">clearTaskOnLaunch</a>=["true" | "false"]
+          android:<a href="#config">configChanges</a>=["mcc", "mnc", "locale",
+                                 "touchscreen", "keyboard", "keyboardHidden",
+                                 "navigation", "screenLayout", "fontScale", "uiMode",
+                                 "orientation", "screenSize", "smallestScreenSize"]
+          android:<a href="#dlmode">documentLaunchMode</a>=["intoExisting", "always",
+                                  "none", "never"]
+          android:<a href="#enabled">enabled</a>=["true" | "false"]
+          android:<a href="#exclude">excludeFromRecents</a>=["true" | "false"]
+          android:<a href="#exported">exported</a>=["true" | "false"]
+          android:<a href="#finish">finishOnTaskLaunch</a>=["true" | "false"]
+          android:<a href="#hwaccel">hardwareAccelerated</a>=["true" | "false"]
+          android:<a href="#icon">icon</a>="<i>drawable resource</i>"
+          android:<a href="#label">label</a>="<i>string resource</i>"
+          android:<a href="#lmode">launchMode</a>=["multiple" | "singleTop" |
+                              "singleTask" | "singleInstance"]
+          android:<a href="#maxRecents">maxRecents</a>="<i>integer</i>"
+          android:<a href="#multi">multiprocess</a>=["true" | "false"]
+          android:<a href="#nm">name</a>="<i>string</i>"
+          android:<a href="#nohist">noHistory</a>=["true" | "false"]  <!-- ##api level 3## -->
+          android:<a href="#parent">parentActivityName</a>="<i>string</i>" <!-- api level 16 -->
+          android:<a href="#prmsn">permission</a>="<i>string</i>"
+          android:<a href="#proc">process</a>="<i>string</i>"
+          android:<a href="#relinquish">relinquishTaskIdentity</a>=["true" | "false"]
+          android:<a href="#screen">screenOrientation</a>=["unspecified" | "behind" |
+                                     "landscape" | "portrait" |
+                                     "reverseLandscape" | "reversePortrait" |
+                                     "sensorLandscape" | "sensorPortrait" |
+                                     "userLandscape" | "userPortrait" |
+                                     "sensor" | "fullSensor" | "nosensor" |
+                                     "user" | "fullUser" | "locked"]
+          android:<a href="#state">stateNotNeeded</a>=["true" | "false"]
+          android:<a href="#aff">taskAffinity</a>="<i>string</i>"
+          android:<a href="#theme">theme</a>="<i>resource or theme</i>"
+          android:<a href="#uioptions">uiOptions</a>=["none" | "splitActionBarWhenNarrow"]
+          android:<a href="#wsoft">windowSoftInputMode</a>=["stateUnspecified",
+                                       "stateUnchanged", "stateHidden",
+                                       "stateAlwaysHidden", "stateVisible",
+                                       "stateAlwaysVisible", "adjustUnspecified",
+                                       "adjustResize", "adjustPan"] &gt;   <!-- ##api level 3## -->
+    . . .
+&lt;/activity&gt;</pre>
+<p>The default value of this attribute is <code>false</code>.
+</p>
+<p>
+If this attribute is not set, the value set by the corresponding
+<code><a href="/guide/topics/manifest/application-element.html#reparent">allowTaskReparenting</a></code>
+attribute of the <code><a href="/guide/topics/manifest/application-element.html">&lt;application&gt;</a></code> element
+applies to the activity.  The default value is "<code>false</code>".
+</p>
+<p>
+Normally when an activity is started, it's associated with the task of
+the activity that started it and it stays there for its entire lifetime.
+You can use this attribute to force it to be re-parented to the task it
+has an affinity for when its current task is no longer displayed.
+Typically, it's used to cause the activities of an application to move
+to the main task associated with that application.
+</p>
+<p>
+For example, if an e-mail message contains a link to a web page, clicking
+the link brings up an activity that can display the page.  That activity
+is defined by the browser application, but is launched as part of the e-mail
+task.  If it's reparented to the browser task, it will be shown when the
+browser next comes to the front, and will be absent when the e-mail task
+again comes forward.
+</p>
+<p>
+The affinity of an activity is defined by the
+<code><a href="#aff">taskAffinity</a></code> attribute.  The affinity
+of a task is determined by reading the affinity of its root activity.
+Therefore, by definition, a root activity is always in a task with the
+same affinity.  Since activities with "<code>singleTask</code>" or
+"<code>singleInstance</code>" launch modes can only be at the root of a task,
+re-parenting is limited to the "<code>standard</code>" and "<code>singleTop</code>"
+modes.  (See also the <code><a href="#lmode">launchMode</a></code>
+attribute.)
+</p>
+<p>
+Normally, the system clears a task (removes all activities from the stack
+above the root activity) in certain situations when the user re-selects that
+task from the home screen.  Typically, this is done if the user hasn't visited
+the task for a certain amount of time, such as 30 minutes.
+</p>
+<p>
+However, when this attribute is "<code>true</code>", users will always return
+to the task in its last state, regardless of how they get there.  This is
+useful, for example, in an application like the web browser where there is
+a lot of state (such as multiple open tabs) that users would not like to lose.
+</p>
+<p>The system uses the banner to represent an app in
+the Android TV home screen. Since the banner is displayed only in the home screen, it
+should only be specified by applications with an activity that handles the
+<code><a href="/reference/android/content/Intent.html#CATEGORY_LEANBACK_LAUNCHER">CATEGORY_LEANBACK_LAUNCHER</a></code> intent.</p>
+<p>This attribute must be set as a reference to a drawable resource containing
+the image (for example <code>"@drawable/banner"</code>). There is no default banner.
+</p>
+<p>
+See <a href="/design/tv/patterns.html#banner">
+Banners</a> in the UI Patterns for TV design guide, and <a href="/training/tv/start/start.html#banner">
+Provide a home screen banner</a> in Get Started with TV Apps for more information.
+</p>
+<p>
+When the value is "<code>true</code>", every time users start the task again, they
+are brought to its root activity regardless of what they were last doing in
+the task and regardless of whether they used the <em>Back</em> or <em>Home</em> button to
+leave it. When the value is "<code>false</code>", the task may be cleared of activities in
+some situations (see the
+<code><a href="#always">alwaysRetainTaskState</a></code> attribute), but not always.
+</p>
+<p>
+Suppose, for example, that someone launches activity P from the home screen,
+and from there goes to activity Q.  The user next presses <em>Home</em>, and then returns
+to activity P.  Normally, the user would see activity Q, since that is what they
+were last doing in P's task.  However, if P set this flag to "<code>true</code>", all
+of the activities on top of it (Q in this case) were removed when the user pressed
+<em>Home</em> and the task went to the background.  So the user sees only P when returning
+to the task.
+</p>
+<p>
+If this attribute and <code><a href="#reparent">allowTaskReparenting</a></code>
+are both "<code>true</code>", any activities that can be re-parented are moved to
+the task they share an affinity with; the remaining activities are then dropped,
+as described above.
+</p>
+<p class="note"><strong>Note:</strong> Using this attribute should be
+avoided and used only as a last resort. Please read <a href="/guide/topics/resources/runtime-changes.html">Handling Runtime Changes</a> for more
+information about how to properly handle a restart due to a configuration change.</p>
+<p>
+Any or all of the following strings are valid values for this attribute. Multiple values are
+separated by '<code>|</code>' — for example, "<code>locale|navigation|orientation</code>".
+</p>
+<p class="note"><strong>Note:</strong> If your application targets API level 13 or higher (as
+declared by the <a href="/guide/topics/manifest/uses-sdk-element.html#min"><code>minSdkVersion</code></a> and <a href="/guide/topics/manifest/uses-sdk-element.html#target"><code>targetSdkVersion</code></a> attributes), then you should also declare the <code>"screenSize"</code>
+configuration, because it also changes when a device switches between portrait and landscape
+orientations.</p>
+<p><em>Added in API level 13.</em></p>
+<p><em>Added in API level 13.</em></p>
+<p>
+All of these configuration changes can impact the resource values seen by the
+application.  Therefore, when <code><code><a href="/reference/android/app/Activity.html#onConfigurationChanged(android.content.res.Configuration)">onConfigurationChanged()</a></code></code> is called, it will generally be necessary to again
+retrieve all resources (including view layouts, drawables, and so on) to correctly
+handle the change.
+</p>
+<p>This attribute has four values which produce the following effects when the user opens a document
+with the application:</p>
+<p class="note"><strong>Note:</strong> For values other than "<code>none</code>" and "<code>never</code>" the
+activity must be defined with <code>launchMode="standard"</code>. If this attribute is not specified,
+<code>documentLaunchMode="none"</code> is used.</p>
+<p>
+The <code><a href="/guide/topics/manifest/application-element.html">&lt;application&gt;</a>
+</code> element has its own<code>
+<a href="/guide/topics/manifest/application-element.html#enabled">enabled</a></code>
+attribute that applies to all application components, including activities.  The
+<code><a href="/guide/topics/manifest/application-element.html">&lt;application&gt;</a></code>
+and <code>&lt;activity&gt;</code> attributes must both be "<code>true</code>" (as they both
+are by default) for the system to be able to instantiate the activity.  If either
+is "<code>false</code>", it cannot be instantiated.
+</p>
+<p>
+The default value depends on whether the activity contains intent filters.  The
+absence of any filters means that the activity can be invoked only by specifying
+its exact class name.  This implies that the activity is intended only for
+application-internal use (since others would not know the class name).  So in
+this case, the default value is "<code>false</code>".
+On the other hand, the presence of at least one filter implies that the activity
+is intended for external use, so the default value is "<code>true</code>".
+</p>
+<p>
+This attribute is not the only way to limit an activity's exposure to other
+applications.  You can also use a permission to limit the external entities that
+can invoke the activity  (see the
+<code><a href="/guide/topics/manifest/activity-element.html#prmsn">permission</a></code>
+attribute).
+</p>
+<p>
+If this attribute and
+<code><a href="/guide/topics/manifest/activity-element.html#reparent">allowTaskReparenting</a></code>
+are both "<code>true</code>", this attribute trumps the other.  The affinity of the
+activity is ignored.  The activity is not re-parented, but destroyed.
+</p>
+<p>Starting from Android 3.0, a hardware-accelerated OpenGL renderer is
+available to applications, to improve performance for many common 2D graphics
+operations. When the hardware-accelerated renderer is enabled, most operations
+in Canvas, Paint, Xfermode, ColorFilter, Shader, and Camera are accelerated.
+This results in smoother animations, smoother scrolling, and improved
+responsiveness overall, even for applications that do not explicitly make use
+the framework's OpenGL libraries. Because of the increased resources required to
+enable hardware acceleration, your app will consume more RAM.</p>
+<p>Note that not all of the OpenGL 2D operations are accelerated. If you enable
+the hardware-accelerated renderer, test your application to ensure that it can
+make use of the renderer without errors.</p>
+<p>
+This attribute must be set as a reference to a drawable resource containing
+the image definition.  If it is not set, the icon specified for the application
+as a whole is used instead (see the
+<code><a href="/guide/topics/manifest/application-element.html">&lt;application&gt;</a></code>
+element's <code><a href="/guide/topics/manifest/application-element.html#icon">icon</a></code> attribute).
+</p>
+<p>
+The activity's icon — whether set here or by the
+<code><a href="/guide/topics/manifest/application-element.html">&lt;application&gt;</a></code>
+element — is also the default icon for all the activity's intent filters (see the
+<code><a href="/guide/topics/manifest/intent-filter-element.html">&lt;intent-filter&gt;</a></code> element's
+<code><a href="/guide/topics/manifest/intent-filter-element.html#icon">icon</a></code> attribute).
+</p>
+<p>
+If this attribute is not set, the label set for the application as a whole is
+used instead (see the <code><a href="/guide/topics/manifest/application-element.html">&lt;application&gt;</a></code> element's
+<code><a href="/guide/topics/manifest/application-element.html#label">label</a></code> attribute).
+</p>
+<p>
+The activity's label — whether set here or by the
+<code><a href="/guide/topics/manifest/application-element.html">&lt;application&gt;</a></code> element — is also the
+default label for all the activity's intent filters (see the
+<code><a href="/guide/topics/manifest/intent-filter-element.html">&lt;intent-filter&gt;</a></code> element's
+<code><a href="/guide/topics/manifest/intent-filter-element.html#label">label</a></code> attribute).
+</p>
+<p>
+The label should be set as a reference to a string resource, so that
+it can be localized like other strings in the user interface.
+However, as a convenience while you're developing the application,
+it can also be set as a raw string.
+</p>
+<p style="margin-left: 2em">"<code>standard</code>"
+<br>"<code>singleTop</code>"
+<br>"<code>singleTask</code>"
+<br>"<code>singleInstance</code>"</p>
+<p>
+The default mode is "<code>standard</code>".
+</p>
+<p>
+As shown in the table below, the modes fall into two main groups, with
+"<code>standard</code>" and "<code>singleTop</code>" activities on one side, and
+"<code>singleTask</code>" and "<code>singleInstance</code>" activities on the other.
+An activity with the "<code>standard</code>" or "<code>singleTop</code>" launch mode
+can be instantiated multiple times.  The instances can belong to any task
+and can be located anywhere in the activity stack.  Typically, they're
+launched into the task that called
+<code><code><a href="/reference/android/content/Context.html#startActivity(android.content.Intent)">startActivity()</a></code></code>
+(unless the Intent object contains a
+<code><code><a href="/reference/android/content/Intent.html#FLAG_ACTIVITY_NEW_TASK">FLAG_ACTIVITY_NEW_TASK</a></code></code>
+instruction, in which case a different task is chosen — see the
+<a href="#aff">taskAffinity</a> attribute).
+</p>
+<p>
+In contrast, "<code>singleTask</code>" and "<code>singleInstance</code>" activities
+can only begin a task.  They are always at the root of the activity stack.
+Moreover, the device can hold only one instance of the activity at a time
+— only one such task.
+</p>
+<p>
+The "<code>standard</code>" and "<code>singleTop</code>" modes differ from each other
+in just one respect:  Every time there's a new intent for a "<code>standard</code>"
+activity, a new instance of the class is created to respond to that intent.
+Each instance handles a single intent.
+Similarly, a new instance of a "<code>singleTop</code>" activity may also be
+created to handle a new intent.  However, if the target task already has an
+existing instance of the activity at the top of its stack, that instance
+will receive the new intent (in an
+<code><a href="/reference/android/app/Activity.html#onNewIntent(android.content.Intent)">onNewIntent()</a></code> call);
+a new instance is not created.
+In other circumstances — for example, if an existing instance of the
+"<code>singleTop</code>" activity is in the target task, but not at the top of
+the stack, or if it's at the top of a stack, but not in the target task
+— a new instance would be created and pushed on the stack.
+</p>
+<p>Similarly, if you
+<a href="/training/implementing-navigation/ancestral.html">navigate
+up</a> to an activity on the current stack, the behavior is determined by the
+parent activity's launch mode. If the parent activity has launch mode <code>singleTop</code> (or the <code>up</code> intent contains <code><a href="/reference/android/content/Intent.html#FLAG_ACTIVITY_CLEAR_TOP">FLAG_ACTIVITY_CLEAR_TOP</a></code>), the parent is brought to the
+top of the stack, and its state is preserved. The navigation intent is received
+by the parent activity's <code><a href="/reference/android/app/Activity.html#onNewIntent(android.content.Intent)">onNewIntent()</a></code>
+method.  If the parent activity has launch mode <code>standard</code> (and the
+<code>up</code> intent does not contain <code><a href="/reference/android/content/Intent.html#FLAG_ACTIVITY_CLEAR_TOP">FLAG_ACTIVITY_CLEAR_TOP</a></code>), the current activity and its
+parent are both popped off the stack, and a new instance of the parent activity
+is created to receive the navigation intent.
+</p>
+<p>
+The "<code>singleTask</code>" and "<code>singleInstance</code>" modes also differ from
+each other in only one respect:  A "<code>singleTask</code>" activity allows other
+activities to be part of its task. It's always at the root of its task, but
+other activities (necessarily "<code>standard</code>" and "<code>singleTop</code>"
+activities) can be launched into that task.  A "<code>singleInstance</code>"
+activity, on the other hand, permits no other activities to be part of its task.
+It's the only activity in the task.  If it starts another activity, that
+activity is assigned to a different task — as if <code>FLAG_ACTIVITY_NEW_TASK</code> was in the intent.
+</p>
+<p>As shown in the table above, <code>standard</code> is the default mode and is
+appropriate for most types of activities. <code>SingleTop</code> is also a
+common and useful launch mode for many types of activities. The other modes
+— <code>singleTask</code> and <code>singleInstance</code> — are
+<span style="color:red">not appropriate for most applications</span>,
+since they result in an interaction model that is likely to be unfamiliar to
+users and is very different from most other applications.
+
+</p>
+<p>Regardless of the launch mode that you choose, make sure to test the usability
+of the activity during launch and when navigating back to it from
+other activities and tasks using the <em>Back</em> button. </p>
+<p>For more information on launch modes and their interaction with Intent
+flags, see the
+<a href="/guide/components/tasks-and-back-stack.html">Tasks and Back Stack</a>
+document.
+</p>
+<p>
+Normally, a new instance of an activity is launched into the process of the
+application that defined it, so all instances of the activity run in the same
+process.  However, if this flag is set to "<code>true</code>", instances of the
+activity can run in multiple processes, allowing the system to create instances
+wherever they are used (provided permissions allow it), something that is almost
+never necessary or desirable.
+</p>
+<p>Once you publish your application, you <a href="http://android-developers.blogspot.com/2011/06/things-that-cannot-change.html">should not
+change this name</a> (unless you've set <code><a href="#exported">android:exported</a>="false"</code>).</p>
+<p>
+There is no default.  The name must be specified.
+</p>
+<p>
+A value of "<code>true</code>" means that the activity will not leave a
+historical trace.  It will not remain in the activity stack for the task,
+so the user will not be able to return to it.
+</p>
+<p>
+This attribute was introduced in API Level 3.
+</p>
+<p>The system reads this attribute to determine which activity should be started when
+  the user presses the Up button in the action bar. The system can also use this information to
+  synthesize a back stack of activities with <code><a href="/reference/android/app/TaskStackBuilder.html">TaskStackBuilder</a></code>.</p>
+<p>To support API levels 4 - 16, you can also declare the parent activity with a <code>&lt;meta-data&gt;</code> element that specifies a value for <code>"android.support.PARENT_ACTIVITY"</code>.
+For example:</p>
+<p>WHATSON? 108e47ed-7553-4e56-9b3e-70acad376b78</p>
+<pre>
+&lt;activity
+    android:name="com.example.app.ChildActivity"
+    android:label="@string/title_child_activity"
+    android:parentActivityName="com.example.myfirstapp.MainActivity" &gt;
+    &lt;!-- Parent activity meta-data to support API level 4+ --&gt;
+    &lt;meta-data
+        android:name="android.support.PARENT_ACTIVITY"
+        android:value="com.example.app.MainActivity" /&gt;
+&lt;/activity&gt;
+</pre>
+<p>For more information about declaring the parent activity to support Up navigation,
+read <a href="/training/implementing-navigation/ancestral.html">Providing Up
+Navigation</a>.</p>
+<p>
+This attribute was introduced in API Level 16.
+</p>
+<p>
+If this attribute is not set, the permission set by the
+<code><a href="/guide/topics/manifest/application-element.html">&lt;application&gt;</a></code>
+element's
+<code><a href="/guide/topics/manifest/application-element.html#prmsn">permission</a></code>
+attribute applies to the activity.  If neither attribute is set, the activity is
+not protected by a permission.
+</p>
+<p>
+For more information on permissions, see the
+<a href="/guide/topics/manifest/manifest-intro.html#sectperm">Permissions</a>
+section in the introduction and another document,
+<a href="/guide/topics/security/security.html">Security and
+Permissions</a>.
+</p>
+<p>
+If the name assigned to this attribute begins with a colon (':'), a new
+process, private to the application, is created when it's needed and
+the activity runs in that process.
+If the process name begins with a lowercase character, the activity will run
+in a global process of that name, provided that it has permission to do so.
+This allows components in different applications to share a process, reducing
+resource usage.
+</p>
+<p>The <code><a href="/guide/topics/manifest/application-element.html">&lt;application&gt;</a></code> element's
+<code><a href="/guide/topics/manifest/application-element.html#proc">process</a></code>
+attribute can set a different default process name for all components.
+</p>
+<p>This attribute set to "<code>true</code>" also permits the activity's use of the
+<code><a href="/reference/android/app/ActivityManager.TaskDescription.html">ActivityManager.TaskDescription</a></code> to change labels, colors
+and icons in the <a href="/guide/components/recents.html">overview screen</a>.</p>
+<p>The value can be any one of the following strings:</p>
+<p class="note"><strong>Note:</strong> When you declare one of the landscape or portrait values,
+it is considered a hard requirement for the orientation in which the activity runs. As such,
+the value you declare enables filtering by services such as Google Play so your application is
+available only to devices that support the orientation required by your activities. For
+example, if you declare either <code>"landscape"</code>, <code>"reverseLandscape"</code>, or
+<code>"sensorLandscape"</code>, then your application will be available only to devices that support
+landscape orientation. However, you should also explicitly declare that
+your application requires either portrait or landscape orientation with the <a href="/guide/topics/manifest/uses-feature-element.html"><code>&lt;uses-feature&gt;</code></a>
+element. For example, <code>&lt;uses-feature
+android:name="android.hardware.screen.portrait"/&gt;</code>. This is purely a filtering behavior
+provided by Google Play (and other services that support it) and the platform itself does not
+control whether your app can be installed when a device supports only certain orientations.</p>
+<p>
+Normally, before an activity is temporarily shut down to save resources, its
+<code><code><a href="/reference/android/app/Activity.html#onSaveInstanceState(android.os.Bundle)">onSaveInstanceState()</a></code></code>
+method is called.  This method stores the current state of the activity in a
+<code><a href="/reference/android/os/Bundle.html">Bundle</a></code> object, which is then passed to
+<code><code><a href="/reference/android/app/Activity.html#onCreate(android.os.Bundle)">onCreate()</a></code></code> when the activity
+is restarted.  If this attribute is set to "<code>true</code>",
+<code>onSaveInstanceState()</code> may not be called and <code>onCreate()</code> will
+be passed <code>null</code> instead of the Bundle — just as it was when the
+activity started for the first time.
+</p>
+<p>
+A "<code>true</code>" setting ensures that the activity can be restarted in the
+absence of retained state.  For example, the activity that displays the
+home screen uses this setting to make sure that it does not get removed if it
+crashes for some reason.
+</p>
+<p>
+The affinity determines two things — the task that the activity is re-parented
+to (see the <code><a href="/guide/topics/manifest/activity-element.html#reparent">allowTaskReparenting</a></code>
+attribute) and the task that will house the activity when it is launched
+with the <code><code><a href="/reference/android/content/Intent.html#FLAG_ACTIVITY_NEW_TASK">FLAG_ACTIVITY_NEW_TASK</a></code></code>
+flag.
+</p>
+<p>
+By default, all activities in an application have the same affinity.  You
+can set this attribute to group them differently, and even place
+activities defined in different applications within the same task.  To
+specify that the activity does not have an affinity for any task, set
+it to an empty string.
+
+</p>
+<p>
+If this attribute is not set, the activity inherits the affinity set
+for the application (see the
+<code><a href="/guide/topics/manifest/application-element.html">&lt;application&gt;</a></code>
+element's
+<code><a href="/guide/topics/manifest/application-element.html#aff">taskAffinity</a></code>
+attribute).  The name of the default affinity for an application is
+the package name set by the
+<code><a href="/guide/topics/manifest/manifest-element.html">&lt;manifest&gt;</a></code>
+element.
+</p>
+<p>
+If this attribute is not set, the activity inherits the theme set for the
+application as a whole — from the
+<code><a href="/guide/topics/manifest/application-element.html">&lt;application&gt;</a></code>
+element's
+<code><a href="/guide/topics/manifest/application-element.html#theme">theme</a></code>
+attribute.  If that attribute is also not set, the default system theme is used. For more
+information, see the <a href="/guide/topics/ui/themes.html">Styles and Themes</a> developer guide.
+</p>
+<p>Must be one of the following values.</p>
+<p>For more information about the action bar, see the <a href="/guide/topics/ui/actionbar.html">Action Bar</a> developer guide.</p>
+<p>This attribute was added in API level 14.</p>
+<ul>
+<li>The state of the soft keyboard — whether it is hidden or visible
+— when the activity becomes the focus of user attention.</li>
+
+<li>The adjustment made to the activity's main window — whether it is
+resized smaller to make room for the soft keyboard or whether its contents
+pan to make the current focus visible when part of the window is covered by
+the soft keyboard.</li>
+</ul>
+<p>
+The setting must be one of the values listed in the following table, or a
+combination of one "<code>state...</code>" value plus one "<code>adjust...</code>"
+value.  Setting multiple values in either group — multiple
+"<code>state...</code>" values, for example — has undefined results.
+Individual values are separated by a vertical bar (<code>|</code>).  For example:
+</p>
+<p>WHATSON? 61f2ba82-96f2-4846-998a-48ad0c3d80e7</p>
+<pre>&lt;activity android:windowSoftInputMode="stateVisible|adjustResize" . . . &gt;</pre>
+<p>
+Values set here (other than "<code>stateUnspecified</code>" and
+"<code>adjustUnspecified</code>") override values set in the theme.
+</p>
+<p>
+       This is the default setting for the behavior of the soft keyboard.
+       </p>
+<p>
+       This is the default setting for the behavior of the main window.
+       </p>
+<p>
+This attribute was introduced in API Level 3.
+</p>

@@ -1,0 +1,188 @@
+<h1>Local Classes</h1>
+<p>Local classes are classes that are defined in a <em>block</em>, which
+is a group of zero or more statements between balanced braces.
+You typically find local classes defined in the body of a
+method.</p>
+<p>This section covers the following topics:</p>
+<ul>
+  <li><a href="#declaring-local-classes">Declaring Local Classes</a></li>
+  <li><a href="#accessing-members-of-an-enclosing-class">Accessing Members of an Enclosing Class</a>
+    <ul>
+      <li><a href="#shadowing-and-local-classes">Shadowing and Local Classes</a></li>
+    </ul>
+  </li>
+  <li><a href="#local-classes-are-similar-to-inner-classes">Local Classes Are Similar To Inner Classes</a></li>
+</ul>
+<ul>
+      <li><a href="#shadowing-and-local-classes">Shadowing and Local Classes</a></li>
+    </ul>
+<h2><a name="declaring-local-classes">Declaring Local Classes</a></h2>
+<p>You can define a local class inside any block (see
+<a class="TutorialLink" target="_top" href="../../java/nutsandbolts/expressions.html">Expressions, Statements, and Blocks</a> for more information).
+For example, you can define a local class in a method body, a
+<code>for</code> loop, or an
+<code>if</code> clause.</p>
+<p>The following example,
+<a class="SourceLink" target="_blank" href="examples/LocalClassExample.java" onclick="showCode('../../displayCode.html', 'examples/LocalClassExample.java'); return false;"><code>LocalClassExample</code></a>, validates two phone numbers. It defines
+the local class <code>PhoneNumber</code> in the method
+<code>validatePhoneNumber</code>:</p>
+<p>WHATSON? 9135f5d9-645a-4ed4-bc69-b5226efd722d</p>
+<pre class="codeblock">
+ 
+public class LocalClassExample {
+  
+    static String regularExpression = "[^0-9]";
+  
+    public static void validatePhoneNumber(
+        String phoneNumber1, String phoneNumber2) {
+      
+        final int numberLength = 10;
+        
+        // Valid in JDK 8 and later:
+       
+        // int numberLength = 10;
+       
+        class PhoneNumber {
+            
+            String formattedPhoneNumber = null;
+
+            PhoneNumber(String phoneNumber){
+                // numberLength = 7;
+                String currentNumber = phoneNumber.replaceAll(
+                  regularExpression, "");
+                if (currentNumber.length() == numberLength)
+                    formattedPhoneNumber = currentNumber;
+                else
+                    formattedPhoneNumber = null;
+            }
+
+            public String getNumber() {
+                return formattedPhoneNumber;
+            }
+            
+            // Valid in JDK 8 and later:
+
+//            public void printOriginalNumbers() {
+//                System.out.println("Original numbers are " + phoneNumber1 +
+//                    " and " + phoneNumber2);
+//            }
+        }
+
+        PhoneNumber myNumber1 = new PhoneNumber(phoneNumber1);
+        PhoneNumber myNumber2 = new PhoneNumber(phoneNumber2);
+        
+        // Valid in JDK 8 and later:
+
+//        myNumber1.printOriginalNumbers();
+
+        if (myNumber1.getNumber() == null) 
+            System.out.println("First number is invalid");
+        else
+            System.out.println("First number is " + myNumber1.getNumber());
+        if (myNumber2.getNumber() == null)
+            System.out.println("Second number is invalid");
+        else
+            System.out.println("Second number is " + myNumber2.getNumber());
+
+    }
+
+    public static void main(String... args) {
+        validatePhoneNumber("123-456-7890", "456-7890");
+    }
+}
+
+</pre>
+<p>The example validates a phone number by
+first removing all characters from the phone number except the
+digits 0 through 9. After, it checks whether the phone number
+contains exactly ten digits (the length of a phone number in
+North America). This example prints the following:</p>
+<p>WHATSON? f7134b77-4773-4dee-bb44-bc10dff92d96</p>
+<pre class="codeblock">First number is 1234567890
+Second number is invalid</pre>
+<h2><a name="accessing-members-of-an-enclosing-class">Accessing Members of an Enclosing Class</a></h2>
+<p>A local class has access to the members of its enclosing
+class. In the previous example, the <code>PhoneNumber</code> constructor accesses the member <code>LocalClassExample.regularExpression</code>.</p>
+<p>In addition, a local class has access to local variables. However, a local class can only access local variables that are declared final. When a local class accesses a local variable or parameter of the enclosing block, it <em>captures</em> that variable or parameter. For example, the <code>PhoneNumber</code> constructor can access the local variable <code>numberLength</code> because it is declared final; <code>numberLength</code> is a <em>captured variable</em>.</p>
+<p>However, starting in Java SE 8, a local class can access local variables and
+parameters of the enclosing block that are final or <em>effectively final</em>. A variable or parameter whose value is never changed after it is initialized is effectively final. For example, suppose that the variable <code>numberLength</code> is not declared final, and you add the highlighted assignment statement in the <code>PhoneNumber</code> constructor:</p>
+<p>WHATSON? 5533d1ef-74d7-463e-8baf-3eeff33d9204</p>
+<pre class="codeblock">PhoneNumber(String phoneNumber) {
+    <strong>numberLength = 7;</strong>
+    String currentNumber = phoneNumber.replaceAll(
+        regularExpression, "");
+    if (currentNumber.length() == numberLength)
+        formattedPhoneNumber = currentNumber;
+    else
+        formattedPhoneNumber = null;
+}</pre>
+<p>Because of this assignment
+statement, the variable <code>numberLength</code> is not effectively final anymore. As a result, the Java compiler generates an error message similar to
+"local variables referenced from an inner class must be final or effectively final" where the inner class <code>PhoneNumber</code> tries to access the <code>numberLength</code> variable:</p>
+<p>WHATSON? eb8a2b19-6e00-4224-9202-a6572b060486</p>
+<pre class="codeblock">if (currentNumber.length() == numberLength)</pre>
+<p>Starting in Java SE 8, if you declare the local class in a method, it can access the method's parameters. For example, you can define the following method in the <code>PhoneNumber</code> local class:</p>
+<p>WHATSON? 87689c69-4277-4ad1-8b20-0515c5b5b72c</p>
+<pre class="codeblock">public void printOriginalNumbers() {
+    System.out.println("Original numbers are " + phoneNumber1 +
+        " and " + phoneNumber2);
+}</pre>
+<p>The method <code>printOriginalNumbers</code> accesses the parameters <code>phoneNumber1</code> and <code>phoneNumber2</code> of the method <code>validatePhoneNumber</code>.</p>
+<h3><a name="shadowing-and-local-classes">Shadowing and Local Classes</a></h3>
+<p>Declarations of a type (such as a variable) in a local class shadow declarations in the enclosing scope that have the same name. See
+<a class="TutorialLink" target="_top" href="../../java/javaOO/nested.html#shadowing">Shadowing</a> for more information.</p>
+<h2><a name="local-classes-are-similar-to-inner-classes">Local Classes Are Similar To Inner Classes</a></h2>
+<p>Local classes are similar to inner classes because they cannot define or declare any static members. Local classes in static methods, such as the class <code>PhoneNumber</code>, which is defined in the static method <code>validatePhoneNumber</code>, can only refer to static members of the enclosing class. For example, if you do not define the member variable <code>regularExpression</code> as static, then the Java compiler generates an error similar to "non-static variable <code>regularExpression</code> cannot be referenced from a static context."</p>
+<p>Local classes are non-static because they have access to
+instance members of the enclosing block. Consequently, they
+cannot contain most kinds of static declarations.</p>
+<p>You cannot declare an interface inside a block; interfaces are
+inherently static. For example, the following code excerpt does
+not compile because the interface <code>HelloThere</code> is defined inside the
+body of the method <code>greetInEnglish</code>:</p>
+<p>WHATSON? 6944af39-f9c9-4a75-a728-f49ff0177bc0</p>
+<pre class="codeblock">    public void greetInEnglish() {
+        interface HelloThere {
+           public void greet();
+        }
+        class EnglishHelloThere implements HelloThere {
+            public void greet() {
+                System.out.println("Hello " + name);
+            }
+        }
+        HelloThere myGreeting = new EnglishHelloThere();
+        myGreeting.greet();
+    }</pre>
+<p>You cannot declare static
+initializers or member interfaces in a local class. The following
+code excerpt does not compile because the method
+<code>EnglishGoodbye.sayGoodbye</code> is declared <code>static</code>. The compiler generates an error
+similar to "modifier 'static' is only allowed in constant
+variable declaration" when it encounters this method
+definition:</p>
+<p>WHATSON? c5fb0631-ece0-4666-9139-41d683344fd9</p>
+<pre class="codeblock">    public void sayGoodbyeInEnglish() {
+        class EnglishGoodbye {
+            public static void sayGoodbye() {
+                System.out.println("Bye bye");
+            }
+        }
+        EnglishGoodbye.sayGoodbye();
+    }</pre>
+<p>A local class can have
+static members provided that they are constant variables. (A <em>constant variable</em> is a variable of primitive type or type <code>String</code> that is declared final and initialized with a compile-time constant expression. A compile-time constant expression is typically a string or an arithmetic expression that can be evaluated at compile time. See
+<a class="TutorialLink" target="_top" href="classvars.html">Understanding Class Members</a> for more information.) The
+following code excerpt compiles because the static member
+<code>EnglishGoodbye.farewell</code> is a
+constant variable:</p>
+<p>WHATSON? acf12cee-44b1-4574-93e2-d3bb634e6a8d</p>
+<pre class="codeblock">    public void sayGoodbyeInEnglish() {
+        class EnglishGoodbye {
+            public static final String farewell = "Bye bye";
+            public void sayGoodbye() {
+                System.out.println(farewell);
+            }
+        }
+        EnglishGoodbye myEnglishGoodbye = new EnglishGoodbye();
+        myEnglishGoodbye.sayGoodbye();
+    }</pre>

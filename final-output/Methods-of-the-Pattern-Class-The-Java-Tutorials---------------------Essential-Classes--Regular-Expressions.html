@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Methods-of-the-Pattern-Class-The-Java-Tutorials---------------------Essential-Classes--Regular-Expressions.html</title></head>
+<body>
+<h1>Methods of the Pattern Class</h1>
+<p>Until now, we've only used the test harness to create <code>Pattern</code> objects in their most basic form. This section explores advanced techniques such as creating patterns with flags and using embedded flag expressions. It also explores some additional useful methods that we haven't yet discussed.</p>
+<h2>Creating a Pattern with Flags</h2>
+<p>The <code>Pattern</code> class defines an alternate <code>compile</code> method that accepts a set of flags affecting the way the pattern is matched. The flags parameter is a bit mask that may include any of the following public static fields:</p>
+<ul>
+<li>
+<code>Pattern.CANON_EQ</code> Enables canonical equivalence. When this flag is specified, two characters will be considered to match if, and only if, their full canonical decompositions match. The expression <code>"a\u030A"</code>, for example, will match the string <code>"\u00E5"</code> when this flag is specified. By default, matching does not take canonical equivalence into account. Specifying this flag may impose a performance penalty.</li>
+<li>
+<code>Pattern.CASE_INSENSITIVE</code> Enables case-insensitive matching. By default, case-insensitive matching assumes that only characters in the US-ASCII charset are being matched. Unicode-aware case-insensitive matching can be enabled by specifying the UNICODE_CASE flag in conjunction with this flag. Case-insensitive matching can also be enabled via the embedded flag expression <code>(?i)</code>. Specifying this flag may impose a slight performance penalty.</li>
+<li>
+<code>Pattern.COMMENTS</code> Permits whitespace and comments in the pattern. In this mode, whitespace is ignored, and embedded comments starting with <code>#</code> are ignored until the end of a line. Comments mode can also be enabled via the embedded flag expression <code>(?x)</code>.</li>
+<li>
+<code>Pattern.DOTALL</code> Enables dotall mode. In dotall mode, the expression <code>.</code> matches any character, including a line terminator. By default this expression does not match line terminators. Dotall mode can also be enabled via the embedded flag expression <code>(?s)</code>. (The s is a mnemonic for "single-line" mode, which is what this is called in Perl.)</li>
+<li>
+<code>Pattern.LITERAL</code> Enables literal parsing of the pattern. When this flag is specified then the input string that specifies the pattern is treated as a sequence of literal characters. Metacharacters or escape sequences in the input sequence will be given no special meaning. The flags <code>CASE_INSENSITIVE</code> and <code>UNICODE_CASE</code> retain their impact on matching when used in conjunction with this flag. The other flags become superfluous. There is no embedded flag character for enabling literal parsing.</li>
+<li>
+<code>Pattern.MULTILINE</code> Enables multiline mode. In multiline mode the expressions <code>^</code> and <code>$</code> match just after or just before, respectively, a line terminator or the end of the input sequence. By default these expressions only match at the beginning and the end of the entire input sequence. Multiline mode can also be enabled via the embedded flag expression <code>(?m)</code>.</li>
+<li>
+<code>Pattern.UNICODE_CASE</code> Enables Unicode-aware case folding. When this flag is specified then case-insensitive matching, when enabled by the <code>CASE_INSENSITIVE</code> flag, is done in a manner consistent with the Unicode Standard. By default, case-insensitive matching assumes that only characters in the US-ASCII charset are being matched. Unicode-aware case folding can also be enabled via the embedded flag expression <code>(?u)</code>. Specifying this flag may impose a performance penalty.</li>
+<li>
+<code>Pattern.UNIX_LINES</code> Enables UNIX lines mode. In this mode, only the <code>'\n'</code> line terminator is recognized in the behavior of <code>.</code>, <code>^</code>, and <code>$</code>. UNIX lines mode can also be enabled via the embedded flag expression <code>(?d)</code>.</li>
+</ul>
+<p>In the following steps we will modify the test harness, 
+<code>RegexTestHarness.java</code> to create a pattern with case-insensitive matching.</p>
+<p>First, modify the code to invoke the alternate version of <code>compile</code>:</p>
+<p>WHATSON? 2fb5cc04-e486-448d-94db-9f75a0dc52a3</p>
+<pre>
+Pattern pattern = 
+Pattern.compile(console.readLine("%nEnter your regex: "),
+Pattern.CASE_INSENSITIVE);
+</pre>
+<p>Then compile and run the test harness to get the following results:</p>
+<p>WHATSON? d6f4efae-b27b-488b-b224-5e16484fc09a</p>
+<pre> 
+Enter your regex: dog
+Enter input string to search: DoGDOg
+I found the text "DoG" starting at index 0 and ending at index 3.
+I found the text "DOg" starting at index 3 and ending at index 6.
+</pre>
+<p>As you can see, the string literal "dog" matches both occurences, regardless of case. To compile a pattern with multiple flags, separate the flags to be included using the bitwise OR operator "<code>|</code>". For clarity, the following code samples hardcode the regular expression instead of reading it from the <code>Console</code>:</p>
+<p>WHATSON? 935a4b4d-9024-49cd-a328-8e15b6335752</p>
+<pre> 
+pattern = Pattern.compile("[az]$", Pattern.MULTILINE <b>|</b> Pattern.UNIX_LINES);
+</pre>
+<p>You could also specify an <code>int</code> variable instead:</p>
+<p>WHATSON? 00d88f1c-291a-4572-af32-c2a975fbb593</p>
+<pre> 
+final int flags = Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE;
+Pattern pattern = Pattern.compile("aa", flags);
+</pre>
+<p></p>
+<h2>Embedded Flag Expressions</h2>
+<p>It's also possible to enable various flags using <i>embedded flag expressions</i>. Embedded flag expressions are an alternative to the two-argument version of <code>compile</code>, and are specified in the regular expression itself. The following example uses the original test harness, 
+<code>RegexTestHarness.java</code> with the embedded flag expression <code>(?i)</code> to enable case-insensitive matching.</p>
+<p>WHATSON? 5d300864-49ef-4f56-b516-3c50b30c99f7</p>
+<pre> 
+Enter your regex: (?i)foo
+Enter input string to search: FOOfooFoOfoO
+I found the text "FOO" starting at index 0 and ending at index 3.
+I found the text "foo" starting at index 3 and ending at index 6.
+I found the text "FoO" starting at index 6 and ending at index 9.
+I found the text "foO" starting at index 9 and ending at index 12.
+</pre>
+<p>Once again, all matches succeed regardless of case.</p>
+<p>The embedded flag expressions that correspond to <code>Pattern</code>'s publicly accessible fields are presented in the following table:</p>
+<h2>Using the <code>matches(String,CharSequence)</code> Method</h2>
+<p>The <code>Pattern</code> class defines a convenient 
+<code>matches</code> method that allows you to quickly check if a pattern is present in a given input string. As with all public static methods, you should invoke <code>matches</code> by its class name, such as <code>Pattern.matches("\\d","1");</code>. In this example, the method returns <code>true</code>, because the digit "1" matches the regular expression <code>\d</code>.</p>
+<h2>Using the <code>split(String)</code> Method</h2>
+<p>The 
+<code>split</code> method is a great tool for gathering the text that lies on either side of the pattern that's been matched. As shown below in 
+<code>SplitDemo.java</code>, the <code>split</code> method could extract the words "<code>one two three four five</code>" from the string "<code>one:two:three:four:five</code>":</p>
+<p>WHATSON? 5c1e7704-1e2f-4cba-a772-a67d603913d4</p>
+<pre>
+
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
+
+public class SplitDemo {
+
+    private static final String REGEX = ":";
+    private static final String INPUT =
+        "one:two:three:four:five";
+    
+    public static void main(String[] args) {
+        Pattern p = Pattern.compile(REGEX);
+        String[] items = p.split(INPUT);
+        for(String s : items) {
+            System.out.println(s);
+        }
+    }
+}
+</pre>
+<p>WHATSON? 94300eef-e12e-4bfa-84df-2125908f0d9d</p>
+<pre>
+OUTPUT:
+
+one
+two
+three
+four
+five
+</pre>
+<p>For simplicity, we've matched a string literal, the colon (<code>:</code>) instead of a complex regular expression. Since we're still using <code>Pattern</code> and <code>Matcher</code> objects, you can use split to get the text that falls on either side of any regular expression. Here's the same example, 
+<code>SplitDemo2.java</code>, modified to split on digits instead:</p>
+<p>WHATSON? 1ce2c839-a447-4009-bc74-a369f2e671d2</p>
+<pre>
+
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
+
+public class SplitDemo2 {
+
+    private static final String REGEX = "\\d";
+    private static final String INPUT =
+        "one9two4three7four1five";
+
+    public static void main(String[] args) {
+        Pattern p = Pattern.compile(REGEX);
+        String[] items = p.split(INPUT);
+        for(String s : items) {
+            System.out.println(s);
+        }
+    }
+}
+</pre>
+<p>WHATSON? 8aabc378-ee26-41a9-b1b1-066a405e95ab</p>
+<pre>
+OUTPUT:
+
+one
+two
+three
+four
+five
+</pre>
+<h2>Other Utility Methods</h2>
+<p>You may find the following methods to be of some use as well:</p>
+<ul>
+<li>
+<code>public static String quote(String s)</code> Returns a literal pattern <code>String</code> for the specified <code>String</code>. This method produces a <code>String</code> that can be used to create a <code>Pattern</code> that would match <code>String s</code> as if it were a literal pattern. Metacharacters or escape sequences in the input sequence will be given no special meaning.</li>
+<li>
+<code>public String toString()</code> Returns the <code>String</code> representation of this pattern. This is the regular expression from which this pattern was compiled.</li>
+</ul>
+<h2>Pattern Method Equivalents in <code>java.lang.String</code></h2>
+<p>Regular expression support also exists in <code>java.lang.String</code> through several methods that mimic the behavior of <code>java.util.regex.Pattern</code>. For convenience, key excerpts from their API are presented below.</p>
+<ul>
+<li>
+<code>public boolean matches(String regex)</code>: Tells whether or not this string matches the given regular expression. An invocation of this method of the form <code><i>str</i>.matches(<i>regex</i>)</code> yields exactly the same result as the expression <code>Pattern.matches(<i>regex</i>, <i>str</i>)</code>.</li>
+<li>
+<code>public String[] split(String regex, int limit)</code>: Splits this string around matches of the given regular expression. An invocation of this method of the form <code><i>str</i>.split(<i>regex</i>, <i>n</i>)</code> yields the same result as the expression <code>Pattern.compile(<i>regex</i>).split(<i>str</i>, <i>n</i>)</code></li>
+<li>
+<code>public String[] split(String regex)</code>: Splits this string around matches of the given regular expression. This method works the same as if you invoked the two-argument split method with the given expression and a limit argument of zero. Trailing empty strings are not included in the resulting array.</li>
+</ul>
+<p>There is also a replace method, that replaces one <code>CharSequence</code> with another:</p>
+<ul>
+<li>
+<code>public String replace(CharSequence target,CharSequence replacement)</code>: Replaces each substring of this string that matches the literal target sequence with the specified literal replacement sequence. The replacement proceeds from the beginning of the string to the end, for example, replacing "aa" with "b" in the string "aaa" will result in "ba" rather than "ab".</li>
+</ul>
+</body>
+</html>

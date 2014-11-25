@@ -1,0 +1,287 @@
+<h1 id="firstHeading" class="firstHeading" lang="en"><span dir="auto">Metaclass</span></h1>
+<p>In <a href="/wiki/Object-oriented_programming" title="Object-oriented programming">object-oriented</a> <a href="/wiki/Computer_programming" title="Computer programming">programming</a>, a <b>metaclass</b> is a <a href="/wiki/Class_(computer_science)" title="Class (computer science)" class="mw-redirect">class</a> whose instances are classes. Just as an ordinary class defines the behavior of certain objects, a metaclass defines the behavior of certain classes and their instances. Not all object-oriented programming <a href="/wiki/Programming_languages" title="Programming languages" class="mw-redirect">languages</a> support metaclasses. Among those that do, the extent to which metaclasses can override any given aspect of class behavior varies. Metaclasses can be implemented by having classes be <a href="/wiki/First-class_citizen" title="First-class citizen">first-class citizen</a>, in which case a metaclass is simply an object that constructs classes. Each language has its own <a href="/wiki/Metaobject_protocol" title="Metaobject protocol" class="mw-redirect">metaobject protocol</a>, a set of rules that govern how objects, classes, and metaclasses interact.<sup id="cite_ref-1" class="reference"><a href="#cite_note-1"><span>[</span>1<span>]</span></a></sup></p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Python_example"><span class="tocnumber">1</span> <span class="toctext">Python example</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#In_Smalltalk-80"><span class="tocnumber">2</span> <span class="toctext">In Smalltalk-80</span></a></li>
+<li class="toclevel-1 tocsection-3"><a href="#In_Ruby"><span class="tocnumber">3</span> <span class="toctext">In Ruby</span></a></li>
+<li class="toclevel-1 tocsection-4"><a href="#In_Objective-C"><span class="tocnumber">4</span> <span class="toctext">In Objective-C</span></a></li>
+<li class="toclevel-1 tocsection-5"><a href="#Support_in_languages_and_tools"><span class="tocnumber">5</span> <span class="toctext">Support in languages and tools</span></a></li>
+<li class="toclevel-1 tocsection-6"><a href="#See_also"><span class="tocnumber">6</span> <span class="toctext">See also</span></a></li>
+<li class="toclevel-1 tocsection-7"><a href="#References"><span class="tocnumber">7</span> <span class="toctext">References</span></a></li>
+</ul>
+<p></p>
+<h2><span class="mw-headline" id="Python_example">Python example</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Metaclass&amp;action=edit&amp;section=1" title="Edit section: Python example">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>In <a href="/wiki/Python_(programming_language)" title="Python (programming language)">Python</a>, the builtin class <code>type</code> is a metaclass.<sup id="cite_ref-2" class="reference"><a href="#cite_note-2"><span>[</span>2<span>]</span></a></sup><sup id="cite_ref-3" class="reference"><a href="#cite_note-3"><span>[</span>3<span>]</span></a></sup><sup id="cite_ref-4" class="reference"><a href="#cite_note-4"><span>[</span>4<span>]</span></a></sup> Consider this simple Python class:</p>
+<p>WHATSON? c6b90188-76b5-43d9-8246-25a08d1ec482</p>
+<pre class="de1">
+<span class="kw1">class</span> Car<span class="br0">(</span><span class="kw2">object</span><span class="br0">)</span>:
+    <span class="kw4">__slots__</span> <span class="sy0">=</span> <span class="br0">[</span><span class="st0">'make'</span><span class="sy0">,</span> <span class="st0">'model'</span><span class="sy0">,</span> <span class="st0">'year'</span><span class="sy0">,</span> <span class="st0">'color'</span><span class="br0">]</span>
+ 
+    <span class="kw1">def</span> <span class="kw4">__init__</span><span class="br0">(</span><span class="kw2">self</span><span class="sy0">,</span> make<span class="sy0">,</span> model<span class="sy0">,</span> year<span class="sy0">,</span> color<span class="br0">)</span>:
+        <span class="kw2">self</span>.<span class="me1">make</span> <span class="sy0">=</span> make
+        <span class="kw2">self</span>.<span class="me1">model</span> <span class="sy0">=</span> model
+        <span class="kw2">self</span>.<span class="me1">year</span> <span class="sy0">=</span> year
+        <span class="kw2">self</span>.<span class="me1">color</span> <span class="sy0">=</span> color
+ 
+    <span class="sy0">@</span><span class="kw2">property</span> 
+    <span class="kw1">def</span> description<span class="br0">(</span><span class="kw2">self</span><span class="br0">)</span>:
+        <span class="st0">""" Return a description of this car. """</span>
+        <span class="kw1">return</span> <span class="st0">"%s %s %s %s"</span> % <span class="br0">(</span><span class="kw2">self</span>.<span class="me1">color</span><span class="sy0">,</span> <span class="kw2">self</span>.<span class="me1">year</span><span class="sy0">,</span> <span class="kw2">self</span>.<span class="me1">make</span><span class="sy0">,</span> <span class="kw2">self</span>.<span class="me1">model</span><span class="br0">)</span>
+</pre>
+<p>At run time, <code>Car</code> itself is an instance of <code>type</code>. The source code of the <code>Car</code> class, shown above, does not include such details as the size in bytes of <code>Car</code> objects, their binary layout in memory, how they are allocated, that the <code>__init__</code> method is automatically called each time a <code>Car</code> is created, and so on. These details come into play not only when a new <code>Car</code> object is created, but also each time any attribute of a <code>Car</code> is accessed. In languages without metaclasses, these details are defined by the language specification and can't be overridden. In Python, the metaclass - <code>type</code>- controls these details of <code>Car</code>'s behavior. They can be overridden by using a different metaclass instead of <code>type</code>.</p>
+<p>The above example contains some redundant code to do with the four attributes <code>make</code>, <code>model</code>, <code>year</code>, and <code>color</code>. It is possible to eliminate some of this redundancy using a metaclass. In Python, a metaclass is most easily defined as a subclass of <code>type</code>.</p>
+<p>WHATSON? 22a03e36-5981-4a5e-9b82-ba75c081217e</p>
+<pre class="de1">
+ <span class="kw1">class</span> AttributeInitType<span class="br0">(</span><span class="kw2">type</span><span class="br0">)</span>:
+     <span class="kw1">def</span> <span class="kw4">__call__</span><span class="br0">(</span><span class="kw2">self</span><span class="sy0">,</span> *args<span class="sy0">,</span> **kwargs<span class="br0">)</span>:
+         <span class="st0">""" Create a new instance. """</span>
+ 
+         <span class="co1"># First, create the object in the normal default way.</span>
+         obj <span class="sy0">=</span> <span class="kw2">type</span>.<span class="kw4">__call__</span><span class="br0">(</span><span class="kw2">self</span><span class="sy0">,</span> *args<span class="br0">)</span>
+ 
+         <span class="co1"># Additionally, set attributes on the new object.</span>
+         <span class="kw1">for</span> name<span class="sy0">,</span> value <span class="kw1">in</span> kwargs.<span class="me1">items</span><span class="br0">(</span><span class="br0">)</span>:
+             <span class="kw2">setattr</span><span class="br0">(</span>obj<span class="sy0">,</span> name<span class="sy0">,</span> value<span class="br0">)</span>
+ 
+         <span class="co1"># Return the new object.</span>
+         <span class="kw1">return</span> obj
+</pre>
+<p>This metaclass only overrides object creation. All other aspects of class and object behavior are still handled by <code>type</code>.</p>
+<p>Now the class <code>Car</code> can be rewritten to use this metaclass. This is done in Python 2 by assigning to <code>__metaclass__</code> within the class definition:</p>
+<p>WHATSON? f394a2b2-b5a6-4496-8b3f-0c7d5cfde988</p>
+<pre class="de1">
+ <span class="kw1">class</span> Car<span class="br0">(</span><span class="kw2">object</span><span class="br0">)</span>:
+     <span class="kw4">__metaclass__</span> <span class="sy0">=</span> AttributeInitType
+     <span class="kw4">__slots__</span> <span class="sy0">=</span> <span class="br0">[</span><span class="st0">'color'</span><span class="sy0">,</span> <span class="st0">'year'</span><span class="sy0">,</span> <span class="st0">'make'</span><span class="sy0">,</span> <span class="st0">'model'</span><span class="br0">]</span>
+ 
+     <span class="sy0">@</span><span class="kw2">property</span>
+     <span class="kw1">def</span> description<span class="br0">(</span><span class="kw2">self</span><span class="br0">)</span>:
+         <span class="st0">""" Return a description of this car. """</span>
+         <span class="kw1">return</span> <span class="st0">" "</span>.<span class="me1">join</span><span class="br0">(</span><span class="kw2">str</span><span class="br0">(</span><span class="kw2">getattr</span><span class="br0">(</span><span class="kw2">self</span><span class="sy0">,</span> attr<span class="sy0">,</span> <span class="st0">"Unknown"</span><span class="br0">)</span><span class="br0">)</span>
+                         <span class="kw1">for</span> attr <span class="kw1">in</span> <span class="kw2">self</span>.<span class="kw4">__slots__</span><span class="br0">)</span>
+</pre>
+<p>In Python 3 you provide a named argument, metaclass=M to the class definition instead:</p>
+<p>WHATSON? 50058a79-6d70-4e1d-bfbd-4c7f69c2e1d3</p>
+<pre class="de1">
+ <span class="kw1">class</span> Car<span class="br0">(</span><span class="kw2">object</span><span class="sy0">,</span> metaclass<span class="sy0">=</span>AttributeInitType<span class="br0">)</span>:
+     <span class="kw4">__slots__</span> <span class="sy0">=</span> <span class="br0">[</span><span class="st0">'color'</span><span class="sy0">,</span> <span class="st0">'year'</span><span class="sy0">,</span> <span class="st0">'make'</span><span class="sy0">,</span> <span class="st0">'model'</span><span class="br0">]</span>
+ 
+     <span class="sy0">@</span><span class="kw2">property</span>
+     <span class="kw1">def</span> description<span class="br0">(</span><span class="kw2">self</span><span class="br0">)</span>:
+         <span class="st0">""" Return a description of this car. """</span>
+         <span class="kw1">return</span> <span class="st0">" "</span>.<span class="me1">join</span><span class="br0">(</span><span class="kw2">str</span><span class="br0">(</span><span class="kw2">getattr</span><span class="br0">(</span><span class="kw2">self</span><span class="sy0">,</span> attr<span class="sy0">,</span> <span class="st0">"Unknown"</span><span class="br0">)</span><span class="br0">)</span>
+                         <span class="kw1">for</span> attr <span class="kw1">in</span> <span class="kw2">self</span>.<span class="kw4">__slots__</span><span class="br0">)</span>
+</pre>
+<p><code>Car</code> objects can then be instantiated like this:</p>
+<p>WHATSON? 49b13268-3843-4a12-8497-6b4d6498e4a8</p>
+<pre class="de1">
+ new_car <span class="sy0">=</span> Car<span class="br0">(</span>make<span class="sy0">=</span><span class="st0">'Toyota'</span><span class="sy0">,</span> model<span class="sy0">=</span><span class="st0">'Prius'</span><span class="sy0">,</span> year<span class="sy0">=</span><span class="nu0">2005</span><span class="sy0">,</span> color<span class="sy0">=</span><span class="st0">'Green'</span><span class="br0">)</span>
+ old_car <span class="sy0">=</span> Car<span class="br0">(</span>make<span class="sy0">=</span><span class="st0">'Ford'</span><span class="sy0">,</span> model<span class="sy0">=</span><span class="st0">'Prefect'</span><span class="sy0">,</span> year<span class="sy0">=</span><span class="nu0">1979</span><span class="br0">)</span>
+</pre>
+<h2><span class="mw-headline" id="In_Smalltalk-80">In Smalltalk-80</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Metaclass&amp;action=edit&amp;section=2" title="Edit section: In Smalltalk-80">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>In <a href="/wiki/Smalltalk" title="Smalltalk">Smalltalk</a>, everything is an <a href="/wiki/Object_(computer_science)" title="Object (computer science)">object</a>. Additionally, Smalltalk is a <a href="/wiki/Class-based_programming" title="Class-based programming">class based</a> system, which means that every object has a class that defines the structure of that object (i.e. the instance variables the object has) and the messages an object understands. Together this implies that a class in Smalltalk is an object and that therefore a class needs to be an instance of a class (called metaclass).</p>
+<p>As an example, a car object <code>c</code> is an instance of the class <code>Car</code>. In turn, the class <code>Car</code> is again an object and as such an instance of the metaclass of <code>Car</code> called <code>Car class</code>. Note the blank in the name of the metaclass. The name of the metaclass is the Smalltalk expression that, when evaluated, results in the metaclass object. Thus evaluating <code>Car class</code> results in the metaclass object for <code>Car</code> whose name is <code>Car class</code> (one can confirm this by evaluating <code>Car class name</code> which returns the name of the metaclass of <code>Car</code>.)</p>
+<p><a href="/wiki/Class_method" title="Class method" class="mw-redirect">Class methods</a> actually belong to the metaclass, just as instance methods actually belong to the class. When a message is sent to the object <code>2</code>, the search for the method starts in <code>Integer</code>. If it is not found it proceeds up the superclass chain, stopping at Object whether it is found or not.</p>
+<p>When a message is sent to <code>Integer</code> the search for the method starts in <code>Integer class</code> and proceeds up the superclass chain to <code>Object class</code>. Note that, so far, the metaclass inheritance chain exactly follows that of the class inheritance chain. But the metaclass chain extends further because <code>Object class</code> is the subclass of <code>Class</code>. All metaclasses are subclasses of Class.</p>
+<p>In early Smalltalks, there was only one metaclass called <code>Class</code>. This implied that the <a href="/wiki/Method_(computer_science)" title="Method (computer science)" class="mw-redirect">methods</a> all classes have were the same, in particular the method to create new objects, i.e., <code>new</code>. To allow classes to have their own methods and their own instance variables (called class instance variables and should not be confused with <a href="/wiki/Class_variable" title="Class variable">class variables</a>), Smalltalk-80 introduced for each class <code>C</code> their own metaclass <code>C class</code>. This means that each metaclass is effectively a <a href="/wiki/Singleton_pattern" title="Singleton pattern">singleton</a> class.</p>
+<p>Since there is no requirement that metaclasses behave differently from each other, all metaclasses are instances of only one class called <code>Metaclass</code>. The metaclass of <code>Metaclass</code> is called <code>Metaclass class</code> which again is an instance of class <code>Metaclass</code>.</p>
+<p>In Smalltalk-80, every class (except <code>Object</code>) has a <a href="/wiki/Superclass_(computer_science)" title="Superclass (computer science)" class="mw-redirect">superclass</a>. The <a href="/wiki/Abstract_superclass" title="Abstract superclass" class="mw-redirect">abstract superclass</a> of all metaclasses is <code>Class</code>, which describes the general nature of classes.</p>
+<p>The superclass hierarchy for metaclasses parallels that for classes, except for class <code>Object</code>. ALL metaclasses are subclasses of <code>Class</code>, therefore:</p>
+<ul>
+<li><code>Object class superclass == Class.</code></li>
+</ul>
+<p>Like <a href="/wiki/Conjoined_twins" title="Conjoined twins">conjoined twins</a>, classes and metaclasses are born together. <code>Metaclass</code> has an instance variable <code>thisClass</code>, which points to its conjoined class. Note that the usual Smalltalk <a href="/wiki/Class_browser" title="Class browser">class browser</a> does not show metaclasses as separate classes. Instead the class browser allows to edit the class together with its metaclass at the same time.</p>
+<p>The names of classes in the metaclass hierarchy are easily confused with the concepts of the same name. For instance:</p>
+<ul>
+<li><code>Object</code> is the base class that provides common methods for all objects; "an object" is an integer, or a widget, or a <code>Car</code>, etc.</li>
+</ul>
+<ul>
+<li><code>Class</code> is the base of the metaclasses that provides common methods for all classes (though it is not a metaclass itself); "a class" is something like <code>Integer</code>, or <code>Widget</code>, or <code>Car</code>, etc.</li>
+</ul>
+<ul>
+<li><code>Metaclass</code> provides common methods for all metaclasses.</li>
+</ul>
+<p>Four classes provide the facilities to describe new classes. Their <a href="/wiki/Inheritance_hierarchy" title="Inheritance hierarchy" class="mw-redirect">inheritance hierarchy</a> (from Object), and the main facilities they provide are:</p>
+<h2><span class="mw-headline" id="In_Ruby">In Ruby</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Metaclass&amp;action=edit&amp;section=3" title="Edit section: In Ruby">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Ruby purifies the Smalltalk-80 concept of metaclasses by introducing eigenclasses, removing the <code>Metaclass</code> class, and (un)redefining the class-of map. The change can be schematized as follows:<sup id="cite_ref-5" class="reference"><a href="#cite_note-5"><span>[</span>5<span>]</span></a></sup></p>
+<p>Note in particular the correspondence between Smalltalk's implicit metaclasses and Ruby's eigenclasses of classes. The Ruby eigenclass model makes the concept of implicit metaclasses fully uniform: every object <i>x</i> has its own meta-object, called the <i>eigenclass</i> of <i>x</i>, which is one meta-level higher than <i>x</i>. Consequently, eigenclasses form infinite chains, thus establishing <a href="/wiki/Infinite_regress" title="Infinite regress">infinite regress</a>. However, the "higher order" eigenclasses usually exist purely conceptually – they do not contain any methods or store any (other) data in most Ruby programs.<sup id="cite_ref-6" class="reference"><a href="#cite_note-6"><span>[</span>6<span>]</span></a></sup></p>
+<p>According to the Ruby's introspection method named <code>class</code>, the class of every class (and of every eigenclass) is constantly the <code>Class</code> class. As a consequence, <code>Class</code> is the only class that has classes as instances, similarly to Java<sup id="cite_ref-7" class="reference"><a href="#cite_note-7"><span>[</span>7<span>]</span></a></sup> or Scala. (This also means that subclassing of <code>Class</code> is disallowed.) Following the standard definition of metaclasses we can conclude that the <code>Class</code> class is the only metaclass in Ruby. This seems to contradict the correspondence between Ruby and Smalltalk, since in Smalltalk-80, every class has its own metaclass. The discrepancy is based on the disagreement between the <code>class</code> introspection method in Ruby and Smalltalk. While the map <i>x ↦ x.</i><code>class</code> coincides on terminal objects, it differs in the restriction to classes. As already mentioned above, for a class <code><i>x</i></code>, the Ruby expression <code><i>x</i>.class</code> evaluates constantly to <code>Class</code>. In Smalltalk-80, if <code><i>x</i></code> is a class then the expression <code><i>x</i> class</code> corresponds to the Ruby's <code><i>x</i>.singleton_class</code> – which evaluates to the eigenclass of <code><i>x</i></code>.</p>
+<h2><span class="mw-headline" id="In_Objective-C">In Objective-C</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Metaclass&amp;action=edit&amp;section=4" title="Edit section: In Objective-C">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Metaclasses in Objective-C are almost the same as those in Smalltalk-80—not surprising since Objective-C borrows a lot from Smalltalk. Like Smalltalk, in Objective-C, the instance variables and methods are defined by an object's class. A class is an object, hence it is an instance of a metaclass.</p>
+<p>Like Smalltalk, in Objective-C, class methods are simply methods called on the class object, hence a class's class methods must be defined as instance methods in its metaclass. Because different classes can have different sets of class methods, each class must have its own separate metaclass. Classes and metaclasses are always created as a pair: the runtime has functions <code>objc_allocateClassPair()</code> and <code>objc_registerClassPair()</code> to create and register class-metaclass pairs, respectively.</p>
+<p>There are no names for the metaclasses; however, a pointer to any class object can be referred to with the generic type <code>Class</code> (similar to the type <code>id</code> being used for a pointer to any object).</p>
+<p>Because class methods are inherited through inheritance, like Smalltalk, metaclasses must follow an inheritance scheme paralleling that of classes (e.g. if class A's parent class is class B, then A's metaclass's parent class is B's metaclass), except that of the root class.</p>
+<p>Unlike Smalltalk, the metaclass of the root class inherits from the root class (usually <code>NSObject</code> using the <a href="/wiki/Cocoa_(API)" title="Cocoa (API)">Cocoa</a> framework) itself. This ensures that all class objects are ultimately instances of the root class, so that you can use the instance methods of the root class, usually useful utility methods for objects, on class objects themselves.</p>
+<p>Since metaclass objects do not behave differently (you cannot add class methods for a metaclass, so metaclass objects all have the same methods), they are all instances of the same class—the metaclass of the root class (unlike Smalltalk). Thus, the metaclass of the root class is an instance of itself. The reason for this is that all metaclasses inherit from root class; hence, they must inherit the class methods of the root class.<sup id="cite_ref-8" class="reference"><a href="#cite_note-8"><span>[</span>8<span>]</span></a></sup></p>
+<h2><span class="mw-headline" id="Support_in_languages_and_tools">Support in languages and tools</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Metaclass&amp;action=edit&amp;section=5" title="Edit section: Support in languages and tools">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>The following are some of the most prominent <a href="/wiki/Programming_language" title="Programming language">programming languages</a> that support metaclasses.</p>
+<ul>
+<li><a href="/wiki/Common_Lisp" title="Common Lisp">Common Lisp</a>, via <a href="/wiki/Common_Lisp_Object_System" title="Common Lisp Object System">CLOS</a></li>
+<li><a href="/wiki/Embarcadero_Delphi" title="Embarcadero Delphi" class="mw-redirect">Delphi</a> and other versions of <a href="/wiki/Object_Pascal" title="Object Pascal">Object Pascal</a> influenced by it</li>
+<li><a href="/wiki/Groovy_(programming_language)" title="Groovy (programming language)">Groovy</a></li>
+<li><a href="/wiki/Objective-C" title="Objective-C">Objective-C</a></li>
+<li><a href="/wiki/Python_(programming_language)" title="Python (programming language)">Python</a></li>
+<li><a href="/wiki/Perl" title="Perl">Perl</a>, via the metaclass pragma, as well as <a href="/wiki/Moose_(Perl)" title="Moose (Perl)">Moose</a></li>
+<li><a href="/wiki/Ruby_(programming_language)" title="Ruby (programming language)">Ruby</a></li>
+<li><a href="/wiki/Smalltalk" title="Smalltalk">Smalltalk</a></li>
+</ul>
+<p>Some less widespread languages that support metaclasses include <a href="/wiki/OpenJava" title="OpenJava">OpenJava</a>, <a href="/wiki/OpenC%2B%2B" title="OpenC++" class="mw-disambig">OpenC++</a>, <a href="/w/index.php?title=OpenAda&amp;action=edit&amp;redlink=1" class="new" title="OpenAda (page does not exist)">OpenAda</a>, <a href="/wiki/CorbaScript" title="CorbaScript">CorbaScript</a>, <a href="/w/index.php?title=ObjVLisp&amp;action=edit&amp;redlink=1" class="new" title="ObjVLisp (page does not exist)">ObjVLisp</a>, <a href="/wiki/Object-Z" title="Object-Z">Object-Z</a>, <a href="/w/index.php?title=MODEL-K&amp;action=edit&amp;redlink=1" class="new" title="MODEL-K (page does not exist)">MODEL-K</a>, <a href="/wiki/XOTcl" title="XOTcl">XOTcl</a>, and <a href="/w/index.php?title=MELDC&amp;action=edit&amp;redlink=1" class="new" title="MELDC (page does not exist)">MELDC</a>. Several of these languages date from the early 1990s and are of academic interest.<sup id="cite_ref-9" class="reference"><a href="#cite_note-9"><span>[</span>9<span>]</span></a></sup></p>
+<p><a href="/wiki/Logtalk" title="Logtalk">Logtalk</a>, an object-oriented extension of <a href="/wiki/Prolog" title="Prolog">Prolog</a>, also supports metaclasses.</p>
+<p><a href="/wiki/Resource_Description_Framework" title="Resource Description Framework">Resource Description Framework</a> (RDF) and <a href="/wiki/Unified_Modeling_Language" title="Unified Modeling Language">Unified Modeling Language</a> (UML) both support metaclasses.</p>
+<h2><span class="mw-headline" id="See_also">See also</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Metaclass&amp;action=edit&amp;section=6" title="Edit section: See also">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul>
+<li><a href="/wiki/Metamodeling" title="Metamodeling">Metamodel</a></li>
+<li><a href="/wiki/Metaprogramming" title="Metaprogramming">Metaprogramming</a></li>
+<li><a href="/wiki/Metaobject" title="Metaobject">Metaobject</a></li>
+<li><a href="/wiki/Kind_(type_theory)" title="Kind (type theory)">Kind (type theory)</a></li>
+<li><a href="/wiki/Reflection_(computer_science)" title="Reflection (computer science)" class="mw-redirect">Reflection</a></li>
+<li><a href="/w/index.php?title=Dynamism_(computing)&amp;action=edit&amp;redlink=1" class="new" title="Dynamism (computing) (page does not exist)">Dynamism</a></li>
+<li><a href="/wiki/Adapter_pattern" title="Adapter pattern">Adapter pattern</a></li>
+</ul>
+<h2><span class="mw-headline" id="References">References</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Metaclass&amp;action=edit&amp;section=7" title="Edit section: References">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ol class="references">
+<li id="cite_note-1"><span class="mw-cite-backlink"><b><a href="#cite_ref-1">^</a></b></span> <span class="reference-text"><span class="citation book">Ira R. Forman and Scott Danforth (1999). <i>Putting Metaclasses to Work</i>. <a href="/wiki/International_Standard_Book_Number" title="International Standard Book Number">ISBN</a> <a href="/wiki/Special:BookSources/0-201-43305-2" title="Special:BookSources/0-201-43305-2">0-201-43305-2</a>.</span><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AMetaclass&amp;rft.au=Ira+R.+Forman+and+Scott+Danforth&amp;rft.aulast=Ira+R.+Forman+and+Scott+Danforth&amp;rft.btitle=Putting+Metaclasses+to+Work&amp;rft.date=1999&amp;rft.genre=book&amp;rft.isbn=0-201-43305-2&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook" class="Z3988"><span style="display:none;"> </span></span></span></li>
+<li id="cite_note-2"><span class="mw-cite-backlink"><b><a href="#cite_ref-2">^</a></b></span> <span class="reference-text">IBM Metaclass programming in Python, parts <a rel="nofollow" class="external text" href="http://www.ibm.com/developerworks/linux/library/l-pymeta.html">1</a>, <a rel="nofollow" class="external text" href="http://www-128.ibm.com/developerworks/linux/library/l-pymeta2/">2</a> and <a rel="nofollow" class="external text" href="http://www.ibm.com/developerworks/library/l-pymeta3.html">3</a></span></li>
+<li id="cite_note-3"><span class="mw-cite-backlink"><b><a href="#cite_ref-3">^</a></b></span> <span class="reference-text">Artima Forum: Metaclasses in Python 3.0 <a rel="nofollow" class="external text" href="http://www.artima.com/forums/flat.jsp?forum=106&amp;thread=236234">(part 1 of 2)</a> <a rel="nofollow" class="external text" href="http://www.artima.com/forums/flat.jsp?forum=106&amp;thread=236260">(part 2 of 2)</a></span></li>
+<li id="cite_note-4"><span class="mw-cite-backlink"><b><a href="#cite_ref-4">^</a></b></span> <span class="reference-text"><span class="citation web">David Mertz. <a rel="nofollow" class="external text" href="http://www.onlamp.com/lpt/a/3388">"A Primer on Python Metaclass Programming"</a>. <i><a href="/wiki/O%27Reilly_Media" title="O'Reilly Media">ONLamp</a></i><span class="reference-accessdate">. Retrieved June 28, 2006</span>.</span><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AMetaclass&amp;rft.atitle=A+Primer+on+Python+Metaclass+Programming&amp;rft.au=David+Mertz&amp;rft.aulast=David+Mertz&amp;rft.genre=article&amp;rft_id=http%3A%2F%2Fwww.onlamp.com%2Flpt%2Fa%2F3388&amp;rft.jtitle=ONLamp&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Ajournal" class="Z3988"><span style="display:none;"> </span></span></span></li>
+<li id="cite_note-5"><span class="mw-cite-backlink"><b><a href="#cite_ref-5">^</a></b></span> <span class="reference-text"><span class="citation web"><a rel="nofollow" class="external text" href="http://www.atalon.cz/rb-om/ruby-object-model/co-smalltalk/">"The Ruby Object Model: Comparison with Smalltalk-80"</a>.</span><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AMetaclass&amp;rft.btitle=The+Ruby+Object+Model%3A+Comparison+with+Smalltalk-80&amp;rft.genre=book&amp;rft_id=http%3A%2F%2Fwww.atalon.cz%2Frb-om%2Fruby-object-model%2Fco-smalltalk%2F&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook" class="Z3988"><span style="display:none;"> </span></span></span></li>
+<li id="cite_note-6"><span class="mw-cite-backlink"><b><a href="#cite_ref-6">^</a></b></span> <span class="reference-text"><span class="citation book">Paolo Perrotta. <a rel="nofollow" class="external text" href="http://pragprog.com/book/ppmetr/metaprogramming-ruby"><i>Metaprogramming Ruby</i></a>. Pragmatic Bookshelf. <a href="/wiki/International_Standard_Book_Number" title="International Standard Book Number">ISBN</a> <a href="/wiki/Special:BookSources/978-1-934356-47-0" title="Special:BookSources/978-1-934356-47-0">978-1-934356-47-0</a>.</span><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AMetaclass&amp;rft.aulast=Paolo+Perrotta&amp;rft.au=Paolo+Perrotta&amp;rft.btitle=Metaprogramming+Ruby&amp;rft.genre=book&amp;rft_id=http%3A%2F%2Fpragprog.com%2Fbook%2Fppmetr%2Fmetaprogramming-ruby&amp;rft.isbn=978-1-934356-47-0&amp;rft.pub=Pragmatic+Bookshelf&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook" class="Z3988"><span style="display:none;"> </span></span></span></li>
+<li id="cite_note-7"><span class="mw-cite-backlink"><b><a href="#cite_ref-7">^</a></b></span> <span class="reference-text"><span class="citation web"><a rel="nofollow" class="external text" href="http://www.developer.com/java/web/article.php/10935_3507696_3/Java-Reflection-in-Action-Part-2.htm">"Java Reflection in Action, Part 2"</a>.</span><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AMetaclass&amp;rft.btitle=Java+Reflection+in+Action%2C+Part+2&amp;rft.genre=book&amp;rft_id=http%3A%2F%2Fwww.developer.com%2Fjava%2Fweb%2Farticle.php%2F10935_3507696_3%2FJava-Reflection-in-Action-Part-2.htm&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook" class="Z3988"><span style="display:none;"> </span></span></span></li>
+<li id="cite_note-8"><span class="mw-cite-backlink"><b><a href="#cite_ref-8">^</a></b></span> <span class="reference-text"><a rel="nofollow" class="external text" href="http://cocoawithlove.com/2010/01/what-is-meta-class-in-objective-c.html">Cocoa with Love: What is a meta-class in Objective-C?</a></span></li>
+<li id="cite_note-9"><span class="mw-cite-backlink"><b><a href="#cite_ref-9">^</a></b></span> <span class="reference-text"><a rel="nofollow" class="external text" href="http://csl.ensm-douai.fr/noury/uploads/1/nouryBouraqadi.Gpce03WorkshopOnRepls.pdf">An implementation of mixins in Java using metaclasses</a></span></li>
+</ol>
+<ul>
+<li class="nv-view"><a href="/wiki/Template:Data_types" title="Template:Data types"><span title="View this template" style=";;background:none transparent;border:none;;">v</span></a></li>
+<li class="nv-talk"><a href="/wiki/Template_talk:Data_types" title="Template talk:Data types"><span title="Discuss this template" style=";;background:none transparent;border:none;;">t</span></a></li>
+<li class="nv-edit"><a class="external text" href="//en.wikipedia.org/w/index.php?title=Template:Data_types&amp;action=edit"><span title="Edit this template" style=";;background:none transparent;border:none;;">e</span></a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Bit" title="Bit">Bit</a></li>
+<li><a href="/wiki/Byte" title="Byte">Byte</a></li>
+<li><a href="/wiki/Ternary_numeral_system" title="Ternary numeral system">Trit</a></li>
+<li><a href="/wiki/Ternary_numeral_system#Tryte" title="Ternary numeral system">Tryte</a></li>
+<li><a href="/wiki/Word_(computer_architecture)" title="Word (computer architecture)">Word</a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Arbitrary-precision_arithmetic" title="Arbitrary-precision arithmetic">Bignum</a></li>
+<li><a href="/wiki/Complex_data_type" title="Complex data type">Complex</a></li>
+<li><a href="/wiki/Decimal_data_type" title="Decimal data type">Decimal</a></li>
+<li><a href="/wiki/Fixed-point_arithmetic" title="Fixed-point arithmetic">Fixed-point</a></li>
+<li><a href="/wiki/Floating_point" title="Floating point">Floating-point</a></li>
+<li><a href="/wiki/Integer_(computer_science)" title="Integer (computer science)">Integer</a>
+<ul>
+<li><a href="/wiki/Signedness" title="Signedness">signedness</a></li>
+</ul>
+</li>
+<li><a href="/wiki/Interval_arithmetic" title="Interval arithmetic">Interval</a></li>
+<li><a href="/wiki/Rational_data_type" title="Rational data type">Rational</a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Signedness" title="Signedness">signedness</a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Character_(computing)" title="Character (computing)">Character</a></li>
+<li><a href="/wiki/String_(computer_science)" title="String (computer science)">String</a>
+<ul>
+<li><a href="/wiki/Null-terminated_string" title="Null-terminated string">null-terminated</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li><a href="/wiki/Null-terminated_string" title="Null-terminated string">null-terminated</a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Memory_address" title="Memory address">Address</a>
+<ul>
+<li><a href="/wiki/Physical_address" title="Physical address">physical</a></li>
+<li><a href="/wiki/Virtual_address_space" title="Virtual address space">virtual</a></li>
+</ul>
+</li>
+<li><a href="/wiki/Reference_(computer_science)" title="Reference (computer science)">Reference</a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Physical_address" title="Physical address">physical</a></li>
+<li><a href="/wiki/Virtual_address_space" title="Virtual address space">virtual</a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Algebraic_data_type" title="Algebraic data type">Algebraic data type</a>
+<ul>
+<li><a href="/wiki/Generalized_algebraic_data_type" title="Generalized algebraic data type">generalized</a></li>
+</ul>
+</li>
+<li><a href="/wiki/Array_data_type" title="Array data type">Array</a></li>
+<li><a href="/wiki/Associative_array" title="Associative array">Associative array</a></li>
+<li><a href="/wiki/Class_(computer_programming)" title="Class (computer programming)">Class</a></li>
+<li><a href="/wiki/Dependent_type" title="Dependent type">Dependent</a></li>
+<li><a href="/wiki/Intuitionistic_type_theory#Equality_type" title="Intuitionistic type theory">Equality</a></li>
+<li><a href="/wiki/Inductive_type" title="Inductive type">Inductive</a></li>
+<li><a href="/wiki/List_(abstract_data_type)" title="List (abstract data type)">List</a></li>
+<li><a href="/wiki/Object_(computer_science)" title="Object (computer science)">Object</a>
+<ul>
+<li><a href="/wiki/Metaobject" title="Metaobject">metaobject</a></li>
+</ul>
+</li>
+<li><a href="/wiki/Option_type" title="Option type">Option type</a></li>
+<li><a href="/wiki/Product_type" title="Product type">Product</a></li>
+<li><a href="/wiki/Record_(computer_science)" title="Record (computer science)">Record</a></li>
+<li><a href="/wiki/Set_(abstract_data_type)" title="Set (abstract data type)">Set</a></li>
+<li><a href="/wiki/Union_type" title="Union type">Union</a>
+<ul>
+<li><a href="/wiki/Tagged_union" title="Tagged union">tagged</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li><a href="/wiki/Generalized_algebraic_data_type" title="Generalized algebraic data type">generalized</a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Metaobject" title="Metaobject">metaobject</a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Tagged_union" title="Tagged union">tagged</a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Boolean_data_type" title="Boolean data type">Boolean</a></li>
+<li><a href="/wiki/Bottom_type" title="Bottom type">Bottom type</a></li>
+<li><a href="/wiki/Container_(abstract_data_type)" title="Container (abstract data type)">Collection</a></li>
+<li><a href="/wiki/Enumerated_type" title="Enumerated type">Enumerated type</a></li>
+<li><a href="/wiki/Exception_handling" title="Exception handling">Exception</a></li>
+<li><a href="/wiki/Function_type" title="Function type">Function type</a></li>
+<li><a href="/wiki/Opaque_data_type" title="Opaque data type">Opaque data type</a></li>
+<li><a href="/wiki/Recursive_data_type" title="Recursive data type">Recursive data type</a></li>
+<li><a href="/wiki/Semaphore_(programming)" title="Semaphore (programming)">Semaphore</a></li>
+<li><a href="/wiki/Stream_(computing)" title="Stream (computing)">Stream</a></li>
+<li><a href="/wiki/Top_type" title="Top type">Top type</a></li>
+<li><a href="/wiki/Type_class" title="Type class">Type class</a></li>
+<li><a href="/wiki/Unit_type" title="Unit type">Unit type</a></li>
+<li><a href="/wiki/Void_type" title="Void type">Void</a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Abstract_data_type" title="Abstract data type">Abstract data type</a></li>
+<li><a href="/wiki/Data_structure" title="Data structure">Data structure</a></li>
+<li><a href="/wiki/Generic_programming" title="Generic programming">Generic</a></li>
+<li><a href="/wiki/Kind_(type_theory)" title="Kind (type theory)">Kind</a>
+<ul>
+<li><strong class="selflink">metaclass</strong></li>
+</ul>
+</li>
+<li><a href="/wiki/Parametric_polymorphism" title="Parametric polymorphism">Parametric polymorphism</a></li>
+<li><a href="/wiki/Primitive_data_type" title="Primitive data type">Primitive data type</a></li>
+<li><a href="/wiki/Protocol_(object-oriented_programming)" title="Protocol (object-oriented programming)">Protocol</a>
+<ul>
+<li><a href="/wiki/Interface_(computing)#Software_interfaces_in_object-oriented_languages" title="Interface (computing)">interface</a></li>
+</ul>
+</li>
+<li><a href="/wiki/Subtyping" title="Subtyping">Subtyping</a></li>
+<li><a href="/wiki/Type_constructor" title="Type constructor">Type constructor</a></li>
+<li><a href="/wiki/Type_conversion" title="Type conversion">Type conversion</a></li>
+<li><a href="/wiki/Type_system" title="Type system">Type system</a></li>
+</ul>
+<ul>
+<li><strong class="selflink">metaclass</strong></li>
+</ul>
+<ul>
+<li><a href="/wiki/Interface_(computing)#Software_interfaces_in_object-oriented_languages" title="Interface (computing)">interface</a></li>
+</ul>

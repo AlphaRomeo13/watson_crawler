@@ -1,0 +1,106 @@
+<h1>Developing Draggable Applets</h1>
+<p>A Java applet that is deployed by specifying the <code>draggable</code> parameter can be dragged outside of the browser and dynamically transformed into a Java Web Start application. The Java applet can be dragged by pressing the Alt key and the left mouse button and dragging the mouse. When the drag operation begins, the applet is removed from its parent container (<code>Applet</code> or <code>JApplet</code>) and placed in a new undecorated top-level window (<code>Frame</code> or <code>JFrame</code>). A small floating Close button is displayed next to the dragged applet. When the floating Close button is clicked, the applet is placed back in the browser. Java applets that can be dragged out of the browser shall henceforth be referred to as <em>draggable applets</em>.</p>
+<p>You can customize the behavior of a draggable applet in the following ways:</p>
+<ul>
+<li>You can change the keystroke and mouse button sequence that is used to drag the applet outside of the browser.</li>
+<li>You can add a desktop shortcut that can be used to launch your application outside of the browser.</li>
+<li>You can define how the applet should be closed after it has been dragged outside of the browser.</li>
+</ul>
+<p>The following sections describe how to implement and customize a draggable applet. The 
+<a class="SourceLink" target="_blank" href="examples/applet_Draggable/src/MenuChooserApplet.java" onclick="showCode('../../displayCode.html', 'examples/applet_Draggable/src/MenuChooserApplet.java'); return false;"><code>MenuChooserApplet</code></a> class is used to demonstrate the development and deployment of draggable applets. Open 
+<a class="SourceLink" target="_blank" href="examples/dist/applet_Draggable/AppletPage.html" onclick="showCode('../../displayCode.html', 'examples/dist/applet_Draggable/AppletPage.html'); return false;"><code><code>AppletPage.html</code></code></a> in a browser to view the Menu Chooser applet on a new page.</p>
+<h2>Enabling the Capability to Drag an Applet</h2>
+<p>You can enable the capability to drag an applet by setting the <code>draggable</code> parameter to <code>true</code> when deploying the applet, as shown in the following code snippet:</p>
+<p>WHATSON? b479e89e-803e-4c65-8832-c8d66bd54463</p>
+<pre>
+&lt;script src="https://www.java.com/js/deployJava.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+    var attributes = { code:'MenuChooserApplet', width:900, height:300 };
+    var parameters = { jnlp_href: 'draggableapplet.jnlp', <b>draggable: 'true'</b> };
+    deployJava.runApplet(attributes, parameters, '1.6');
+&lt;/script&gt;
+</pre>
+<h2>Changing the Keystroke and Mouse Button Sequence That Is Used to Drag an Applet</h2>
+<p>You can change the keystroke and mouse button sequence that is used to drag an applet by implementing the <code>isAppletDragStart</code> method. In the following code snippet, the applet can be dragged by pressing the left mouse button and dragging the mouse:</p>
+<p>WHATSON? 58c0514b-8080-4410-927d-3d0e3433107c</p>
+<pre>
+ public boolean isAppletDragStart(MouseEvent e) {
+        if(e.getID() == MouseEvent.MOUSE_DRAGGED) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+</pre>
+<h2>Enabling the Addition of a Desktop Shortcut When the Applet Is Disconnected From the Browser</h2>
+<p>If the user closes the browser window or navigates away from the page after dragging an applet outside of the page, the applet is said to be <em>disconnected</em> from the browser. You can create a desktop shortcut for the applet when the applet is disconnected from the browser. The desktop shortcut can be used to launch the application outside of the browser. To enable the creation of a desktop shortcut, add the <code>offline-allowed</code> and <code>shortcut</code> tags to the applet's Java Network Launch Protocol (JNLP) file.</p>
+<p>WHATSON? dce9416b-1a62-4144-a48b-53f759081dab</p>
+<pre>
+&lt;information&gt;
+    &lt;!-- ... --&gt;
+    &lt;offline-allowed /&gt;
+    &lt;shortcut online="false"&gt;
+        &lt;desktop /&gt;
+    &lt;/shortcut&gt;
+&lt;/information&gt;
+</pre>
+<h2>Defining How the Applet Should Be Closed</h2>
+<p>You can define how your applet can be closed. For example, your Swing applet could have a <code>JButton</code> to close the applet instead of relying on the default floating Close button.</p>
+<p>The Java Plug-in software gives the applet an instance of the <code>ActionListener</code> class. This instance of the <code>ActionListener</code> class, also referred to as the <em>close listener</em>, can be used to modify the default close behavior of the applet.</p>
+<p>To define how the applet should be closed, implement the <code>setAppletCloseListener</code> and <code>appletRestored</code> methods in your applet.</p>
+<p>In the following code snippet, the 
+<a class="SourceLink" target="_blank" href="examples/applet_Draggable/src/MenuChooserApplet.java" onclick="showCode('../../displayCode.html', 'examples/applet_Draggable/src/MenuChooserApplet.java'); return false;"><code>MenuChooserApplet</code></a> class receives the close listener and passes it on to the instance of the 
+<a class="SourceLink" target="_blank" href="examples/applet_Draggable/src/MenuItemChooser.java" onclick="showCode('../../displayCode.html', 'examples/applet_Draggable/src/MenuItemChooser.java'); return false;"><code>MenuItemChooser</code></a> class:</p>
+<p>WHATSON? e5e8b703-d568-4999-bc59-e5b974a43828</p>
+<pre>
+MenuItemChooser display = null;
+// ...
+display = new MenuItemChooser();
+// ...
+public void setAppletCloseListener(ActionListener cl) {
+    display.setCloseListener(cl);
+}
+
+public void appletRestored() {
+    display.setCloseListener(null);
+}
+</pre>
+<p>The <code>MenuItemChooser</code> class is responsible for controlling the applet's user interface. The <code>MenuItemChooser</code> class defines a <code>JButton</code> labeled "Close." The following code is executed when the user clicks this Close button:</p>
+<p>WHATSON? d88ac8d0-5c0a-4b21-bf5b-c46a5877b7e5</p>
+<pre>
+private void close() {
+    // invoke actionPerformed of closeListener received
+    // from the Java Plug-in software.
+    if (closeListener != null) {
+        closeListener.actionPerformed(null);
+    }
+}
+</pre>
+<p><a id="decoration" name="decoration"></a></p>
+<h2>Requesting and Customizing Applet Decoration</h2>
+<p>Beginning in the Java SE 7 release, when deploying an applet, you can specify that the window of dragged applet should be decorated with the default or customized window title.</p>
+<p>To enable window decoration of a dragged applet, specify the <code>java_decorated_frame</code> parameter with a value of <code>"true"</code>. To enable a customized window title, specify the <code>java_applet_title</code> parameter also. The value of this parameter should be the text of the window title.</p>
+<p>WHATSON? 661d3baa-86de-4110-b977-c0a93d13fcae</p>
+<pre>
+&lt;script src="https://www.java.com/js/deployJava.js"&gt;&lt;/script&gt;
+&lt;script&gt;
+    var attributes =
+      { code:'SomeDraggableApplet', width:100, height:100 };
+    var parameters =
+      { jnlp_href: 'somedraggableapplet.jnlp', 
+          <b>java_decorated_frame: 'true',
+          java_applet_title: 'A Custom Title'</b>   
+      };
+    deployJava.runApplet(attributes, parameters, '1.7');
+&lt;/script&gt;
+</pre>
+<p>The <code>java_decorated_frame</code> and <code>java_applet_title</code> parameters can also be specified in the applet's JNLP file as shown in the following code snippet:</p>
+<p>WHATSON? f6dceac1-de5e-44d3-899e-ff182da2b353</p>
+<pre>
+&lt;applet-desc main-class="SayHello" name="main test" height="150" width="300"&gt;
+    &lt;param name="java_decorated_frame" value="true" /&gt;
+    &lt;param name="java_applet_title" value="" /&gt;
+&lt;/applet-desc&gt;
+</pre>
+<p>
+<a class="TutorialLink" target="_top" href="examplesIndex.html#DraggableApplet">Download source code</a> for the <em>Draggable Applet</em> example to experiment further.</p>

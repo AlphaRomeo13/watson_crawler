@@ -1,0 +1,228 @@
+<h1>How to Use Combo Boxes</h1>
+<p>A 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/javax/swing/JComboBox.html"><code>JComboBox</code></a>, which lets the user choose one of several choices, can have two very different forms. The default form is the uneditable combo box, which features a button and a drop-down list of values. The second form, called the editable combo box, features a text field with a small button abutting it. The user can type a value in the text field or click the button to display a drop-down list. Here's what the two forms of combo boxes look like in the Java look and feel:</p>
+<p style="text-align: center"></p>
+<p>Combo boxes require little screen space, and their editable (text field) form is useful for letting the user quickly choose a value without limiting the user to the displayed values. Other components that can display one-of-many choices are groups of <a href="button.html#radiobutton">radio buttons</a> and <a href="list.html">lists</a>. Groups of radio buttons are generally the easiest for users to understand, but combo boxes can be more appropriate when space is limited or more than a few choices are available. Lists are not terribly attractive, but they're more appropriate than combo boxes when the number of items is large (say, over 20) or when selecting multiple items might be valid.</p>
+<p>Because editable and uneditable combo boxes are so different, this section treats them separately. This section covers these topics:</p>
+<ul>
+<li><a href="#uneditable">Using an Uneditable Combo Box</a></li>
+<li><a href="#listeners">Handling Events on a Combo Box</a></li>
+<li><a href="#editable">Using an Editable Combo Box</a></li>
+<li><a href="#renderer">Providing a Custom Renderer</a></li>
+<li><a href="#api">The Combo Box API</a></li>
+<li><a href="#eg">Examples that Use Combo Boxes</a></li>
+</ul>
+<p><a name="uneditable" id="uneditable"></a></p>
+<h2><a name="uneditable__1" id="uneditable__1">Using an Uneditable Combo Box</a></h2>
+<p>The application shown here uses an uneditable combo box for choosing a pet picture:</p>
+<p><a name="trythis" id="trythis"></a></p>
+<ol><!-- *******  boilerplate stuff ******* -->
+<li>Click the Launch button to run the ComboBox Demo using 
+<a class="OutsideLink" target="_blank" href="http://www.oracle.com/technetwork/java/javase/javawebstart/index.html">Java™ Web Start</a> (<a href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">download JDK 7 or later</a>). Alternatively, to compile and run the example yourself, consult the <a href="../examples/components/index.html#ComboBoxDemo">example index</a>.<a href="http://docs.oracle.com/javase/tutorialJWS/samples/uiswing/ComboBoxDemoProject/ComboBoxDemo.jnlp"><img src="../../images/jws-launch-button.png" width="88" height="23" align="bottom" alt="Launches the ComboBoxDemo example"></a><br>
+<p><!--  ******* end boilerplate stuff  *******  -->
+ <!-- 
+
+<li> <a href="http://docs.oracle.com/javase/tutorialJWS/samples/uiswing/ComboBoxDemoProject/ComboBoxDemo.jnlp">Run ComboBoxDemo</a> (
+<a class="OutsideLink" target="_blank" href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">download JDK 7 or later</a>).    Or, to compile and run the example yourself,
+     consult the
+     <a href="../examples/components/index.html#ComboBoxDemo">example index</a>.
+--></p>
+</li>
+<li>Choose an animal name from the combo box to view its picture.</li>
+<li>Compare the operation and GUI of this program to one that uses radio buttons: <a href="http://docs.oracle.com/javase/tutorialJWS/samples/uiswing/RadioButtonDemoProject/RadioButtonDemo.jnlp">run RadioButtonDemo</a> (it requires release 6). You might want to compare the source code as well: 
+<a class="SourceLink" target="_blank" href="../examples/components/ComboBoxDemoProject/src/components/ComboBoxDemo.java" onclick="showCode('../../displayCode.html', '../examples/components/ComboBoxDemoProject/src/components/ComboBoxDemo.java'); return false;"><code>ComboBoxDemo.java</code></a> vs. 
+<a class="SourceLink" target="_blank" href="../examples/components/RadioButtonDemoProject/src/components/RadioButtonDemo.java%20" onclick="showCode('../../displayCode.html', '../examples/components/RadioButtonDemoProject/src/components/RadioButtonDemo.java '); return false;"><code>RadioButtonDemo.java</code></a>.</li>
+</ol>
+<p><!--  ******* end boilerplate stuff  *******  -->
+ <!-- 
+
+<li> <a href="http://docs.oracle.com/javase/tutorialJWS/samples/uiswing/ComboBoxDemoProject/ComboBoxDemo.jnlp">Run ComboBoxDemo</a> (
+<a class="OutsideLink" target="_blank" href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">download JDK 7 or later</a>).    Or, to compile and run the example yourself,
+     consult the
+     <a href="../examples/components/index.html#ComboBoxDemo">example index</a>.
+--></p>
+<p>The following code, taken from 
+<a class="SourceLink" target="_blank" href="../examples/components/ComboBoxDemoProject/src/components/ComboBoxDemo.java%20" onclick="showCode('../../displayCode.html', '../examples/components/ComboBoxDemoProject/src/components/ComboBoxDemo.java '); return false;"><code>ComboBoxDemo.java</code></a>, creates an uneditable combo box and sets it up:</p>
+<p>WHATSON? 6a20aaa1-af14-481d-869e-019324f43eea</p>
+<pre>
+String[] petStrings = { "Bird", "Cat", "Dog", "Rabbit", "Pig" };
+
+//Create the combo box, select item at index 4.
+//Indices start at 0, so 4 specifies the pig.
+JComboBox petList = new JComboBox(petStrings);
+petList.setSelectedIndex(4);
+petList.addActionListener(this);
+</pre>
+<p>This combo box contains an array of strings, but you could just as easily use icons instead. To put anything else into a combo box or to customize how the items in a combo box look, you need to write a custom renderer. An editable combo box would also need a custom editor. Refer to <a href="#renderer">Providing a Custom Renderer</a> for information and an example.</p>
+<p>The preceding code registers an action listener on the combo box. To see the action listener implementation and learn about other types of listeners supported by combo box, refer to <a href="#listeners">Handling Events on a Combo Box</a>.</p>
+<p>No matter which constructor you use, a combo box uses a combo box model to contain and manage the items in its menu. When you initialize a combo box with an array or a vector, the combo box creates a default model object for you. As with other Swing components, you can customize a combo box in part by implementing a custom model  an object that implements the 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/javax/swing/ComboBoxModel.html"><code>ComboBoxModel</code></a> interface. <a name="datsun" id="datsun"> </a></p>
+<p>Be careful when implementing a custom model for a combo box. The <code>JComboBox</code> methods that change the items in the combo box's menu, such as <code>insertItemAt</code>, work only if the data model implements the 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/javax/swing/MutableComboBoxModel.html"><code>MutableComboBoxModel</code></a> interface (a subinterface of <code>ComboBoxModel</code>). Refer to the <a href="#api">API</a> tables to see which methods are affected.</p>
+<p>Something else to watch out for  even for uneditable combo boxes  is ensuring that your custom model fires 
+<a class="TutorialLink" target="_top" href="../events/listdatalistener.html">list data events</a> when the combo box's data or state changes. Even immutable combo box models, whose data never changes, must fire a list data event (a <code>CONTENTS_CHANGED</code> event) when the selection changes. One way to get the list data event firing code for free is to make your combo box model a subclass of 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/javax/swing/AbstractListModel.html"><code>AbstractListModel</code></a>.</p>
+<h2><a name="listeners" id="listeners">Handling Events on a Combo Box</a></h2>
+<p>Here's the code from <code>ComboBoxDemo.java</code> that registers and implements an action listener on the combo box:</p>
+<p>WHATSON? bfb6e246-d524-44ad-b5f9-8da5a412017b</p>
+<pre>
+public class ComboBoxDemo ... implements ActionListener {
+    . . .
+        petList.addActionListener(this) {
+    . . .
+    public void actionPerformed(ActionEvent e) {
+        JComboBox cb = (JComboBox)e.getSource();
+        String petName = (String)cb.getSelectedItem();
+        updateLabel(petName);
+    }
+    . . .
+}
+</pre>
+<p>This action listener gets the newly selected item from the combo box, uses it to compute the name of an image file, and updates a label to display the image. The combo box fires an action event when the user selects an item from the combo box's menu. See 
+<a class="TutorialLink" target="_top" href="../events/actionlistener.html">How to Write an Action Listener</a>, for general information about implementing action listeners.</p>
+<p>Combo boxes also generate item events, which are fired when any of the items' selection state changes. Only one item at a time can be selected in a combo box, so when the user makes a new selection the previously selected item becomes unselected. Thus two item events are fired each time the user selects a different item from the menu. If the user chooses the same item, no item events are fired. Use <code>addItemListener</code> to register an item listener on a combo box. 
+<a class="TutorialLink" target="_top" href="../events/itemlistener.html">How to Write an Item Listener</a> gives general information about implementing item listeners.</p>
+<p>Although <code>JComboBox</code> inherits methods to register listeners for low-level events  focus, key, and mouse events, for example  we recommend that you don't listen for low-level events on a combo box. Here's why: A combo box is a <em>compound component</em>  it is comprised of two or more other components. The combo box itself fires high-level events such as action events. Its subcomponents fire low-level events such as mouse, key, and focus events. The low-level events and the subcomponent that fires them are look-and-feel-dependent. To avoid writing look-and-feel-dependent code, you should listen only for high-level events on a compound component such as a combo box. For information about events, including a discussion about high- and low-level events, refer to 
+<a class="TutorialLink" target="_top" href="../events/index.html">Writing Event Listeners</a>.</p>
+<h2><a name="editable" id="editable">Using an Editable Combo Box</a></h2>
+<p>Here's a picture of a demo application that uses an editable combo box to enter a pattern with which to format dates.</p>
+<ol><!-- *******  boilerplate stuff ******* -->
+<li>Click the Launch button to run the ComboBox2 Demo using 
+<a class="OutsideLink" target="_blank" href="http://www.oracle.com/technetwork/java/javase/javawebstart/index.html">Java™ Web Start</a> (<a href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">download JDK 7 or later</a>). Alternatively, to compile and run the example yourself, consult the <a href="../examples/components/index.html#ComboBoxDemo2">example index</a>.<a href="http://docs.oracle.com/javase/tutorialJWS/samples/uiswing/ComboBoxDemo2Project/ComboBoxDemo2.jnlp"><img src="../../images/jws-launch-button.png" width="88" height="23" align="bottom" alt="Launches the ComboBoxDemo2 example"></a><br>
+<p><!--  ******* end boilerplate stuff  *******  -->
+ <!-- 
+<li> <a href="http://docs.oracle.com/javase/tutorialJWS/samples/uiswing/ComboBoxDemo2Project/ComboBoxDemo2.jnlp">Run ComboBoxDemo2</a> (
+<a class="OutsideLink" target="_blank" href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">download JDK 7 or later</a>).    Or, to compile and run the example yourself,
+     consult the
+     <a href="../examples/components/index.html#ComboBoxDemo2">example index</a>.
+        
+        --></p>
+</li>
+<li>Enter a new pattern by choosing one from the combo box's menu. The program reformats the current date and time.</li>
+<li>Enter a new pattern by typing one in and pressing Enter. Again the program reformats the current date and time.</li>
+</ol>
+<p><!--  ******* end boilerplate stuff  *******  -->
+ <!-- 
+<li> <a href="http://docs.oracle.com/javase/tutorialJWS/samples/uiswing/ComboBoxDemo2Project/ComboBoxDemo2.jnlp">Run ComboBoxDemo2</a> (
+<a class="OutsideLink" target="_blank" href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">download JDK 7 or later</a>).    Or, to compile and run the example yourself,
+     consult the
+     <a href="../examples/components/index.html#ComboBoxDemo2">example index</a>.
+        
+        --></p>
+<p>The following code, taken from 
+<a class="SourceLink" target="_blank" href="../examples/components/ComboBoxDemo2Project/src/components/ComboBoxDemo2.java" onclick="showCode('../../displayCode.html', '../examples/components/ComboBoxDemo2Project/src/components/ComboBoxDemo2.java'); return false;"><code>ComboBoxDemo2.java</code></a>, creates and sets up the combo box:</p>
+<p>WHATSON? c7389096-0aa0-48d8-8c93-8aa06707eecb</p>
+<pre>
+String[] patternExamples = {
+         "dd MMMMM yyyy",
+         "dd.MM.yy",
+         "MM/dd/yy",
+         "yyyy.MM.dd G 'at' hh:mm:ss z",
+         "EEE, MMM d, ''yy",
+         "h:mm a",
+         "H:mm:ss:SSS",
+         "K:mm a,z",
+         "yyyy.MMMMM.dd GGG hh:mm aaa"
+};
+. . .
+JComboBox patternList = new JComboBox(patternExamples);
+<strong>patternList.setEditable(true);</strong>
+patternList.addActionListener(this);
+</pre>
+<p>This code is very similar to the previous example, but warrants a few words of explanation. The bold line of code explicitly turns on editing to allow the user to type values in. This is necessary because, by default, a combo box is not editable. This particular example allows editing on the combo box because its menu does not provide all possible date formatting patterns, just shortcuts to frequently used patterns.</p>
+<p>An editable combo box fires an action event when the user chooses an item from the menu and when the user types Enter. Note that the menu remains unchanged when the user enters a value into the combo box. If you want, you can easily write an action listener that adds a new item to the combo box's menu each time the user types in a unique value.</p>
+<p>See 
+<a class="TutorialLink" target="_top" href="../../i18n/index.html">Internationalization</a> to learn more about formatting dates and other types of data.</p>
+<h2><a name="renderer" id="renderer">Providing a Custom Renderer</a></h2>
+<p><a name="renderer__1" id="renderer__1">A combo box uses a <em>renderer</em> to display each item in its menu. If the combo box is uneditable, it also uses the renderer to display the currently selected item. An editable combo box, on the other hand, uses an <em>editor</em> to display the selected item. A renderer for a combo box must implement the 
+</a><a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/javax/swing/ListCellRenderer.html"><code>ListCellRenderer</code></a> interface. A combo box's editor must implement 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/javax/swing/ComboBoxEditor.html"><code>ComboBoxEditor</code></a>. This section shows how to provide a custom renderer for an uneditable combo box.</p>
+<p>The default renderer knows how to render strings and icons. If you put other objects in a combo box, the default renderer calls the <code>toString</code> method to provide a string to display. You can customize the way a combo box renders itself and its items by implementing your own <code>ListCellRenderer</code>.</p>
+<p>Here's a picture of an application that uses a combo box with a custom renderer:</p>
+<p>Click the Launch button to run the CustomComboBox Demo using 
+<a class="OutsideLink" target="_blank" href="http://www.oracle.com/technetwork/java/javase/javawebstart/index.html">Java™ Web Start</a> (<a href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">download JDK 7 or later</a>). Alternatively, to compile and run the example yourself, consult the <a href="../examples/components/index.html#CustomComboBoxDemo">example index</a>.</p>
+<p>The full source code for this example is in 
+<a class="SourceLink" target="_blank" href="../examples/components/CustomComboBoxDemoProject/src/components/CustomComboBoxDemo.java" onclick="showCode('../../displayCode.html', '../examples/components/CustomComboBoxDemoProject/src/components/CustomComboBoxDemo.java'); return false;"><code>CustomComboBoxDemo.java</code></a>. To get the image files it requires, consult the <a href="../examples/components/index.html#CustomComboBoxDemo">example index</a>.</p>
+<p>The following statements from the example create an instance of <code>ComboBoxRenderer</code> (a custom class) and set up the instance as the combo box's renderer:</p>
+<p>WHATSON? a917c0c6-9d9a-4170-8c10-9f557c03e696</p>
+<pre>
+JComboBox petList = new JComboBox(intArray);
+. . .
+ComboBoxRenderer renderer = new ComboBoxRenderer();
+renderer.setPreferredSize(new Dimension(200, 130));
+petList.setRenderer(renderer);
+petList.setMaximumRowCount(3);
+</pre>
+<p>The last line sets the combo box's maximum row count, which determines the number of items visible when the menu is displayed. If the number of items in the combo box is larger than its maximum row count, the menu has a scroll bar. The icons are pretty big for a menu, so our code limits the number of rows to 3. Here's the implementation of <code>ComboBoxRenderer</code>, a renderer that puts an icon and text side-by-side:</p>
+<p>WHATSON? a2102e8e-8ffd-4036-8830-b84160fbaac4</p>
+<pre>
+class ComboBoxRenderer extends JLabel
+                       implements ListCellRenderer {
+    . . .
+    public ComboBoxRenderer() {
+        setOpaque(true);
+        setHorizontalAlignment(CENTER);
+        setVerticalAlignment(CENTER);
+    }
+
+    /*
+     * This method finds the image and text corresponding
+     * to the selected value and returns the label, set up
+     * to display the text and image.
+     */
+    public Component getListCellRendererComponent(
+                                       JList list,
+                                       Object value,
+                                       int index,
+                                       boolean isSelected,
+                                       boolean cellHasFocus) {
+        //Get the selected index. (The index param isn't
+        //always valid, so just use the value.)
+        int selectedIndex = ((Integer)value).intValue();
+
+        if (isSelected) {
+            setBackground(list.getSelectionBackground());
+            setForeground(list.getSelectionForeground());
+        } else {
+            setBackground(list.getBackground());
+            setForeground(list.getForeground());
+        }
+
+        //Set the icon and text.  If icon was null, say so.
+        ImageIcon icon = images[selectedIndex];
+        String pet = petStrings[selectedIndex];
+        setIcon(icon);
+        if (icon != null) {
+            setText(pet);
+            setFont(list.getFont());
+        } else {
+            setUhOhText(pet + " (no image available)",
+                        list.getFont());
+        }
+
+        return this;
+    }
+    . . .
+}
+</pre>
+<p>As a <code>ListCellRenderer</code>, <code>ComboBoxRenderer</code> implements a method called <code>getListCellRendererComponent</code>, which returns a component whose <code>paintComponent</code> method is used to display the combo box and each of its items. The easiest way to display an image and an icon is to use a label. So <code>ComboBoxRenderer</code> is a subclass of label and returns itself. The implementation of <code>getListCellRendererComponent</code> configures the renderer to display the currently selected icon and its description.</p>
+<p>These arguments are passed to <code>getListCellRendererComponent</code>:</p>
+<ul>
+<li><code>JList list</code>  a list object used behind the scenes to display the items. The example uses this object's colors to set up foreground and background colors.</li>
+<li><code>Object value</code>  the object to render. An <code>Integer</code> in this example.</li>
+<li><code>int index</code>  the index of the object to render.</li>
+<li><code>boolean isSelected</code>  indicates whether the object to render is selected. Used by the example to determine which colors to use.</li>
+<li><code>boolean cellHasFocus</code>  indicates whether the object to render has the focus.</li>
+</ul>
+<p>Note that combo boxes and <a href="list.html">lists</a> use the same type of renderer  <code>ListCellRenderer</code>. You can save yourself some time by sharing renderers between combo boxes and lists, if it makes sense for your program.</p>
+<h2><a name="api" id="api">The Combo Box API</a></h2>
+<p>The following tables list the commonly used <code>JComboBox</code> constructors and methods. Other methods you are most likely to invoke on a <code>JComboBox</code> object are those it inherits from its superclasses, such as <code>setPreferredSize</code>. See <a href="jcomponent.html#api">The JComponent API</a> for tables of commonly used inherited methods.</p>
+<p>The API for using combo boxes falls into two categories:</p>
+<ul>
+<li><a href="#list">Setting or Getting the Items in the Combo Box's Menu</a></li>
+<li><a href="#configuring">Customizing the Combo Box's Operation</a></li>
+</ul>
+<p>
+</p>
+<h2><a name="eg" id="eg">Examples that Use Combo Boxes</a></h2>
+<p>This table shows the examples that use <code>JComboBox</code> and where those examples are described.</p>

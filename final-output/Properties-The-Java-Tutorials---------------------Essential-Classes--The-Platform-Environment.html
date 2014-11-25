@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Properties-The-Java-Tutorials---------------------Essential-Classes--The-Platform-Environment.html</title></head>
+<body>
+<h1>Properties</h1>
+<p><i>Properties</i> are configuration values managed as <i>key/value pairs</i>. In each pair, the key and value are both 
+<code>String</code> values. The key identifies, and is used to retrieve, the value, much as a variable name is used to retrieve the variable's value. For example, an application capable of downloading files might use a property named "download.lastDirectory" to keep track of the directory used for the last download.</p>
+<p>To manage properties, create instances of 
+<code>java.util.Properties</code>. This class provides methods for the following:</p>
+<ul>
+<li>loading key/value pairs into a <code>Properties</code> object from a stream,</li>
+<li>retrieving a value from its key,</li>
+<li>listing the keys and their values,</li>
+<li>enumerating over the keys, and</li>
+<li>saving the properties to a stream.</li>
+</ul>
+<p>For an introduction to streams, refer to the section 
+I/O Streams in the 
+Basic I/O lesson.</p>
+<p><code>Properties</code> extends 
+<code>java.util.Hashtable</code>. Some of the methods inherited from <code>Hashtable</code> support the following actions:</p>
+<ul>
+<li>testing to see if a particular key or value is in the <code>Properties</code> object,</li>
+<li>getting the current number of key/value pairs,</li>
+<li>removing a key and its value,</li>
+<li>adding a key/value pair to the <code>Properties</code> list,</li>
+<li>enumerating over the values or the keys,</li>
+<li>retrieving a value by its key, and</li>
+<li>finding out if the <code>Properties</code> object is empty.</li>
+</ul>
+<p>The <code>System</code> class maintains a <code>Properties</code> object that defines the configuration of the current working environment. For more about these properties, see System Properties. The remainder of this section explains how to use properties to manage application configuration.</p>
+<h2>Properties in the Application Life Cycle</h2>
+<p>The following figure illustrates how a typical application might manage its configuration data with a <code>Properties</code> object over the course of its execution.</p>
+<ul>
+<li><code>Starting Up</code><br>
+The actions given in the first three boxes occur when the application is starting up. First, the application loads the default properties from a well-known location into a <code>Properties</code> object. Normally, the default properties are stored in a file on disk along with the <code>.class</code> and other resource files for the application.<br>
+Next, the application creates another <code>Properties</code> object and loads the properties that were saved from the last time the application was run. Many applications store properties on a per-user basis, so the properties loaded in this step are usually in a specific file in a particular directory maintained by this application in the user's home directory. Finally, the application uses the default and remembered properties to initialize itself.<br>
+The key here is consistency. The application must always load and save properties to the same location so that it can find them the next time it's executed.<br>
+</li>
+<li><code>Running</code><br>
+During the execution of the application, the user may change some settings, perhaps in a Preferences window, and the <code>Properties</code> object is updated to reflect these changes. If the users changes are to be remembered in future sessions, they must be saved.
+</li>
+<li><code>Exiting</code><br>
+Upon exiting, the application saves the properties to its well-known location, to be loaded again when the application is next started up.
+</li>
+</ul>
+<h2>Setting Up the Properties Object</h2>
+<p>The following Java code performs the first two steps described in the previous section: loading the default properties and loading the remembered properties:</p>
+<p>WHATSON? 3cc912ee-406a-4d45-bb85-fad4f3a87c5d</p>
+<pre>
+. . .
+// create and load default properties
+Properties defaultProps = new Properties();
+FileInputStream in = new FileInputStream("defaultProperties");
+defaultProps.load(in);
+in.close();
+
+// create application properties with default
+Properties applicationProps = new Properties(defaultProps);
+
+// now load properties 
+// from last invocation
+in = new FileInputStream("appProperties");
+applicationProps.load(in);
+in.close();
+. . .
+</pre>
+<p>First, the application sets up a default <code>Properties</code> object. This object contains the set of properties to use if values are not explicitly set elsewhere. Then the load method reads the default values from a file on disk named <code>defaultProperties</code>.</p>
+<p>Next, the application uses a different constructor to create a second <code>Properties</code> object, <code>applicationProps</code>, whose default values are contained in <code>defaultProps</code>. The defaults come into play when a property is being retrieved. If the property can't be found in <code>applicationProps</code>, then its default list is searched.</p>
+<p>Finally, the code loads a set of properties into <code>applicationProps</code> from a file named <code>appProperties</code>. The properties in this file are those that were saved from the application the last time it was invoked, as explained in the next section.</p>
+<h2>Saving Properties</h2>
+<p>The following example writes out the application properties from the previous example using <code>Properties.store</code>. The default properties don't need to be saved each time because they never change.</p>
+<p>WHATSON? 07dbac2b-287d-4752-96c4-867914da6394</p>
+<pre>
+FileOutputStream out = new FileOutputStream("appProperties");
+applicationProps.store(out, "---No Comment---");
+out.close();
+</pre>
+<p>The <code>store</code> method needs a stream to write to, as well as a string that it uses as a comment at the top of the output.</p>
+<h2>Getting Property Information</h2>
+<p>Once the application has set up its <code>Properties</code> object, the application can query the object for information about various keys and values that it contains. An application gets information from a <code>Properties</code> object after start up so that it can initialize itself based on choices made by the user. The <code>Properties</code> class has several methods for getting property information:</p>
+<ul>
+<li><code>contains(Object value)</code> and  <code>containsKey(Object key)</code><br>
+Returns <code>true</code> if the value or the key is in the <code>Properties</code> object. <code>Properties</code> inherits these methods from <code>Hashtable</code>. Thus they accept <code>Object</code> arguments, but only <code>String</code> values should be used.
+</li>
+<li><code>getProperty(String key)</code> and <code>getProperty(String key, String default)</code><br>
+Returns the value for the specified property. The second version provides for a default value. If the key is not found, the default is returned.
+</li>
+<li><code>list(PrintStream s)</code> and <code>list(PrintWriter w)</code><br>
+Writes all of the properties to the specified stream or writer. This is useful for debugging.
+</li>
+<li><code>elements()</code>, <code>keys()</code>, and <code>propertyNames()</code><br>
+Returns an <code>Enumeration</code> containing the keys or values (as indicated by the method name) contained in the <code>Properties</code> object. The <code>keys</code> method only returns the keys for the object itself; the <code>propertyNames</code> method returns the keys for default properties as well.
+</li>
+<li><code>stringPropertyNames()</code><br>
+Like <code>propertyNames</code>, but returns a <code>Set&lt;String&gt;</code>, and only returns names of properties where both key and value are strings. Note that the <code>Set</code> object is not backed by the <code>Properties</code> object, so changes in one do not affect the other.
+</li>
+<li><code>size()</code><br>
+Returns the current number of key/value pairs.
+</li>
+</ul>
+<h2>Setting Properties</h2>
+<p>A user's interaction with an application during its execution may impact property settings. These changes should be reflected in the <code>Properties</code> object so that they are saved when the application exits (and calls the <code>store</code> method). The following methods change the properties in a <code>Properties</code> object:</p>
+<ul>
+<li><code>setProperty(String key, String value)</code><br>
+Puts the key/value pair in the <code>Properties</code> object.
+</li>
+<li><code>remove(Object key)</code><br>
+Removes the key/value pair associated with key.
+</li>
+</ul>
+</body>
+</html>

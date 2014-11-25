@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Links-Symbolic-or-Otherwise-The-Java-Tutorials---------------------Essential-Classes--Basic-IO.html</title></head>
+<body>
+<h1>Links, Symbolic or Otherwise</h1>
+<p>As mentioned previously, the <code>java.nio.file</code> package, and the <code>Path</code> class in particular, is "link aware." Every <code>Path</code> method either detects what to do when a symbolic link is encountered, or it provides an option enabling you to configure the behavior when a symbolic link is encountered.</p>
+<p>The discussion so far has been about 
+symbolic or <em>soft</em> links, but some file systems also support hard links. <em>Hard links</em> are more restrictive than symbolic links, as follows:</p>
+<ul>
+<li>The target of the link must exist.</li>
+<li>Hard links are generally not allowed on directories.</li>
+<li>Hard links are not allowed to cross partitions or volumes. Therefore, they cannot exist across file systems.</li>
+<li>A hard link looks, and behaves, like a regular file, so they can be hard to find.</li>
+<li>A hard link is, for all intents and purposes, the same entity as the original file. They have the same file permissions, time stamps, and so on. All attributes are identical.</li>
+</ul>
+<p>Because of these restrictions, hard links are not used as often as symbolic links, but the <code>Path</code> methods work seamlessly with hard links.</p>
+<p>Several methods deal specifically with links and are covered in the following sections:</p>
+<ul>
+<li>Creating a Symbolic Link</li>
+<li>Creating a Hard Link</li>
+<li>Detecting a Symbolic Link</li>
+<li>Finding the Target of a Link</li>
+</ul>
+<h2>Creating a Symbolic Link</h2>
+<p>If your file system supports it, you can create a symbolic link by using the 
+<code>createSymbolicLink(Path, Path, FileAttribute&lt;?&gt;)</code> method. The second <code>Path</code> argument represents the target file or directory and might or might not exist. The following code snippet creates a symbolic link with default permissions:</p>
+<p>WHATSON? a9fa964f-acc0-4ccb-ab5c-f7c500a4befc</p>
+<pre>
+Path newLink = ...;
+Path target = ...;
+try {
+    Files.createSymbolicLink(newLink, target);
+} catch (IOException x) {
+    System.err.println(x);
+} catch (UnsupportedOperationException x) {
+    // Some file systems do not support symbolic links.
+    System.err.println(x);
+}
+</pre>
+<p>The <code>FileAttributes</code> vararg enables you to specify initial file attributes that are set atomically when the link is created. However, this argument is intended for future use and is not currently implemented.</p>
+<h2>Creating a Hard Link</h2>
+<p>You can create a hard (or <em>regular</em>) link to an existing file by using the 
+<code>createLink(Path, Path)</code> method. The second <code>Path</code> argument locates the existing file, and it must exist or a <code>NoSuchFileException</code> is thrown. The following code snippet shows how to create a link:</p>
+<p>WHATSON? cd75bf47-ea13-42ff-a75d-440f8b6b85a8</p>
+<pre>
+Path newLink = ...;
+Path existingFile = ...;
+try {
+    Files.createLink(newLink, existingFile);
+} catch (IOException x) {
+    System.err.println(x);
+} catch (UnsupportedOperationException x) {
+    // Some file systems do not
+    // support adding an existing
+    // file to a directory.
+    System.err.println(x);
+}
+</pre>
+<h2>Detecting a Symbolic Link</h2>
+<p>To determine whether a <code>Path</code> instance is a symbolic link, you can use the 
+<code>isSymbolicLink(Path)</code> method. The following code snippet shows how:</p>
+<p>WHATSON? 6a521404-56f8-476a-b83c-6a1db0c2532e</p>
+<pre>
+Path file = ...;
+boolean isSymbolicLink =
+    Files.isSymbolicLink(file);
+</pre>
+<p>For more information, see 
+Managing Metadata.</p>
+<h2>Finding the Target of a Link</h2>
+<p>You can obtain the target of a symbolic link by using the 
+<code>readSymbolicLink(Path)</code> method, as follows:</p>
+<p>WHATSON? 7e5d64d8-7f17-4dd6-8496-4df20e736470</p>
+<pre>
+Path link = ...;
+try {
+    System.out.format("Target of link" +
+        " '%s' is '%s'%n", link,
+        Files.readSymbolicLink(link));
+} catch (IOException x) {
+    System.err.println(x);
+}
+</pre>
+<p>If the <code>Path</code> is not a symbolic link, this method throws a <code>NotLinkException</code>.</p>
+</body>
+</html>

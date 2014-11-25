@@ -1,0 +1,119 @@
+<h1>How to Use Modality in Dialogs</h1>
+<p>Java™ SE 6 has resolved modality issues that arose in earlier versions of the platform. The new modality model enables the developer to scope, or limit, a dialog box's modality blocking.</p>
+<p>Before proceding with the new modality model, review the following terms:</p>
+<ul>
+<li>Dialog box — A top-level pop-up window with a title and a border that typically takes some form of input from the user. A dialog box can be modal or modeless. For more information about dialog boxes, see 
+<a class="TutorialLink" target="_top" href="../components/dialog.html#overview">An Overview of Dialogs</a> in the 
+<a class="TutorialLink" target="_top" href="../components/dialog.html">How to Make Dialogs</a> page.</li>
+<li>Modal dialog box — A dialog box that blocks input to some other top-level windows in the application, except for windows created with the dialog box as their owner. The modal dialog box captures the window focus until it is closed, usually in response to a button press.</li>
+<li>Modeless dialog box — A dialog box that enables you to operate with other windows while this dialog box is shown.</li>
+</ul>
+<p>In Java SE 6 the behavior of both modal and modeless dialog boxes has been changed so that they always appear on top of both not only of their parent windows and of all blocked windows as well.</p>
+<p>The following modality types are supported in Java SE 6:</p>
+<ul>
+<li><strong>Modeless type</strong> — A modeless dialog box does not block any other window while it is visible.</li>
+<li><strong>Document-modal type</strong> — A document-modal dialog box blocks all windows from the same document, except windows from its child hierarchy. In this context, a document is a hierarchy of windows that share a common ancestor, called the document root, which is the closest ancestor window without an owner.</li>
+<li><strong>Application-modal type</strong> — An application-modal dialog box blocks all windows from the same application, except windows from its child hierarchy. If several applets are launched in a browser environment, the browser is allowed to treat them either as separate applications or as a single application. This behavior is implementation-dependent.</li>
+<li><strong>Toolkit-modal type</strong> — A toolkit-modal dialog box blocks all windows that run in the same toolkit, except windows from its child hierarchy. If several applets are launched, all of them run with the same toolkit. Hence, a toolkit-modal dialog box shown from an applet may affect other applets and all windows of the browser instance that embeds the Java runtime environment for this toolkit.</li>
+</ul>
+<p>Additionally, you can set up the modality exclusion mode:</p>
+<ul>
+<li><strong>Exclusion mode</strong> — Any top-level window can be marked not to be blocked by modal dialogs. This property enables you to set up the <em>modal exclusion</em> mode. The <code>Dialog.ModalExclusionType</code> enum specifies the possible modal exclusion types.</li>
+</ul>
+<p>The ModalityDemo example demonstrates the first three of the four modality types mentioned above.</p>
+<ol>
+<li>Click the Launch button to run ModalityDemo using 
+<a class="OutsideLink" target="_blank" href="http://www.oracle.com/technetwork/java/javase/javawebstart/index.html">Java™ Web Start</a> (<a href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">download JDK 7 or later</a>). Alternatively, to compile and run the example yourself, consult the <a href="../examples/misc/index.html#ModalityDemo">example index</a>.<a href="http://docs.oracle.com/javase/tutorialJWS/samples/uiswing/ModalityDemoProject/ModalityDemo.jnlp"><img src="../../images/jws-launch-button.png" width="88" align="bottom" alt="Launches the ModalityDemo application"></a><br></li>
+<li>The following dialog boxes will appear:
+<ul>
+<li>Book 1 (parent frame)</li>
+<li>Book 2 (parent frame)</li>
+<li>Feedback (parent frame)</li>
+<li>Classics (excluded frame)</li>
+</ul>
+</li>
+<li>Switch to the Book 1 frame and choose the Biography title for the book, then select OK.</li>
+<li>The Biography title will be displayed in the title of the dialog box. Enter the name, for example - “John”, into the text field.</li>
+<li>Switch to the Book 1 frame and change the title to Funny Tale, then select OK. Since the dialog box for entering the name is <em>modeless</em>, you can easily switch to its <em>parent</em> frame.
+<div class="note"><hr><strong>Note :</strong> The modeless dialog box title has been changed to Funny Tale.
+<hr></div>
+</li>
+<li>Select OK in the modeless dialog box.</li>
+<li>The Funny tale document-modal dialog box appears.</li>
+<li>Type some text in the text field. Notice that it is signed by the name you entered in the modeless dialog box.</li>
+<li>Switch to the modeless dialog box and try to change your name. You will not be able to do so, because the document-modal dialog box blocks all windows in its parent hierarchy.</li>
+<li>Perform the same sequence of operations (steps 3 - 9) for the Book 2 parent frame.</li>
+<li>Try switching to different dialog boxes. You will notice that you can switch either to the Classics frame or to the Feedback frame as well as to the dialog box of either the Book 1 frame or the Book 2 frame.</li>
+<li>Switch to the Feedback parent frame. Select Rate Yourself.</li>
+<li>The confirmation dialog box will appear. Try switching to different dialog boxes. You are only enabled to switch to the Classics dialog box because the standard confirmation dialog box is an application-modal dialog box and it blocks all windows from the same application. However, you will notice that you can select your favorite classical author in the Classics frame. This frame has been created by using the <code>APPLICATION_EXCLUDE</code> modality exclusion type, which prevents all top-level windows from being blocked by any application-modal dialog boxes.</li>
+</ol>
+<ul>
+<li>Book 1 (parent frame)</li>
+<li>Book 2 (parent frame)</li>
+<li>Feedback (parent frame)</li>
+<li>Classics (excluded frame)</li>
+</ul>
+<p>The following code snippet shows how to create dialog boxes of different modality types:</p>
+<p>WHATSON? 18f118ff-de74-4f4a-b19d-28db6c461eef</p>
+<pre>
+//The Book 1 parent frame
+f1 = new JFrame("Book 1 (parent frame)");
+
+...
+
+//The modeless dialog box
+d2 = new JDialog(f1);
+
+...
+        
+//The document-modal dialog box
+d3 = new JDialog(d2, "", Dialog.ModalityType.DOCUMENT_MODAL);
+
+...
+
+        //The Book2 parent frame
+f4 = new JFrame("Book 2 (parent frame)");
+
+...
+
+//The modeless dialog box
+d5 = new JDialog(f4);
+
+...
+
+//The document-modality dialog box
+d6 = new JDialog(d5, "", Dialog.ModalityType.DOCUMENT_MODAL);
+        
+...
+
+//The excluded frame
+f7 = new JFrame("Classics (excluded frame)");
+f7.setModalityExclusionType(Dialog.ModalExclusionType.APPLICATION_EXCLUDED);
+        
+...
+
+//The Feedback parent frame and Confirm Dialog box
+f8 = new JFrame("Feedback (parent frame)");
+...
+
+JButton b8 = new JButton("Rate yourself");
+b8.addActionListener(new ActionListener() {
+    public void actionPerformed(ActionEvent e) {
+        JOptionPane.showConfirmationDialog(null,
+                                           "I really like my book",
+                                           "Question (application-modal dialog)", 
+                                           JOptionPane.Yes_NO_OPTION,
+                                           JOptionPane.QUESTION_MESSAGE); 
+    }
+});
+
+</pre>
+<p>Find the demo's complete code in the 
+<a class="SourceLink" target="_blank" href="../examples/misc/ModalityDemoProject/src/misc/ModalityDemo.java" onclick="showCode('../../displayCode.html', '../examples/misc/ModalityDemoProject/src/misc/ModalityDemo.java'); return false;"><code>ModalityDemo.java</code></a> file.</p>
+<p>In Java SE 6 you can create a document-modal dialog box without a parent. Because the <code>Dialog</code> class is a subclass of the <code>Window</code> class, a <code>Dialog</code> instance automatically becomes the root of the document if it has no owner. Thus, if such a dialog box is document-modal, its scope of blocking is empty, and it behaves as if it were a modeless dialog box.</p>
+<h2><a name="api" id="api">The Modality API</a></h2>
+<p style="text-align: center">The <code>JDialog</code> class constructors enable you to create dialog boxes of various modality types.</p>
+<p style="text-align: center">The following table lists methods inherited from the 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/awt/Dialog.html"><code>java.awt.Dialog</code></a> class.</p>
+<h2><a name="eg" id="eg">Examples That Use Modality API</a></h2>
+<p>The following table lists the example that uses modality in dialogs.</p>

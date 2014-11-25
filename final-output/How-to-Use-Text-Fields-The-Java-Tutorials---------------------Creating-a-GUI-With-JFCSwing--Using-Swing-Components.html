@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>How-to-Use-Text-Fields-The-Java-Tutorials---------------------Creating-a-GUI-With-JFCSwing--Using-Swing-Components.html</title></head>
+<body>
+<h1>How to Use Text Fields</h1>
+<p>A text field is a basic text control that enables the user to type a small amount of text. When the user indicates that text entry is complete (usually by pressing Enter), the text field fires an 
+action event. If you need to obtain more than one line of input from the user, use a text area.</p>
+<p>The Swing API provides several classes for components that are either varieties of text fields or that include text fields.</p>
+<p>The following example displays a basic text field and a text area. The text field is editable. The text area is not editable. When the user presses Enter in the text field, the program copies the text field's contents to the text area, and then selects all the text in the text field.</p>
+<p>Click the Launch button to run TextDemo using 
+Java™ Web Start (download JDK 7 or later). Alternatively, to compile and run the example yourself, consult the example index.</p>
+<p>You can find the entire code for this program in 
+<code>TextDemo.java</code>. The following code creates and sets up the text field:</p>
+<p>WHATSON? 4859dd55-d0fb-4ccf-9174-d305448b5b50</p>
+<pre>
+textField = new JTextField(20);
+</pre>
+<p>The integer argument passed to the <code>JTextField</code> constructor, <code>20</code> in the example, indicates the number of columns in the field. This number is used along with metrics provided by the field's current font to calculate the field's preferred width. It does not limit the number of characters the user can enter. To do that, you can either use a formatted text field or a document listener, as described in Text Component Features.</p>
+<p>We encourage you to specify the number of columns for each text field. If you do not specify the number of columns or a preferred size, then the field's preferred size changes whenever the text changes, which can result in unwanted layout updates.</p>
+<p>The next line of code registers a <code>TextDemo</code> object as an action listener for the text field.</p>
+<p>WHATSON? 91b3dd1f-4d1d-453d-8a71-37b20b25c748</p>
+<pre>
+textField.addActionListener(this);
+</pre>
+<p>The <code>actionPerformed</code> method handles action events from the text field:</p>
+<p>WHATSON? 8ad80ce8-ba78-43a3-b276-1be60e406f92</p>
+<pre>
+private final static String newline = "\n";
+...
+public void actionPerformed(ActionEvent evt) {
+    String text = textField.getText();
+    textArea.append(text + newline);
+    textField.selectAll();
+}
+</pre>
+<p>Notice the use of <code>JTextField</code>'s <code>getText</code> method to retrieve the text currently contained by the text field. The text returned by this method does <em>not</em> include a newline character for the Enter key that fired the action event.</p>
+<p>You have seen how a basic text field can be used. Because the <code>JTextField</code> class inherits from the <code>JTextComponent</code> class, text fields are very flexible and can be customized almost any way you like. For example, you can add a document listener or a document filter to be notified when the text changes, and in the filter case you can modify the text field accordingly. Information on text components can be found in Text Component Features. Before customizing a <code>JTextField</code>, however, make sure that one of the other components based on text fields will not do the job for you.</p>
+<p>Often text fields are paired with labels that describe the text fields. See Examples That Use Text Fields for pointers on creating these pairs.</p>
+<h2>Another Example: TextFieldDemo</h2>
+<p>The <code>TextFieldDemo</code> example introduces a text field and a text area. You can find the entire code for this program in 
+<code>TextFieldDemo.java</code>.</p>
+<p>As you type characters in the text field the program searches for the typed text in the text area. If the entry is found it gets highlighted. If the program fails to find the entry then the text field's background becomes pink. A status bar below the text area displays a message whether text is found or not. The Escape key is used to start a new search or to finish the current one. Here is a picture of the <code>TextFieldDemo</code> application.</p>
+<p>Click the Launch button ro run TextFieldDemo using 
+Java™ Web Start (download JDK 7 or later). Alternatively, to compile and run the example yourself, consult the example index.</p>
+<p>To highlight text, this example uses a highlighter and a painter. The code below creates and sets up the highlighter and the painter for the text area.</p>
+<p>WHATSON? 85bade19-afa4-4dc6-a736-374fa169641a</p>
+<pre>
+final Highlighter hilit;
+final Highlighter.HighlightPainter painter;
+...
+hilit = new DefaultHighlighter();
+painter = new DefaultHighlighter.DefaultHighlightPainter(HILIT_COLOR);
+textArea.setHighlighter(hilit);
+</pre>
+<p>This code adds a document listener to the text field's document.</p>
+<p>WHATSON? 6db66b4c-73d8-491c-b2a0-e6e2d3c7498d</p>
+<pre>
+entry.getDocument().addDocumentListener(this);
+</pre>
+<p>Document listener's <code>insertUpdate</code> and <code>removeUpdate</code> methods call the <code>search</code> method, which not only performs a search in the text area but also handles highlighting. The following code highlights the found text, sets the caret to the end of the found match, sets the default background for the text field, and displays a message in the status bar.</p>
+<p>WHATSON? 4877da19-136e-4dd8-b299-4657dad60422</p>
+<pre>
+hilit.addHighlight(index, end, painter);
+textArea.setCaretPosition(end);
+entry.setBackground(entryBg);
+message("'" + s + "' found. Press ESC to end search");
+</pre>
+<p>The status bar is a <code>JLabel</code> object. The code below shows how the <code>message</code> method is implemented.</p>
+<p>WHATSON? 10389590-2f5a-4bf8-b828-38cd93ccf854</p>
+<pre>
+private JLabel status;
+...
+void message(String msg) {
+    status.setText(msg);
+}
+</pre>
+<p>If there is no match in the text area, the following code changes the text field's background to pink and displays a proper information message.</p>
+<p>WHATSON? 965b10e1-8a02-4d83-bd05-4da4d41c74d6</p>
+<pre>
+entry.setBackground(ERROR_COLOR);
+message("'" + s + "' not found. Press ESC to start a new search");
+</pre>
+<p>The <code>CancelAction</code> class is responsible for handling the Escape key as follows.</p>
+<p>WHATSON? f3f6a3ba-31b9-4414-b46e-1aa52a78f8a1</p>
+<pre>
+   class CancelAction extends AbstractAction {
+       public void actionPerformed(ActionEvent ev) {
+               hilit.removeAllHighlights();
+               entry.setText("");
+               entry.setBackground(entryBg);
+           }
+   }
+</pre>
+<h2>The Text Field API</h2>
+<p>The following tables list the commonly used <code>JTextField</code> constructors and methods. Other methods you are likely to call are defined in the <code>JTextComponent</code> class. Refer to The Text Component API.</p>
+<p>You might also invoke methods on a text field inherited from the text field's other ancestors, such as <code>setPreferredSize</code>, <code>setForeground</code>, <code>setBackground</code>, <code>setFont</code>, and so on. See The JComponent Class for tables of commonly used inherited methods.</p>
+<p>The API for using text fields falls into these categories:</p>
+<ul>
+<li>Setting or Obtaining the Field's Contents</li>
+<li>Fine Tuning the Field's Appearance</li>
+<li>Implementing the Field's Functionality</li>
+</ul>
+<h2>Examples That Use Text Fields</h2>
+<p>This table shows a few of the examples that use text fields and points to where those examples are described. For examples of code that are similar among all varieties of text fields such as dealing with layout, look at the example lists for related components such as formatted text fields and spinners.</p>
+<p>WHATSON? 6e40bb8f-4f84-4af8-8996-cbc10b01e632</p>
+<pre>
+addLabelTextRows(JLabel[] <em>labels</em>,
+                 JTextField[] <em>textFields</em>,
+                 GridBagLayout <em>gridbag</em>,
+                 Container <em>container</em>)
+</pre>
+<p>WHATSON? 869768e2-f643-42e6-9162-34e9c15c49b7</p>
+<pre>
+makeCompactGrid(Container <em>parent</em>,
+                int <em>rows</em>, int <em>cols</em>,
+                int <em>initialX</em>, int <em>initialY</em>,
+                int <em>xPad</em>, int <em>yPad</em>)
+</pre>
+<p>If you are programming in JavaFX, see
+Text Field.</p>
+</body>
+</html>

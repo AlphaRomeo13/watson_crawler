@@ -1,0 +1,228 @@
+<h1>Overriding and Hiding Methods</h1>
+<h2>Instance Methods</h2>
+<p>An instance method in a subclass with the same signature (name, plus the number and the type of its parameters) and return type as an instance method in the superclass <i>overrides</i> the superclass's method.</p>
+<p>The ability of a subclass to override a method allows a class to inherit from a superclass whose behavior is "close enough" and then to modify behavior as needed. The overriding method has the same name, number and type of parameters, and return type as the method that it overrides. An overriding method can also return a subtype of the type returned by the overridden method. This subtype is called a <i>covariant return type</i>.</p>
+<p>When overriding a method, you might want to use the <code>@Override</code> annotation that instructs the compiler that you intend to override a method in the superclass. If, for some reason, the compiler detects that the method does not exist in one of the superclasses, then it will generate an error. For more information on <code>@Override</code>, see 
+<a class="TutorialLink" target="_top" href="../annotations/index.html"><code>Annotations</code></a>.</p>
+<h2>Static Methods</h2>
+<p>If a subclass defines a static method with the same signature as a static method in the superclass, then the method in the subclass <i>hides</i> the one in the superclass.</p>
+<p>The distinction between hiding a static method and overriding an instance method has important implications:</p>
+<ul>
+  <li>The version of the overridden instance method that gets invoked is the one in the subclass.</li>
+  <li>The version of the hidden static method that gets invoked depends on whether it is invoked from the superclass or the subclass.</li>
+</ul>
+<p>Consider an example that contains two classes. The first is <code>Animal</code>, which contains one instance method and one static method:</p>
+<p>WHATSON? c4105402-f059-4cdb-a8f0-c52a041975a2</p>
+<pre>
+public class Animal {
+    public static void testClassMethod() {
+        System.out.println("The static method in Animal");
+    }
+    public void testInstanceMethod() {
+        System.out.println("The instance method in Animal");
+    }
+}
+</pre>
+<p>The second class, a subclass of <code>Animal</code>, is called <code>Cat</code>:</p>
+<p>WHATSON? a785f235-612f-422c-96bc-ec61fe254eed</p>
+<pre>
+public class Cat extends Animal {
+    public static void testClassMethod() {
+        System.out.println("The static method in Cat");
+    }
+    public void testInstanceMethod() {
+        System.out.println("The instance method in Cat");
+    }
+
+    public static void main(String[] args) {
+        Cat myCat = new Cat();
+        Animal myAnimal = myCat;
+        Animal.testClassMethod();
+        myAnimal.testInstanceMethod();
+    }
+}
+</pre>
+<p>The <code>Cat</code> class overrides the instance method in <code>Animal</code> and hides the static method in <code>Animal</code>. The <code>main</code> method in this class creates an instance of <code>Cat</code> and invokes <code>testClassMethod()</code> on the class and <code>testInstanceMethod()</code> on the instance.</p>
+<p>The output from this program is as follows:</p>
+<p>WHATSON? fdad8934-d2dd-4ce7-b2c8-ce9672edd8ac</p>
+<pre>
+The static method in Animal
+The instance method in Cat
+</pre>
+<p>As promised, the version of the hidden static method that gets invoked is the one in the superclass, and the version of the overridden instance method that gets invoked is the one in the subclass.</p>
+<h2><a name="default">Interface Methods</a></h2>
+<p> 
+<a class="TutorialLink" target="_top" href="../../java/IandI/defaultmethods.html">Default methods</a> and 
+<a class="TutorialLink" target="_top" href="../../java/IandI/abstract.html">abstract methods</a> in interfaces are inherited like instance methods. However, when the supertypes of a class or interface provide multiple default methods with the same signature, the Java compiler follows inheritance rules to resolve the name conflict. These rules are driven by the following two principles:</p>
+<ul>
+  <li>
+    <p>Instance methods are preferred over interface default methods.</p>
+  
+    <p>Consider the following classes and interfaces:</p>
+
+<pre class="codeblock">public class Horse {
+    public String identifyMyself() {
+        return "I am a horse.";
+    }
+}</pre>
+
+<pre class="codeblock">public interface Flyer {
+    default public String identifyMyself() {
+        return "I am able to fly.";
+    }
+}</pre>
+
+<pre class="codeblock">public interface Mythical {
+    default public String identifyMyself() {
+        return "I am a mythical creature.";
+    }
+}</pre>
+
+<pre class="codeblock">public class Pegasus extends Horse implements Flyer, Mythical {
+    public static void main(String... args) {
+        Pegasus myApp = new Pegasus();
+        System.out.println(myApp.identifyMyself());
+    }
+}</pre>
+
+    <p>The method <code>Pegasus.identifyMyself</code> returns the string <code>I am a horse.</code></p>
+  </li>
+  
+  <li><p>Methods that are already overridden by other candidates are ignored. This circumstance can arise when supertypes share a common ancestor.</p>
+  
+  <p>Consider the following interfaces and classes:</p>
+
+<pre class="codeblock">public interface Animal {
+    default public String identifyMyself() {
+        return "I am an animal.";
+    }
+}</pre>
+
+<pre class="codeblock">public interface EggLayer extends Animal {
+    default public String identifyMyself() {
+        return "I am able to lay eggs.";
+    }
+}</pre>
+
+<pre class="codeblock">public interface FireBreather extends Animal { }</pre>
+
+<pre class="codeblock">public class Dragon implements EggLayer, FireBreather {
+    public static void main (String... args) {
+        Dragon myApp = new Dragon();
+        System.out.println(myApp.identifyMyself());
+    }
+}</pre>
+
+<p>The method <code>Dragon.identifyMyself</code> returns the string <code>I am able to lay eggs.</code></p>
+</li>
+</ul>
+<p>Instance methods are preferred over interface default methods.</p>
+<p>Consider the following classes and interfaces:</p>
+<p>WHATSON? c3e742fd-2a7f-497a-b46a-c5428c29e946</p>
+<pre class="codeblock">public class Horse {
+    public String identifyMyself() {
+        return "I am a horse.";
+    }
+}</pre>
+<p>WHATSON? aaa77383-ed5d-4034-9cc6-058bc2e0585a</p>
+<pre class="codeblock">public interface Flyer {
+    default public String identifyMyself() {
+        return "I am able to fly.";
+    }
+}</pre>
+<p>WHATSON? d9984416-bdc2-41d5-a9b5-80a020c415cd</p>
+<pre class="codeblock">public interface Mythical {
+    default public String identifyMyself() {
+        return "I am a mythical creature.";
+    }
+}</pre>
+<p>WHATSON? 7f974d37-ba06-48a6-9c59-edefc2097e8c</p>
+<pre class="codeblock">public class Pegasus extends Horse implements Flyer, Mythical {
+    public static void main(String... args) {
+        Pegasus myApp = new Pegasus();
+        System.out.println(myApp.identifyMyself());
+    }
+}</pre>
+<p>The method <code>Pegasus.identifyMyself</code> returns the string <code>I am a horse.</code></p>
+<p>Methods that are already overridden by other candidates are ignored. This circumstance can arise when supertypes share a common ancestor.</p>
+<p>Consider the following interfaces and classes:</p>
+<p>WHATSON? d27138d7-1cb8-4ad9-83e0-650fef5f8793</p>
+<pre class="codeblock">public interface Animal {
+    default public String identifyMyself() {
+        return "I am an animal.";
+    }
+}</pre>
+<p>WHATSON? 95d84c5f-b11b-4dc8-9816-d75a66d716be</p>
+<pre class="codeblock">public interface EggLayer extends Animal {
+    default public String identifyMyself() {
+        return "I am able to lay eggs.";
+    }
+}</pre>
+<p>WHATSON? 686ba6c5-6b6f-4b57-9df8-b1ceae0c49fc</p>
+<pre class="codeblock">public interface FireBreather extends Animal { }</pre>
+<p>WHATSON? c9a3b348-e7eb-4a95-9865-bd0dc49b7074</p>
+<pre class="codeblock">public class Dragon implements EggLayer, FireBreather {
+    public static void main (String... args) {
+        Dragon myApp = new Dragon();
+        System.out.println(myApp.identifyMyself());
+    }
+}</pre>
+<p>The method <code>Dragon.identifyMyself</code> returns the string <code>I am able to lay eggs.</code></p>
+<p>If two or more independently defined default methods conflict, or a default method conflicts with an abstract method, then the Java compiler produces a compiler error. You must explicitly override the supertype methods.</p>
+<p>Consider the example about computer-controlled cars that can now fly. You have two interfaces (<code>OperateCar</code> and <code>FlyCar</code>) that provide default implementations for the same method, (<code>startEngine</code>):</p>
+<p>WHATSON? 8b0b26b7-2621-4ed1-8579-99594ec5041c</p>
+<pre class="codeblock">public interface OperateCar {
+    // ...
+    default public int startEngine(EncryptedKey key) {
+        // Implementation
+    }
+}</pre>
+<p>WHATSON? cdfc74f6-0aaa-471b-84f3-06fc365401a1</p>
+<pre class="codeblock">public interface FlyCar {
+    // ...
+    default public int startEngine(EncryptedKey key) {
+        // Implementation
+    }
+}</pre>
+<p>A class that implements both <code>OperateCar</code> and <code>FlyCar</code> must override the method <code>startEngine</code>. You could invoke any of the of the default implementations with the <code>super</code> keyword.</p>
+<p>WHATSON? 39a0966c-1f9c-4e2a-81dc-b45e491eb4d5</p>
+<pre class="codeblock">public class FlyingCar implements OperateCar, FlyCar {
+    // ...
+    public int startEngine(EncryptedKey key) {
+        FlyCar.super.startEngine(key);
+        OperateCar.super.startEngine(key);
+    }
+}</pre>
+<p>The name preceding <code>super</code> (in this example, <code>FlyCar</code> or <code>OperateCar</code>) must refer to a direct superinterface that defines or inherits a default for the invoked method. This form of method invocation is not restricted to differentiating between multiple implemented interfaces that contain default methods with the same signature. You can use the <code>super</code> keyword to invoke a default method in both classes and interfaces.</p>
+<p>Inherited instance methods from classes can override abstract interface methods. Consider the following interfaces and classes:</p>
+<p>WHATSON? c30a0aa4-ae96-47af-b534-8849e98b43ce</p>
+<pre>
+public interface Mammal {
+    String identifyMyself();
+}
+</pre>
+<p>WHATSON? 200e2914-feaf-4574-9621-2eb12cc05415</p>
+<pre>
+public class Horse {
+    public String identifyMyself() {
+        return "I am a horse.";
+    }
+}
+</pre>
+<p>WHATSON? 70f6b42d-df84-4647-93f7-c403a68fd4b4</p>
+<pre>
+public class Mustang extends Horse implements Mammal {
+    public static void main(String... args) {
+        Mustang myApp = new Mustang();
+        System.out.println(myApp.identifyMyself());
+    }
+}
+</pre>
+<p>The method <code>Mustang.identifyMyself</code> returns the string <code>I am a horse.</code> The class <code>Mustang</code> inherits the method <code>identifyMyself</code> from the class <code>Horse</code>, which overrides the abstract method of the same name in the interface <code>Mammal</code>.</p>
+<p><strong>Note</strong>: Static methods in interfaces are never inherited.</p>
+<h2>Modifiers</h2>
+<p>The access specifier for an overriding method can allow more, but not less, access than the overridden method. For example, a protected instance method in the superclass can be made public, but not private, in the subclass.</p>
+<p>You will get a compile-time error if you attempt to change an instance method in the superclass to a static method in the subclass, and vice versa.</p>
+<h2>Summary</h2>
+<p>
+<span id="table:override-method">The following table</span> summarizes what happens when you define a method with the same signature as a method in a superclass.</p>

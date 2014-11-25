@@ -1,0 +1,46 @@
+<h1 id="firstHeading" class="firstHeading" lang="en"><span dir="auto">Object slicing</span></h1>
+<p>In <a href="/wiki/Object-oriented_programming" title="Object-oriented programming">object-oriented programming</a>, a subclass typically extends its superclass by defining additional member variables. If a superclass instance is assigned its value from a subclass instance, member variables defined in the subclass cannot be copied, since the superclass has no place to store them. This is a natural and unavoidable consequence of assignment by value from subclass objects. The term <i>object slicing</i> is sometimes used to refer to this aspect of assignment by value to a superclass instance.</p>
+<p><i>Object slicing</i> is also used to refer to a more subtle, problematic, case in which an object assignment by value appears to be to a superclass instance but is actually to a subclass instance. From the perspective of object memory layout, the member variables of the source instance can be thought of as having been "sliced off", <i>leaving the corresponding member variables in the destination instance unchanged</i>. It is this <i>partial assignment</i> (arguably a more apt term) that often surprises programmers and leads to unintended consequences.</p>
+<p>Unexpected object slicing can happen in languages such as <a href="/wiki/C%2B%2B" title="C++">C++</a> in which assignment by value is not <a href="/wiki/Polymorphism_in_object-oriented_programming" title="Polymorphism in object-oriented programming" class="mw-redirect">polymorphic</a>. It is not possible in the <a href="/wiki/D_(programming_language)" title="D (programming language)">D programming language</a>, which allows object inheritance only through <a href="/wiki/Reference_type" title="Reference type">reference types</a>.</p>
+<h2><span class="mw-headline" id="Example_in_C.2B.2B">Example in C++</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Object_slicing&amp;action=edit&amp;section=1" title="Edit section: Example in C++">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>WHATSON? f0ce8fb6-fbc4-4441-a4e9-cdbfa172a2e2</p>
+<pre class="de1">
+<span class="kw4">struct</span> A
+<span class="br0">{</span>
+    A<span class="br0">(</span><span class="kw4">int</span> a<span class="br0">)</span> <span class="sy4">:</span> a_var<span class="br0">(</span>a<span class="br0">)</span> <span class="br0">{</span><span class="br0">}</span>
+    <span class="kw4">int</span> a_var<span class="sy4">;</span>
+<span class="br0">}</span><span class="sy4">;</span>
+ 
+<span class="kw4">struct</span> B <span class="sy4">:</span> <span class="kw2">public</span> A
+<span class="br0">{</span>
+    B<span class="br0">(</span><span class="kw4">int</span> a, <span class="kw4">int</span> b<span class="br0">)</span> <span class="sy4">:</span> A<span class="br0">(</span>a<span class="br0">)</span>, b_var<span class="br0">(</span>b<span class="br0">)</span> <span class="br0">{</span><span class="br0">}</span>
+    <span class="kw4">int</span> b_var<span class="sy4">;</span>
+<span class="br0">}</span><span class="sy4">;</span>
+ 
+B <span class="sy3">&amp;</span>getB<span class="br0">(</span><span class="br0">)</span>
+<span class="br0">{</span>
+    <span class="kw4">static</span> B b<span class="br0">(</span><span class="nu0">1</span>, <span class="nu0">2</span><span class="br0">)</span><span class="sy4">;</span>
+    <span class="kw1">return</span> b<span class="sy4">;</span>
+<span class="br0">}</span>
+ 
+<span class="kw4">int</span> main<span class="br0">(</span><span class="br0">)</span>
+<span class="br0">{</span>
+    <span class="co1">// Normal assignment by value to a</span>
+    A a<span class="br0">(</span><span class="nu0">3</span><span class="br0">)</span><span class="sy4">;</span>
+    a <span class="sy1">=</span> getB<span class="br0">(</span><span class="br0">)</span><span class="sy4">;</span>
+    <span class="co1">// a.a_var == 1, b.b_var not copied to a</span>
+ 
+    B b2<span class="br0">(</span><span class="nu0">3</span>, <span class="nu0">4</span><span class="br0">)</span><span class="sy4">;</span>
+    A <span class="sy3">&amp;</span>a2 <span class="sy1">=</span> b2<span class="sy4">;</span>
+    <span class="co1">// Partial assignment by value through reference to b2</span>
+    a2 <span class="sy1">=</span> getB<span class="br0">(</span><span class="br0">)</span><span class="sy4">;</span>
+    <span class="co1">// b2.a_var == 1, b2.b_var == 4!</span>
+ 
+    <span class="kw1">return</span> <span class="nu0">0</span><span class="sy4">;</span>
+<span class="br0">}</span>
+</pre>
+<h2><span class="mw-headline" id="See_also">See also</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Object_slicing&amp;action=edit&amp;section=2" title="Edit section: See also">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul>
+<li><a href="/wiki/Diamond_problem" title="Diamond problem" class="mw-redirect">Diamond problem</a></li>
+<li><a rel="nofollow" class="external text" href="http://stackoverflow.com/questions/274626/what-is-the-slicing-problem-in-c">What is the slicing problem in C++?</a></li>
+</ul>

@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>USB-Host--Android-Developers.html</title></head>
+<body>
+<h1>USB Host</h1>
+<h2>In this document</h2>
+<ol>
+        <li>API Overview</li>
+
+        <li>Android Manifest Requirements</li>
+
+        <li>
+          Working with devices
+
+          <ol>
+            <li>Discovering a device</li>
+
+            <li>Obtaining permission to communicate with a device</li>
+
+            <li>Communicating with a device</li>
+
+            <li>Terminating communication with a device</li>
+          </ol>
+        </li>
+      </ol>
+<ol>
+            <li>Discovering a device</li>
+
+            <li>Obtaining permission to communicate with a device</li>
+
+            <li>Communicating with a device</li>
+
+            <li>Terminating communication with a device</li>
+          </ol>
+<h2>Related Samples</h2>
+<ol>
+        <li>AdbTest</li>
+
+        <li>MissleLauncher</li>
+      </ol>
+<p>When your Android-powered device is in USB host mode, it acts as the USB host, powers the bus,
+  and enumerates connected USB devices. USB host mode is supported in Android 3.1 and higher.</p>
+<h2>API Overview</h2>
+<p>Before you begin, it is important to understand the classes that you need to work with. The
+  following table describes the USB host APIs in the <code>android.hardware.usb</code> package.</p>
+<p><strong>Table 1.</strong> USB Host APIs</p>
+<p>In most situations, you need to use all of these classes (<code>UsbRequest</code> is only required if you are doing asynchronous communication)
+  when communicating with a USB device. In general, you obtain a <code>UsbManager</code> to retrieve the desired <code>UsbDevice</code>.
+  When you have the device, you need to find the appropriate <code>UsbInterface</code> and the <code>UsbEndpoint</code> of that
+  interface to communicate on. Once you obtain the correct endpoint, open a <code>UsbDeviceConnection</code> to communicate with the USB device.</p>
+<h2>Android Manifest Requirements</h2>
+<p>The following list describes what you need to add to your application's manifest file before
+  working with the USB host APIs:</p>
+<ul>
+    <li>Because not all Android-powered devices are guaranteed to support the USB host APIs,
+    include a <code>&lt;uses-feature&gt;</code> element that declares that your application uses
+    the <code>android.hardware.usb.host</code> feature.</li>
+
+    <li>Set the minimum SDK of the application to API Level 12 or higher. The USB host APIs are not
+    present on earlier API levels.</li>
+
+    <li>If you want your application to be notified of an attached USB device, specify an
+    <code>&lt;intent-filter&gt;</code> and <code>&lt;meta-data&gt;</code> element pair for the
+    <code>android.hardware.usb.action.USB_DEVICE_ATTACHED</code> intent in your main activity. The
+    <code>&lt;meta-data&gt;</code> element points to an external XML resource file that declares
+    identifying information about the device that you want to detect.
+
+      <p>In the XML resource file, declare <code>&lt;usb-device&gt;</code> elements for the USB
+      devices that you want to filter. The following list describes the attributes of
+      <code>&lt;usb-device&gt;</code>. In general, use vendor and product ID if you want to filter
+      for a specific device and use class, subclass, and protocol if you want to filter for a group
+      of USB devices, such as mass storage devices or digital cameras. You can specify none or
+      all of these attributes. Specifying no attributes matches every USB device, so only do this
+      if your application requires it:</p>
+
+      <ul>
+        <li><code>vendor-id</code></li>
+
+        <li><code>product-id</code></li>
+
+        <li><code>class</code></li>
+
+        <li><code>subclass</code></li>
+
+        <li><code>protocol</code> (device or interface)</li>
+      </ul>
+
+      <p>Save the resource file in the <code>res/xml/</code> directory. The resource file name
+      (without the .xml extension) must be the same as the one you specified in the
+      <code>&lt;meta-data&gt;</code> element. The format for the XML resource file is in the
+      example below.</p>
+    </li>
+  </ul>
+<p>In the XML resource file, declare <code>&lt;usb-device&gt;</code> elements for the USB
+      devices that you want to filter. The following list describes the attributes of
+      <code>&lt;usb-device&gt;</code>. In general, use vendor and product ID if you want to filter
+      for a specific device and use class, subclass, and protocol if you want to filter for a group
+      of USB devices, such as mass storage devices or digital cameras. You can specify none or
+      all of these attributes. Specifying no attributes matches every USB device, so only do this
+      if your application requires it:</p>
+<ul>
+        <li><code>vendor-id</code></li>
+
+        <li><code>product-id</code></li>
+
+        <li><code>class</code></li>
+
+        <li><code>subclass</code></li>
+
+        <li><code>protocol</code> (device or interface)</li>
+      </ul>
+<p>Save the resource file in the <code>res/xml/</code> directory. The resource file name
+      (without the .xml extension) must be the same as the one you specified in the
+      <code>&lt;meta-data&gt;</code> element. The format for the XML resource file is in the
+      example below.</p>
+<h3>Manifest and resource file examples</h3>
+<p>The following example shows a sample manifest and its corresponding resource file:</p>
+<p>WHATSON? 0a3b414e-c75d-4c70-9529-60bd14166cac</p>
+<pre>
+&lt;manifest ...&gt;
+    &lt;uses-feature android:name="android.hardware.usb.host" /&gt;
+    &lt;uses-sdk android:minSdkVersion="12" /&gt;
+    ...
+    &lt;application&gt;
+        &lt;activity ...&gt;
+            ...
+            &lt;intent-filter&gt;
+                &lt;action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" /&gt;
+            &lt;/intent-filter&gt;
+
+            &lt;meta-data android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
+                android:resource="@xml/device_filter" /&gt;
+        &lt;/activity&gt;
+    &lt;/application&gt;
+&lt;/manifest&gt;
+</pre>
+<p>In this case, the following resource file should be saved in
+  <code>res/xml/device_filter.xml</code> and specifies that any USB device with the specified
+  attributes should be filtered:</p>
+<p>WHATSON? e372d613-66bd-46c1-9158-caec8e5bac6a</p>
+<pre>
+&lt;?xml version="1.0" encoding="utf-8"?&gt;
+
+&lt;resources&gt;
+    &lt;usb-device vendor-id="1234" product-id="5678" class="255" subclass="66" protocol="1" /&gt;
+&lt;/resources&gt;
+</pre>
+<h2>Working with Devices</h2>
+<p>When users connect USB devices to an Android-powered device, the Android system can determine
+  whether your application is interested in the connected device. If so, you can set up
+  communication with the device if desired. To do this, your application has to:</p>
+<ol>
+    <li>Discover connected USB devices by using an intent filter to be notified when the user
+    connects a USB device or by enumerating USB devices that are already connected.</li>
+
+    <li>Ask the user for permission to connect to the USB device, if not already obtained.</li>
+
+    <li>Communicate with the USB device by reading and writing data on the appropriate interface
+    endpoints.</li>
+  </ol>
+<h3>Discovering a device</h3>
+<p>Your application can discover USB devices by either using an intent filter to be notified when
+  the user connects a device or by enumerating USB devices that are already connected. Using an
+  intent filter is useful if you want to be able to have your application automatically detect a
+  desired device. Enumerating connected USB devices is useful if you want to get a list of all
+  connected devices or if your application did not filter for an intent.</p>
+<h4>Using an intent filter</h4>
+<p>To have your application discover a particular USB device, you can specify an intent filter to
+  filter for the <code>android.hardware.usb.action.USB_DEVICE_ATTACHED</code> intent. Along with
+  this intent filter, you need to specify a resource file that specifies properties of the USB
+  device, such as product and vendor ID. When users connect a device that matches your device
+  filter, the system presents them with a dialog that asks if they want to start your application.
+  If users accept, your application automatically has permission to access the device until the
+  device is disconnected.</p>
+<p>The following example shows how to declare the intent filter:</p>
+<p>WHATSON? 4681cea1-b184-4c71-8aaf-ba77f6be52a4</p>
+<pre>
+&lt;activity ...&gt;
+...
+    &lt;intent-filter&gt;
+        &lt;action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" /&gt;
+    &lt;/intent-filter&gt;
+
+    &lt;meta-data android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
+        android:resource="@xml/device_filter" /&gt;
+&lt;/activity&gt;
+</pre>
+<p>The following example shows how to declare the corresponding resource file that specifies the
+  USB devices that you're interested in:</p>
+<p>WHATSON? f90492ba-ad2e-4843-997b-87e81af93425</p>
+<pre>
+&lt;?xml version="1.0" encoding="utf-8"?&gt;
+
+&lt;resources&gt;
+    &lt;usb-device vendor-id="1234" product-id="5678" /&gt;
+&lt;/resources&gt;
+</pre>
+<p>In your activity, you can obtain the <code>UsbDevice</code> that represents
+  the attached device from the intent like this:</p>
+<p>WHATSON? d9af8df4-926c-4764-92e5-e556309f95ec</p>
+<pre>
+UsbDevice device = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+</pre>
+<h4>Enumerating devices</h4>
+<p>If your application is interested in inspecting all of the USB devices currently connected
+  while your application is running, it can enumerate devices on the bus. Use the <code>getDeviceList()</code> method to get a hash map of all
+  the USB devices that are connected. The hash map is keyed by the USB device's name if you want to
+  obtain a device from the map.</p>
+<p>WHATSON? 6c0a9cc7-bbc8-420b-b673-df704201d335</p>
+<pre>
+UsbManager manager = (UsbManager) getSystemService(Context.USB_SERVICE);
+...  
+HashMap&lt;String, UsbDevice&gt; deviceList = manager.getDeviceList();
+UsbDevice device = deviceList.get("deviceName");
+</pre>
+<p>If desired, you can also just obtain an iterator from the hash map and process each device one
+  by one:</p>
+<p>WHATSON? 38ff4df6-5fc0-414b-bb87-b80b098b8b9f</p>
+<pre>
+UsbManager manager = (UsbManager) getSystemService(Context.USB_SERVICE);
+...
+HashMap&lt;String, UsbDevice&gt; deviceList = manager.getDeviceList();
+Iterator&lt;UsbDevice&gt; deviceIterator = deviceList.values().iterator();
+while(deviceIterator.hasNext()){
+    UsbDevice device = deviceIterator.next()
+    //your code
+}
+</pre>
+<h3>Obtaining permission to communicate with a device</h3>
+<p>Before communicating with the USB device, your applicaton must have permission from your
+  users.</p>
+<p><strong>Note:</strong> If your application uses an
+  intent filter to discover USB devices as they're connected, it automatically receives
+  permission if the user allows your application to handle the intent. If not, you must request
+  permission explicitly in your application before connecting to the device.</p>
+<p>Explicitly asking for permission might be neccessary in some situations such as when your
+  application enumerates USB devices that are already connected and then wants to communicate with
+  one. You must check for permission to access a device before trying to communicate with it. If
+  not, you will receive a runtime error if the user denied permission to access the device.</p>
+<p>To explicitly obtain permission, first create a broadcast receiver. This receiver listens for
+  the intent that gets broadcast when you call <code>requestPermission()</code>. The call to <code>requestPermission()</code> displays a dialog to the
+  user asking for permission to connect to the device. The following sample code shows how to
+  create the broadcast receiver:</p>
+<p>WHATSON? b2f45057-7662-400f-a9fb-9ce928fad516</p>
+<pre>
+private static final String ACTION_USB_PERMISSION =
+    "com.android.example.USB_PERMISSION";
+private final BroadcastReceiver mUsbReceiver = new BroadcastReceiver() {
+
+    public void onReceive(Context context, Intent intent) {
+        String action = intent.getAction();
+        if (ACTION_USB_PERMISSION.equals(action)) {
+            synchronized (this) {
+                UsbDevice device = (UsbDevice)intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+
+                if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
+                    if(device != null){
+                      //call method to set up device communication
+                   }
+                } 
+                else {
+                    Log.d(TAG, "permission denied for device " + device);
+                }
+            }
+        }
+    }
+};
+</pre>
+<p>To register the broadcast receiver, add this in your <code>onCreate()</code> method in your
+  activity:</p>
+<p>WHATSON? a1b45a23-b5f6-45bc-84a4-44a51e0ea0be</p>
+<pre>
+UsbManager mUsbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
+private static final String ACTION_USB_PERMISSION =
+    "com.android.example.USB_PERMISSION";
+...
+mPermissionIntent = PendingIntent.getBroadcast(this, 0, new Intent(ACTION_USB_PERMISSION), 0);
+IntentFilter filter = new IntentFilter(ACTION_USB_PERMISSION);
+registerReceiver(mUsbReceiver, filter);
+</pre>
+<p>To display the dialog that asks users for permission to connect to the device, call the <code>requestPermission()</code> method:</p>
+<p>WHATSON? f3b1e95e-40f0-4a8e-a9b7-47e91c4dfc27</p>
+<pre>
+UsbDevice device;
+...
+mUsbManager.requestPermission(device, mPermissionIntent);
+</pre>
+<p>When users reply to the dialog, your broadcast receiver receives the intent that contains the
+  <code>EXTRA_PERMISSION_GRANTED</code> extra, which is a boolean
+  representing the answer. Check this extra for a value of true before connecting to the
+  device.</p>
+<h3>Communicating with a device</h3>
+<p>Communication with a USB device can be either synchronous or asynchronous. In either case, you
+  should create a new thread on which to carry out all data transmissions, so you don't block the
+  UI thread. To properly set up communication with a device, you need to obtain the appropriate
+  <code>UsbInterface</code> and <code>UsbEndpoint</code> of the
+  device that you want to communicate on and send requests on this endpoint with a <code>UsbDeviceConnection</code>. In general, your code should:</p>
+<ul>
+    <li>Check a <code>UsbDevice</code> object's attributes, such as product ID,
+    vendor ID, or device class to figure out whether or not you want to communicate with the
+    device.</li>
+
+    <li>When you are certain that you want to communicate with the device, find the appropriate
+    <code>UsbInterface</code> that you want to use to communicate along with the
+    appropriate <code>UsbEndpoint</code> of that interface. Interfaces can have one
+    or more endpoints, and commonly will have an input and output endpoint for two-way
+    communication.</li>
+
+    <li>When you find the correct endpoint, open a <code>UsbDeviceConnection</code>
+    on that endpoint.</li>
+
+    <li>Supply the data that you want to transmit on the endpoint with the <code>bulkTransfer()</code> or <code>controlTransfer()</code> method. You should
+    carry out this step in another thread to prevent blocking the main UI thread. For more
+    information about using threads in Android, see Processes and
+    Threads.</li>
+  </ul>
+<p>The following code snippet is a trivial way to do a synchronous data transfer. Your code
+  should have more logic to correctly find the correct interface and endpoints to communicate on
+  and also should do any transferring of data in a different thread than the main UI thread:</p>
+<p>WHATSON? 82698eac-e7a1-441f-894f-509fff894267</p>
+<pre>
+private Byte[] bytes
+private static int TIMEOUT = 0;
+private boolean forceClaim = true;
+
+...
+
+UsbInterface intf = device.getInterface(0);
+UsbEndpoint endpoint = intf.getEndpoint(0);
+UsbDeviceConnection connection = mUsbManager.openDevice(device); 
+connection.claimInterface(intf, forceClaim);
+connection.bulkTransfer(endpoint, bytes, bytes.length, TIMEOUT); //do in another thread
+</pre>
+<p>To send data asynchronously, use the <code>UsbRequest</code> class to <code>initialize</code> and <code>queue</code> an asynchronous request, then wait for the result
+  with <code>requestWait()</code>.</p>
+<p>For more information, see the AdbTest sample, which shows how to do
+  asynchronous bulk transfers, and the MissleLauncher sample, which
+  shows how to listen on an interrupt endpoint asynchronously.</p>
+<h3>Terminating communication with a device</h3>
+<p>When you are done communicating with a device or if the device was detached, close the <code>UsbInterface</code> and <code>UsbDeviceConnection</code> by
+  calling <code>releaseInterface()</code> and
+  <code>close()</code>. To listen for detached events,
+  create a broadcast receiver like below:</p>
+<p>WHATSON? 59623ecc-99b9-4de5-94ec-f569da1ee9b0</p>
+<pre>
+BroadcastReceiver mUsbReceiver = new BroadcastReceiver() {
+    public void onReceive(Context context, Intent intent) {
+        String action = intent.getAction(); 
+
+      if (UsbManager.ACTION_USB_DEVICE_DETACHED.equals(action)) {
+            UsbDevice device = (UsbDevice)intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+            if (device != null) {
+                // call your method that cleans up and closes communication with the device
+            }
+        }
+    }
+};
+</pre>
+<p>Creating the broadcast receiver within the application, and not the manifest, allows your
+  application to only handle detached events while it is running. This way, detached events are
+  only sent to the application that is currently running and not broadcast to all applications.</p>
+<h1>USB Host</h1>
+<h2>In this document</h2>
+<ol>
+        <li>API Overview</li>
+
+        <li>Android Manifest Requirements</li>
+
+        <li>
+          Working with devices
+
+          <ol>
+            <li>Discovering a device</li>
+
+            <li>Obtaining permission to communicate with a device</li>
+
+            <li>Communicating with a device</li>
+
+            <li>Terminating communication with a device</li>
+          </ol>
+        </li>
+      </ol>
+<ol>
+            <li>Discovering a device</li>
+
+            <li>Obtaining permission to communicate with a device</li>
+
+            <li>Communicating with a device</li>
+
+            <li>Terminating communication with a device</li>
+          </ol>
+<h2>Related Samples</h2>
+<ol>
+        <li>AdbTest</li>
+
+        <li>MissleLauncher</li>
+      </ol>
+<p>When your Android-powered device is in USB host mode, it acts as the USB host, powers the bus,
+  and enumerates connected USB devices. USB host mode is supported in Android 3.1 and higher.</p>
+<h2>API Overview</h2>
+<p>Before you begin, it is important to understand the classes that you need to work with. The
+  following table describes the USB host APIs in the <code>android.hardware.usb</code> package.</p>
+<p><strong>Table 1.</strong> USB Host APIs</p>
+<p>In most situations, you need to use all of these classes (<code>UsbRequest</code> is only required if you are doing asynchronous communication)
+  when communicating with a USB device. In general, you obtain a <code>UsbManager</code> to retrieve the desired <code>UsbDevice</code>.
+  When you have the device, you need to find the appropriate <code>UsbInterface</code> and the <code>UsbEndpoint</code> of that
+  interface to communicate on. Once you obtain the correct endpoint, open a <code>UsbDeviceConnection</code> to communicate with the USB device.</p>
+<h2>Android Manifest Requirements</h2>
+<p>The following list describes what you need to add to your application's manifest file before
+  working with the USB host APIs:</p>
+<ul>
+    <li>Because not all Android-powered devices are guaranteed to support the USB host APIs,
+    include a <code>&lt;uses-feature&gt;</code> element that declares that your application uses
+    the <code>android.hardware.usb.host</code> feature.</li>
+
+    <li>Set the minimum SDK of the application to API Level 12 or higher. The USB host APIs are not
+    present on earlier API levels.</li>
+
+    <li>If you want your application to be notified of an attached USB device, specify an
+    <code>&lt;intent-filter&gt;</code> and <code>&lt;meta-data&gt;</code> element pair for the
+    <code>android.hardware.usb.action.USB_DEVICE_ATTACHED</code> intent in your main activity. The
+    <code>&lt;meta-data&gt;</code> element points to an external XML resource file that declares
+    identifying information about the device that you want to detect.
+
+      <p>In the XML resource file, declare <code>&lt;usb-device&gt;</code> elements for the USB
+      devices that you want to filter. The following list describes the attributes of
+      <code>&lt;usb-device&gt;</code>. In general, use vendor and product ID if you want to filter
+      for a specific device and use class, subclass, and protocol if you want to filter for a group
+      of USB devices, such as mass storage devices or digital cameras. You can specify none or
+      all of these attributes. Specifying no attributes matches every USB device, so only do this
+      if your application requires it:</p>
+
+      <ul>
+        <li><code>vendor-id</code></li>
+
+        <li><code>product-id</code></li>
+
+        <li><code>class</code></li>
+
+        <li><code>subclass</code></li>
+
+        <li><code>protocol</code> (device or interface)</li>
+      </ul>
+
+      <p>Save the resource file in the <code>res/xml/</code> directory. The resource file name
+      (without the .xml extension) must be the same as the one you specified in the
+      <code>&lt;meta-data&gt;</code> element. The format for the XML resource file is in the
+      example below.</p>
+    </li>
+  </ul>
+<p>In the XML resource file, declare <code>&lt;usb-device&gt;</code> elements for the USB
+      devices that you want to filter. The following list describes the attributes of
+      <code>&lt;usb-device&gt;</code>. In general, use vendor and product ID if you want to filter
+      for a specific device and use class, subclass, and protocol if you want to filter for a group
+      of USB devices, such as mass storage devices or digital cameras. You can specify none or
+      all of these attributes. Specifying no attributes matches every USB device, so only do this
+      if your application requires it:</p>
+<ul>
+        <li><code>vendor-id</code></li>
+
+        <li><code>product-id</code></li>
+
+        <li><code>class</code></li>
+
+        <li><code>subclass</code></li>
+
+        <li><code>protocol</code> (device or interface)</li>
+      </ul>
+<p>Save the resource file in the <code>res/xml/</code> directory. The resource file name
+      (without the .xml extension) must be the same as the one you specified in the
+      <code>&lt;meta-data&gt;</code> element. The format for the XML resource file is in the
+      example below.</p>
+<h3>Manifest and resource file examples</h3>
+<p>The following example shows a sample manifest and its corresponding resource file:</p>
+<p>WHATSON? 7ffcadd0-6135-4cda-9be7-0d1783822543</p>
+<pre>
+&lt;manifest ...&gt;
+    &lt;uses-feature android:name="android.hardware.usb.host" /&gt;
+    &lt;uses-sdk android:minSdkVersion="12" /&gt;
+    ...
+    &lt;application&gt;
+        &lt;activity ...&gt;
+            ...
+            &lt;intent-filter&gt;
+                &lt;action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" /&gt;
+            &lt;/intent-filter&gt;
+
+            &lt;meta-data android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
+                android:resource="@xml/device_filter" /&gt;
+        &lt;/activity&gt;
+    &lt;/application&gt;
+&lt;/manifest&gt;
+</pre>
+<p>In this case, the following resource file should be saved in
+  <code>res/xml/device_filter.xml</code> and specifies that any USB device with the specified
+  attributes should be filtered:</p>
+<p>WHATSON? 75ccafac-8616-4683-93e3-337ca0cce01f</p>
+<pre>
+&lt;?xml version="1.0" encoding="utf-8"?&gt;
+
+&lt;resources&gt;
+    &lt;usb-device vendor-id="1234" product-id="5678" class="255" subclass="66" protocol="1" /&gt;
+&lt;/resources&gt;
+</pre>
+<h2>Working with Devices</h2>
+<p>When users connect USB devices to an Android-powered device, the Android system can determine
+  whether your application is interested in the connected device. If so, you can set up
+  communication with the device if desired. To do this, your application has to:</p>
+<ol>
+    <li>Discover connected USB devices by using an intent filter to be notified when the user
+    connects a USB device or by enumerating USB devices that are already connected.</li>
+
+    <li>Ask the user for permission to connect to the USB device, if not already obtained.</li>
+
+    <li>Communicate with the USB device by reading and writing data on the appropriate interface
+    endpoints.</li>
+  </ol>
+<h3>Discovering a device</h3>
+<p>Your application can discover USB devices by either using an intent filter to be notified when
+  the user connects a device or by enumerating USB devices that are already connected. Using an
+  intent filter is useful if you want to be able to have your application automatically detect a
+  desired device. Enumerating connected USB devices is useful if you want to get a list of all
+  connected devices or if your application did not filter for an intent.</p>
+<h4>Using an intent filter</h4>
+<p>To have your application discover a particular USB device, you can specify an intent filter to
+  filter for the <code>android.hardware.usb.action.USB_DEVICE_ATTACHED</code> intent. Along with
+  this intent filter, you need to specify a resource file that specifies properties of the USB
+  device, such as product and vendor ID. When users connect a device that matches your device
+  filter, the system presents them with a dialog that asks if they want to start your application.
+  If users accept, your application automatically has permission to access the device until the
+  device is disconnected.</p>
+<p>The following example shows how to declare the intent filter:</p>
+<p>WHATSON? 8b6af0b1-f164-4e1a-9cdc-6722e556b090</p>
+<pre>
+&lt;activity ...&gt;
+...
+    &lt;intent-filter&gt;
+        &lt;action android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED" /&gt;
+    &lt;/intent-filter&gt;
+
+    &lt;meta-data android:name="android.hardware.usb.action.USB_DEVICE_ATTACHED"
+        android:resource="@xml/device_filter" /&gt;
+&lt;/activity&gt;
+</pre>
+<p>The following example shows how to declare the corresponding resource file that specifies the
+  USB devices that you're interested in:</p>
+<p>WHATSON? 6f1fe37d-2b1c-4a37-80c8-b282ace20fd3</p>
+<pre>
+&lt;?xml version="1.0" encoding="utf-8"?&gt;
+
+&lt;resources&gt;
+    &lt;usb-device vendor-id="1234" product-id="5678" /&gt;
+&lt;/resources&gt;
+</pre>
+<p>In your activity, you can obtain the <code>UsbDevice</code> that represents
+  the attached device from the intent like this:</p>
+<p>WHATSON? 5983b1ac-be04-4435-a431-e9107e534b8e</p>
+<pre>
+UsbDevice device = (UsbDevice) intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+</pre>
+<h4>Enumerating devices</h4>
+<p>If your application is interested in inspecting all of the USB devices currently connected
+  while your application is running, it can enumerate devices on the bus. Use the <code>getDeviceList()</code> method to get a hash map of all
+  the USB devices that are connected. The hash map is keyed by the USB device's name if you want to
+  obtain a device from the map.</p>
+<p>WHATSON? 5bb869c0-8d94-44bd-8267-74d94cae9b08</p>
+<pre>
+UsbManager manager = (UsbManager) getSystemService(Context.USB_SERVICE);
+...  
+HashMap&lt;String, UsbDevice&gt; deviceList = manager.getDeviceList();
+UsbDevice device = deviceList.get("deviceName");
+</pre>
+<p>If desired, you can also just obtain an iterator from the hash map and process each device one
+  by one:</p>
+<p>WHATSON? 1903090a-5012-47e6-9ff8-d89037ff75dc</p>
+<pre>
+UsbManager manager = (UsbManager) getSystemService(Context.USB_SERVICE);
+...
+HashMap&lt;String, UsbDevice&gt; deviceList = manager.getDeviceList();
+Iterator&lt;UsbDevice&gt; deviceIterator = deviceList.values().iterator();
+while(deviceIterator.hasNext()){
+    UsbDevice device = deviceIterator.next()
+    //your code
+}
+</pre>
+<h3>Obtaining permission to communicate with a device</h3>
+<p>Before communicating with the USB device, your applicaton must have permission from your
+  users.</p>
+<p><strong>Note:</strong> If your application uses an
+  intent filter to discover USB devices as they're connected, it automatically receives
+  permission if the user allows your application to handle the intent. If not, you must request
+  permission explicitly in your application before connecting to the device.</p>
+<p>Explicitly asking for permission might be neccessary in some situations such as when your
+  application enumerates USB devices that are already connected and then wants to communicate with
+  one. You must check for permission to access a device before trying to communicate with it. If
+  not, you will receive a runtime error if the user denied permission to access the device.</p>
+<p>To explicitly obtain permission, first create a broadcast receiver. This receiver listens for
+  the intent that gets broadcast when you call <code>requestPermission()</code>. The call to <code>requestPermission()</code> displays a dialog to the
+  user asking for permission to connect to the device. The following sample code shows how to
+  create the broadcast receiver:</p>
+<p>WHATSON? e7d8a377-22b5-4a98-853b-01f4af370e32</p>
+<pre>
+private static final String ACTION_USB_PERMISSION =
+    "com.android.example.USB_PERMISSION";
+private final BroadcastReceiver mUsbReceiver = new BroadcastReceiver() {
+
+    public void onReceive(Context context, Intent intent) {
+        String action = intent.getAction();
+        if (ACTION_USB_PERMISSION.equals(action)) {
+            synchronized (this) {
+                UsbDevice device = (UsbDevice)intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+
+                if (intent.getBooleanExtra(UsbManager.EXTRA_PERMISSION_GRANTED, false)) {
+                    if(device != null){
+                      //call method to set up device communication
+                   }
+                } 
+                else {
+                    Log.d(TAG, "permission denied for device " + device);
+                }
+            }
+        }
+    }
+};
+</pre>
+<p>To register the broadcast receiver, add this in your <code>onCreate()</code> method in your
+  activity:</p>
+<p>WHATSON? dfb6c420-b4b8-4237-8ce5-181bb2815fac</p>
+<pre>
+UsbManager mUsbManager = (UsbManager) getSystemService(Context.USB_SERVICE);
+private static final String ACTION_USB_PERMISSION =
+    "com.android.example.USB_PERMISSION";
+...
+mPermissionIntent = PendingIntent.getBroadcast(this, 0, new Intent(ACTION_USB_PERMISSION), 0);
+IntentFilter filter = new IntentFilter(ACTION_USB_PERMISSION);
+registerReceiver(mUsbReceiver, filter);
+</pre>
+<p>To display the dialog that asks users for permission to connect to the device, call the <code>requestPermission()</code> method:</p>
+<p>WHATSON? da0ca732-11c4-48c8-b914-910061d15c08</p>
+<pre>
+UsbDevice device;
+...
+mUsbManager.requestPermission(device, mPermissionIntent);
+</pre>
+<p>When users reply to the dialog, your broadcast receiver receives the intent that contains the
+  <code>EXTRA_PERMISSION_GRANTED</code> extra, which is a boolean
+  representing the answer. Check this extra for a value of true before connecting to the
+  device.</p>
+<h3>Communicating with a device</h3>
+<p>Communication with a USB device can be either synchronous or asynchronous. In either case, you
+  should create a new thread on which to carry out all data transmissions, so you don't block the
+  UI thread. To properly set up communication with a device, you need to obtain the appropriate
+  <code>UsbInterface</code> and <code>UsbEndpoint</code> of the
+  device that you want to communicate on and send requests on this endpoint with a <code>UsbDeviceConnection</code>. In general, your code should:</p>
+<ul>
+    <li>Check a <code>UsbDevice</code> object's attributes, such as product ID,
+    vendor ID, or device class to figure out whether or not you want to communicate with the
+    device.</li>
+
+    <li>When you are certain that you want to communicate with the device, find the appropriate
+    <code>UsbInterface</code> that you want to use to communicate along with the
+    appropriate <code>UsbEndpoint</code> of that interface. Interfaces can have one
+    or more endpoints, and commonly will have an input and output endpoint for two-way
+    communication.</li>
+
+    <li>When you find the correct endpoint, open a <code>UsbDeviceConnection</code>
+    on that endpoint.</li>
+
+    <li>Supply the data that you want to transmit on the endpoint with the <code>bulkTransfer()</code> or <code>controlTransfer()</code> method. You should
+    carry out this step in another thread to prevent blocking the main UI thread. For more
+    information about using threads in Android, see Processes and
+    Threads.</li>
+  </ul>
+<p>The following code snippet is a trivial way to do a synchronous data transfer. Your code
+  should have more logic to correctly find the correct interface and endpoints to communicate on
+  and also should do any transferring of data in a different thread than the main UI thread:</p>
+<p>WHATSON? 9d16a712-f958-4c48-8188-5d67ae2ef680</p>
+<pre>
+private Byte[] bytes
+private static int TIMEOUT = 0;
+private boolean forceClaim = true;
+
+...
+
+UsbInterface intf = device.getInterface(0);
+UsbEndpoint endpoint = intf.getEndpoint(0);
+UsbDeviceConnection connection = mUsbManager.openDevice(device); 
+connection.claimInterface(intf, forceClaim);
+connection.bulkTransfer(endpoint, bytes, bytes.length, TIMEOUT); //do in another thread
+</pre>
+<p>To send data asynchronously, use the <code>UsbRequest</code> class to <code>initialize</code> and <code>queue</code> an asynchronous request, then wait for the result
+  with <code>requestWait()</code>.</p>
+<p>For more information, see the AdbTest sample, which shows how to do
+  asynchronous bulk transfers, and the MissleLauncher sample, which
+  shows how to listen on an interrupt endpoint asynchronously.</p>
+<h3>Terminating communication with a device</h3>
+<p>When you are done communicating with a device or if the device was detached, close the <code>UsbInterface</code> and <code>UsbDeviceConnection</code> by
+  calling <code>releaseInterface()</code> and
+  <code>close()</code>. To listen for detached events,
+  create a broadcast receiver like below:</p>
+<p>WHATSON? b54af6d0-6dd3-4544-b196-381f0db121d6</p>
+<pre>
+BroadcastReceiver mUsbReceiver = new BroadcastReceiver() {
+    public void onReceive(Context context, Intent intent) {
+        String action = intent.getAction(); 
+
+      if (UsbManager.ACTION_USB_DEVICE_DETACHED.equals(action)) {
+            UsbDevice device = (UsbDevice)intent.getParcelableExtra(UsbManager.EXTRA_DEVICE);
+            if (device != null) {
+                // call your method that cleans up and closes communication with the device
+            }
+        }
+    }
+};
+</pre>
+<p>Creating the broadcast receiver within the application, and not the manifest, allows your
+  application to only handle detached events while it is running. This way, detached events are
+  only sent to the application that is currently running and not broadcast to all applications.</p>
+</body>
+</html>

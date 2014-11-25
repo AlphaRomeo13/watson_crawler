@@ -1,0 +1,105 @@
+<h1 id="firstHeading" class="firstHeading" lang="en"><span dir="auto">Garbage (computer science)</span></h1>
+<p><b>Garbage</b>, in the context of <a href="/wiki/Computer_science" title="Computer science">computer science</a>, refers to <a href="/wiki/Object_(computer_science)" title="Object (computer science)">objects</a>, <a href="/wiki/Data" title="Data">data</a>, or other regions of the memory of a computer system (or other system resources), which will not be used in any future computation by the system, or by a program running on it. As computer systems all have finite amounts of memory, it is frequently necessary to <i>deallocate</i> garbage and return it to the <a href="/wiki/Dynamic_memory_allocation" title="Dynamic memory allocation" class="mw-redirect">heap</a>, or memory pool, so the underlying memory can be reused.</p>
+<h2><span class="mw-headline" id="Classification">Classification</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Garbage_(computer_science)&amp;action=edit&amp;section=1" title="Edit section: Classification">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Garbage is generally classified into two types:</p>
+<p>Note that syntactic garbage is a (usually strict) subset of semantic garbage as it is entirely possible for an object to hold a reference to another object without the latter object being used. Determination of the semantic garbage present in a program is generally <a href="/wiki/Undecidable_set" title="Undecidable set" class="mw-redirect">undecidable</a>, but there are many algorithms for identifying syntactic garbage.</p>
+<p>Objects and/or data which are not garbage are said to be <i>live</i>.</p>
+<h2><span class="mw-headline" id="Eliminating_garbage">Eliminating garbage</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Garbage_(computer_science)&amp;action=edit&amp;section=2" title="Edit section: Eliminating garbage">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>The problem of managing the deallocation of garbage is a well-known one in computer science. Several approaches are taken:</p>
+<ul>
+<li>Many <a href="/wiki/Operating_systems" title="Operating systems" class="mw-redirect">operating systems</a> will reclaim the memory and resources used by a process or program when it terminates. Simple or short-lived programs which are designed to run in such environments can exit and allow the operating system to perform any necessary reclamation.</li>
+<li>In systems or <a href="/wiki/Programming_language" title="Programming language">programming languages</a> with <a href="/wiki/Manual_memory_management" title="Manual memory management">manual memory management</a>, the programmer must explicitly arrange for memory to be deallocated when it is no longer used. <a href="/wiki/C_(programming_language)" title="C (programming language)">C</a> and <a href="/wiki/C%2B%2B" title="C++">C++</a> are two well-known languages which support this model.</li>
+<li><a href="/wiki/Garbage_collection_(computer_science)" title="Garbage collection (computer science)">Garbage collection</a> uses various algorithms to automatically analyze the state of a program, identify garbage, and deallocate it without intervention by the programmer. Many modern programming languages such as <a href="/wiki/Java_(programming_language)" title="Java (programming language)">Java</a> and <a href="/wiki/Haskell_(programming_language)" title="Haskell (programming language)">Haskell</a> provide automated garbage collection. However, it is not a recent development, as it has also been used in older languages such as <a href="/wiki/LISP" title="LISP" class="mw-redirect">LISP</a>.</li>
+<li>There is ongoing research to <a href="/wiki/Type_theory" title="Type theory">type theoretic</a> approaches (such as <a href="/wiki/Region_inference" title="Region inference" class="mw-redirect">region inference</a>) to identification and removal of garbage from a program. Note that no general type-theoretic solution to the problem has been developed.</li>
+</ul>
+<p>An example of the automatic removal of semantic garbage, by <a href="/wiki/Reference_counting" title="Reference counting">reference counting</a> garbage collection, can be produced using the <a href="/wiki/Python_(programming_language)" title="Python (programming language)">Python</a> command-line <a href="/wiki/Interpreter_(computing)" title="Interpreter (computing)">interpreter</a>:</p>
+<p>WHATSON? fc2b712c-027e-446d-a6c9-1ec44ee898f3</p>
+<pre class="de1">
+<span class="sy0">&gt;&gt;&gt;</span> <span class="kw1">class</span> Foo<span class="br0">(</span><span class="kw2">object</span><span class="br0">)</span>:
+...     <span class="st0">'This is an empty testing class.'</span>
+...     <span class="kw1">pass</span>
+... 
+<span class="sy0">&gt;&gt;&gt;</span> bar <span class="sy0">=</span> Foo<span class="br0">(</span><span class="br0">)</span>
+<span class="sy0">&gt;&gt;&gt;</span> bar
+<span class="sy0">&lt;</span><span class="kw3">__main__</span>.<span class="me1">Foo</span> <span class="kw2">object</span> at <span class="nu0">0x54f30</span><span class="sy0">&gt;</span>
+<span class="sy0">&gt;&gt;&gt;</span> <span class="kw1">del</span> bar
+</pre>
+<p>In this session, an object is created, its location in the memory is displayed, and the only reference to the object is then destroyed—there is no way to ever use the object again from this point on, as there are no references to it. This becomes apparent when we try to access the original reference:</p>
+<p>WHATSON? 850a6be6-f2a0-4cf1-9536-fd4f75f913ce</p>
+<pre class="de1">
+<span class="sy0">&gt;&gt;&gt;</span> bar
+Traceback <span class="br0">(</span>most recent call last<span class="br0">)</span>:
+  File <span class="st0">"&lt;stdin&gt;"</span><span class="sy0">,</span> line <span class="nu0">1</span><span class="sy0">,</span> <span class="kw1">in</span> ?
+<span class="kw2">NameError</span>: name <span class="st0">'bar'</span> <span class="kw1">is</span> <span class="kw1">not</span> defined
+</pre>
+<p>As it is impossible to refer to the object, it has become useless: the object is garbage. Since Python uses garbage collection, it automatically deallocates the memory that was used for the object so that it may be used again:</p>
+<p>WHATSON? 1cb15a2c-d279-4f0b-8c88-ba5800b13ba4</p>
+<pre class="de1">
+<span class="sy0">&gt;&gt;&gt;</span> <span class="kw1">class</span> Bar<span class="br0">(</span><span class="kw2">object</span><span class="br0">)</span>:
+...     <span class="st0">'This is another testing class.'</span>
+...     <span class="kw1">pass</span>
+... 
+<span class="sy0">&gt;&gt;&gt;</span> baz <span class="sy0">=</span> Bar<span class="br0">(</span><span class="br0">)</span>
+<span class="sy0">&gt;&gt;&gt;</span> baz
+<span class="sy0">&lt;</span><span class="kw3">__main__</span>.<span class="me1">Bar</span> <span class="kw2">object</span> at <span class="nu0">0x54f30</span><span class="sy0">&gt;</span>
+</pre>
+<p>Note that the <tt>Bar</tt> instance now resides at the memory location <tt>0x54f30</tt>; at the same place as where our previous object, the <tt>Foo</tt> instance, was located. Since the <tt>Foo</tt> instance was destroyed, freeing up the memory used to contain it, the interpreter creates the <tt>Bar</tt> object at the same memory location as before, making good use of the available resources.</p>
+<h2><span class="mw-headline" id="External_links">External links</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Garbage_(computer_science)&amp;action=edit&amp;section=3" title="Edit section: External links">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul>
+<li><a href="/wiki/Benjamin_C._Pierce" title="Benjamin C. Pierce">Benjamin Pierce</a> (editor), <i>Advanced Topics in Types and Programming Languages</i>, MIT Press (2005), <a href="/wiki/Special:BookSources/0262162288" class="internal mw-magiclink-isbn">ISBN 0-262-16228-8</a></li>
+<li>Richard Jones and Rafael Lins, <i>Garbage Collection: Algorithms for Automated Dynamic Memory Management</i>, Wiley and Sons (1996), <a href="/wiki/Special:BookSources/0471941484" class="internal mw-magiclink-isbn">ISBN 0-471-94148-4</a></li>
+</ul>
+<ul>
+<li class="nv-view"><a href="/wiki/Template:Memory_management_navbox" title="Template:Memory management navbox"><span title="View this template" style=";;background:none transparent;border:none;;">v</span></a></li>
+<li class="nv-talk"><a href="/wiki/Template_talk:Memory_management_navbox" title="Template talk:Memory management navbox"><span title="Discuss this template" style=";;background:none transparent;border:none;;">t</span></a></li>
+<li class="nv-edit"><a class="external text" href="//en.wikipedia.org/w/index.php?title=Template:Memory_management_navbox&amp;action=edit"><span title="Edit this template" style=";;background:none transparent;border:none;;">e</span></a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Memory_management_(operating_systems)" title="Memory management (operating systems)">Memory management as a function of an operating system</a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Static_memory_allocation" title="Static memory allocation">Static memory allocation</a></li>
+<li><a href="/wiki/C_dynamic_memory_allocation" title="C dynamic memory allocation">C dynamic memory allocation</a></li>
+<li><a href="/wiki/New_(C%2B%2B)" title="New (C++)">new (C++)</a></li>
+<li><a href="/wiki/Delete_(C%2B%2B)" title="Delete (C++)">delete (C++)</a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Demand_paging" title="Demand paging">Demand paging</a></li>
+<li><a href="/wiki/Page_table" title="Page table">Page table</a></li>
+<li><a href="/wiki/Paging" title="Paging">Paging</a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Memory_management_unit" title="Memory management unit">Memory management unit</a></li>
+<li><a href="/wiki/Translation_lookaside_buffer" title="Translation lookaside buffer">Translation lookaside buffer</a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Boehm_garbage_collector" title="Boehm garbage collector">Boehm garbage collector</a></li>
+<li><a href="/wiki/Finalizer" title="Finalizer">Finalizer</a></li>
+<li><strong class="selflink">Garbage</strong></li>
+<li><a href="/wiki/Mark-compact_algorithm" title="Mark-compact algorithm">Mark-compact algorithm</a></li>
+<li><a href="/wiki/Reference_counting" title="Reference counting">Reference counting</a></li>
+<li><a href="/wiki/Strong_reference" title="Strong reference">Strong reference</a></li>
+<li><a href="/wiki/Weak_reference" title="Weak reference">Weak reference</a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Protected_mode" title="Protected mode">Protected mode</a></li>
+<li><a href="/wiki/Real_mode" title="Real mode">Real mode</a></li>
+<li><a href="/wiki/Virtual_8086_mode" title="Virtual 8086 mode">Virtual 8086 mode</a></li>
+<li><a href="/wiki/X86_memory_segmentation" title="X86 memory segmentation">x86 memory segmentation</a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Buffer_overflow" title="Buffer overflow">Buffer overflow</a></li>
+<li><a href="/wiki/Buffer_over-read" title="Buffer over-read">Buffer over-read</a></li>
+<li><a href="/wiki/Dangling_pointer" title="Dangling pointer">Dangling pointer</a></li>
+<li><a href="/wiki/Stack_overflow" title="Stack overflow">Stack overflow</a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Fragmentation_(computing)" title="Fragmentation (computing)">Fragmentation</a></li>
+<li><a href="/wiki/Memory_leak" title="Memory leak">Memory leak</a></li>
+<li><a href="/wiki/Unreachable_memory" title="Unreachable memory">Unreachable memory</a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Automatic_variable" title="Automatic variable">Automatic variable</a></li>
+<li><a href="/wiki/International_Symposium_on_Memory_Management" title="International Symposium on Memory Management">International Symposium on Memory Management</a></li>
+<li><a href="/wiki/Region-based_memory_management" title="Region-based memory management">Region-based memory management</a></li>
+</ul>

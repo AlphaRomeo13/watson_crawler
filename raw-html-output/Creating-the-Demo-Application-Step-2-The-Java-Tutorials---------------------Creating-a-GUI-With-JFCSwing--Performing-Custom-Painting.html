@@ -1,0 +1,68 @@
+<h1>Creating the Demo Application (Step 2)</h1>
+<p>Next, we will add a custom drawing surface to the frame. For this we will create a subclass of <code>javax.swing.JPanel</code> (a generic lightweight container) which will supply the code for rendering our custom painting.</p>
+<p class="FigureCaption">A javax.swing.JPanel Subclass</p>
+<p>Click the Launch button to run SwingPaintDemo2 using 
+<a class="OutsideLink" target="_blank" href="http://www.oracle.com/technetwork/java/javase/javawebstart/index.html">Java™ Web Start</a> (<a href="http://www.oracle.com/technetwork/java/javase/downloads/index.html">download JDK 7 or later</a>). Alternatively, to compile and run the example yourself, consult the <a href="../examples/painting/index.html#SwingPaintDemo2">example index</a>.</p>
+<p>WHATSON? 66863ed5-a066-4e7c-b6c6-a374e6a7c844</p>
+<pre>
+package painting;
+
+import javax.swing.SwingUtilities;
+import javax.swing.JFrame;
+<b>import javax.swing.JPanel;
+import javax.swing.BorderFactory;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics;
+</b>
+public class SwingPaintDemo2 {
+   
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                createAndShowGUI(); 
+            }
+        });
+    }
+
+    private static void createAndShowGUI() {
+        System.out.println("Created GUI on EDT? "+
+        SwingUtilities.isEventDispatchThread());
+        JFrame f = new JFrame("Swing Paint Demo");
+        f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        <b>f.add(new MyPanel());
+        f.pack();</b>
+        f.setVisible(true);
+    }
+}
+
+<b>class MyPanel extends JPanel {
+
+    public MyPanel() {
+        setBorder(BorderFactory.createLineBorder(Color.black));
+    }
+
+    public Dimension getPreferredSize() {
+        return new Dimension(250,200);
+    }
+
+    public void paintComponent(Graphics g) {
+        super.paintComponent(g);       
+
+        // Draw Text
+        g.drawString("This is my custom Panel!",10,20);
+    }  
+}
+</b>
+</pre>
+<p>The first change you will notice is that we are now importing a number of additional classes, such as <code>JPanel</code>, <code>Color</code>, and <code>Graphics</code>. Since some of the older AWT classes are still used in modern Swing applications, it is normal to see the <code>java.awt</code> package in a few of the import statements. We have also defined a custom <code>JPanel</code> subclass, called <code>MyPanel</code>, which comprises the majority of the new code.</p>
+<p>The <code>MyPanel</code> class definition has a constructor that sets a black border around its edges. This is a subtle detail that might be difficult to see at first (if it is, just comment out the invocation of <code>setBorder</code> and then recompile.) <code>MyPanel</code> also overrides <code>getPreferredSize</code>, which returns the desired width and height of the panel (in this case 250 is the width, 200 is the height.) Because of this, the <code>SwingPaintDemo</code> class no longer needs to specify the size of the frame in pixels. It simply adds the panel to the frame and then invokes <code>pack</code>.</p>
+<p>The <code>paintComponent</code> method is where all of your custom painting takes place. This method is defined by <code>javax.swing.JComponent</code> and then overridden by your subclasses to provide their custom behavior. Its sole parameter, a
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/awt/Graphics.html"><code>java.awt.Graphics</code></a> object, exposes a number of methods for drawing 2D shapes and obtaining information about the application's graphics environment. In most cases the object that is actually received by this method will be an instance of 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/awt/Graphics2D.html"><code>java.awt.Graphics2D</code></a> (a <code>Graphics</code> subclass), which provides support for sophisticated 2D graphics rendering.</p>
+<p>Most of the standard Swing components have their look and feel implemented by separate "UI Delegate" objects. The invocation of <code>super.paintComponent(g)</code> passes the graphics context off to the component's UI delegate, which paints the panel's background. For a closer look at this process, see the section entitled "Painting and the UI Delegate" in the aforementioned SDN article.</p>
+<p>Exercises:</p>
+<ol>
+<li>Now that you have drawn some custom text to the screen, try minimizing and restoring the application as you did before.</li>
+<li>Obscure a part of the text with another window, then move that window out of the way to re-expose the custom text. In both cases, the painting subsystem will determine that the component is damaged and will ensure that your <code>paintComponent</code> method is invoked.</li>
+</ol>

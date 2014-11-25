@@ -1,0 +1,918 @@
+<h1 id="firstHeading" class="firstHeading" lang="en"><span dir="auto">Closure (computer programming)</span></h1>
+<p>In <a href="/wiki/Programming_language" title="Programming language">programming languages</a>, a <b>closure</b> (also <b>lexical closure</b> or <b>function closure</b>) is a <a href="/wiki/Function_(computer_science)" title="Function (computer science)" class="mw-redirect">function</a> or reference to a function together with a <i>referencing environment</i>—a table storing a <a href="/wiki/Reference_(computer_science)" title="Reference (computer science)">reference</a> to each of the <a href="/wiki/Non-local_variable" title="Non-local variable">non-local variables</a> (also called <a href="/wiki/Free_variable" title="Free variable" class="mw-redirect">free variables</a> or upvalues) of that function.<sup id="cite_ref-1" class="reference"><a href="#cite_note-1"><span>[</span>1<span>]</span></a></sup> A closure—unlike a plain <a href="/wiki/Function_pointer" title="Function pointer">function pointer</a>—enables a function to access those non-local variables even when invoked outside its immediate <a href="/wiki/Lexical_scope" title="Lexical scope" class="mw-redirect">lexical scope</a>.</p>
+<p>The following program fragment defines a (<a href="/wiki/Higher-order_function" title="Higher-order function">higher-order</a>) function <code>startAt</code> with a local variable <code>x</code> and a <a href="/wiki/Nested_function" title="Nested function">nested function</a> <code>incrementBy</code>. This nested function <code>incrementBy</code> has access to <code>x</code>, because <code>x</code> is in its lexical scope, even though it is not local to <code>incrementBy</code>. The function <code>startAt</code> returns a closure containing a reference to the function <code>incrementBy</code>, which adds the <code>y</code> value to the <code>x</code> value, and a reference to the variable <code>x</code>, so <code>incrementBy</code> will know where to find it once invoked:</p>
+<p>WHATSON? e329acb9-04db-4644-b487-fc48b042382b</p>
+<pre>
+<b>function</b> startAt(x)
+   <b>function</b> incrementBy(y)
+       <b>return</b> x + y
+   <b>return</b> incrementBy
+
+<b>variable</b> closure<sub>1</sub> = startAt(1)
+<b>variable</b> closure<sub>2</sub> = startAt(5)
+</pre>
+<p>Invoking the variable <code>closure<sub>1</sub></code> (which is of <a href="/wiki/Function_type" title="Function type">function type</a>) with <code>closure<sub>1</sub>(3)</code> will return <code>4</code>, while invoking <code>closure<sub>2</sub>(3)</code> will return <code>8</code>. While <code>closure<sub>1</sub></code> and <code>closure<sub>2</sub></code> are both references to the function <code>incrementBy</code>, the associated environment will bind the identifier <code>x</code> to two distinct variables in the two invocations, leading to different results.</p>
+<p>The concept of closures was developed in the 1960s for the mechanical evaluation of expressions in the <a href="/wiki/%CE%9B-calculus" title="Λ-calculus" class="mw-redirect">λ-calculus</a> and was first fully implemented in 1975 as a language feature in the <a href="/wiki/Scheme_(programming_language)" title="Scheme (programming language)">Scheme</a> programming language to support lexically scoped <a href="/wiki/First-class_function" title="First-class function">first-class functions</a>. The use of closures is associated with <a href="/wiki/Functional_programming_languages" title="Functional programming languages" class="mw-redirect">functional programming languages</a> such as <a href="/wiki/Lisp_(programming_language)" title="Lisp (programming language)">Lisp</a> and <a href="/wiki/ML_(programming_language)" title="ML (programming language)">ML</a>. Traditional imperative languages such as <a href="/wiki/Algol_(programming_language)" title="Algol (programming language)" class="mw-redirect">Algol</a>, <a href="/wiki/C_(programming_language)" title="C (programming language)">C</a> and <a href="/wiki/Pascal_(programming_language)" title="Pascal (programming language)">Pascal</a> do not support returning <a href="/wiki/Nested_function" title="Nested function">nested functions</a> as results from <a href="/wiki/Higher-order_function" title="Higher-order function">higher-order functions</a> thus avoiding the need to use closures. Many modern <a href="/wiki/Garbage_collection_(computer_science)" title="Garbage collection (computer science)">garbage-collected</a> imperative languages do represent references to functions as closures.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#History_and_etymology"><span class="tocnumber">1</span> <span class="toctext">History and etymology</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Applications"><span class="tocnumber">2</span> <span class="toctext">Applications</span></a>
+<ul>
+<li class="toclevel-2 tocsection-3"><a href="#First-class_functions"><span class="tocnumber">2.1</span> <span class="toctext">First-class functions</span></a></li>
+<li class="toclevel-2 tocsection-4"><a href="#State_representation"><span class="tocnumber">2.2</span> <span class="toctext">State representation</span></a></li>
+<li class="toclevel-2 tocsection-5"><a href="#Other_uses"><span class="tocnumber">2.3</span> <span class="toctext">Other uses</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-6"><a href="#Implementation_and_theory"><span class="tocnumber">3</span> <span class="toctext">Implementation and theory</span></a></li>
+<li class="toclevel-1 tocsection-7"><a href="#Differences_in_semantics"><span class="tocnumber">4</span> <span class="toctext">Differences in semantics</span></a>
+<ul>
+<li class="toclevel-2 tocsection-8"><a href="#Lexical_environment"><span class="tocnumber">4.1</span> <span class="toctext">Lexical environment</span></a></li>
+<li class="toclevel-2 tocsection-9"><a href="#Closure_leaving"><span class="tocnumber">4.2</span> <span class="toctext">Closure leaving</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-10"><a href="#Closure-like_constructs"><span class="tocnumber">5</span> <span class="toctext">Closure-like constructs</span></a>
+<ul>
+<li class="toclevel-2 tocsection-11"><a href="#Callbacks_.28C.29"><span class="tocnumber">5.1</span> <span class="toctext">Callbacks (C)</span></a></li>
+<li class="toclevel-2 tocsection-12"><a href="#Local_classes_and_Lambda_functions_.28Java.29"><span class="tocnumber">5.2</span> <span class="toctext">Local classes and Lambda functions (Java)</span></a></li>
+<li class="toclevel-2 tocsection-13"><a href="#Blocks_.28C.2C_C.2B.2B.2C_Objective-C_2.0.29"><span class="tocnumber">5.3</span> <span class="toctext">Blocks (C, C++, Objective-C 2.0)</span></a></li>
+<li class="toclevel-2 tocsection-14"><a href="#Delegates_.28C.23.2C_D.29"><span class="tocnumber">5.4</span> <span class="toctext">Delegates (C#, D)</span></a></li>
+<li class="toclevel-2 tocsection-15"><a href="#Function_objects_.28C.2B.2B.29"><span class="tocnumber">5.5</span> <span class="toctext">Function objects (C++)</span></a></li>
+<li class="toclevel-2 tocsection-16"><a href="#Inline_agents_.28Eiffel.29"><span class="tocnumber">5.6</span> <span class="toctext">Inline agents (Eiffel)</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-17"><a href="#See_also"><span class="tocnumber">6</span> <span class="toctext">See also</span></a></li>
+<li class="toclevel-1 tocsection-18"><a href="#References"><span class="tocnumber">7</span> <span class="toctext">References</span></a></li>
+<li class="toclevel-1 tocsection-19"><a href="#External_links"><span class="tocnumber">8</span> <span class="toctext">External links</span></a></li>
+</ul>
+<ul>
+<li class="toclevel-2 tocsection-3"><a href="#First-class_functions"><span class="tocnumber">2.1</span> <span class="toctext">First-class functions</span></a></li>
+<li class="toclevel-2 tocsection-4"><a href="#State_representation"><span class="tocnumber">2.2</span> <span class="toctext">State representation</span></a></li>
+<li class="toclevel-2 tocsection-5"><a href="#Other_uses"><span class="tocnumber">2.3</span> <span class="toctext">Other uses</span></a></li>
+</ul>
+<ul>
+<li class="toclevel-2 tocsection-8"><a href="#Lexical_environment"><span class="tocnumber">4.1</span> <span class="toctext">Lexical environment</span></a></li>
+<li class="toclevel-2 tocsection-9"><a href="#Closure_leaving"><span class="tocnumber">4.2</span> <span class="toctext">Closure leaving</span></a></li>
+</ul>
+<ul>
+<li class="toclevel-2 tocsection-11"><a href="#Callbacks_.28C.29"><span class="tocnumber">5.1</span> <span class="toctext">Callbacks (C)</span></a></li>
+<li class="toclevel-2 tocsection-12"><a href="#Local_classes_and_Lambda_functions_.28Java.29"><span class="tocnumber">5.2</span> <span class="toctext">Local classes and Lambda functions (Java)</span></a></li>
+<li class="toclevel-2 tocsection-13"><a href="#Blocks_.28C.2C_C.2B.2B.2C_Objective-C_2.0.29"><span class="tocnumber">5.3</span> <span class="toctext">Blocks (C, C++, Objective-C 2.0)</span></a></li>
+<li class="toclevel-2 tocsection-14"><a href="#Delegates_.28C.23.2C_D.29"><span class="tocnumber">5.4</span> <span class="toctext">Delegates (C#, D)</span></a></li>
+<li class="toclevel-2 tocsection-15"><a href="#Function_objects_.28C.2B.2B.29"><span class="tocnumber">5.5</span> <span class="toctext">Function objects (C++)</span></a></li>
+<li class="toclevel-2 tocsection-16"><a href="#Inline_agents_.28Eiffel.29"><span class="tocnumber">5.6</span> <span class="toctext">Inline agents (Eiffel)</span></a></li>
+</ul>
+<p></p>
+<h2><span class="mw-headline" id="History_and_etymology">History and etymology</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Closure_(computer_programming)&amp;action=edit&amp;section=1" title="Edit section: History and etymology">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><a href="/wiki/Peter_J._Landin" title="Peter J. Landin" class="mw-redirect">Peter J. Landin</a> defined the term <i>closure</i> in 1964 as having an <i>environment part</i> and a <i>control part</i> as used by his <a href="/wiki/SECD_machine" title="SECD machine">SECD machine</a> for evaluating expressions.<sup id="cite_ref-2" class="reference"><a href="#cite_note-2"><span>[</span>2<span>]</span></a></sup> <a href="/wiki/Joel_Moses" title="Joel Moses">Joel Moses</a> credits Landin with introducing the term <i>closure</i> to refer to a <a href="/wiki/Anonymous_function" title="Anonymous function">lambda expression</a> whose open bindings (free variables) have been closed by (or bound in) the lexical environment, resulting in a <i>closed expression</i>, or closure.<sup id="cite_ref-3" class="reference"><a href="#cite_note-3"><span>[</span>3<span>]</span></a></sup><sup id="cite_ref-4" class="reference"><a href="#cite_note-4"><span>[</span>4<span>]</span></a></sup> This usage was subsequently adopted by <a href="/wiki/Gerald_Jay_Sussman" title="Gerald Jay Sussman">Sussman</a> and <a href="/wiki/Guy_L._Steele,_Jr." title="Guy L. Steele, Jr.">Steele</a> when they defined <a href="/wiki/Scheme_(programming_language)" title="Scheme (programming language)">Scheme</a> in 1975,<sup id="cite_ref-5" class="reference"><a href="#cite_note-5"><span>[</span>5<span>]</span></a></sup> and became widespread.</p>
+<p>The term <i>closure</i> is often mistakenly used to mean <a href="/wiki/Anonymous_function" title="Anonymous function">anonymous function</a>. This is probably because many programmers learn about both concepts at the same time, in the form of small helper functions that are anonymous closures. An anonymous function is a function <a href="/wiki/Literal_(computer_programming)" title="Literal (computer programming)">literal</a> without a name, while a closure is an instance of a function, a <a href="/wiki/Value_(computer_science)" title="Value (computer science)">value</a>, whose non-local variables have been bound either to values or to <a href="/wiki/Variable_(computer_science)" title="Variable (computer science)">storage locations</a> (depending on the language; see the <a href="#Lexical_environment">lexical environment</a> section below).</p>
+<h2><span class="mw-headline" id="Applications">Applications</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Closure_(computer_programming)&amp;action=edit&amp;section=2" title="Edit section: Applications">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Closures are used to implement <a href="/wiki/Continuation-passing_style" title="Continuation-passing style">continuation-passing style</a>, and in this manner, <a href="/wiki/Information_hiding" title="Information hiding">hide state</a>. Constructs such as <a href="/wiki/Object_(computer_science)" title="Object (computer science)">objects</a> and <a href="/wiki/Control_structure" title="Control structure" class="mw-redirect">control structures</a> can thus be implemented with closures. In some languages, a closure may occur when a function is defined within another function, and the inner function refers to local variables of the outer function. At <a href="/wiki/Run_time_(program_lifecycle_phase)" title="Run time (program lifecycle phase)">run-time</a>, when the outer function executes, a closure is formed, consisting of the inner function’s code and references (the upvalues) to any variables of the outer function required by the closure.</p>
+<h3><span class="mw-headline" id="First-class_functions">First-class functions</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Closure_(computer_programming)&amp;action=edit&amp;section=3" title="Edit section: First-class functions">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Closures typically appear in languages in which functions are <a href="/wiki/First-class_object" title="First-class object" class="mw-redirect">first-class values</a>—in other words, such languages enable functions to be passed as arguments, returned from function calls, bound to variable names, etc., just like simpler types such as strings and integers. For example, consider the following <a href="/wiki/Scheme_(programming_language)" title="Scheme (programming language)">Scheme</a> function:</p>
+<p>WHATSON? dac6327f-7dc0-47fc-8faf-e234ce8882e2</p>
+<pre class="de1">
+<span class="co1">; Return a list of all books with at least THRESHOLD copies sold.</span>
+<span class="br0">(</span><span class="kw1">define</span> <span class="br0">(</span>best<span class="sy0">-</span>selling<span class="sy0">-</span>books threshold<span class="br0">)</span>
+  <span class="br0">(</span>filter
+    <span class="br0">(</span><span class="kw1">lambda</span> <span class="br0">(</span>book<span class="br0">)</span>
+      <span class="br0">(</span><span class="sy0">&gt;=</span> <span class="br0">(</span>book<span class="sy0">-</span>sales book<span class="br0">)</span> threshold<span class="br0">)</span><span class="br0">)</span>
+    book<span class="sy0">-</span><span class="kw1">list</span><span class="br0">)</span><span class="br0">)</span>
+</pre>
+<p>In this example, the <a href="/wiki/Lambda_(programming)" title="Lambda (programming)" class="mw-redirect">lambda expression</a> <code>(lambda (book) (&gt;= (book-sales book) threshold))</code> appears within the function <code>best-selling-books</code>. When the lambda expression is evaluated, Scheme creates a closure consisting of the code for the lambda expression and a reference to the <code>threshold</code> variable, which is a <a href="/wiki/Free_variable" title="Free variable" class="mw-redirect">free variable</a> inside the lambda expression.</p>
+<p>The closure is then passed to the <code>filter</code> function, which calls it repeatedly to determine which books are to be added to the result list and which are to be discarded. Because the closure itself has a reference to <code>threshold</code>, it can use that variable each time <code>filter</code> calls it. The function <code>filter</code> itself might be defined in a completely separate file.</p>
+<p>Here is the same example rewritten in <a href="/wiki/JavaScript" title="JavaScript">JavaScript</a>, another popular language with support for closures:</p>
+<p>WHATSON? c42958d7-ec16-46d4-8df7-973d9c916739</p>
+<pre class="de1">
+<span class="co1">// Return a list of all books with at least 'threshold' copies sold.</span>
+<span class="kw1">function</span> bestSellingBooks<span class="br0">(</span>threshold<span class="br0">)</span> <span class="br0">{</span>
+  <span class="kw1">return</span> bookList.<span class="me1">filter</span><span class="br0">(</span>
+      <span class="kw1">function</span> <span class="br0">(</span>book<span class="br0">)</span> <span class="br0">{</span> <span class="kw1">return</span> book.<span class="me1">sales</span> <span class="sy0">&gt;=</span> threshold<span class="sy0">;</span> <span class="br0">}</span>
+    <span class="br0">)</span><span class="sy0">;</span>
+<span class="br0">}</span>
+</pre>
+<p>The <code>function</code> keyword is used here instead of <code>lambda</code>, and an <code>Array.filter</code> method<sup id="cite_ref-6" class="reference"><a href="#cite_note-6"><span>[</span>6<span>]</span></a></sup> instead of a global <code>filter</code> function, but otherwise the structure and the effect of the code are the same.</p>
+<p>A function may create a closure and return it, as in the following example:</p>
+<p>WHATSON? 0fcc0667-d313-444d-946e-5f5d4c06b83c</p>
+<pre class="de1">
+<span class="co1">// Return a function that approximates the derivative of f</span>
+<span class="co1">// using an interval of dx, which should be appropriately small.</span>
+<span class="kw1">function</span> derivative<span class="br0">(</span>f<span class="sy0">,</span> dx<span class="br0">)</span> <span class="br0">{</span>
+  <span class="kw1">return</span> <span class="kw1">function</span> <span class="br0">(</span>x<span class="br0">)</span> <span class="br0">{</span>
+    <span class="kw1">return</span> <span class="br0">(</span>f<span class="br0">(</span>x <span class="sy0">+</span> dx<span class="br0">)</span> <span class="sy0">-</span> f<span class="br0">(</span>x<span class="br0">)</span><span class="br0">)</span> <span class="sy0">/</span> dx<span class="sy0">;</span>
+  <span class="br0">}</span><span class="sy0">;</span>
+<span class="br0">}</span>
+</pre>
+<p>Because the closure in this case outlives the <a href="/wiki/Scope_(programming)" title="Scope (programming)" class="mw-redirect">scope</a> of the function that creates it, the variables <code>f</code> and <code>dx</code> live on after the function <code>derivative</code> returns. In languages without closures, the lifetime of a local variable coincides with the execution of the scope where that variable is declared. In languages with closures, variables must continue to exist as long as any existing closures have references to them. This is most commonly implemented using some form of <a href="/wiki/Garbage_collection_(computer_science)" title="Garbage collection (computer science)">garbage collection</a>.</p>
+<h3><span class="mw-headline" id="State_representation">State representation</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Closure_(computer_programming)&amp;action=edit&amp;section=4" title="Edit section: State representation">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>A closure can be used to associate a function with a set of "private" variables, which persist over several invocations of the function. The <a href="/wiki/Scope_(programming)" title="Scope (programming)" class="mw-redirect">scope</a> of the variable encompasses only the closed-over function, so it cannot be accessed from other program code.</p>
+<p>In stateful languages, closures can thus be used to implement paradigms for state representation and <a href="/wiki/Information_hiding" title="Information hiding">information hiding</a>, since the closure's upvalues (its closed-over variables) are of indefinite <a href="/wiki/Variable_(programming)#Scope_and_extent" title="Variable (programming)" class="mw-redirect">extent</a>, so a value established in one invocation remains available in the next. Closures used in this way no longer have <a href="/wiki/Referential_transparency_(computer_science)" title="Referential transparency (computer science)">referential transparency</a>, and are thus no longer <a href="/wiki/Pure_function" title="Pure function">pure functions</a>; nevertheless, they are commonly used in impure functional languages such as <a href="/wiki/Scheme_(programming_language)" title="Scheme (programming language)">Scheme</a>.</p>
+<h3><span class="mw-headline" id="Other_uses">Other uses</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Closure_(computer_programming)&amp;action=edit&amp;section=5" title="Edit section: Other uses">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Closures have many uses:</p>
+<ul>
+<li>Because closures delay evaluation—i.e., they do not "do" anything until they are called—they can be used to define control structures. For example, all of <a href="/wiki/Smalltalk" title="Smalltalk">Smalltalk</a>'s standard control structures, including branches (if/then/else) and loops (while and for), are defined using objects whose methods accept closures. Users can easily define their own control structures also.</li>
+<li>In languages which implement assignment, multiple functions can be produced that close over the same environment, enabling them to communicate privately by altering that environment. In Scheme:</li>
+</ul>
+<p>WHATSON? aeb4f67b-123d-4f15-a33f-2d89b62de86c</p>
+<pre class="de1">
+<span class="br0">(</span><span class="kw1">define</span> foo #f<span class="br0">)</span>
+<span class="br0">(</span><span class="kw1">define</span> bar #f<span class="br0">)</span>
+ 
+<span class="br0">(</span><span class="kw1">let</span> <span class="br0">(</span><span class="br0">(</span>secret<span class="sy0">-</span>message <span class="st0">"none"</span><span class="br0">)</span><span class="br0">)</span>
+  <span class="br0">(</span><span class="kw1">set!</span> foo <span class="br0">(</span><span class="kw1">lambda</span> <span class="br0">(</span>msg<span class="br0">)</span> <span class="br0">(</span><span class="kw1">set!</span> secret<span class="sy0">-</span>message msg<span class="br0">)</span><span class="br0">)</span><span class="br0">)</span>
+  <span class="br0">(</span><span class="kw1">set!</span> bar <span class="br0">(</span><span class="kw1">lambda</span> <span class="br0">(</span><span class="br0">)</span> secret<span class="sy0">-</span>message<span class="br0">)</span><span class="br0">)</span><span class="br0">)</span>
+ 
+<span class="br0">(</span><span class="kw1">display</span> <span class="br0">(</span>bar<span class="br0">)</span><span class="br0">)</span> <span class="co1">; prints "none"</span>
+<span class="br0">(</span><span class="kw1">newline</span><span class="br0">)</span>
+<span class="br0">(</span>foo <span class="st0">"meet me by the docks at midnight"</span><span class="br0">)</span>
+<span class="br0">(</span><span class="kw1">display</span> <span class="br0">(</span>bar<span class="br0">)</span><span class="br0">)</span> <span class="co1">; prints "meet me by the docks at midnight"</span>
+</pre>
+<ul>
+<li>Closures can be used to implement <a href="/wiki/Object-oriented_programming" title="Object-oriented programming">object</a> systems.<sup id="cite_ref-7" class="reference"><a href="#cite_note-7"><span>[</span>7<span>]</span></a></sup></li>
+</ul>
+<p>Note: Some speakers call any data structure that binds a <a href="/wiki/Scope_(programming)#Lexical_scoping" title="Scope (programming)" class="mw-redirect">lexical</a> environment a closure, but the term usually refers specifically to functions.</p>
+<h2><span class="mw-headline" id="Implementation_and_theory">Implementation and theory</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Closure_(computer_programming)&amp;action=edit&amp;section=6" title="Edit section: Implementation and theory">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Closures are typically implemented with a special <a href="/wiki/Data_structure" title="Data structure">data structure</a> that contains a pointer to the function code, plus a representation of the function's lexical environment (i.e., the set of available variables) at the time when the closure was created. The referencing environment <a href="/wiki/Name_binding" title="Name binding">binds</a> the nonlocal names to the corresponding variables in <a href="/wiki/Scope_(computer_science)" title="Scope (computer science)">scope</a> at the time the closure is created, additionally extending their lifetime to at least as long as the lifetime of the closure itself. When the closure is <i>entered</i> at a later time, possibly from a different scope, the function is executed with its non-local variables referring to the ones captured by the closure.</p>
+<p>A language implementation cannot easily support full closures if its run-time memory model allocates all local variables on a linear <a href="/wiki/Stack-based_memory_allocation" title="Stack-based memory allocation">stack</a>. In such languages, a function's local variables are deallocated when the function returns. However, a closure requires that the free variables it references survive the enclosing function's execution. Therefore, those variables must be allocated so that they persist until no longer needed. This explains why, typically, languages that natively support closures also use <a href="/wiki/Garbage_collection_(computer_science)" title="Garbage collection (computer science)">garbage collection</a>. The alternative is for the language to accept that certain use cases will lead to <a href="/wiki/Undefined_behaviour" title="Undefined behaviour" class="mw-redirect">undefined behaviour</a>, as in lambda expressions in C++11.<sup id="cite_ref-8" class="reference"><a href="#cite_note-8"><span>[</span>8<span>]</span></a></sup> The <a href="/wiki/Funarg_problem" title="Funarg problem">funarg problem</a> (or "functional argument" problem) describes the difficulty of implementing functions as first class objects in a stack-based programming language such as C or C++. Similarly in <a href="/wiki/D_(programming_language)" title="D (programming language)">D</a> version 1, it is assumed that the programmer knows what to do with <a href="/wiki/Delegation_(programming)" title="Delegation (programming)">delegates</a> and local variables, as their references will be invalid after return from its definition scope (local variables are on the stack) - this still permits many useful functional patterns, but for complex cases needs explicit <a href="/wiki/Dynamic_memory_allocation#Dynamic_memory_allocation" title="Dynamic memory allocation" class="mw-redirect">heap allocation</a> for variables. D version 2 solved this by detecting which variables must be stored on the heap, and performs automatic allocation. Because D uses garbage collection, in both versions, there is no need to track usage of variables as they are passed.</p>
+<p>In strict functional languages with immutable data (<i>e.g.</i> <a href="/wiki/Erlang_(programming_language)" title="Erlang (programming language)">Erlang</a>), it is very easy to implement automatic memory management (garbage collection), as there are no possible cycles in variables' references. For example in Erlang, all arguments and variables are allocated on the heap, but references to them are additionally stored on the stack. After a function returns, references are still valid. Heap cleaning is done by incremental garbage collector.</p>
+<p>In ML, local variables are lexically scoped, and hence define a stack-like model, but since they are bound to values and not to objects, an implementation is free to copy these values into the closure's data structure in a way that is invisible to the programmer.</p>
+<p><a href="/wiki/Scheme_(programming_language)" title="Scheme (programming language)">Scheme</a>, which has an <a href="/wiki/ALGOL" title="ALGOL">ALGOL</a>-like lexical scope system with dynamic variables and garbage collection, lacks a stack programming model and does not suffer from the limitations of stack-based languages. Closures are expressed naturally in Scheme. The lambda form encloses the code, and the free variables of its environment persist within the program as long as they can possibly be accessed, and so they can be used as freely as any other Scheme expression.</p>
+<p>Closures are closely related to Actors in the <a href="/wiki/Actor_model" title="Actor model">Actor model</a> of concurrent computation where the values in the function's lexical environment are called <i>acquaintances</i>. An important issue for closures in <a href="/wiki/Concurrent_programming" title="Concurrent programming" class="mw-redirect">concurrent programming</a> languages is whether the variables in a closure can be updated and, if so, how these updates can be synchronized. Actors provide one solution.<sup id="cite_ref-9" class="reference"><a href="#cite_note-9"><span>[</span>9<span>]</span></a></sup></p>
+<p>Closures are closely related to <a href="/wiki/Function_object" title="Function object">function objects</a>; the transformation from the former to the latter is known as <a href="/wiki/Defunctionalization" title="Defunctionalization">defunctionalization</a> or <a href="/wiki/Lambda_lifting" title="Lambda lifting">lambda lifting</a>.<sup class="noprint Inline-Template Template-Fact" style="white-space:nowrap;">[<i><a href="/wiki/Wikipedia:Citation_needed" title="Wikipedia:Citation needed"><span title="This claim needs references to reliable sources. (September 2011)">citation needed</span></a></i>]</sup></p>
+<h2><span class="mw-headline" id="Differences_in_semantics">Differences in semantics</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Closure_(computer_programming)&amp;action=edit&amp;section=7" title="Edit section: Differences in semantics">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<h3><span class="mw-headline" id="Lexical_environment">Lexical environment</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Closure_(computer_programming)&amp;action=edit&amp;section=8" title="Edit section: Lexical environment">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>As different languages do not always have a common definition of the lexical environment, their definitions of closure may vary also. The commonly held minimalist definition of the lexical environment defines it as a set of all <a href="/wiki/Name_binding" title="Name binding">bindings of variables</a> in the scope, and that is also what closures in any language have to capture. However the meaning of a <a href="/wiki/Variable_(programming)" title="Variable (programming)" class="mw-redirect">variable</a> binding also differs. In imperative languages, variables bind to relative locations in memory that can store values. Although the relative location of a binding does not change at runtime, the value in the bound location can. In such languages, since closure captures the binding, any operation on the variable, whether done from the closure or not, are performed on the same relative memory location. This is often called capturing the variable "by reference". Here is an example illustrating the concept in <a href="/wiki/ECMAScript" title="ECMAScript">ECMAScript</a>, which is one such language:</p>
+<p>WHATSON? 8ff626e0-b12e-41a8-bea5-f700e83e0e90</p>
+<pre class="de1">
+<span class="co1">// ECMAScript</span>
+<span class="kw2">var</span> f<span class="sy0">,</span> g<span class="sy0">;</span>
+<span class="kw2">function</span> foo<span class="br0">(</span><span class="br0">)</span> <span class="br0">{</span>
+  <span class="kw2">var</span> x<span class="sy0">;</span>
+  f <span class="sy0">=</span> <span class="kw2">function</span><span class="br0">(</span><span class="br0">)</span> <span class="br0">{</span> <span class="kw2">return</span> <span class="sy0">++</span>x<span class="sy0">;</span> <span class="br0">}</span><span class="sy0">;</span>
+  g <span class="sy0">=</span> <span class="kw2">function</span><span class="br0">(</span><span class="br0">)</span> <span class="br0">{</span> <span class="kw2">return</span> <span class="sy0">--</span>x<span class="sy0">;</span> <span class="br0">}</span><span class="sy0">;</span>
+  x <span class="sy0">=</span> <span class="nu0">1</span><span class="sy0">;</span>
+  alert<span class="br0">(</span><span class="st0">'inside foo, call to f(): '</span> <span class="sy0">+</span> f<span class="br0">(</span><span class="br0">)</span><span class="br0">)</span><span class="sy0">;</span> <span class="co1">// "2"</span>
+<span class="br0">}</span>
+foo<span class="br0">(</span><span class="br0">)</span><span class="sy0">;</span>
+alert<span class="br0">(</span><span class="st0">'call to g(): '</span> <span class="sy0">+</span> g<span class="br0">(</span><span class="br0">)</span><span class="br0">)</span><span class="sy0">;</span> <span class="co1">// "1"</span>
+alert<span class="br0">(</span><span class="st0">'call to f(): '</span> <span class="sy0">+</span> f<span class="br0">(</span><span class="br0">)</span><span class="br0">)</span><span class="sy0">;</span> <span class="co1">// "2"</span>
+</pre>
+<p>Note how function <code>foo</code> and the closures referred to by variables <code>f</code> and <code>g</code> all use the same relative memory location signified by local variable <code>x</code>.</p>
+<p>On the other hand, many functional languages, such as <a href="/wiki/ML_(programming_language)" title="ML (programming language)">ML</a>, bind variables directly to values. In this case, since there is no way to change the value of the variable once it is bound, there is no need to share the state between closures—they just use the same values. This is often called capturing the variable "by value". Java's local and anonymous classes also fall into this category—they require captured local variables to be <code>final</code>, which also means there is no need to share state.</p>
+<p>Some languages enable you to choose between capturing the value of a variable or its location. For example, in C++11 and PHP, captured variables are either declared with <code>&amp;</code>, which means captured by reference, or without, which means captured by value.</p>
+<p>Yet another subset, <a href="/wiki/Lazy_evaluation" title="Lazy evaluation">lazy</a> functional languages such as <a href="/wiki/Haskell_(programming_language)" title="Haskell (programming language)">Haskell</a>, bind variables to results of future computations rather than values. Consider this example in Haskell:</p>
+<p>WHATSON? d279bc1e-9da8-4fa6-8780-15171056a877</p>
+<pre class="de1">
+<span class="co1">-- Haskell</span>
+foo <span class="sy0">::</span> <span class="kw4">Fractional</span> a <span class="sy0">=&gt;</span> a <span class="sy0">-&gt;</span> a <span class="sy0">-&gt;</span> <span class="br0">(</span>a <span class="sy0">-&gt;</span> a<span class="br0">)</span>
+foo x y <span class="sy0">=</span> <span class="br0">(</span>\z <span class="sy0">-&gt;</span> z <span class="sy0">+</span> r<span class="br0">)</span>
+          <span class="kw1">where</span> r <span class="sy0">=</span> x <span class="sy0">/</span> y
+ 
+f <span class="sy0">::</span> <span class="kw4">Fractional</span> a <span class="sy0">=&gt;</span> a <span class="sy0">-&gt;</span> a
+f <span class="sy0">=</span> foo <span class="nu0">1</span> <span class="nu0">0</span>
+ 
+main <span class="sy0">=</span> <span class="kw3">print</span> <span class="br0">(</span>f <span class="nu0">123</span><span class="br0">)</span>
+</pre>
+<p>The binding of <code>r</code> captured by the closure defined within function <code>foo</code> is to the computation <code>(x / y)</code> - which in this case results in division by zero. However, since it is the computation that is captured, and not the value, the error only manifests itself when the closure is invoked, and actually attempts to use the captured binding.</p>
+<h3><span class="mw-headline" id="Closure_leaving">Closure leaving</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Closure_(computer_programming)&amp;action=edit&amp;section=9" title="Edit section: Closure leaving">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Yet more differences manifest themselves in the behavior of other lexically scoped constructs, such as <code>return</code>, <code>break</code> and <code>continue</code> statements. Such constructs can, in general, be considered in terms of invoking an <a href="/wiki/Escape_continuation" title="Escape continuation" class="mw-redirect">escape continuation</a> established by an enclosing control statement (in case of <code>break</code> and <code>continue</code>, such interpretation requires looping constructs to be considered in terms of recursive function calls). In some languages, such as ECMAScript, <code>return</code> refers to the continuation established by the closure lexically innermost with respect to the statement—thus, a <code>return</code> within a closure transfers control to the code that called it. However in <a href="/wiki/Smalltalk" title="Smalltalk">Smalltalk</a>, the superficially similar operator <code>^</code> invokes the escape continuation established for the method invocation, ignoring the escape continuations of any intervening nested closures. The escape continuation of a particular closure can only be invoked in Smalltalk implicitly by reaching the end of the closure's code. The following examples in ECMAScript and Smalltalk highlight the difference:</p>
+<p>WHATSON? e1675063-1a47-4550-bb57-4b567caee182</p>
+<pre class="de1">
+<span class="coMULTI">"Smalltalk"</span>
+foo
+  |<span class="re3"> xs </span>|
+  <span class="re6">xs</span> <span class="sy0">:=</span> <span class="re2">#<span class="br0">(</span><span class="re5">1</span> 2 3 4<span class="br0">)</span></span>.
+  <span class="re5">xs</span> do: <span class="br0">[</span>:<span class="re5">x</span> | ^x<span class="br0">]</span>.
+  ^<span class="nu0">0</span>
+bar
+  <span class="re0">Transcript</span> show: <span class="br0">(</span><span class="kw1">self</span> foo printString<span class="br0">)</span> <span class="coMULTI">"prints 1"</span>
+</pre>
+<p>WHATSON? 20908c9a-5a40-4854-882f-1ee4ed8f6817</p>
+<pre class="de1">
+<span class="co1">// ECMAScript</span>
+<span class="kw1">function</span> foo<span class="br0">(</span><span class="br0">)</span> <span class="br0">{</span>
+  <span class="kw1">var</span> xs <span class="sy0">=</span> <span class="br0">[</span><span class="nu0">1</span><span class="sy0">,</span> <span class="nu0">2</span><span class="sy0">,</span> <span class="nu0">3</span><span class="sy0">,</span> <span class="nu0">4</span><span class="br0">]</span><span class="sy0">;</span>
+  xs.<span class="me1">forEach</span><span class="br0">(</span><span class="kw1">function</span> <span class="br0">(</span>x<span class="br0">)</span> <span class="br0">{</span> <span class="kw1">return</span> x<span class="sy0">;</span> <span class="br0">}</span><span class="br0">)</span><span class="sy0">;</span>
+  <span class="kw1">return</span> <span class="nu0">0</span><span class="sy0">;</span>
+<span class="br0">}</span>
+alert<span class="br0">(</span>foo<span class="br0">(</span><span class="br0">)</span><span class="br0">)</span><span class="sy0">;</span> <span class="co1">// prints 0</span>
+</pre>
+<p>The above code snippets will behave differently because the Smalltalk <code>^</code> operator and the JavaScript <code>return</code> operator are not analogous. In the ECMAScript example, <code>return x</code> will leave the inner closure to begin a new iteration of the <code>forEach</code> loop, whereas in the Smalltalk example, <code>^x</code> will abort the loop and return from the method <code>foo</code>.</p>
+<p><a href="/wiki/Common_Lisp" title="Common Lisp">Common Lisp</a> provides a construct that can express either of the above actions: Lisp <code>(return-from foo x)</code> behaves as <a href="/wiki/Smalltalk" title="Smalltalk">Smalltalk</a> <code>^x</code>, while Lisp <code>(return-from nil x)</code> behaves as <a href="/wiki/JavaScript" title="JavaScript">JavaScript</a> <code>return x</code>. Hence, Smalltalk makes it possible for a captured escape continuation to outlive the extent in which it can be successfully invoked. Consider:</p>
+<p>WHATSON? 2ae86588-8a51-4853-b28a-4ed7ab5720b7</p>
+<pre class="de1">
+<span class="coMULTI">"Smalltalk"</span>
+foo
+    ^<span class="br0">[</span> :<span class="re5">x</span> | ^x <span class="br0">]</span>
+bar
+    |<span class="re3"> f </span>|
+    <span class="re6">f</span> <span class="sy0">:=</span> <span class="kw1">self</span> foo.
+    <span class="re5">f</span> value: <span class="re5">123</span> <span class="coMULTI">"error!"</span>
+</pre>
+<p>When the closure returned by the method <code>foo</code> is invoked, it attempts to return a value from the invocation of <code>foo</code> that created the closure. Since that call has already returned and the Smalltalk method invocation model does not follow the <a href="/wiki/Spaghetti_stack" title="Spaghetti stack">spaghetti stack</a> discipline to facilitate multiple returns, this operation results in an error.</p>
+<p>Some languages, such as <a href="/wiki/Ruby_(programming_language)" title="Ruby (programming language)">Ruby</a>, enable the programmer to choose the way <code>return</code> is captured. An example in Ruby:</p>
+<p>WHATSON? b2b3e2b2-55c6-42c9-851b-a96741a11f03</p>
+<pre class="de1">
+<span class="co1"># Ruby</span>
+ 
+<span class="co1"># Closure using a Proc</span>
+<span class="kw1">def</span> foo
+  f = <span class="kw3">Proc</span>.<span class="me1">new</span> <span class="br0">{</span> <span class="kw2">return</span> <span class="st0">"return from foo from inside proc"</span> <span class="br0">}</span>
+  f.<span class="me1">call</span> <span class="co1"># control leaves foo here</span>
+  <span class="kw2">return</span> <span class="st0">"return from foo"</span>
+<span class="kw1">end</span>
+ 
+<span class="co1"># Closure using a lambda</span>
+<span class="kw1">def</span> bar
+  f = <span class="kw3">lambda</span> <span class="br0">{</span> <span class="kw2">return</span> <span class="st0">"return from lambda"</span> <span class="br0">}</span>
+  f.<span class="me1">call</span> <span class="co1"># control does not leave bar here</span>
+  <span class="kw2">return</span> <span class="st0">"return from bar"</span>
+<span class="kw1">end</span>
+ 
+<span class="kw3">puts</span> foo <span class="co1"># prints "return from foo from inside proc"</span>
+<span class="kw3">puts</span> bar <span class="co1"># prints "return from bar"</span>
+</pre>
+<p>Both <code>Proc.new</code> and <code>lambda</code> in this example are ways to create a closure, but semantics of the closures thus created are different with respect to the <code>return</code> statement.</p>
+<p>In <a href="/wiki/Scheme_(programming_language)" title="Scheme (programming language)">Scheme</a>, definition and scope of the <code>return</code> control statement is explicit (and only arbitrarily named 'return' for the sake of the example). The following is a direct translation of the Ruby sample.</p>
+<p>WHATSON? ba084075-0bda-444f-8610-fbe97f94cd92</p>
+<pre class="de1">
+<span class="co1">; Scheme</span>
+<span class="br0">(</span><span class="kw1">define</span> <span class="kw1">call/cc</span> <span class="kw1">call-with-current-continuation</span><span class="br0">)</span>
+ 
+<span class="br0">(</span><span class="kw1">define</span> <span class="br0">(</span>foo<span class="br0">)</span>
+  <span class="br0">(</span><span class="kw1">call/cc</span>
+   <span class="br0">(</span><span class="kw1">lambda</span> <span class="br0">(</span><span class="kw1">return</span><span class="br0">)</span>
+     <span class="br0">(</span><span class="kw1">define</span> <span class="br0">(</span><span class="kw1">f</span><span class="br0">)</span> <span class="br0">(</span><span class="kw1">return</span> <span class="st0">"return from foo from inside proc"</span><span class="br0">)</span><span class="br0">)</span>
+     <span class="br0">(</span><span class="kw1">f</span><span class="br0">)</span> <span class="co1">; control leaves foo here</span>
+     <span class="br0">(</span><span class="kw1">return</span> <span class="st0">"return from foo"</span><span class="br0">)</span><span class="br0">)</span><span class="br0">)</span><span class="br0">)</span>
+ 
+<span class="br0">(</span><span class="kw1">define</span> <span class="br0">(</span>bar<span class="br0">)</span>
+  <span class="br0">(</span><span class="kw1">call/cc</span>
+   <span class="br0">(</span><span class="kw1">lambda</span> <span class="br0">(</span><span class="kw1">return</span><span class="br0">)</span>
+     <span class="br0">(</span><span class="kw1">define</span> <span class="br0">(</span><span class="kw1">f</span><span class="br0">)</span> <span class="br0">(</span><span class="kw1">call/cc</span> <span class="br0">(</span><span class="kw1">lambda</span> <span class="br0">(</span><span class="kw1">return</span><span class="br0">)</span> <span class="br0">(</span><span class="kw1">return</span> <span class="st0">"return from lambda"</span><span class="br0">)</span><span class="br0">)</span><span class="br0">)</span><span class="br0">)</span>
+     <span class="br0">(</span><span class="kw1">f</span><span class="br0">)</span> <span class="co1">; control does not leave bar here</span>
+     <span class="br0">(</span><span class="kw1">return</span> <span class="st0">"return from bar"</span><span class="br0">)</span><span class="br0">)</span><span class="br0">)</span><span class="br0">)</span>
+ 
+<span class="br0">(</span><span class="kw1">display</span> <span class="br0">(</span>foo<span class="br0">)</span><span class="br0">)</span> <span class="co1">; prints "return from foo from inside proc"</span>
+<span class="br0">(</span><span class="kw1">newline</span><span class="br0">)</span>
+<span class="br0">(</span><span class="kw1">display</span> <span class="br0">(</span>bar<span class="br0">)</span><span class="br0">)</span> <span class="co1">; prints "return from bar"</span>
+</pre>
+<h2><span class="mw-headline" id="Closure-like_constructs">Closure-like constructs</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Closure_(computer_programming)&amp;action=edit&amp;section=10" title="Edit section: Closure-like constructs">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Features of some languages simulate some features of closures. Language features include some object-oriented techniques, for example in Java, C++, Objective-C, C#, D.</p>
+<h3><span class="mw-headline" id="Callbacks_.28C.29">Callbacks (C)</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Closure_(computer_programming)&amp;action=edit&amp;section=11" title="Edit section: Callbacks (C)">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>In <a href="/wiki/C_(programming_language)" title="C (programming language)">C</a>, libraries that support <a href="/wiki/Callback_(computer_science)" title="Callback (computer science)" class="mw-redirect">callbacks</a>, a callback can sometimes be registered using two values: a function pointer and a separate <code>void*</code> pointer to arbitrary data of the user's choice. Each time the library executes the callback function, it passes in the data pointer. This enables the callback to maintain state and to refer to information captured at the time it was registered. The idiom is similar to closures in functionality, but not in syntax.</p>
+<h3><span class="mw-headline" id="Local_classes_and_Lambda_functions_.28Java.29">Local classes and Lambda functions (Java)</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Closure_(computer_programming)&amp;action=edit&amp;section=12" title="Edit section: Local classes and Lambda functions (Java)">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p><a href="/wiki/Java_(programming_language)" title="Java (programming language)">Java</a> enables <a href="/wiki/Class_(object-oriented_programming)" title="Class (object-oriented programming)" class="mw-redirect">classes</a> to be defined inside <a href="/wiki/Method_(object-oriented_programming)" title="Method (object-oriented programming)" class="mw-redirect">methods</a>. These are called <i>local classes</i>. When such classes are not named, they are known as <i>anonymous classes</i> (or anonymous <i>inner</i> classes). A local class (either named or anonymous) may refer to names in lexically enclosing classes, or read-only variables (marked as <tt>final</tt>) in the lexically enclosing method.</p>
+<p>WHATSON? 49451880-5123-43bf-a870-79d8488b2de2</p>
+<pre class="de1">
+<span class="kw1">class</span> CalculationWindow <span class="kw1">extends</span> <span class="kw3">JFrame</span> <span class="br0">{</span>
+  <span class="kw1">private</span> <span class="kw1">volatile</span> <span class="kw4">int</span> result<span class="sy0">;</span>
+  ...
+  <span class="kw1">public</span> <span class="kw4">void</span> calculateInSeparateThread<span class="br0">(</span><span class="kw1">final</span> URI uri<span class="br0">)</span> <span class="br0">{</span>
+    <span class="co1">// The expression "new Runnable() { ... }" is an anonymous class implementing the 'Runnable' interface.</span>
+    <span class="kw1">new</span> <span class="kw3">Thread</span><span class="br0">(</span>
+      <span class="kw1">new</span> <span class="kw3">Runnable</span><span class="br0">(</span><span class="br0">)</span> <span class="br0">{</span>
+        <span class="kw4">void</span> run<span class="br0">(</span><span class="br0">)</span> <span class="br0">{</span>
+          <span class="co1">// It can read final local variables:</span>
+          calculate<span class="br0">(</span>uri<span class="br0">)</span><span class="sy0">;</span>
+          <span class="co1">// It can access private fields of the enclosing class:</span>
+          result <span class="sy0">=</span> result <span class="sy0">+</span> <span class="nu0">10</span><span class="sy0">;</span>
+        <span class="br0">}</span>
+      <span class="br0">}</span>
+    <span class="br0">)</span>.<span class="me1">start</span><span class="br0">(</span><span class="br0">)</span><span class="sy0">;</span>
+  <span class="br0">}</span>
+<span class="br0">}</span>
+</pre>
+<p>The capturing of <tt>final</tt> variables enables you to capture variables by value. Even if the variable you want to capture is non-<tt>final</tt>, you can always copy it to a temporary <tt>final</tt> variable just before the class.</p>
+<p>Capturing of variables by reference can be emulated by using a <tt>final</tt> reference to a mutable container, for example, a single-element array. The local class will not be able to change the value of the container reference itself, but it will be able to change the contents of the container.</p>
+<p>With the advent of Java 8's lambda expressions,<sup id="cite_ref-10" class="reference"><a href="#cite_note-10"><span>[</span>10<span>]</span></a></sup> the closure causes the above code to be executed as:</p>
+<p>WHATSON? e45335f7-17a2-4777-b2c8-e960f4289a56</p>
+<pre class="de1">
+<span class="kw1">class</span> CalculationWindow <span class="kw1">extends</span> <span class="kw3">JFrame</span> <span class="br0">{</span>
+<span class="kw1">private</span> <span class="kw1">volatile</span> <span class="kw4">int</span> result<span class="sy0">;</span>
+  ...
+  <span class="kw1">public</span> <span class="kw4">void</span> calculateInSeparateThread<span class="br0">(</span><span class="kw1">final</span> URI uri<span class="br0">)</span> <span class="br0">{</span>
+    <span class="co1">// the code () -&gt; { /* code */ } is a closure</span>
+    <span class="kw1">new</span> <span class="kw3">Thread</span><span class="br0">(</span><span class="br0">(</span><span class="br0">)</span> <span class="sy0">-&gt;</span> <span class="br0">{</span>
+        calculate<span class="br0">(</span>uri<span class="br0">)</span><span class="sy0">;</span>
+        result <span class="sy0">=</span> result <span class="sy0">+</span> <span class="nu0">10</span><span class="sy0">;</span>
+    <span class="br0">}</span><span class="br0">)</span>.<span class="me1">start</span><span class="br0">(</span><span class="br0">)</span><span class="sy0">;</span>
+  <span class="br0">}</span>
+<span class="br0">}</span>
+</pre>
+<p>Local classes are one of the types of inner class that are declared within the body of a method. Java also supports inner classes that are declared as <i>non-static members</i> of an enclosing class.<sup id="cite_ref-11" class="reference"><a href="#cite_note-11"><span>[</span>11<span>]</span></a></sup> They are normally referred to just as "inner classes".<sup id="cite_ref-12" class="reference"><a href="#cite_note-12"><span>[</span>12<span>]</span></a></sup> These are defined in the body of the enclosing class and have full access to instance variables of the enclosing class. Due to their binding to these instance variables, an inner class may only be instantiated with an explicit binding to an instance of the enclosing class using a special syntax.<sup id="cite_ref-13" class="reference"><a href="#cite_note-13"><span>[</span>13<span>]</span></a></sup></p>
+<p>WHATSON? b40b41d2-92ac-4d48-8384-abb7bd88700b</p>
+<pre class="de1">
+<span class="kw1">public</span> <span class="kw1">class</span> EnclosingClass <span class="br0">{</span>
+  <span class="coMULTI">/* Define the inner class */</span>
+  <span class="kw1">public</span> <span class="kw1">class</span> InnerClass <span class="br0">{</span>
+    <span class="kw1">public</span> <span class="kw4">int</span> incrementAndReturnCounter<span class="br0">(</span><span class="br0">)</span> <span class="br0">{</span>
+      <span class="kw1">return</span> counter<span class="sy0">++;</span>
+    <span class="br0">}</span>
+  <span class="br0">}</span>
+ 
+  <span class="kw1">private</span> <span class="kw4">int</span> counter<span class="sy0">;</span>
+ 
+  <span class="br0">{</span>
+    counter <span class="sy0">=</span> <span class="nu0">0</span><span class="sy0">;</span>
+  <span class="br0">}</span>
+ 
+  <span class="kw1">public</span> <span class="kw4">int</span> getCounter<span class="br0">(</span><span class="br0">)</span> <span class="br0">{</span>
+    <span class="kw1">return</span> counter<span class="sy0">;</span>
+  <span class="br0">}</span>
+ 
+  <span class="kw1">public</span> <span class="kw1">static</span> <span class="kw4">void</span> main<span class="br0">(</span><span class="kw3">String</span><span class="br0">[</span><span class="br0">]</span> args<span class="br0">)</span> <span class="br0">{</span>
+    EnclosingClass enclosingClassInstance <span class="sy0">=</span> <span class="kw1">new</span> EnclosingClass<span class="br0">(</span><span class="br0">)</span><span class="sy0">;</span>
+    <span class="coMULTI">/* Instantiate the inner class, with binding to the instance */</span>
+    EnclosingClass.<span class="me1">InnerClass</span> innerClassInstance <span class="sy0">=</span>
+      enclosingClassInstance.<span class="kw1">new</span> InnerClass<span class="br0">(</span><span class="br0">)</span><span class="sy0">;</span>
+ 
+    <span class="kw1">for</span><span class="br0">(</span><span class="kw4">int</span> i <span class="sy0">=</span> enclosingClassInstance.<span class="me1">getCounter</span><span class="br0">(</span><span class="br0">)</span><span class="sy0">;</span> <span class="br0">(</span>i <span class="sy0">=</span>
+    innerClassInstance.<span class="me1">incrementAndReturnCounter</span><span class="br0">(</span><span class="br0">)</span><span class="br0">)</span> <span class="sy0">&lt;</span> <span class="nu0">10</span><span class="sy0">;</span><span class="br0">)</span> <span class="br0">{</span>
+      <span class="kw3">System</span>.<span class="me1">out</span>.<span class="me1">println</span><span class="br0">(</span>i<span class="br0">)</span><span class="sy0">;</span>
+    <span class="br0">}</span>
+  <span class="br0">}</span>
+<span class="br0">}</span>
+</pre>
+<p>Upon execution, this will print the integers from 0 to 9. Beware to not confuse this type of class with the nested class, which is declared in the same way with an accompanied usage of the "static" modifier; those have not the desired effect but are instead just classes with no special binding defined in an enclosing class.</p>
+<p>There have been a number of proposals for adding more fully featured closures to Java.<sup id="cite_ref-14" class="reference"><a href="#cite_note-14"><span>[</span>14<span>]</span></a></sup></p>
+<h3><span class="mw-headline" id="Blocks_.28C.2C_C.2B.2B.2C_Objective-C_2.0.29">Blocks (C, C++, Objective-C 2.0)</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Closure_(computer_programming)&amp;action=edit&amp;section=13" title="Edit section: Blocks (C, C++, Objective-C 2.0)">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p><a href="/wiki/Apple_Inc." title="Apple Inc.">Apple</a> introduced <b><a href="/wiki/Blocks_(C_language_extension)" title="Blocks (C language extension)">Blocks</a></b>, a form of closure, as a nonstandard extension into <a href="/wiki/C_(programming_language)" title="C (programming language)">C</a>, <a href="/wiki/C%2B%2B" title="C++">C++</a>, <a href="/wiki/Objective-C_2.0" title="Objective-C 2.0" class="mw-redirect">Objective-C 2.0</a> and in <a href="/wiki/Mac_OS_X_Snow_Leopard" title="Mac OS X Snow Leopard">Mac OS X 10.6 "Snow Leopard"</a> and <a href="/wiki/IOS_(Apple)" title="IOS (Apple)" class="mw-redirect">iOS 4.0</a>.</p>
+<p>Pointers to block and block literals are marked with <code>^</code>. Normal local variables are captured by value when the block is created, and are read-only inside the block. Variables to be captured by reference are marked with <code>__block</code>. Blocks that need to persist outside of the scope they are created in may need to be copied.<sup id="cite_ref-15" class="reference"><a href="#cite_note-15"><span>[</span>15<span>]</span></a></sup><sup id="cite_ref-16" class="reference"><a href="#cite_note-16"><span>[</span>16<span>]</span></a></sup></p>
+<p>WHATSON? c98d3f74-d750-439e-a3ec-c3025d5111aa</p>
+<pre class="de1">
+<span class="kw4">typedef</span> <span class="kw4">int</span> <span class="br0">(</span><span class="sy0">^</span>IntBlock<span class="br0">)</span><span class="br0">(</span><span class="br0">)</span>;
+ 
+IntBlock downCounter<span class="br0">(</span><span class="kw4">int</span> start<span class="br0">)</span> <span class="br0">{</span>
+	 __block <span class="kw4">int</span> i <span class="sy0">=</span> start;
+	 <span class="kw1">return</span> <span class="br0">[</span><span class="br0">[</span> <span class="sy0">^</span>int<span class="br0">(</span><span class="br0">)</span> <span class="br0">{</span>
+		 <span class="kw1">return</span> i<span class="sy0">--</span>;
+	 <span class="br0">}</span> copy<span class="br0">]</span> autorelease<span class="br0">]</span>;
+<span class="br0">}</span>
+ 
+IntBlock f <span class="sy0">=</span> downCounter<span class="br0">(</span><span class="nu0">5</span><span class="br0">)</span>;
+NSLog<span class="br0">(</span><span class="co3">@</span><span class="st0">"%d"</span>, f<span class="br0">(</span><span class="br0">)</span><span class="br0">)</span>;
+NSLog<span class="br0">(</span><span class="co3">@</span><span class="st0">"%d"</span>, f<span class="br0">(</span><span class="br0">)</span><span class="br0">)</span>;
+NSLog<span class="br0">(</span><span class="co3">@</span><span class="st0">"%d"</span>, f<span class="br0">(</span><span class="br0">)</span><span class="br0">)</span>;
+</pre>
+<h3><span class="mw-headline" id="Delegates_.28C.23.2C_D.29">Delegates (C#, D)</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Closure_(computer_programming)&amp;action=edit&amp;section=14" title="Edit section: Delegates (C#, D)">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p><a href="/wiki/C_Sharp_(programming_language)" title="C Sharp (programming language)">C#</a> anonymous methods and lambda expressions support closure:</p>
+<p>WHATSON? 2a67edce-a138-4fc7-8c29-d2a11a006681</p>
+<pre class="de1">
+<span class="kw1">var</span> data <span class="sy0">=</span> <span class="kw3">new</span><span class="br0">[</span><span class="br0">]</span> <span class="br0">{</span><span class="nu0">1</span>, <span class="nu0">2</span>, <span class="nu0">3</span>, <span class="nu0">4</span><span class="br0">}</span><span class="sy0">;</span>
+<span class="kw1">var</span> multiplier <span class="sy0">=</span> <span class="nu0">2</span><span class="sy0">;</span>
+<span class="kw1">var</span> result <span class="sy0">=</span> data<span class="sy0">.</span><span class="kw1">Select</span><span class="br0">(</span>x <span class="sy0">=&gt;</span> x <span class="sy0">*</span> multiplier<span class="br0">)</span><span class="sy0">;</span>
+</pre>
+<p>Closures are implemented by delegates<sup class="noprint Inline-Template" style="white-space:nowrap;">[<i><a href="/wiki/Wikipedia:Vagueness" title="Wikipedia:Vagueness"><span title="You can help — (March 2014)">vague</span></a></i>]</sup> in <a href="/wiki/D_(programming_language)" title="D (programming language)">D</a>.</p>
+<p>WHATSON? 60a8422e-98f1-452f-a8d5-1909188350a3</p>
+<pre class="de1">
+<span class="kw4">auto</span> test1<span class="br0">(</span><span class="br0">)</span> <span class="br0">{</span>
+    <span class="kw4">int</span> a <span class="sy0">=</span> <span class="nu0">7</span><span class="sy0">;</span>
+    <span class="kw1">return</span> <span class="kw2">delegate</span><span class="br0">(</span><span class="br0">)</span> <span class="br0">{</span> <span class="kw1">return</span> a <span class="sy0">+</span> <span class="nu0">3</span><span class="sy0">;</span> <span class="br0">}</span><span class="sy0">;</span> <span class="co1">// anonymous delegate construction</span>
+<span class="br0">}</span>
+ 
+<span class="kw4">auto</span> test2<span class="br0">(</span><span class="br0">)</span> <span class="br0">{</span>
+    <span class="kw4">int</span> a <span class="sy0">=</span> <span class="nu0">20</span><span class="sy0">;</span>
+    <span class="kw4">int</span> foo<span class="br0">(</span><span class="br0">)</span> <span class="br0">{</span> <span class="kw1">return</span> a <span class="sy0">+</span> <span class="nu0">5</span><span class="sy0">;</span> <span class="br0">}</span> <span class="co1">// inner function</span>
+    <span class="kw1">return</span> <span class="sy0">&amp;</span>foo<span class="sy0">;</span>  <span class="co1">// other way to construct delegate</span>
+<span class="br0">}</span>
+ 
+<span class="kw4">void</span> bar<span class="br0">(</span><span class="br0">)</span> <span class="br0">{</span>
+    <span class="kw4">auto</span> dg <span class="sy0">=</span> test1<span class="br0">(</span><span class="br0">)</span><span class="sy0">;</span>
+    dg<span class="br0">(</span><span class="br0">)</span><span class="sy0">;</span>    <span class="co1">// =10   // ok, test1.a is in a closure and still exists</span>
+ 
+    dg <span class="sy0">=</span> test2<span class="br0">(</span><span class="br0">)</span><span class="sy0">;</span>
+    dg<span class="br0">(</span><span class="br0">)</span><span class="sy0">;</span>    <span class="co1">// =25   // ok, test2.a is in a closure and still exists</span>
+<span class="br0">}</span>
+</pre>
+<p>D version 1, has limited closure support. For example, the above code will not work correctly, because the variable a is on the stack, and after returning from test(), it is no longer valid to use it (most probably calling foo via dg(), will return a 'random' integer). This can be solved by explicitly allocating the variable 'a' on heap, or using structs or class to store all needed closed variables and construct a delegate from a method implementing the same code. Closures can be passed to other functions, as long as they are only used while the referenced values are still valid (for example calling another function with a closure as a callback parameter), and are useful for writing generic data processing code, so this limitation, in practice, is often not an issue.</p>
+<p>This limitation was fixed in D version 2 - the variable 'a' will be automatically allocated on the heap because it is used in the inner function, and a delegate of that function can escape the current scope (via assignment to dg or return). Any other local variables (or arguments) that are not referenced by delegates or that are only referenced by delegates that don't escape the current scope, remain on the stack, which is simpler and faster than heap allocation. The same is true for inner's class methods that references a function's variables.</p>
+<h3><span class="mw-headline" id="Function_objects_.28C.2B.2B.29">Function objects (C++)</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Closure_(computer_programming)&amp;action=edit&amp;section=15" title="Edit section: Function objects (C++)">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p><a href="/wiki/C%2B%2B" title="C++">C++</a> enables defining <a href="/wiki/Function_object" title="Function object">function objects</a> by overloading <code>operator()</code>. These objects behave somewhat like functions in a functional programming language. They may be created at runtime and may contain state, but they do not implicitly capture local variables as closures do. As of <a href="/wiki/C%2B%2B11" title="C++11">the 2011 revision</a>, the C++ language also supports closures, which are a type of function object constructed automatically from a special language construct called <i>lambda-expression</i>. A C++ closure may capture its context either by storing copies of the accessed variables as members of the closure object or by reference. In the latter case, if the closure object escapes the scope of a referenced object, invoking its <code>operator()</code> causes undefined behavior since C++ closures do not extend the lifetime of their context.</p>
+<p>WHATSON? bc0f85bb-5f11-486e-9036-70852a45ab2a</p>
+<pre class="de1">
+<span class="kw4">void</span> foo<span class="br0">(</span>string myname<span class="br0">)</span> <span class="br0">{</span>
+    <span class="kw4">int</span> y<span class="sy4">;</span>
+    vector<span class="sy1">&lt;</span>string<span class="sy1">&gt;</span> n<span class="sy4">;</span>
+    <span class="co1">// ...</span>
+    <span class="kw4">auto</span> i <span class="sy1">=</span> std<span class="sy4">::</span><span class="me2">find_if</span><span class="br0">(</span>n.<span class="me1">begin</span><span class="br0">(</span><span class="br0">)</span>, n.<span class="me1">end</span><span class="br0">(</span><span class="br0">)</span>,
+               <span class="co1">// this is the lambda expression:</span>
+               <span class="br0">[</span><span class="sy3">&amp;</span><span class="br0">]</span><span class="br0">(</span><span class="kw4">const</span> string<span class="sy3">&amp;</span> s<span class="br0">)</span> <span class="br0">{</span> <span class="kw1">return</span> s <span class="sy3">!</span><span class="sy1">=</span> myname <span class="sy3">&amp;&amp;</span> s.<span class="me1">size</span><span class="br0">(</span><span class="br0">)</span> <span class="sy1">&gt;</span> y<span class="sy4">;</span> <span class="br0">}</span>
+             <span class="br0">)</span><span class="sy4">;</span>
+    <span class="co1">// 'i' is now either 'n.end()' or points to the first string in 'n'</span>
+    <span class="co1">// which is not equal to 'myname' and whose length is greater than 'y'</span>
+<span class="br0">}</span>
+</pre>
+<h3><span class="mw-headline" id="Inline_agents_.28Eiffel.29">Inline agents (Eiffel)</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Closure_(computer_programming)&amp;action=edit&amp;section=16" title="Edit section: Inline agents (Eiffel)">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p><a href="/wiki/Eiffel_(programming_language)" title="Eiffel (programming language)">Eiffel</a> includes <b>inline agents</b> defining closures. An inline agent is an object representing a routine, defined by giving the code of the routine in-line. For example, in</p>
+<p>WHATSON? be798504-4bed-43ef-906b-38692add8e42</p>
+<pre class="de1">
+ok_button.<span class="me1">click_event</span>.<span class="me1">subscribe</span> <span class="br0">(</span>
+	<span class="kw2">agent</span> <span class="br0">(</span>x, y<span class="sy0">:</span> <span class="kw4">INTEGER</span><span class="br0">)</span> <span class="kw2">do</span>
+		map.<span class="me1">country_at_coordinates</span> <span class="br0">(</span>x, y<span class="br0">)</span>.<span class="me1">display</span>
+	<span class="kw2">end</span>
+<span class="br0">)</span>
+</pre>
+<p>the argument to <code>subscribe</code> is an agent, representing a procedure with two arguments; the procedure finds the country at the corresponding coordinates and displays it. The whole agent is "subscribed" to the event type <code>click_event</code> for a certain button, so that whenever an instance of the event type occurs on that button — because a user has clicked the button — the procedure will be executed with the mouse coordinates being passed as arguments for <code>x</code> and <code>y</code>.</p>
+<p>The main limitation of Eiffel agents, which distinguishes them from closures in other languages, is that they cannot reference local variables from the enclosing scope. This design decision helps in avoiding ambiguity when talking about a local variable value in a closure - should it be the latest value of the variable or the value captured when the agent is created? Only <code>Current</code> (a reference to current object, analogous to <code>this</code> in Java), its features, and arguments of the agent itself can be accessed from within the agent body. The values of the outer local variables can be passed by providing additional closed operands to the agent.</p>
+<h2><span class="mw-headline" id="See_also">See also</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Closure_(computer_programming)&amp;action=edit&amp;section=17" title="Edit section: See also">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul>
+<li><a href="/wiki/Anonymous_function" title="Anonymous function">Anonymous function</a></li>
+<li><a href="/wiki/Blocks_(C_language_extension)" title="Blocks (C language extension)">Blocks (C language extension)</a></li>
+<li><a href="/wiki/Command_pattern" title="Command pattern">Command pattern</a></li>
+<li><a href="/wiki/Continuation" title="Continuation">Continuation</a></li>
+<li><a href="/wiki/Currying" title="Currying">Currying</a></li>
+<li><a href="/wiki/Funarg_problem" title="Funarg problem">Funarg problem</a></li>
+<li><a href="/wiki/Lambda_calculus" title="Lambda calculus">Lambda calculus</a></li>
+<li><a href="/wiki/Lazy_evaluation" title="Lazy evaluation">Lazy evaluation</a></li>
+<li><a href="/wiki/Partial_application" title="Partial application">Partial application</a></li>
+<li><a href="/wiki/Spaghetti_stack" title="Spaghetti stack">Spaghetti stack</a></li>
+<li><a href="/wiki/Syntactic_closure" title="Syntactic closure">Syntactic closure</a></li>
+<li><a href="/wiki/Value-level_programming" title="Value-level programming">Value-level programming</a></li>
+</ul>
+<h2><span class="mw-headline" id="References">References</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Closure_(computer_programming)&amp;action=edit&amp;section=18" title="Edit section: References">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ol class="references">
+<li id="cite_note-1"><span class="mw-cite-backlink"><b><a href="#cite_ref-1">^</a></b></span> <span class="reference-text">Sussman and Steele. "Scheme: An interpreter for extended lambda calculus". "... a data structure containing a lambda expression, and an environment to be used when that lambda expression is applied to arguments." (<a href="//en.wikisource.org/wiki/Page:Scheme_-_An_interpreter_for_extended_lambda_calculus.djvu/22" class="extiw" title="s:Page:Scheme - An interpreter for extended lambda calculus.djvu/22">Wikisource</a>)</span></li>
+<li id="cite_note-2"><span class="mw-cite-backlink"><b><a href="#cite_ref-2">^</a></b></span> <span class="reference-text"><span id="CITEREFP._J._Landin1964" class="citation"><a href="/wiki/Peter_J._Landin" title="Peter J. Landin" class="mw-redirect">P. J. Landin</a> (1964), <i>The mechanical evaluation of expressions</i></span><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AClosure+%28computer+programming%29&amp;rft.aulast=P.+J.+Landin&amp;rft.au=P.+J.+Landin&amp;rft.btitle=The+mechanical+evaluation+of+expressions&amp;rft.date=1964&amp;rft.genre=book&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook" class="Z3988"><span style="display:none;"> </span></span></span></li>
+<li id="cite_note-3"><span class="mw-cite-backlink"><b><a href="#cite_ref-3">^</a></b></span> <span class="reference-text"><span id="CITEREFJoel_Moses1970" class="citation"><a href="/wiki/Joel_Moses" title="Joel Moses">Joel Moses</a> (June 1970), <a rel="nofollow" class="external text" href="http://dspace.mit.edu/handle/1721.1/5854"><i>The Function of FUNCTION in LISP, or Why the FUNARG Problem Should Be Called the Environment Problem</i></a> (PDF), <a href="/wiki/AI_Memo" title="AI Memo">AI Memo</a> 199<span class="reference-accessdate">, retrieved 2009-10-27</span>, "A useful metaphor for the difference between FUNCTION and QUOTE in LISP is to think of QUOTE as a porous or an open covering of the function since free variables escape to the current environment. FUNCTION acts as a closed or nonporous covering (hence the term "closure" used by Landin). Thus we talk of "open" Lambda expressions (functions in LISP are usually Lambda expressions) and "closed" Lambda expressions. [...] My interest in the environment problem began while Landin, who had a deep understanding of the problem, visited MIT during 1966-67. I then realized the correspondence between the FUNARG lists which are the results of the evaluation of "closed" Lambda expressions in <a href="/wiki/LISP_1.5" title="LISP 1.5" class="mw-redirect">LISP</a> and <a href="/wiki/ISWIM" title="ISWIM">ISWIM</a>'s Lambda Closures."</span><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AClosure+%28computer+programming%29&amp;rft.au=Joel+Moses&amp;rft.aulast=Joel+Moses&amp;rft.btitle=The+Function+of+FUNCTION+in+LISP%2C+or+Why+the+FUNARG+Problem+Should+Be+Called+the+Environment+Problem&amp;rft.date=June+1970&amp;rft.genre=book&amp;rft_id=http%3A%2F%2Fdspace.mit.edu%2Fhandle%2F1721.1%2F5854&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook" class="Z3988"><span style="display:none;"> </span></span></span></li>
+<li id="cite_note-4"><span class="mw-cite-backlink"><b><a href="#cite_ref-4">^</a></b></span> <span class="reference-text"><span class="citation book"><a href="/w/index.php?title=%C3%85ke_Wikstr%C3%B6m&amp;action=edit&amp;redlink=1" class="new" title="Åke Wikström (page does not exist)">Åke Wikström</a> (1987). <i>Functional Programming using Standard ML</i>. <a href="/wiki/International_Standard_Book_Number" title="International Standard Book Number">ISBN</a> <a href="/wiki/Special:BookSources/0-13-331968-7" title="Special:BookSources/0-13-331968-7">0-13-331968-7</a>. "The reason it is called a "closure" is that an expression containing free variables is called an "open" expression, and by associating to it the bindings of its free variables, you close it."</span><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AClosure+%28computer+programming%29&amp;rft.au=%C3%85ke+Wikstr%C3%B6m&amp;rft.aulast=%C3%85ke+Wikstr%C3%B6m&amp;rft.btitle=Functional+Programming+using+Standard+ML&amp;rft.date=1987&amp;rft.genre=book&amp;rft.isbn=0-13-331968-7&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook" class="Z3988"><span style="display:none;"> </span></span></span></li>
+<li id="cite_note-5"><span class="mw-cite-backlink"><b><a href="#cite_ref-5">^</a></b></span> <span class="reference-text"><span id="CITEREFGerald_Jay_Sussman_and_Guy_L._Steele.2C_Jr.1975" class="citation"><a href="/wiki/Gerald_Jay_Sussman" title="Gerald Jay Sussman">Gerald Jay Sussman</a> and <a href="/wiki/Guy_L._Steele,_Jr." title="Guy L. Steele, Jr.">Guy L. Steele, Jr.</a> (December 1975), <i>Scheme: An Interpreter for the Extended Lambda Calculus</i>, <a href="/wiki/AI_Memo" title="AI Memo">AI Memo</a> 349</span><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AClosure+%28computer+programming%29&amp;rft.au=Gerald+Jay+Sussman+and+Guy+L.+Steele%2C+Jr.&amp;rft.aulast=Gerald+Jay+Sussman+and+Guy+L.+Steele%2C+Jr.&amp;rft.btitle=Scheme%3A+An+Interpreter+for+the+Extended+Lambda+Calculus&amp;rft.date=December+1975&amp;rft.genre=book&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook" class="Z3988"><span style="display:none;"> </span></span></span></li>
+<li id="cite_note-6"><span class="mw-cite-backlink"><b><a href="#cite_ref-6">^</a></b></span> <span class="reference-text"><span class="citation web"><a rel="nofollow" class="external text" href="https://developer.mozilla.org/en/Core_JavaScript_1.5_Reference/Global_Objects/Array/filter">"array.filter"</a>. <i>Mozilla Developer Center</i>. 10 January 2010<span class="reference-accessdate">. Retrieved 2010-02-09</span>.</span><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AClosure+%28computer+programming%29&amp;rft.atitle=array.filter&amp;rft.date=10+January+2010&amp;rft.genre=article&amp;rft_id=https%3A%2F%2Fdeveloper.mozilla.org%2Fen%2FCore_JavaScript_1.5_Reference%2FGlobal_Objects%2FArray%2Ffilter&amp;rft.jtitle=Mozilla+Developer+Center&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Ajournal" class="Z3988"><span style="display:none;"> </span></span></span></li>
+<li id="cite_note-7"><span class="mw-cite-backlink"><b><a href="#cite_ref-7">^</a></b></span> <span class="reference-text"><span class="citation web"><a rel="nofollow" class="external text" href="http://okmij.org/ftp/Scheme/oop-in-fp.txt">"Re: FP, OO and relations. Does anyone trump the others?"</a>. 29 December 1999<span class="reference-accessdate">. Retrieved 2008-12-23</span>.</span><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AClosure+%28computer+programming%29&amp;rft.btitle=Re%3A+FP%2C+OO+and+relations.+Does+anyone+trump+the+others%3F&amp;rft.date=29+December+1999&amp;rft.genre=book&amp;rft_id=http%3A%2F%2Fokmij.org%2Fftp%2FScheme%2Foop-in-fp.txt&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook" class="Z3988"><span style="display:none;"> </span></span></span></li>
+<li id="cite_note-8"><span class="mw-cite-backlink"><b><a href="#cite_ref-8">^</a></b></span> <span class="reference-text"><i><a rel="nofollow" class="external text" href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2008/n2550.pdf">Lambda Expressions and Closures</a></i> C++ Standards Committee. 29 February 2008.</span></li>
+<li id="cite_note-9"><span class="mw-cite-backlink"><b><a href="#cite_ref-9">^</a></b></span> <span class="reference-text"><i><a rel="nofollow" class="external text" href="https://dspace.mit.edu/handle/1721.1/6935">Foundations of Actor Semantics</a></i> Will Clinger. MIT Mathematics Doctoral Dissertation. June 1981.</span></li>
+<li id="cite_note-10"><span class="mw-cite-backlink"><b><a href="#cite_ref-10">^</a></b></span> <span class="reference-text"><span class="citation web"><a rel="nofollow" class="external text" href="http://docs.oracle.com/javase/tutorial/java/javaOO/lambdaexpressions.html">"Lambda Expressions (The Java Tutorials)"</a>.</span><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AClosure+%28computer+programming%29&amp;rft.btitle=Lambda+Expressions+%28The+Java+Tutorials%29&amp;rft.genre=book&amp;rft_id=http%3A%2F%2Fdocs.oracle.com%2Fjavase%2Ftutorial%2Fjava%2FjavaOO%2Flambdaexpressions.html&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook" class="Z3988"><span style="display:none;"> </span></span></span></li>
+<li id="cite_note-11"><span class="mw-cite-backlink"><b><a href="#cite_ref-11">^</a></b></span> <span class="reference-text"><span class="citation web"><a rel="nofollow" class="external text" href="https://blogs.oracle.com/darcy/entry/nested_inner_member_and_top">"Nested, Inner, Member, and Top-Level Classes"</a>.</span><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AClosure+%28computer+programming%29&amp;rft.btitle=Nested%2C+Inner%2C+Member%2C+and+Top-Level+Classes&amp;rft.genre=book&amp;rft_id=https%3A%2F%2Fblogs.oracle.com%2Fdarcy%2Fentry%2Fnested_inner_member_and_top&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook" class="Z3988"><span style="display:none;"> </span></span></span></li>
+<li id="cite_note-12"><span class="mw-cite-backlink"><b><a href="#cite_ref-12">^</a></b></span> <span class="reference-text"><span class="citation web"><a rel="nofollow" class="external text" href="http://java.sun.com/docs/books/tutorial/java/javaOO/innerclasses.html">"Inner Class Example (The Java Tutorials &gt; Learning the Java Language &gt; Classes and Objects)"</a>.</span><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AClosure+%28computer+programming%29&amp;rft.btitle=Inner+Class+Example+%28The+Java+Tutorials+%26gt%3B+Learning+the+Java+Language+%26gt%3B+Classes+and+Objects%29&amp;rft.genre=book&amp;rft_id=http%3A%2F%2Fjava.sun.com%2Fdocs%2Fbooks%2Ftutorial%2Fjava%2FjavaOO%2Finnerclasses.html&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook" class="Z3988"><span style="display:none;"> </span></span></span></li>
+<li id="cite_note-13"><span class="mw-cite-backlink"><b><a href="#cite_ref-13">^</a></b></span> <span class="reference-text"><span class="citation web"><a rel="nofollow" class="external text" href="http://java.sun.com/docs/books/tutorial/java/javaOO/nested.html">"Nested Classes (The Java Tutorials &gt; Learning the Java Language &gt; Classes and Objects)"</a>.</span><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AClosure+%28computer+programming%29&amp;rft.btitle=Nested+Classes+%28The+Java+Tutorials+%26gt%3B+Learning+the+Java+Language+%26gt%3B+Classes+and+Objects%29&amp;rft.genre=book&amp;rft_id=http%3A%2F%2Fjava.sun.com%2Fdocs%2Fbooks%2Ftutorial%2Fjava%2FjavaOO%2Fnested.html&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook" class="Z3988"><span style="display:none;"> </span></span></span></li>
+<li id="cite_note-14"><span class="mw-cite-backlink"><b><a href="#cite_ref-14">^</a></b></span> <span class="reference-text"><a rel="nofollow" class="external text" href="http://www.javac.info/">Closures (Lambda Expressions) for the Java Programming Language</a>. Javac.info (2008-08-11). Retrieved on 2013-07-31.</span></li>
+<li id="cite_note-15"><span class="mw-cite-backlink"><b><a href="#cite_ref-15">^</a></b></span> <span class="reference-text"><span class="citation web">Apple Inc. <a rel="nofollow" class="external text" href="http://developer.apple.com/library/mac/#documentation/Cocoa/Conceptual/Blocks/Articles/00_Introduction.html">"Blocks Programming Topics"</a><span class="reference-accessdate">. Retrieved 2011-03-08</span>.</span><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AClosure+%28computer+programming%29&amp;rft.au=Apple+Inc.&amp;rft.aulast=Apple+Inc.&amp;rft.btitle=Blocks+Programming+Topics&amp;rft.genre=book&amp;rft_id=http%3A%2F%2Fdeveloper.apple.com%2Flibrary%2Fmac%2F%23documentation%2FCocoa%2FConceptual%2FBlocks%2FArticles%2F00_Introduction.html&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook" class="Z3988"><span style="display:none;"> </span></span></span></li>
+<li id="cite_note-16"><span class="mw-cite-backlink"><b><a href="#cite_ref-16">^</a></b></span> <span class="reference-text"><span class="citation web">Joachim Bengtsson (7 July 2010). <a rel="nofollow" class="external text" href="http://thirdcog.eu/pwcblocks/">"Programming with C Blocks On Apple Devices"</a><span class="reference-accessdate">. Retrieved 2010-09-18</span>.</span><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AClosure+%28computer+programming%29&amp;rft.au=Joachim+Bengtsson&amp;rft.aulast=Joachim+Bengtsson&amp;rft.btitle=Programming+with+C+Blocks+On+Apple+Devices&amp;rft.date=7+July+2010&amp;rft.genre=book&amp;rft_id=http%3A%2F%2Fthirdcog.eu%2Fpwcblocks%2F&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook" class="Z3988"><span style="display:none;"> </span></span></span></li>
+</ol>
+<h2><span class="mw-headline" id="External_links">External links</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Closure_(computer_programming)&amp;action=edit&amp;section=19" title="Edit section: External links">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul>
+<li><a rel="nofollow" class="external text" href="http://library.readscheme.org/page1.html">The Original "Lambda Papers"</a>: A classic series of papers by <a href="/wiki/Guy_Steele" title="Guy Steele" class="mw-redirect">Guy Steele</a> and <a href="/wiki/Gerald_Sussman" title="Gerald Sussman" class="mw-redirect">Gerald Sussman</a> discussing, among other things, the versatility of closures in the context of Scheme (where they appear as <i><a href="/wiki/Lambda_calculus" title="Lambda calculus">lambda</a> expressions</i>).</li>
+<li><span class="citation web"><a href="/w/index.php?title=Neal_Gafter&amp;action=edit&amp;redlink=1" class="new" title="Neal Gafter (page does not exist)">Neal Gafter</a> (2007-01-28). <a rel="nofollow" class="external text" href="http://gafter.blogspot.com/2007/01/definition-of-closures.html">"A Definition of Closures"</a>.</span><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AClosure+%28computer+programming%29&amp;rft.aulast=Neal+Gafter&amp;rft.au=Neal+Gafter&amp;rft.btitle=A+Definition+of+Closures&amp;rft.date=2007-01-28&amp;rft.genre=book&amp;rft_id=http%3A%2F%2Fgafter.blogspot.com%2F2007%2F01%2Fdefinition-of-closures.html&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook" class="Z3988"><span style="display:none;"> </span></span></li>
+<li><span class="citation web"><a href="/wiki/Gilad_Bracha" title="Gilad Bracha">Gilad Bracha</a>, <a href="/w/index.php?title=Neal_Gafter&amp;action=edit&amp;redlink=1" class="new" title="Neal Gafter (page does not exist)">Neal Gafter</a>, <a href="/wiki/James_Gosling" title="James Gosling">James Gosling</a>, <a href="/w/index.php?title=Peter_von_der_Ah%C3%A9&amp;action=edit&amp;redlink=1" class="new" title="Peter von der Ahé (page does not exist)">Peter von der Ahé</a>. <a rel="nofollow" class="external text" href="http://www.javac.info/closures-v05.html">"Closures for the Java Programming Language (v0.5)"</a>.</span><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AClosure+%28computer+programming%29&amp;rft.au=Gilad+Bracha%2C+Neal+Gafter%2C+James+Gosling%2C+Peter+von+der+Ah%C3%A9&amp;rft.aulast=Gilad+Bracha%2C+Neal+Gafter%2C+James+Gosling%2C+Peter+von+der+Ah%C3%A9&amp;rft.btitle=Closures+for+the+Java+Programming+Language+%28v0.5%29&amp;rft.genre=book&amp;rft_id=http%3A%2F%2Fwww.javac.info%2Fclosures-v05.html&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook" class="Z3988"><span style="display:none;"> </span></span></li>
+<li><a rel="nofollow" class="external text" href="http://martinfowler.com/bliki/Closure.html">Closures</a>: An article about closures in <a href="/wiki/Dynamic_typing" title="Dynamic typing" class="mw-redirect">dynamically typed</a> imperative languages, by <a href="/wiki/Martin_Fowler" title="Martin Fowler">Martin Fowler</a>.</li>
+<li><a rel="nofollow" class="external text" href="http://martinfowler.com/bliki/CollectionClosureMethod.html">Collection closure methods</a>: An example of a technical domain where using closures is convenient, by <a href="/wiki/Martin_Fowler" title="Martin Fowler">Martin Fowler</a>.</li>
+</ul>
+<h1 id="firstHeading" class="firstHeading" lang="en"><span dir="auto">Closure (computer programming)</span></h1>
+<p>In <a href="/wiki/Programming_language" title="Programming language">programming languages</a>, a <b>closure</b> (also <b>lexical closure</b> or <b>function closure</b>) is a <a href="/wiki/Function_(computer_science)" title="Function (computer science)" class="mw-redirect">function</a> or reference to a function together with a <i>referencing environment</i>—a table storing a <a href="/wiki/Reference_(computer_science)" title="Reference (computer science)">reference</a> to each of the <a href="/wiki/Non-local_variable" title="Non-local variable">non-local variables</a> (also called <a href="/wiki/Free_variable" title="Free variable" class="mw-redirect">free variables</a> or upvalues) of that function.<sup id="cite_ref-1" class="reference"><a href="#cite_note-1"><span>[</span>1<span>]</span></a></sup> A closure—unlike a plain <a href="/wiki/Function_pointer" title="Function pointer">function pointer</a>—enables a function to access those non-local variables even when invoked outside its immediate <a href="/wiki/Lexical_scope" title="Lexical scope" class="mw-redirect">lexical scope</a>.</p>
+<p>The following program fragment defines a (<a href="/wiki/Higher-order_function" title="Higher-order function">higher-order</a>) function <code>startAt</code> with a local variable <code>x</code> and a <a href="/wiki/Nested_function" title="Nested function">nested function</a> <code>incrementBy</code>. This nested function <code>incrementBy</code> has access to <code>x</code>, because <code>x</code> is in its lexical scope, even though it is not local to <code>incrementBy</code>. The function <code>startAt</code> returns a closure containing a reference to the function <code>incrementBy</code>, which adds the <code>y</code> value to the <code>x</code> value, and a reference to the variable <code>x</code>, so <code>incrementBy</code> will know where to find it once invoked:</p>
+<p>WHATSON? 942327a9-7f19-4607-8a0a-140f6b330a99</p>
+<pre>
+<b>function</b> startAt(x)
+   <b>function</b> incrementBy(y)
+       <b>return</b> x + y
+   <b>return</b> incrementBy
+
+<b>variable</b> closure<sub>1</sub> = startAt(1)
+<b>variable</b> closure<sub>2</sub> = startAt(5)
+</pre>
+<p>Invoking the variable <code>closure<sub>1</sub></code> (which is of <a href="/wiki/Function_type" title="Function type">function type</a>) with <code>closure<sub>1</sub>(3)</code> will return <code>4</code>, while invoking <code>closure<sub>2</sub>(3)</code> will return <code>8</code>. While <code>closure<sub>1</sub></code> and <code>closure<sub>2</sub></code> are both references to the function <code>incrementBy</code>, the associated environment will bind the identifier <code>x</code> to two distinct variables in the two invocations, leading to different results.</p>
+<p>The concept of closures was developed in the 1960s for the mechanical evaluation of expressions in the <a href="/wiki/%CE%9B-calculus" title="Λ-calculus" class="mw-redirect">λ-calculus</a> and was first fully implemented in 1975 as a language feature in the <a href="/wiki/Scheme_(programming_language)" title="Scheme (programming language)">Scheme</a> programming language to support lexically scoped <a href="/wiki/First-class_function" title="First-class function">first-class functions</a>. The use of closures is associated with <a href="/wiki/Functional_programming_languages" title="Functional programming languages" class="mw-redirect">functional programming languages</a> such as <a href="/wiki/Lisp_(programming_language)" title="Lisp (programming language)">Lisp</a> and <a href="/wiki/ML_(programming_language)" title="ML (programming language)">ML</a>. Traditional imperative languages such as <a href="/wiki/Algol_(programming_language)" title="Algol (programming language)" class="mw-redirect">Algol</a>, <a href="/wiki/C_(programming_language)" title="C (programming language)">C</a> and <a href="/wiki/Pascal_(programming_language)" title="Pascal (programming language)">Pascal</a> do not support returning <a href="/wiki/Nested_function" title="Nested function">nested functions</a> as results from <a href="/wiki/Higher-order_function" title="Higher-order function">higher-order functions</a> thus avoiding the need to use closures. Many modern <a href="/wiki/Garbage_collection_(computer_science)" title="Garbage collection (computer science)">garbage-collected</a> imperative languages do represent references to functions as closures.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#History_and_etymology"><span class="tocnumber">1</span> <span class="toctext">History and etymology</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Applications"><span class="tocnumber">2</span> <span class="toctext">Applications</span></a>
+<ul>
+<li class="toclevel-2 tocsection-3"><a href="#First-class_functions"><span class="tocnumber">2.1</span> <span class="toctext">First-class functions</span></a></li>
+<li class="toclevel-2 tocsection-4"><a href="#State_representation"><span class="tocnumber">2.2</span> <span class="toctext">State representation</span></a></li>
+<li class="toclevel-2 tocsection-5"><a href="#Other_uses"><span class="tocnumber">2.3</span> <span class="toctext">Other uses</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-6"><a href="#Implementation_and_theory"><span class="tocnumber">3</span> <span class="toctext">Implementation and theory</span></a></li>
+<li class="toclevel-1 tocsection-7"><a href="#Differences_in_semantics"><span class="tocnumber">4</span> <span class="toctext">Differences in semantics</span></a>
+<ul>
+<li class="toclevel-2 tocsection-8"><a href="#Lexical_environment"><span class="tocnumber">4.1</span> <span class="toctext">Lexical environment</span></a></li>
+<li class="toclevel-2 tocsection-9"><a href="#Closure_leaving"><span class="tocnumber">4.2</span> <span class="toctext">Closure leaving</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-10"><a href="#Closure-like_constructs"><span class="tocnumber">5</span> <span class="toctext">Closure-like constructs</span></a>
+<ul>
+<li class="toclevel-2 tocsection-11"><a href="#Callbacks_.28C.29"><span class="tocnumber">5.1</span> <span class="toctext">Callbacks (C)</span></a></li>
+<li class="toclevel-2 tocsection-12"><a href="#Local_classes_and_Lambda_functions_.28Java.29"><span class="tocnumber">5.2</span> <span class="toctext">Local classes and Lambda functions (Java)</span></a></li>
+<li class="toclevel-2 tocsection-13"><a href="#Blocks_.28C.2C_C.2B.2B.2C_Objective-C_2.0.29"><span class="tocnumber">5.3</span> <span class="toctext">Blocks (C, C++, Objective-C 2.0)</span></a></li>
+<li class="toclevel-2 tocsection-14"><a href="#Delegates_.28C.23.2C_D.29"><span class="tocnumber">5.4</span> <span class="toctext">Delegates (C#, D)</span></a></li>
+<li class="toclevel-2 tocsection-15"><a href="#Function_objects_.28C.2B.2B.29"><span class="tocnumber">5.5</span> <span class="toctext">Function objects (C++)</span></a></li>
+<li class="toclevel-2 tocsection-16"><a href="#Inline_agents_.28Eiffel.29"><span class="tocnumber">5.6</span> <span class="toctext">Inline agents (Eiffel)</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-17"><a href="#See_also"><span class="tocnumber">6</span> <span class="toctext">See also</span></a></li>
+<li class="toclevel-1 tocsection-18"><a href="#References"><span class="tocnumber">7</span> <span class="toctext">References</span></a></li>
+<li class="toclevel-1 tocsection-19"><a href="#External_links"><span class="tocnumber">8</span> <span class="toctext">External links</span></a></li>
+</ul>
+<ul>
+<li class="toclevel-2 tocsection-3"><a href="#First-class_functions"><span class="tocnumber">2.1</span> <span class="toctext">First-class functions</span></a></li>
+<li class="toclevel-2 tocsection-4"><a href="#State_representation"><span class="tocnumber">2.2</span> <span class="toctext">State representation</span></a></li>
+<li class="toclevel-2 tocsection-5"><a href="#Other_uses"><span class="tocnumber">2.3</span> <span class="toctext">Other uses</span></a></li>
+</ul>
+<ul>
+<li class="toclevel-2 tocsection-8"><a href="#Lexical_environment"><span class="tocnumber">4.1</span> <span class="toctext">Lexical environment</span></a></li>
+<li class="toclevel-2 tocsection-9"><a href="#Closure_leaving"><span class="tocnumber">4.2</span> <span class="toctext">Closure leaving</span></a></li>
+</ul>
+<ul>
+<li class="toclevel-2 tocsection-11"><a href="#Callbacks_.28C.29"><span class="tocnumber">5.1</span> <span class="toctext">Callbacks (C)</span></a></li>
+<li class="toclevel-2 tocsection-12"><a href="#Local_classes_and_Lambda_functions_.28Java.29"><span class="tocnumber">5.2</span> <span class="toctext">Local classes and Lambda functions (Java)</span></a></li>
+<li class="toclevel-2 tocsection-13"><a href="#Blocks_.28C.2C_C.2B.2B.2C_Objective-C_2.0.29"><span class="tocnumber">5.3</span> <span class="toctext">Blocks (C, C++, Objective-C 2.0)</span></a></li>
+<li class="toclevel-2 tocsection-14"><a href="#Delegates_.28C.23.2C_D.29"><span class="tocnumber">5.4</span> <span class="toctext">Delegates (C#, D)</span></a></li>
+<li class="toclevel-2 tocsection-15"><a href="#Function_objects_.28C.2B.2B.29"><span class="tocnumber">5.5</span> <span class="toctext">Function objects (C++)</span></a></li>
+<li class="toclevel-2 tocsection-16"><a href="#Inline_agents_.28Eiffel.29"><span class="tocnumber">5.6</span> <span class="toctext">Inline agents (Eiffel)</span></a></li>
+</ul>
+<p></p>
+<h2><span class="mw-headline" id="History_and_etymology">History and etymology</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Closure_(computer_programming)&amp;action=edit&amp;section=1" title="Edit section: History and etymology">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><a href="/wiki/Peter_J._Landin" title="Peter J. Landin" class="mw-redirect">Peter J. Landin</a> defined the term <i>closure</i> in 1964 as having an <i>environment part</i> and a <i>control part</i> as used by his <a href="/wiki/SECD_machine" title="SECD machine">SECD machine</a> for evaluating expressions.<sup id="cite_ref-2" class="reference"><a href="#cite_note-2"><span>[</span>2<span>]</span></a></sup> <a href="/wiki/Joel_Moses" title="Joel Moses">Joel Moses</a> credits Landin with introducing the term <i>closure</i> to refer to a <a href="/wiki/Anonymous_function" title="Anonymous function">lambda expression</a> whose open bindings (free variables) have been closed by (or bound in) the lexical environment, resulting in a <i>closed expression</i>, or closure.<sup id="cite_ref-3" class="reference"><a href="#cite_note-3"><span>[</span>3<span>]</span></a></sup><sup id="cite_ref-4" class="reference"><a href="#cite_note-4"><span>[</span>4<span>]</span></a></sup> This usage was subsequently adopted by <a href="/wiki/Gerald_Jay_Sussman" title="Gerald Jay Sussman">Sussman</a> and <a href="/wiki/Guy_L._Steele,_Jr." title="Guy L. Steele, Jr.">Steele</a> when they defined <a href="/wiki/Scheme_(programming_language)" title="Scheme (programming language)">Scheme</a> in 1975,<sup id="cite_ref-5" class="reference"><a href="#cite_note-5"><span>[</span>5<span>]</span></a></sup> and became widespread.</p>
+<p>The term <i>closure</i> is often mistakenly used to mean <a href="/wiki/Anonymous_function" title="Anonymous function">anonymous function</a>. This is probably because many programmers learn about both concepts at the same time, in the form of small helper functions that are anonymous closures. An anonymous function is a function <a href="/wiki/Literal_(computer_programming)" title="Literal (computer programming)">literal</a> without a name, while a closure is an instance of a function, a <a href="/wiki/Value_(computer_science)" title="Value (computer science)">value</a>, whose non-local variables have been bound either to values or to <a href="/wiki/Variable_(computer_science)" title="Variable (computer science)">storage locations</a> (depending on the language; see the <a href="#Lexical_environment">lexical environment</a> section below).</p>
+<h2><span class="mw-headline" id="Applications">Applications</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Closure_(computer_programming)&amp;action=edit&amp;section=2" title="Edit section: Applications">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Closures are used to implement <a href="/wiki/Continuation-passing_style" title="Continuation-passing style">continuation-passing style</a>, and in this manner, <a href="/wiki/Information_hiding" title="Information hiding">hide state</a>. Constructs such as <a href="/wiki/Object_(computer_science)" title="Object (computer science)">objects</a> and <a href="/wiki/Control_structure" title="Control structure" class="mw-redirect">control structures</a> can thus be implemented with closures. In some languages, a closure may occur when a function is defined within another function, and the inner function refers to local variables of the outer function. At <a href="/wiki/Run_time_(program_lifecycle_phase)" title="Run time (program lifecycle phase)">run-time</a>, when the outer function executes, a closure is formed, consisting of the inner function’s code and references (the upvalues) to any variables of the outer function required by the closure.</p>
+<h3><span class="mw-headline" id="First-class_functions">First-class functions</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Closure_(computer_programming)&amp;action=edit&amp;section=3" title="Edit section: First-class functions">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Closures typically appear in languages in which functions are <a href="/wiki/First-class_object" title="First-class object" class="mw-redirect">first-class values</a>—in other words, such languages enable functions to be passed as arguments, returned from function calls, bound to variable names, etc., just like simpler types such as strings and integers. For example, consider the following <a href="/wiki/Scheme_(programming_language)" title="Scheme (programming language)">Scheme</a> function:</p>
+<p>WHATSON? def48ed0-e7ea-4c96-8b56-e6ddc4967d88</p>
+<pre class="de1">
+<span class="co1">; Return a list of all books with at least THRESHOLD copies sold.</span>
+<span class="br0">(</span><span class="kw1">define</span> <span class="br0">(</span>best<span class="sy0">-</span>selling<span class="sy0">-</span>books threshold<span class="br0">)</span>
+  <span class="br0">(</span>filter
+    <span class="br0">(</span><span class="kw1">lambda</span> <span class="br0">(</span>book<span class="br0">)</span>
+      <span class="br0">(</span><span class="sy0">&gt;=</span> <span class="br0">(</span>book<span class="sy0">-</span>sales book<span class="br0">)</span> threshold<span class="br0">)</span><span class="br0">)</span>
+    book<span class="sy0">-</span><span class="kw1">list</span><span class="br0">)</span><span class="br0">)</span>
+</pre>
+<p>In this example, the <a href="/wiki/Lambda_(programming)" title="Lambda (programming)" class="mw-redirect">lambda expression</a> <code>(lambda (book) (&gt;= (book-sales book) threshold))</code> appears within the function <code>best-selling-books</code>. When the lambda expression is evaluated, Scheme creates a closure consisting of the code for the lambda expression and a reference to the <code>threshold</code> variable, which is a <a href="/wiki/Free_variable" title="Free variable" class="mw-redirect">free variable</a> inside the lambda expression.</p>
+<p>The closure is then passed to the <code>filter</code> function, which calls it repeatedly to determine which books are to be added to the result list and which are to be discarded. Because the closure itself has a reference to <code>threshold</code>, it can use that variable each time <code>filter</code> calls it. The function <code>filter</code> itself might be defined in a completely separate file.</p>
+<p>Here is the same example rewritten in <a href="/wiki/JavaScript" title="JavaScript">JavaScript</a>, another popular language with support for closures:</p>
+<p>WHATSON? 288295b5-1275-4b12-ab66-9690b7a9cc1f</p>
+<pre class="de1">
+<span class="co1">// Return a list of all books with at least 'threshold' copies sold.</span>
+<span class="kw1">function</span> bestSellingBooks<span class="br0">(</span>threshold<span class="br0">)</span> <span class="br0">{</span>
+  <span class="kw1">return</span> bookList.<span class="me1">filter</span><span class="br0">(</span>
+      <span class="kw1">function</span> <span class="br0">(</span>book<span class="br0">)</span> <span class="br0">{</span> <span class="kw1">return</span> book.<span class="me1">sales</span> <span class="sy0">&gt;=</span> threshold<span class="sy0">;</span> <span class="br0">}</span>
+    <span class="br0">)</span><span class="sy0">;</span>
+<span class="br0">}</span>
+</pre>
+<p>The <code>function</code> keyword is used here instead of <code>lambda</code>, and an <code>Array.filter</code> method<sup id="cite_ref-6" class="reference"><a href="#cite_note-6"><span>[</span>6<span>]</span></a></sup> instead of a global <code>filter</code> function, but otherwise the structure and the effect of the code are the same.</p>
+<p>A function may create a closure and return it, as in the following example:</p>
+<p>WHATSON? 9913006a-9b6c-4bfe-9bab-2a9adb036a06</p>
+<pre class="de1">
+<span class="co1">// Return a function that approximates the derivative of f</span>
+<span class="co1">// using an interval of dx, which should be appropriately small.</span>
+<span class="kw1">function</span> derivative<span class="br0">(</span>f<span class="sy0">,</span> dx<span class="br0">)</span> <span class="br0">{</span>
+  <span class="kw1">return</span> <span class="kw1">function</span> <span class="br0">(</span>x<span class="br0">)</span> <span class="br0">{</span>
+    <span class="kw1">return</span> <span class="br0">(</span>f<span class="br0">(</span>x <span class="sy0">+</span> dx<span class="br0">)</span> <span class="sy0">-</span> f<span class="br0">(</span>x<span class="br0">)</span><span class="br0">)</span> <span class="sy0">/</span> dx<span class="sy0">;</span>
+  <span class="br0">}</span><span class="sy0">;</span>
+<span class="br0">}</span>
+</pre>
+<p>Because the closure in this case outlives the <a href="/wiki/Scope_(programming)" title="Scope (programming)" class="mw-redirect">scope</a> of the function that creates it, the variables <code>f</code> and <code>dx</code> live on after the function <code>derivative</code> returns. In languages without closures, the lifetime of a local variable coincides with the execution of the scope where that variable is declared. In languages with closures, variables must continue to exist as long as any existing closures have references to them. This is most commonly implemented using some form of <a href="/wiki/Garbage_collection_(computer_science)" title="Garbage collection (computer science)">garbage collection</a>.</p>
+<h3><span class="mw-headline" id="State_representation">State representation</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Closure_(computer_programming)&amp;action=edit&amp;section=4" title="Edit section: State representation">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>A closure can be used to associate a function with a set of "private" variables, which persist over several invocations of the function. The <a href="/wiki/Scope_(programming)" title="Scope (programming)" class="mw-redirect">scope</a> of the variable encompasses only the closed-over function, so it cannot be accessed from other program code.</p>
+<p>In stateful languages, closures can thus be used to implement paradigms for state representation and <a href="/wiki/Information_hiding" title="Information hiding">information hiding</a>, since the closure's upvalues (its closed-over variables) are of indefinite <a href="/wiki/Variable_(programming)#Scope_and_extent" title="Variable (programming)" class="mw-redirect">extent</a>, so a value established in one invocation remains available in the next. Closures used in this way no longer have <a href="/wiki/Referential_transparency_(computer_science)" title="Referential transparency (computer science)">referential transparency</a>, and are thus no longer <a href="/wiki/Pure_function" title="Pure function">pure functions</a>; nevertheless, they are commonly used in impure functional languages such as <a href="/wiki/Scheme_(programming_language)" title="Scheme (programming language)">Scheme</a>.</p>
+<h3><span class="mw-headline" id="Other_uses">Other uses</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Closure_(computer_programming)&amp;action=edit&amp;section=5" title="Edit section: Other uses">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Closures have many uses:</p>
+<ul>
+<li>Because closures delay evaluation—i.e., they do not "do" anything until they are called—they can be used to define control structures. For example, all of <a href="/wiki/Smalltalk" title="Smalltalk">Smalltalk</a>'s standard control structures, including branches (if/then/else) and loops (while and for), are defined using objects whose methods accept closures. Users can easily define their own control structures also.</li>
+<li>In languages which implement assignment, multiple functions can be produced that close over the same environment, enabling them to communicate privately by altering that environment. In Scheme:</li>
+</ul>
+<p>WHATSON? 1a4609c7-e12e-4c75-a55d-b9afde4e22f7</p>
+<pre class="de1">
+<span class="br0">(</span><span class="kw1">define</span> foo #f<span class="br0">)</span>
+<span class="br0">(</span><span class="kw1">define</span> bar #f<span class="br0">)</span>
+ 
+<span class="br0">(</span><span class="kw1">let</span> <span class="br0">(</span><span class="br0">(</span>secret<span class="sy0">-</span>message <span class="st0">"none"</span><span class="br0">)</span><span class="br0">)</span>
+  <span class="br0">(</span><span class="kw1">set!</span> foo <span class="br0">(</span><span class="kw1">lambda</span> <span class="br0">(</span>msg<span class="br0">)</span> <span class="br0">(</span><span class="kw1">set!</span> secret<span class="sy0">-</span>message msg<span class="br0">)</span><span class="br0">)</span><span class="br0">)</span>
+  <span class="br0">(</span><span class="kw1">set!</span> bar <span class="br0">(</span><span class="kw1">lambda</span> <span class="br0">(</span><span class="br0">)</span> secret<span class="sy0">-</span>message<span class="br0">)</span><span class="br0">)</span><span class="br0">)</span>
+ 
+<span class="br0">(</span><span class="kw1">display</span> <span class="br0">(</span>bar<span class="br0">)</span><span class="br0">)</span> <span class="co1">; prints "none"</span>
+<span class="br0">(</span><span class="kw1">newline</span><span class="br0">)</span>
+<span class="br0">(</span>foo <span class="st0">"meet me by the docks at midnight"</span><span class="br0">)</span>
+<span class="br0">(</span><span class="kw1">display</span> <span class="br0">(</span>bar<span class="br0">)</span><span class="br0">)</span> <span class="co1">; prints "meet me by the docks at midnight"</span>
+</pre>
+<ul>
+<li>Closures can be used to implement <a href="/wiki/Object-oriented_programming" title="Object-oriented programming">object</a> systems.<sup id="cite_ref-7" class="reference"><a href="#cite_note-7"><span>[</span>7<span>]</span></a></sup></li>
+</ul>
+<p>Note: Some speakers call any data structure that binds a <a href="/wiki/Scope_(programming)#Lexical_scoping" title="Scope (programming)" class="mw-redirect">lexical</a> environment a closure, but the term usually refers specifically to functions.</p>
+<h2><span class="mw-headline" id="Implementation_and_theory">Implementation and theory</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Closure_(computer_programming)&amp;action=edit&amp;section=6" title="Edit section: Implementation and theory">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Closures are typically implemented with a special <a href="/wiki/Data_structure" title="Data structure">data structure</a> that contains a pointer to the function code, plus a representation of the function's lexical environment (i.e., the set of available variables) at the time when the closure was created. The referencing environment <a href="/wiki/Name_binding" title="Name binding">binds</a> the nonlocal names to the corresponding variables in <a href="/wiki/Scope_(computer_science)" title="Scope (computer science)">scope</a> at the time the closure is created, additionally extending their lifetime to at least as long as the lifetime of the closure itself. When the closure is <i>entered</i> at a later time, possibly from a different scope, the function is executed with its non-local variables referring to the ones captured by the closure.</p>
+<p>A language implementation cannot easily support full closures if its run-time memory model allocates all local variables on a linear <a href="/wiki/Stack-based_memory_allocation" title="Stack-based memory allocation">stack</a>. In such languages, a function's local variables are deallocated when the function returns. However, a closure requires that the free variables it references survive the enclosing function's execution. Therefore, those variables must be allocated so that they persist until no longer needed. This explains why, typically, languages that natively support closures also use <a href="/wiki/Garbage_collection_(computer_science)" title="Garbage collection (computer science)">garbage collection</a>. The alternative is for the language to accept that certain use cases will lead to <a href="/wiki/Undefined_behaviour" title="Undefined behaviour" class="mw-redirect">undefined behaviour</a>, as in lambda expressions in C++11.<sup id="cite_ref-8" class="reference"><a href="#cite_note-8"><span>[</span>8<span>]</span></a></sup> The <a href="/wiki/Funarg_problem" title="Funarg problem">funarg problem</a> (or "functional argument" problem) describes the difficulty of implementing functions as first class objects in a stack-based programming language such as C or C++. Similarly in <a href="/wiki/D_(programming_language)" title="D (programming language)">D</a> version 1, it is assumed that the programmer knows what to do with <a href="/wiki/Delegation_(programming)" title="Delegation (programming)">delegates</a> and local variables, as their references will be invalid after return from its definition scope (local variables are on the stack) - this still permits many useful functional patterns, but for complex cases needs explicit <a href="/wiki/Dynamic_memory_allocation#Dynamic_memory_allocation" title="Dynamic memory allocation" class="mw-redirect">heap allocation</a> for variables. D version 2 solved this by detecting which variables must be stored on the heap, and performs automatic allocation. Because D uses garbage collection, in both versions, there is no need to track usage of variables as they are passed.</p>
+<p>In strict functional languages with immutable data (<i>e.g.</i> <a href="/wiki/Erlang_(programming_language)" title="Erlang (programming language)">Erlang</a>), it is very easy to implement automatic memory management (garbage collection), as there are no possible cycles in variables' references. For example in Erlang, all arguments and variables are allocated on the heap, but references to them are additionally stored on the stack. After a function returns, references are still valid. Heap cleaning is done by incremental garbage collector.</p>
+<p>In ML, local variables are lexically scoped, and hence define a stack-like model, but since they are bound to values and not to objects, an implementation is free to copy these values into the closure's data structure in a way that is invisible to the programmer.</p>
+<p><a href="/wiki/Scheme_(programming_language)" title="Scheme (programming language)">Scheme</a>, which has an <a href="/wiki/ALGOL" title="ALGOL">ALGOL</a>-like lexical scope system with dynamic variables and garbage collection, lacks a stack programming model and does not suffer from the limitations of stack-based languages. Closures are expressed naturally in Scheme. The lambda form encloses the code, and the free variables of its environment persist within the program as long as they can possibly be accessed, and so they can be used as freely as any other Scheme expression.</p>
+<p>Closures are closely related to Actors in the <a href="/wiki/Actor_model" title="Actor model">Actor model</a> of concurrent computation where the values in the function's lexical environment are called <i>acquaintances</i>. An important issue for closures in <a href="/wiki/Concurrent_programming" title="Concurrent programming" class="mw-redirect">concurrent programming</a> languages is whether the variables in a closure can be updated and, if so, how these updates can be synchronized. Actors provide one solution.<sup id="cite_ref-9" class="reference"><a href="#cite_note-9"><span>[</span>9<span>]</span></a></sup></p>
+<p>Closures are closely related to <a href="/wiki/Function_object" title="Function object">function objects</a>; the transformation from the former to the latter is known as <a href="/wiki/Defunctionalization" title="Defunctionalization">defunctionalization</a> or <a href="/wiki/Lambda_lifting" title="Lambda lifting">lambda lifting</a>.<sup class="noprint Inline-Template Template-Fact" style="white-space:nowrap;">[<i><a href="/wiki/Wikipedia:Citation_needed" title="Wikipedia:Citation needed"><span title="This claim needs references to reliable sources. (September 2011)">citation needed</span></a></i>]</sup></p>
+<h2><span class="mw-headline" id="Differences_in_semantics">Differences in semantics</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Closure_(computer_programming)&amp;action=edit&amp;section=7" title="Edit section: Differences in semantics">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<h3><span class="mw-headline" id="Lexical_environment">Lexical environment</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Closure_(computer_programming)&amp;action=edit&amp;section=8" title="Edit section: Lexical environment">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>As different languages do not always have a common definition of the lexical environment, their definitions of closure may vary also. The commonly held minimalist definition of the lexical environment defines it as a set of all <a href="/wiki/Name_binding" title="Name binding">bindings of variables</a> in the scope, and that is also what closures in any language have to capture. However the meaning of a <a href="/wiki/Variable_(programming)" title="Variable (programming)" class="mw-redirect">variable</a> binding also differs. In imperative languages, variables bind to relative locations in memory that can store values. Although the relative location of a binding does not change at runtime, the value in the bound location can. In such languages, since closure captures the binding, any operation on the variable, whether done from the closure or not, are performed on the same relative memory location. This is often called capturing the variable "by reference". Here is an example illustrating the concept in <a href="/wiki/ECMAScript" title="ECMAScript">ECMAScript</a>, which is one such language:</p>
+<p>WHATSON? 3b89a71e-ed2b-4bc3-bcf7-34bba0b770f5</p>
+<pre class="de1">
+<span class="co1">// ECMAScript</span>
+<span class="kw2">var</span> f<span class="sy0">,</span> g<span class="sy0">;</span>
+<span class="kw2">function</span> foo<span class="br0">(</span><span class="br0">)</span> <span class="br0">{</span>
+  <span class="kw2">var</span> x<span class="sy0">;</span>
+  f <span class="sy0">=</span> <span class="kw2">function</span><span class="br0">(</span><span class="br0">)</span> <span class="br0">{</span> <span class="kw2">return</span> <span class="sy0">++</span>x<span class="sy0">;</span> <span class="br0">}</span><span class="sy0">;</span>
+  g <span class="sy0">=</span> <span class="kw2">function</span><span class="br0">(</span><span class="br0">)</span> <span class="br0">{</span> <span class="kw2">return</span> <span class="sy0">--</span>x<span class="sy0">;</span> <span class="br0">}</span><span class="sy0">;</span>
+  x <span class="sy0">=</span> <span class="nu0">1</span><span class="sy0">;</span>
+  alert<span class="br0">(</span><span class="st0">'inside foo, call to f(): '</span> <span class="sy0">+</span> f<span class="br0">(</span><span class="br0">)</span><span class="br0">)</span><span class="sy0">;</span> <span class="co1">// "2"</span>
+<span class="br0">}</span>
+foo<span class="br0">(</span><span class="br0">)</span><span class="sy0">;</span>
+alert<span class="br0">(</span><span class="st0">'call to g(): '</span> <span class="sy0">+</span> g<span class="br0">(</span><span class="br0">)</span><span class="br0">)</span><span class="sy0">;</span> <span class="co1">// "1"</span>
+alert<span class="br0">(</span><span class="st0">'call to f(): '</span> <span class="sy0">+</span> f<span class="br0">(</span><span class="br0">)</span><span class="br0">)</span><span class="sy0">;</span> <span class="co1">// "2"</span>
+</pre>
+<p>Note how function <code>foo</code> and the closures referred to by variables <code>f</code> and <code>g</code> all use the same relative memory location signified by local variable <code>x</code>.</p>
+<p>On the other hand, many functional languages, such as <a href="/wiki/ML_(programming_language)" title="ML (programming language)">ML</a>, bind variables directly to values. In this case, since there is no way to change the value of the variable once it is bound, there is no need to share the state between closures—they just use the same values. This is often called capturing the variable "by value". Java's local and anonymous classes also fall into this category—they require captured local variables to be <code>final</code>, which also means there is no need to share state.</p>
+<p>Some languages enable you to choose between capturing the value of a variable or its location. For example, in C++11 and PHP, captured variables are either declared with <code>&amp;</code>, which means captured by reference, or without, which means captured by value.</p>
+<p>Yet another subset, <a href="/wiki/Lazy_evaluation" title="Lazy evaluation">lazy</a> functional languages such as <a href="/wiki/Haskell_(programming_language)" title="Haskell (programming language)">Haskell</a>, bind variables to results of future computations rather than values. Consider this example in Haskell:</p>
+<p>WHATSON? 5add1cc2-5694-42b4-9cf4-b27c98ef6900</p>
+<pre class="de1">
+<span class="co1">-- Haskell</span>
+foo <span class="sy0">::</span> <span class="kw4">Fractional</span> a <span class="sy0">=&gt;</span> a <span class="sy0">-&gt;</span> a <span class="sy0">-&gt;</span> <span class="br0">(</span>a <span class="sy0">-&gt;</span> a<span class="br0">)</span>
+foo x y <span class="sy0">=</span> <span class="br0">(</span>\z <span class="sy0">-&gt;</span> z <span class="sy0">+</span> r<span class="br0">)</span>
+          <span class="kw1">where</span> r <span class="sy0">=</span> x <span class="sy0">/</span> y
+ 
+f <span class="sy0">::</span> <span class="kw4">Fractional</span> a <span class="sy0">=&gt;</span> a <span class="sy0">-&gt;</span> a
+f <span class="sy0">=</span> foo <span class="nu0">1</span> <span class="nu0">0</span>
+ 
+main <span class="sy0">=</span> <span class="kw3">print</span> <span class="br0">(</span>f <span class="nu0">123</span><span class="br0">)</span>
+</pre>
+<p>The binding of <code>r</code> captured by the closure defined within function <code>foo</code> is to the computation <code>(x / y)</code> - which in this case results in division by zero. However, since it is the computation that is captured, and not the value, the error only manifests itself when the closure is invoked, and actually attempts to use the captured binding.</p>
+<h3><span class="mw-headline" id="Closure_leaving">Closure leaving</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Closure_(computer_programming)&amp;action=edit&amp;section=9" title="Edit section: Closure leaving">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Yet more differences manifest themselves in the behavior of other lexically scoped constructs, such as <code>return</code>, <code>break</code> and <code>continue</code> statements. Such constructs can, in general, be considered in terms of invoking an <a href="/wiki/Escape_continuation" title="Escape continuation" class="mw-redirect">escape continuation</a> established by an enclosing control statement (in case of <code>break</code> and <code>continue</code>, such interpretation requires looping constructs to be considered in terms of recursive function calls). In some languages, such as ECMAScript, <code>return</code> refers to the continuation established by the closure lexically innermost with respect to the statement—thus, a <code>return</code> within a closure transfers control to the code that called it. However in <a href="/wiki/Smalltalk" title="Smalltalk">Smalltalk</a>, the superficially similar operator <code>^</code> invokes the escape continuation established for the method invocation, ignoring the escape continuations of any intervening nested closures. The escape continuation of a particular closure can only be invoked in Smalltalk implicitly by reaching the end of the closure's code. The following examples in ECMAScript and Smalltalk highlight the difference:</p>
+<p>WHATSON? ee7b9816-e311-42c0-b961-efacf3437a41</p>
+<pre class="de1">
+<span class="coMULTI">"Smalltalk"</span>
+foo
+  |<span class="re3"> xs </span>|
+  <span class="re6">xs</span> <span class="sy0">:=</span> <span class="re2">#<span class="br0">(</span><span class="re5">1</span> 2 3 4<span class="br0">)</span></span>.
+  <span class="re5">xs</span> do: <span class="br0">[</span>:<span class="re5">x</span> | ^x<span class="br0">]</span>.
+  ^<span class="nu0">0</span>
+bar
+  <span class="re0">Transcript</span> show: <span class="br0">(</span><span class="kw1">self</span> foo printString<span class="br0">)</span> <span class="coMULTI">"prints 1"</span>
+</pre>
+<p>WHATSON? dc956f2b-2da0-4efe-bea8-8b8b151bbd11</p>
+<pre class="de1">
+<span class="co1">// ECMAScript</span>
+<span class="kw1">function</span> foo<span class="br0">(</span><span class="br0">)</span> <span class="br0">{</span>
+  <span class="kw1">var</span> xs <span class="sy0">=</span> <span class="br0">[</span><span class="nu0">1</span><span class="sy0">,</span> <span class="nu0">2</span><span class="sy0">,</span> <span class="nu0">3</span><span class="sy0">,</span> <span class="nu0">4</span><span class="br0">]</span><span class="sy0">;</span>
+  xs.<span class="me1">forEach</span><span class="br0">(</span><span class="kw1">function</span> <span class="br0">(</span>x<span class="br0">)</span> <span class="br0">{</span> <span class="kw1">return</span> x<span class="sy0">;</span> <span class="br0">}</span><span class="br0">)</span><span class="sy0">;</span>
+  <span class="kw1">return</span> <span class="nu0">0</span><span class="sy0">;</span>
+<span class="br0">}</span>
+alert<span class="br0">(</span>foo<span class="br0">(</span><span class="br0">)</span><span class="br0">)</span><span class="sy0">;</span> <span class="co1">// prints 0</span>
+</pre>
+<p>The above code snippets will behave differently because the Smalltalk <code>^</code> operator and the JavaScript <code>return</code> operator are not analogous. In the ECMAScript example, <code>return x</code> will leave the inner closure to begin a new iteration of the <code>forEach</code> loop, whereas in the Smalltalk example, <code>^x</code> will abort the loop and return from the method <code>foo</code>.</p>
+<p><a href="/wiki/Common_Lisp" title="Common Lisp">Common Lisp</a> provides a construct that can express either of the above actions: Lisp <code>(return-from foo x)</code> behaves as <a href="/wiki/Smalltalk" title="Smalltalk">Smalltalk</a> <code>^x</code>, while Lisp <code>(return-from nil x)</code> behaves as <a href="/wiki/JavaScript" title="JavaScript">JavaScript</a> <code>return x</code>. Hence, Smalltalk makes it possible for a captured escape continuation to outlive the extent in which it can be successfully invoked. Consider:</p>
+<p>WHATSON? ae679ca2-661e-4db1-97fa-74e266445949</p>
+<pre class="de1">
+<span class="coMULTI">"Smalltalk"</span>
+foo
+    ^<span class="br0">[</span> :<span class="re5">x</span> | ^x <span class="br0">]</span>
+bar
+    |<span class="re3"> f </span>|
+    <span class="re6">f</span> <span class="sy0">:=</span> <span class="kw1">self</span> foo.
+    <span class="re5">f</span> value: <span class="re5">123</span> <span class="coMULTI">"error!"</span>
+</pre>
+<p>When the closure returned by the method <code>foo</code> is invoked, it attempts to return a value from the invocation of <code>foo</code> that created the closure. Since that call has already returned and the Smalltalk method invocation model does not follow the <a href="/wiki/Spaghetti_stack" title="Spaghetti stack">spaghetti stack</a> discipline to facilitate multiple returns, this operation results in an error.</p>
+<p>Some languages, such as <a href="/wiki/Ruby_(programming_language)" title="Ruby (programming language)">Ruby</a>, enable the programmer to choose the way <code>return</code> is captured. An example in Ruby:</p>
+<p>WHATSON? 715ba0a6-814b-4f57-9e38-1e93a3726a8d</p>
+<pre class="de1">
+<span class="co1"># Ruby</span>
+ 
+<span class="co1"># Closure using a Proc</span>
+<span class="kw1">def</span> foo
+  f = <span class="kw3">Proc</span>.<span class="me1">new</span> <span class="br0">{</span> <span class="kw2">return</span> <span class="st0">"return from foo from inside proc"</span> <span class="br0">}</span>
+  f.<span class="me1">call</span> <span class="co1"># control leaves foo here</span>
+  <span class="kw2">return</span> <span class="st0">"return from foo"</span>
+<span class="kw1">end</span>
+ 
+<span class="co1"># Closure using a lambda</span>
+<span class="kw1">def</span> bar
+  f = <span class="kw3">lambda</span> <span class="br0">{</span> <span class="kw2">return</span> <span class="st0">"return from lambda"</span> <span class="br0">}</span>
+  f.<span class="me1">call</span> <span class="co1"># control does not leave bar here</span>
+  <span class="kw2">return</span> <span class="st0">"return from bar"</span>
+<span class="kw1">end</span>
+ 
+<span class="kw3">puts</span> foo <span class="co1"># prints "return from foo from inside proc"</span>
+<span class="kw3">puts</span> bar <span class="co1"># prints "return from bar"</span>
+</pre>
+<p>Both <code>Proc.new</code> and <code>lambda</code> in this example are ways to create a closure, but semantics of the closures thus created are different with respect to the <code>return</code> statement.</p>
+<p>In <a href="/wiki/Scheme_(programming_language)" title="Scheme (programming language)">Scheme</a>, definition and scope of the <code>return</code> control statement is explicit (and only arbitrarily named 'return' for the sake of the example). The following is a direct translation of the Ruby sample.</p>
+<p>WHATSON? a9a5edd5-996c-4e5e-a713-198a5d8fb63e</p>
+<pre class="de1">
+<span class="co1">; Scheme</span>
+<span class="br0">(</span><span class="kw1">define</span> <span class="kw1">call/cc</span> <span class="kw1">call-with-current-continuation</span><span class="br0">)</span>
+ 
+<span class="br0">(</span><span class="kw1">define</span> <span class="br0">(</span>foo<span class="br0">)</span>
+  <span class="br0">(</span><span class="kw1">call/cc</span>
+   <span class="br0">(</span><span class="kw1">lambda</span> <span class="br0">(</span><span class="kw1">return</span><span class="br0">)</span>
+     <span class="br0">(</span><span class="kw1">define</span> <span class="br0">(</span><span class="kw1">f</span><span class="br0">)</span> <span class="br0">(</span><span class="kw1">return</span> <span class="st0">"return from foo from inside proc"</span><span class="br0">)</span><span class="br0">)</span>
+     <span class="br0">(</span><span class="kw1">f</span><span class="br0">)</span> <span class="co1">; control leaves foo here</span>
+     <span class="br0">(</span><span class="kw1">return</span> <span class="st0">"return from foo"</span><span class="br0">)</span><span class="br0">)</span><span class="br0">)</span><span class="br0">)</span>
+ 
+<span class="br0">(</span><span class="kw1">define</span> <span class="br0">(</span>bar<span class="br0">)</span>
+  <span class="br0">(</span><span class="kw1">call/cc</span>
+   <span class="br0">(</span><span class="kw1">lambda</span> <span class="br0">(</span><span class="kw1">return</span><span class="br0">)</span>
+     <span class="br0">(</span><span class="kw1">define</span> <span class="br0">(</span><span class="kw1">f</span><span class="br0">)</span> <span class="br0">(</span><span class="kw1">call/cc</span> <span class="br0">(</span><span class="kw1">lambda</span> <span class="br0">(</span><span class="kw1">return</span><span class="br0">)</span> <span class="br0">(</span><span class="kw1">return</span> <span class="st0">"return from lambda"</span><span class="br0">)</span><span class="br0">)</span><span class="br0">)</span><span class="br0">)</span>
+     <span class="br0">(</span><span class="kw1">f</span><span class="br0">)</span> <span class="co1">; control does not leave bar here</span>
+     <span class="br0">(</span><span class="kw1">return</span> <span class="st0">"return from bar"</span><span class="br0">)</span><span class="br0">)</span><span class="br0">)</span><span class="br0">)</span>
+ 
+<span class="br0">(</span><span class="kw1">display</span> <span class="br0">(</span>foo<span class="br0">)</span><span class="br0">)</span> <span class="co1">; prints "return from foo from inside proc"</span>
+<span class="br0">(</span><span class="kw1">newline</span><span class="br0">)</span>
+<span class="br0">(</span><span class="kw1">display</span> <span class="br0">(</span>bar<span class="br0">)</span><span class="br0">)</span> <span class="co1">; prints "return from bar"</span>
+</pre>
+<h2><span class="mw-headline" id="Closure-like_constructs">Closure-like constructs</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Closure_(computer_programming)&amp;action=edit&amp;section=10" title="Edit section: Closure-like constructs">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Features of some languages simulate some features of closures. Language features include some object-oriented techniques, for example in Java, C++, Objective-C, C#, D.</p>
+<h3><span class="mw-headline" id="Callbacks_.28C.29">Callbacks (C)</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Closure_(computer_programming)&amp;action=edit&amp;section=11" title="Edit section: Callbacks (C)">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>In <a href="/wiki/C_(programming_language)" title="C (programming language)">C</a>, libraries that support <a href="/wiki/Callback_(computer_science)" title="Callback (computer science)" class="mw-redirect">callbacks</a>, a callback can sometimes be registered using two values: a function pointer and a separate <code>void*</code> pointer to arbitrary data of the user's choice. Each time the library executes the callback function, it passes in the data pointer. This enables the callback to maintain state and to refer to information captured at the time it was registered. The idiom is similar to closures in functionality, but not in syntax.</p>
+<h3><span class="mw-headline" id="Local_classes_and_Lambda_functions_.28Java.29">Local classes and Lambda functions (Java)</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Closure_(computer_programming)&amp;action=edit&amp;section=12" title="Edit section: Local classes and Lambda functions (Java)">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p><a href="/wiki/Java_(programming_language)" title="Java (programming language)">Java</a> enables <a href="/wiki/Class_(object-oriented_programming)" title="Class (object-oriented programming)" class="mw-redirect">classes</a> to be defined inside <a href="/wiki/Method_(object-oriented_programming)" title="Method (object-oriented programming)" class="mw-redirect">methods</a>. These are called <i>local classes</i>. When such classes are not named, they are known as <i>anonymous classes</i> (or anonymous <i>inner</i> classes). A local class (either named or anonymous) may refer to names in lexically enclosing classes, or read-only variables (marked as <tt>final</tt>) in the lexically enclosing method.</p>
+<p>WHATSON? 1c98e9f8-ab1d-41c7-a5af-4349a621cfb3</p>
+<pre class="de1">
+<span class="kw1">class</span> CalculationWindow <span class="kw1">extends</span> <span class="kw3">JFrame</span> <span class="br0">{</span>
+  <span class="kw1">private</span> <span class="kw1">volatile</span> <span class="kw4">int</span> result<span class="sy0">;</span>
+  ...
+  <span class="kw1">public</span> <span class="kw4">void</span> calculateInSeparateThread<span class="br0">(</span><span class="kw1">final</span> URI uri<span class="br0">)</span> <span class="br0">{</span>
+    <span class="co1">// The expression "new Runnable() { ... }" is an anonymous class implementing the 'Runnable' interface.</span>
+    <span class="kw1">new</span> <span class="kw3">Thread</span><span class="br0">(</span>
+      <span class="kw1">new</span> <span class="kw3">Runnable</span><span class="br0">(</span><span class="br0">)</span> <span class="br0">{</span>
+        <span class="kw4">void</span> run<span class="br0">(</span><span class="br0">)</span> <span class="br0">{</span>
+          <span class="co1">// It can read final local variables:</span>
+          calculate<span class="br0">(</span>uri<span class="br0">)</span><span class="sy0">;</span>
+          <span class="co1">// It can access private fields of the enclosing class:</span>
+          result <span class="sy0">=</span> result <span class="sy0">+</span> <span class="nu0">10</span><span class="sy0">;</span>
+        <span class="br0">}</span>
+      <span class="br0">}</span>
+    <span class="br0">)</span>.<span class="me1">start</span><span class="br0">(</span><span class="br0">)</span><span class="sy0">;</span>
+  <span class="br0">}</span>
+<span class="br0">}</span>
+</pre>
+<p>The capturing of <tt>final</tt> variables enables you to capture variables by value. Even if the variable you want to capture is non-<tt>final</tt>, you can always copy it to a temporary <tt>final</tt> variable just before the class.</p>
+<p>Capturing of variables by reference can be emulated by using a <tt>final</tt> reference to a mutable container, for example, a single-element array. The local class will not be able to change the value of the container reference itself, but it will be able to change the contents of the container.</p>
+<p>With the advent of Java 8's lambda expressions,<sup id="cite_ref-10" class="reference"><a href="#cite_note-10"><span>[</span>10<span>]</span></a></sup> the closure causes the above code to be executed as:</p>
+<p>WHATSON? d00de7b1-0219-4c16-910f-967d2ca9e701</p>
+<pre class="de1">
+<span class="kw1">class</span> CalculationWindow <span class="kw1">extends</span> <span class="kw3">JFrame</span> <span class="br0">{</span>
+<span class="kw1">private</span> <span class="kw1">volatile</span> <span class="kw4">int</span> result<span class="sy0">;</span>
+  ...
+  <span class="kw1">public</span> <span class="kw4">void</span> calculateInSeparateThread<span class="br0">(</span><span class="kw1">final</span> URI uri<span class="br0">)</span> <span class="br0">{</span>
+    <span class="co1">// the code () -&gt; { /* code */ } is a closure</span>
+    <span class="kw1">new</span> <span class="kw3">Thread</span><span class="br0">(</span><span class="br0">(</span><span class="br0">)</span> <span class="sy0">-&gt;</span> <span class="br0">{</span>
+        calculate<span class="br0">(</span>uri<span class="br0">)</span><span class="sy0">;</span>
+        result <span class="sy0">=</span> result <span class="sy0">+</span> <span class="nu0">10</span><span class="sy0">;</span>
+    <span class="br0">}</span><span class="br0">)</span>.<span class="me1">start</span><span class="br0">(</span><span class="br0">)</span><span class="sy0">;</span>
+  <span class="br0">}</span>
+<span class="br0">}</span>
+</pre>
+<p>Local classes are one of the types of inner class that are declared within the body of a method. Java also supports inner classes that are declared as <i>non-static members</i> of an enclosing class.<sup id="cite_ref-11" class="reference"><a href="#cite_note-11"><span>[</span>11<span>]</span></a></sup> They are normally referred to just as "inner classes".<sup id="cite_ref-12" class="reference"><a href="#cite_note-12"><span>[</span>12<span>]</span></a></sup> These are defined in the body of the enclosing class and have full access to instance variables of the enclosing class. Due to their binding to these instance variables, an inner class may only be instantiated with an explicit binding to an instance of the enclosing class using a special syntax.<sup id="cite_ref-13" class="reference"><a href="#cite_note-13"><span>[</span>13<span>]</span></a></sup></p>
+<p>WHATSON? 3108d682-faa8-4f4e-9546-2094b5db30c6</p>
+<pre class="de1">
+<span class="kw1">public</span> <span class="kw1">class</span> EnclosingClass <span class="br0">{</span>
+  <span class="coMULTI">/* Define the inner class */</span>
+  <span class="kw1">public</span> <span class="kw1">class</span> InnerClass <span class="br0">{</span>
+    <span class="kw1">public</span> <span class="kw4">int</span> incrementAndReturnCounter<span class="br0">(</span><span class="br0">)</span> <span class="br0">{</span>
+      <span class="kw1">return</span> counter<span class="sy0">++;</span>
+    <span class="br0">}</span>
+  <span class="br0">}</span>
+ 
+  <span class="kw1">private</span> <span class="kw4">int</span> counter<span class="sy0">;</span>
+ 
+  <span class="br0">{</span>
+    counter <span class="sy0">=</span> <span class="nu0">0</span><span class="sy0">;</span>
+  <span class="br0">}</span>
+ 
+  <span class="kw1">public</span> <span class="kw4">int</span> getCounter<span class="br0">(</span><span class="br0">)</span> <span class="br0">{</span>
+    <span class="kw1">return</span> counter<span class="sy0">;</span>
+  <span class="br0">}</span>
+ 
+  <span class="kw1">public</span> <span class="kw1">static</span> <span class="kw4">void</span> main<span class="br0">(</span><span class="kw3">String</span><span class="br0">[</span><span class="br0">]</span> args<span class="br0">)</span> <span class="br0">{</span>
+    EnclosingClass enclosingClassInstance <span class="sy0">=</span> <span class="kw1">new</span> EnclosingClass<span class="br0">(</span><span class="br0">)</span><span class="sy0">;</span>
+    <span class="coMULTI">/* Instantiate the inner class, with binding to the instance */</span>
+    EnclosingClass.<span class="me1">InnerClass</span> innerClassInstance <span class="sy0">=</span>
+      enclosingClassInstance.<span class="kw1">new</span> InnerClass<span class="br0">(</span><span class="br0">)</span><span class="sy0">;</span>
+ 
+    <span class="kw1">for</span><span class="br0">(</span><span class="kw4">int</span> i <span class="sy0">=</span> enclosingClassInstance.<span class="me1">getCounter</span><span class="br0">(</span><span class="br0">)</span><span class="sy0">;</span> <span class="br0">(</span>i <span class="sy0">=</span>
+    innerClassInstance.<span class="me1">incrementAndReturnCounter</span><span class="br0">(</span><span class="br0">)</span><span class="br0">)</span> <span class="sy0">&lt;</span> <span class="nu0">10</span><span class="sy0">;</span><span class="br0">)</span> <span class="br0">{</span>
+      <span class="kw3">System</span>.<span class="me1">out</span>.<span class="me1">println</span><span class="br0">(</span>i<span class="br0">)</span><span class="sy0">;</span>
+    <span class="br0">}</span>
+  <span class="br0">}</span>
+<span class="br0">}</span>
+</pre>
+<p>Upon execution, this will print the integers from 0 to 9. Beware to not confuse this type of class with the nested class, which is declared in the same way with an accompanied usage of the "static" modifier; those have not the desired effect but are instead just classes with no special binding defined in an enclosing class.</p>
+<p>There have been a number of proposals for adding more fully featured closures to Java.<sup id="cite_ref-14" class="reference"><a href="#cite_note-14"><span>[</span>14<span>]</span></a></sup></p>
+<h3><span class="mw-headline" id="Blocks_.28C.2C_C.2B.2B.2C_Objective-C_2.0.29">Blocks (C, C++, Objective-C 2.0)</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Closure_(computer_programming)&amp;action=edit&amp;section=13" title="Edit section: Blocks (C, C++, Objective-C 2.0)">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p><a href="/wiki/Apple_Inc." title="Apple Inc.">Apple</a> introduced <b><a href="/wiki/Blocks_(C_language_extension)" title="Blocks (C language extension)">Blocks</a></b>, a form of closure, as a nonstandard extension into <a href="/wiki/C_(programming_language)" title="C (programming language)">C</a>, <a href="/wiki/C%2B%2B" title="C++">C++</a>, <a href="/wiki/Objective-C_2.0" title="Objective-C 2.0" class="mw-redirect">Objective-C 2.0</a> and in <a href="/wiki/Mac_OS_X_Snow_Leopard" title="Mac OS X Snow Leopard">Mac OS X 10.6 "Snow Leopard"</a> and <a href="/wiki/IOS_(Apple)" title="IOS (Apple)" class="mw-redirect">iOS 4.0</a>.</p>
+<p>Pointers to block and block literals are marked with <code>^</code>. Normal local variables are captured by value when the block is created, and are read-only inside the block. Variables to be captured by reference are marked with <code>__block</code>. Blocks that need to persist outside of the scope they are created in may need to be copied.<sup id="cite_ref-15" class="reference"><a href="#cite_note-15"><span>[</span>15<span>]</span></a></sup><sup id="cite_ref-16" class="reference"><a href="#cite_note-16"><span>[</span>16<span>]</span></a></sup></p>
+<p>WHATSON? 7e7847df-abad-487f-aab5-dc6c560134a4</p>
+<pre class="de1">
+<span class="kw4">typedef</span> <span class="kw4">int</span> <span class="br0">(</span><span class="sy0">^</span>IntBlock<span class="br0">)</span><span class="br0">(</span><span class="br0">)</span>;
+ 
+IntBlock downCounter<span class="br0">(</span><span class="kw4">int</span> start<span class="br0">)</span> <span class="br0">{</span>
+	 __block <span class="kw4">int</span> i <span class="sy0">=</span> start;
+	 <span class="kw1">return</span> <span class="br0">[</span><span class="br0">[</span> <span class="sy0">^</span>int<span class="br0">(</span><span class="br0">)</span> <span class="br0">{</span>
+		 <span class="kw1">return</span> i<span class="sy0">--</span>;
+	 <span class="br0">}</span> copy<span class="br0">]</span> autorelease<span class="br0">]</span>;
+<span class="br0">}</span>
+ 
+IntBlock f <span class="sy0">=</span> downCounter<span class="br0">(</span><span class="nu0">5</span><span class="br0">)</span>;
+NSLog<span class="br0">(</span><span class="co3">@</span><span class="st0">"%d"</span>, f<span class="br0">(</span><span class="br0">)</span><span class="br0">)</span>;
+NSLog<span class="br0">(</span><span class="co3">@</span><span class="st0">"%d"</span>, f<span class="br0">(</span><span class="br0">)</span><span class="br0">)</span>;
+NSLog<span class="br0">(</span><span class="co3">@</span><span class="st0">"%d"</span>, f<span class="br0">(</span><span class="br0">)</span><span class="br0">)</span>;
+</pre>
+<h3><span class="mw-headline" id="Delegates_.28C.23.2C_D.29">Delegates (C#, D)</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Closure_(computer_programming)&amp;action=edit&amp;section=14" title="Edit section: Delegates (C#, D)">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p><a href="/wiki/C_Sharp_(programming_language)" title="C Sharp (programming language)">C#</a> anonymous methods and lambda expressions support closure:</p>
+<p>WHATSON? 93f3b836-c6f4-4112-95c5-65c8302db582</p>
+<pre class="de1">
+<span class="kw1">var</span> data <span class="sy0">=</span> <span class="kw3">new</span><span class="br0">[</span><span class="br0">]</span> <span class="br0">{</span><span class="nu0">1</span>, <span class="nu0">2</span>, <span class="nu0">3</span>, <span class="nu0">4</span><span class="br0">}</span><span class="sy0">;</span>
+<span class="kw1">var</span> multiplier <span class="sy0">=</span> <span class="nu0">2</span><span class="sy0">;</span>
+<span class="kw1">var</span> result <span class="sy0">=</span> data<span class="sy0">.</span><span class="kw1">Select</span><span class="br0">(</span>x <span class="sy0">=&gt;</span> x <span class="sy0">*</span> multiplier<span class="br0">)</span><span class="sy0">;</span>
+</pre>
+<p>Closures are implemented by delegates<sup class="noprint Inline-Template" style="white-space:nowrap;">[<i><a href="/wiki/Wikipedia:Vagueness" title="Wikipedia:Vagueness"><span title="You can help — (March 2014)">vague</span></a></i>]</sup> in <a href="/wiki/D_(programming_language)" title="D (programming language)">D</a>.</p>
+<p>WHATSON? 808df4e5-71f0-45b4-b961-ba90ab18d1f1</p>
+<pre class="de1">
+<span class="kw4">auto</span> test1<span class="br0">(</span><span class="br0">)</span> <span class="br0">{</span>
+    <span class="kw4">int</span> a <span class="sy0">=</span> <span class="nu0">7</span><span class="sy0">;</span>
+    <span class="kw1">return</span> <span class="kw2">delegate</span><span class="br0">(</span><span class="br0">)</span> <span class="br0">{</span> <span class="kw1">return</span> a <span class="sy0">+</span> <span class="nu0">3</span><span class="sy0">;</span> <span class="br0">}</span><span class="sy0">;</span> <span class="co1">// anonymous delegate construction</span>
+<span class="br0">}</span>
+ 
+<span class="kw4">auto</span> test2<span class="br0">(</span><span class="br0">)</span> <span class="br0">{</span>
+    <span class="kw4">int</span> a <span class="sy0">=</span> <span class="nu0">20</span><span class="sy0">;</span>
+    <span class="kw4">int</span> foo<span class="br0">(</span><span class="br0">)</span> <span class="br0">{</span> <span class="kw1">return</span> a <span class="sy0">+</span> <span class="nu0">5</span><span class="sy0">;</span> <span class="br0">}</span> <span class="co1">// inner function</span>
+    <span class="kw1">return</span> <span class="sy0">&amp;</span>foo<span class="sy0">;</span>  <span class="co1">// other way to construct delegate</span>
+<span class="br0">}</span>
+ 
+<span class="kw4">void</span> bar<span class="br0">(</span><span class="br0">)</span> <span class="br0">{</span>
+    <span class="kw4">auto</span> dg <span class="sy0">=</span> test1<span class="br0">(</span><span class="br0">)</span><span class="sy0">;</span>
+    dg<span class="br0">(</span><span class="br0">)</span><span class="sy0">;</span>    <span class="co1">// =10   // ok, test1.a is in a closure and still exists</span>
+ 
+    dg <span class="sy0">=</span> test2<span class="br0">(</span><span class="br0">)</span><span class="sy0">;</span>
+    dg<span class="br0">(</span><span class="br0">)</span><span class="sy0">;</span>    <span class="co1">// =25   // ok, test2.a is in a closure and still exists</span>
+<span class="br0">}</span>
+</pre>
+<p>D version 1, has limited closure support. For example, the above code will not work correctly, because the variable a is on the stack, and after returning from test(), it is no longer valid to use it (most probably calling foo via dg(), will return a 'random' integer). This can be solved by explicitly allocating the variable 'a' on heap, or using structs or class to store all needed closed variables and construct a delegate from a method implementing the same code. Closures can be passed to other functions, as long as they are only used while the referenced values are still valid (for example calling another function with a closure as a callback parameter), and are useful for writing generic data processing code, so this limitation, in practice, is often not an issue.</p>
+<p>This limitation was fixed in D version 2 - the variable 'a' will be automatically allocated on the heap because it is used in the inner function, and a delegate of that function can escape the current scope (via assignment to dg or return). Any other local variables (or arguments) that are not referenced by delegates or that are only referenced by delegates that don't escape the current scope, remain on the stack, which is simpler and faster than heap allocation. The same is true for inner's class methods that references a function's variables.</p>
+<h3><span class="mw-headline" id="Function_objects_.28C.2B.2B.29">Function objects (C++)</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Closure_(computer_programming)&amp;action=edit&amp;section=15" title="Edit section: Function objects (C++)">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p><a href="/wiki/C%2B%2B" title="C++">C++</a> enables defining <a href="/wiki/Function_object" title="Function object">function objects</a> by overloading <code>operator()</code>. These objects behave somewhat like functions in a functional programming language. They may be created at runtime and may contain state, but they do not implicitly capture local variables as closures do. As of <a href="/wiki/C%2B%2B11" title="C++11">the 2011 revision</a>, the C++ language also supports closures, which are a type of function object constructed automatically from a special language construct called <i>lambda-expression</i>. A C++ closure may capture its context either by storing copies of the accessed variables as members of the closure object or by reference. In the latter case, if the closure object escapes the scope of a referenced object, invoking its <code>operator()</code> causes undefined behavior since C++ closures do not extend the lifetime of their context.</p>
+<p>WHATSON? e3d1e228-e38d-4fb1-ac73-69595b2419d0</p>
+<pre class="de1">
+<span class="kw4">void</span> foo<span class="br0">(</span>string myname<span class="br0">)</span> <span class="br0">{</span>
+    <span class="kw4">int</span> y<span class="sy4">;</span>
+    vector<span class="sy1">&lt;</span>string<span class="sy1">&gt;</span> n<span class="sy4">;</span>
+    <span class="co1">// ...</span>
+    <span class="kw4">auto</span> i <span class="sy1">=</span> std<span class="sy4">::</span><span class="me2">find_if</span><span class="br0">(</span>n.<span class="me1">begin</span><span class="br0">(</span><span class="br0">)</span>, n.<span class="me1">end</span><span class="br0">(</span><span class="br0">)</span>,
+               <span class="co1">// this is the lambda expression:</span>
+               <span class="br0">[</span><span class="sy3">&amp;</span><span class="br0">]</span><span class="br0">(</span><span class="kw4">const</span> string<span class="sy3">&amp;</span> s<span class="br0">)</span> <span class="br0">{</span> <span class="kw1">return</span> s <span class="sy3">!</span><span class="sy1">=</span> myname <span class="sy3">&amp;&amp;</span> s.<span class="me1">size</span><span class="br0">(</span><span class="br0">)</span> <span class="sy1">&gt;</span> y<span class="sy4">;</span> <span class="br0">}</span>
+             <span class="br0">)</span><span class="sy4">;</span>
+    <span class="co1">// 'i' is now either 'n.end()' or points to the first string in 'n'</span>
+    <span class="co1">// which is not equal to 'myname' and whose length is greater than 'y'</span>
+<span class="br0">}</span>
+</pre>
+<h3><span class="mw-headline" id="Inline_agents_.28Eiffel.29">Inline agents (Eiffel)</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Closure_(computer_programming)&amp;action=edit&amp;section=16" title="Edit section: Inline agents (Eiffel)">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p><a href="/wiki/Eiffel_(programming_language)" title="Eiffel (programming language)">Eiffel</a> includes <b>inline agents</b> defining closures. An inline agent is an object representing a routine, defined by giving the code of the routine in-line. For example, in</p>
+<p>WHATSON? 5204c45e-777d-49e9-9a6f-abd967f1a4d4</p>
+<pre class="de1">
+ok_button.<span class="me1">click_event</span>.<span class="me1">subscribe</span> <span class="br0">(</span>
+	<span class="kw2">agent</span> <span class="br0">(</span>x, y<span class="sy0">:</span> <span class="kw4">INTEGER</span><span class="br0">)</span> <span class="kw2">do</span>
+		map.<span class="me1">country_at_coordinates</span> <span class="br0">(</span>x, y<span class="br0">)</span>.<span class="me1">display</span>
+	<span class="kw2">end</span>
+<span class="br0">)</span>
+</pre>
+<p>the argument to <code>subscribe</code> is an agent, representing a procedure with two arguments; the procedure finds the country at the corresponding coordinates and displays it. The whole agent is "subscribed" to the event type <code>click_event</code> for a certain button, so that whenever an instance of the event type occurs on that button — because a user has clicked the button — the procedure will be executed with the mouse coordinates being passed as arguments for <code>x</code> and <code>y</code>.</p>
+<p>The main limitation of Eiffel agents, which distinguishes them from closures in other languages, is that they cannot reference local variables from the enclosing scope. This design decision helps in avoiding ambiguity when talking about a local variable value in a closure - should it be the latest value of the variable or the value captured when the agent is created? Only <code>Current</code> (a reference to current object, analogous to <code>this</code> in Java), its features, and arguments of the agent itself can be accessed from within the agent body. The values of the outer local variables can be passed by providing additional closed operands to the agent.</p>
+<h2><span class="mw-headline" id="See_also">See also</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Closure_(computer_programming)&amp;action=edit&amp;section=17" title="Edit section: See also">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul>
+<li><a href="/wiki/Anonymous_function" title="Anonymous function">Anonymous function</a></li>
+<li><a href="/wiki/Blocks_(C_language_extension)" title="Blocks (C language extension)">Blocks (C language extension)</a></li>
+<li><a href="/wiki/Command_pattern" title="Command pattern">Command pattern</a></li>
+<li><a href="/wiki/Continuation" title="Continuation">Continuation</a></li>
+<li><a href="/wiki/Currying" title="Currying">Currying</a></li>
+<li><a href="/wiki/Funarg_problem" title="Funarg problem">Funarg problem</a></li>
+<li><a href="/wiki/Lambda_calculus" title="Lambda calculus">Lambda calculus</a></li>
+<li><a href="/wiki/Lazy_evaluation" title="Lazy evaluation">Lazy evaluation</a></li>
+<li><a href="/wiki/Partial_application" title="Partial application">Partial application</a></li>
+<li><a href="/wiki/Spaghetti_stack" title="Spaghetti stack">Spaghetti stack</a></li>
+<li><a href="/wiki/Syntactic_closure" title="Syntactic closure">Syntactic closure</a></li>
+<li><a href="/wiki/Value-level_programming" title="Value-level programming">Value-level programming</a></li>
+</ul>
+<h2><span class="mw-headline" id="References">References</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Closure_(computer_programming)&amp;action=edit&amp;section=18" title="Edit section: References">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ol class="references">
+<li id="cite_note-1"><span class="mw-cite-backlink"><b><a href="#cite_ref-1">^</a></b></span> <span class="reference-text">Sussman and Steele. "Scheme: An interpreter for extended lambda calculus". "... a data structure containing a lambda expression, and an environment to be used when that lambda expression is applied to arguments." (<a href="//en.wikisource.org/wiki/Page:Scheme_-_An_interpreter_for_extended_lambda_calculus.djvu/22" class="extiw" title="s:Page:Scheme - An interpreter for extended lambda calculus.djvu/22">Wikisource</a>)</span></li>
+<li id="cite_note-2"><span class="mw-cite-backlink"><b><a href="#cite_ref-2">^</a></b></span> <span class="reference-text"><span id="CITEREFP._J._Landin1964" class="citation"><a href="/wiki/Peter_J._Landin" title="Peter J. Landin" class="mw-redirect">P. J. Landin</a> (1964), <i>The mechanical evaluation of expressions</i></span><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AClosure+%28computer+programming%29&amp;rft.aulast=P.+J.+Landin&amp;rft.au=P.+J.+Landin&amp;rft.btitle=The+mechanical+evaluation+of+expressions&amp;rft.date=1964&amp;rft.genre=book&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook" class="Z3988"><span style="display:none;"> </span></span></span></li>
+<li id="cite_note-3"><span class="mw-cite-backlink"><b><a href="#cite_ref-3">^</a></b></span> <span class="reference-text"><span id="CITEREFJoel_Moses1970" class="citation"><a href="/wiki/Joel_Moses" title="Joel Moses">Joel Moses</a> (June 1970), <a rel="nofollow" class="external text" href="http://dspace.mit.edu/handle/1721.1/5854"><i>The Function of FUNCTION in LISP, or Why the FUNARG Problem Should Be Called the Environment Problem</i></a> (PDF), <a href="/wiki/AI_Memo" title="AI Memo">AI Memo</a> 199<span class="reference-accessdate">, retrieved 2009-10-27</span>, "A useful metaphor for the difference between FUNCTION and QUOTE in LISP is to think of QUOTE as a porous or an open covering of the function since free variables escape to the current environment. FUNCTION acts as a closed or nonporous covering (hence the term "closure" used by Landin). Thus we talk of "open" Lambda expressions (functions in LISP are usually Lambda expressions) and "closed" Lambda expressions. [...] My interest in the environment problem began while Landin, who had a deep understanding of the problem, visited MIT during 1966-67. I then realized the correspondence between the FUNARG lists which are the results of the evaluation of "closed" Lambda expressions in <a href="/wiki/LISP_1.5" title="LISP 1.5" class="mw-redirect">LISP</a> and <a href="/wiki/ISWIM" title="ISWIM">ISWIM</a>'s Lambda Closures."</span><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AClosure+%28computer+programming%29&amp;rft.au=Joel+Moses&amp;rft.aulast=Joel+Moses&amp;rft.btitle=The+Function+of+FUNCTION+in+LISP%2C+or+Why+the+FUNARG+Problem+Should+Be+Called+the+Environment+Problem&amp;rft.date=June+1970&amp;rft.genre=book&amp;rft_id=http%3A%2F%2Fdspace.mit.edu%2Fhandle%2F1721.1%2F5854&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook" class="Z3988"><span style="display:none;"> </span></span></span></li>
+<li id="cite_note-4"><span class="mw-cite-backlink"><b><a href="#cite_ref-4">^</a></b></span> <span class="reference-text"><span class="citation book"><a href="/w/index.php?title=%C3%85ke_Wikstr%C3%B6m&amp;action=edit&amp;redlink=1" class="new" title="Åke Wikström (page does not exist)">Åke Wikström</a> (1987). <i>Functional Programming using Standard ML</i>. <a href="/wiki/International_Standard_Book_Number" title="International Standard Book Number">ISBN</a> <a href="/wiki/Special:BookSources/0-13-331968-7" title="Special:BookSources/0-13-331968-7">0-13-331968-7</a>. "The reason it is called a "closure" is that an expression containing free variables is called an "open" expression, and by associating to it the bindings of its free variables, you close it."</span><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AClosure+%28computer+programming%29&amp;rft.au=%C3%85ke+Wikstr%C3%B6m&amp;rft.aulast=%C3%85ke+Wikstr%C3%B6m&amp;rft.btitle=Functional+Programming+using+Standard+ML&amp;rft.date=1987&amp;rft.genre=book&amp;rft.isbn=0-13-331968-7&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook" class="Z3988"><span style="display:none;"> </span></span></span></li>
+<li id="cite_note-5"><span class="mw-cite-backlink"><b><a href="#cite_ref-5">^</a></b></span> <span class="reference-text"><span id="CITEREFGerald_Jay_Sussman_and_Guy_L._Steele.2C_Jr.1975" class="citation"><a href="/wiki/Gerald_Jay_Sussman" title="Gerald Jay Sussman">Gerald Jay Sussman</a> and <a href="/wiki/Guy_L._Steele,_Jr." title="Guy L. Steele, Jr.">Guy L. Steele, Jr.</a> (December 1975), <i>Scheme: An Interpreter for the Extended Lambda Calculus</i>, <a href="/wiki/AI_Memo" title="AI Memo">AI Memo</a> 349</span><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AClosure+%28computer+programming%29&amp;rft.au=Gerald+Jay+Sussman+and+Guy+L.+Steele%2C+Jr.&amp;rft.aulast=Gerald+Jay+Sussman+and+Guy+L.+Steele%2C+Jr.&amp;rft.btitle=Scheme%3A+An+Interpreter+for+the+Extended+Lambda+Calculus&amp;rft.date=December+1975&amp;rft.genre=book&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook" class="Z3988"><span style="display:none;"> </span></span></span></li>
+<li id="cite_note-6"><span class="mw-cite-backlink"><b><a href="#cite_ref-6">^</a></b></span> <span class="reference-text"><span class="citation web"><a rel="nofollow" class="external text" href="https://developer.mozilla.org/en/Core_JavaScript_1.5_Reference/Global_Objects/Array/filter">"array.filter"</a>. <i>Mozilla Developer Center</i>. 10 January 2010<span class="reference-accessdate">. Retrieved 2010-02-09</span>.</span><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AClosure+%28computer+programming%29&amp;rft.atitle=array.filter&amp;rft.date=10+January+2010&amp;rft.genre=article&amp;rft_id=https%3A%2F%2Fdeveloper.mozilla.org%2Fen%2FCore_JavaScript_1.5_Reference%2FGlobal_Objects%2FArray%2Ffilter&amp;rft.jtitle=Mozilla+Developer+Center&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Ajournal" class="Z3988"><span style="display:none;"> </span></span></span></li>
+<li id="cite_note-7"><span class="mw-cite-backlink"><b><a href="#cite_ref-7">^</a></b></span> <span class="reference-text"><span class="citation web"><a rel="nofollow" class="external text" href="http://okmij.org/ftp/Scheme/oop-in-fp.txt">"Re: FP, OO and relations. Does anyone trump the others?"</a>. 29 December 1999<span class="reference-accessdate">. Retrieved 2008-12-23</span>.</span><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AClosure+%28computer+programming%29&amp;rft.btitle=Re%3A+FP%2C+OO+and+relations.+Does+anyone+trump+the+others%3F&amp;rft.date=29+December+1999&amp;rft.genre=book&amp;rft_id=http%3A%2F%2Fokmij.org%2Fftp%2FScheme%2Foop-in-fp.txt&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook" class="Z3988"><span style="display:none;"> </span></span></span></li>
+<li id="cite_note-8"><span class="mw-cite-backlink"><b><a href="#cite_ref-8">^</a></b></span> <span class="reference-text"><i><a rel="nofollow" class="external text" href="http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2008/n2550.pdf">Lambda Expressions and Closures</a></i> C++ Standards Committee. 29 February 2008.</span></li>
+<li id="cite_note-9"><span class="mw-cite-backlink"><b><a href="#cite_ref-9">^</a></b></span> <span class="reference-text"><i><a rel="nofollow" class="external text" href="https://dspace.mit.edu/handle/1721.1/6935">Foundations of Actor Semantics</a></i> Will Clinger. MIT Mathematics Doctoral Dissertation. June 1981.</span></li>
+<li id="cite_note-10"><span class="mw-cite-backlink"><b><a href="#cite_ref-10">^</a></b></span> <span class="reference-text"><span class="citation web"><a rel="nofollow" class="external text" href="http://docs.oracle.com/javase/tutorial/java/javaOO/lambdaexpressions.html">"Lambda Expressions (The Java Tutorials)"</a>.</span><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AClosure+%28computer+programming%29&amp;rft.btitle=Lambda+Expressions+%28The+Java+Tutorials%29&amp;rft.genre=book&amp;rft_id=http%3A%2F%2Fdocs.oracle.com%2Fjavase%2Ftutorial%2Fjava%2FjavaOO%2Flambdaexpressions.html&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook" class="Z3988"><span style="display:none;"> </span></span></span></li>
+<li id="cite_note-11"><span class="mw-cite-backlink"><b><a href="#cite_ref-11">^</a></b></span> <span class="reference-text"><span class="citation web"><a rel="nofollow" class="external text" href="https://blogs.oracle.com/darcy/entry/nested_inner_member_and_top">"Nested, Inner, Member, and Top-Level Classes"</a>.</span><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AClosure+%28computer+programming%29&amp;rft.btitle=Nested%2C+Inner%2C+Member%2C+and+Top-Level+Classes&amp;rft.genre=book&amp;rft_id=https%3A%2F%2Fblogs.oracle.com%2Fdarcy%2Fentry%2Fnested_inner_member_and_top&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook" class="Z3988"><span style="display:none;"> </span></span></span></li>
+<li id="cite_note-12"><span class="mw-cite-backlink"><b><a href="#cite_ref-12">^</a></b></span> <span class="reference-text"><span class="citation web"><a rel="nofollow" class="external text" href="http://java.sun.com/docs/books/tutorial/java/javaOO/innerclasses.html">"Inner Class Example (The Java Tutorials &gt; Learning the Java Language &gt; Classes and Objects)"</a>.</span><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AClosure+%28computer+programming%29&amp;rft.btitle=Inner+Class+Example+%28The+Java+Tutorials+%26gt%3B+Learning+the+Java+Language+%26gt%3B+Classes+and+Objects%29&amp;rft.genre=book&amp;rft_id=http%3A%2F%2Fjava.sun.com%2Fdocs%2Fbooks%2Ftutorial%2Fjava%2FjavaOO%2Finnerclasses.html&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook" class="Z3988"><span style="display:none;"> </span></span></span></li>
+<li id="cite_note-13"><span class="mw-cite-backlink"><b><a href="#cite_ref-13">^</a></b></span> <span class="reference-text"><span class="citation web"><a rel="nofollow" class="external text" href="http://java.sun.com/docs/books/tutorial/java/javaOO/nested.html">"Nested Classes (The Java Tutorials &gt; Learning the Java Language &gt; Classes and Objects)"</a>.</span><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AClosure+%28computer+programming%29&amp;rft.btitle=Nested+Classes+%28The+Java+Tutorials+%26gt%3B+Learning+the+Java+Language+%26gt%3B+Classes+and+Objects%29&amp;rft.genre=book&amp;rft_id=http%3A%2F%2Fjava.sun.com%2Fdocs%2Fbooks%2Ftutorial%2Fjava%2FjavaOO%2Fnested.html&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook" class="Z3988"><span style="display:none;"> </span></span></span></li>
+<li id="cite_note-14"><span class="mw-cite-backlink"><b><a href="#cite_ref-14">^</a></b></span> <span class="reference-text"><a rel="nofollow" class="external text" href="http://www.javac.info/">Closures (Lambda Expressions) for the Java Programming Language</a>. Javac.info (2008-08-11). Retrieved on 2013-07-31.</span></li>
+<li id="cite_note-15"><span class="mw-cite-backlink"><b><a href="#cite_ref-15">^</a></b></span> <span class="reference-text"><span class="citation web">Apple Inc. <a rel="nofollow" class="external text" href="http://developer.apple.com/library/mac/#documentation/Cocoa/Conceptual/Blocks/Articles/00_Introduction.html">"Blocks Programming Topics"</a><span class="reference-accessdate">. Retrieved 2011-03-08</span>.</span><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AClosure+%28computer+programming%29&amp;rft.au=Apple+Inc.&amp;rft.aulast=Apple+Inc.&amp;rft.btitle=Blocks+Programming+Topics&amp;rft.genre=book&amp;rft_id=http%3A%2F%2Fdeveloper.apple.com%2Flibrary%2Fmac%2F%23documentation%2FCocoa%2FConceptual%2FBlocks%2FArticles%2F00_Introduction.html&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook" class="Z3988"><span style="display:none;"> </span></span></span></li>
+<li id="cite_note-16"><span class="mw-cite-backlink"><b><a href="#cite_ref-16">^</a></b></span> <span class="reference-text"><span class="citation web">Joachim Bengtsson (7 July 2010). <a rel="nofollow" class="external text" href="http://thirdcog.eu/pwcblocks/">"Programming with C Blocks On Apple Devices"</a><span class="reference-accessdate">. Retrieved 2010-09-18</span>.</span><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AClosure+%28computer+programming%29&amp;rft.au=Joachim+Bengtsson&amp;rft.aulast=Joachim+Bengtsson&amp;rft.btitle=Programming+with+C+Blocks+On+Apple+Devices&amp;rft.date=7+July+2010&amp;rft.genre=book&amp;rft_id=http%3A%2F%2Fthirdcog.eu%2Fpwcblocks%2F&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook" class="Z3988"><span style="display:none;"> </span></span></span></li>
+</ol>
+<h2><span class="mw-headline" id="External_links">External links</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Closure_(computer_programming)&amp;action=edit&amp;section=19" title="Edit section: External links">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul>
+<li><a rel="nofollow" class="external text" href="http://library.readscheme.org/page1.html">The Original "Lambda Papers"</a>: A classic series of papers by <a href="/wiki/Guy_Steele" title="Guy Steele" class="mw-redirect">Guy Steele</a> and <a href="/wiki/Gerald_Sussman" title="Gerald Sussman" class="mw-redirect">Gerald Sussman</a> discussing, among other things, the versatility of closures in the context of Scheme (where they appear as <i><a href="/wiki/Lambda_calculus" title="Lambda calculus">lambda</a> expressions</i>).</li>
+<li><span class="citation web"><a href="/w/index.php?title=Neal_Gafter&amp;action=edit&amp;redlink=1" class="new" title="Neal Gafter (page does not exist)">Neal Gafter</a> (2007-01-28). <a rel="nofollow" class="external text" href="http://gafter.blogspot.com/2007/01/definition-of-closures.html">"A Definition of Closures"</a>.</span><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AClosure+%28computer+programming%29&amp;rft.aulast=Neal+Gafter&amp;rft.au=Neal+Gafter&amp;rft.btitle=A+Definition+of+Closures&amp;rft.date=2007-01-28&amp;rft.genre=book&amp;rft_id=http%3A%2F%2Fgafter.blogspot.com%2F2007%2F01%2Fdefinition-of-closures.html&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook" class="Z3988"><span style="display:none;"> </span></span></li>
+<li><span class="citation web"><a href="/wiki/Gilad_Bracha" title="Gilad Bracha">Gilad Bracha</a>, <a href="/w/index.php?title=Neal_Gafter&amp;action=edit&amp;redlink=1" class="new" title="Neal Gafter (page does not exist)">Neal Gafter</a>, <a href="/wiki/James_Gosling" title="James Gosling">James Gosling</a>, <a href="/w/index.php?title=Peter_von_der_Ah%C3%A9&amp;action=edit&amp;redlink=1" class="new" title="Peter von der Ahé (page does not exist)">Peter von der Ahé</a>. <a rel="nofollow" class="external text" href="http://www.javac.info/closures-v05.html">"Closures for the Java Programming Language (v0.5)"</a>.</span><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AClosure+%28computer+programming%29&amp;rft.au=Gilad+Bracha%2C+Neal+Gafter%2C+James+Gosling%2C+Peter+von+der+Ah%C3%A9&amp;rft.aulast=Gilad+Bracha%2C+Neal+Gafter%2C+James+Gosling%2C+Peter+von+der+Ah%C3%A9&amp;rft.btitle=Closures+for+the+Java+Programming+Language+%28v0.5%29&amp;rft.genre=book&amp;rft_id=http%3A%2F%2Fwww.javac.info%2Fclosures-v05.html&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook" class="Z3988"><span style="display:none;"> </span></span></li>
+<li><a rel="nofollow" class="external text" href="http://martinfowler.com/bliki/Closure.html">Closures</a>: An article about closures in <a href="/wiki/Dynamic_typing" title="Dynamic typing" class="mw-redirect">dynamically typed</a> imperative languages, by <a href="/wiki/Martin_Fowler" title="Martin Fowler">Martin Fowler</a>.</li>
+<li><a rel="nofollow" class="external text" href="http://martinfowler.com/bliki/CollectionClosureMethod.html">Collection closure methods</a>: An example of a technical domain where using closures is convenient, by <a href="/wiki/Martin_Fowler" title="Martin Fowler">Martin Fowler</a>.</li>
+</ul>

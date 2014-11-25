@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Set-Implementations-The-Java-Tutorials---------------------Collections--Implementations.html</title></head>
+<body>
+<h1>Set Implementations</h1>
+<p>The <code>Set</code> implementations are grouped into general-purpose and special-purpose implementations.</p>
+<h2>General-Purpose Set Implementations</h2>
+<p>There are three general-purpose 
+<code>Set</code> implementations  
+<code>HashSet</code>, 
+<code>TreeSet</code>, and 
+<code>LinkedHashSet</code>. Which of these three to use is generally straightforward. <code>HashSet</code> is much faster than <code>TreeSet</code> (constant-time versus log-time for most operations) but offers no ordering guarantees. If you need to use the operations in the <code>SortedSet</code> interface, or if value-ordered iteration is required, use <code>TreeSet</code>; otherwise, use <code>HashSet</code>. It's a fair bet that you'll end up using <code>HashSet</code> most of the time.</p>
+<p><code>LinkedHashSet</code> is in some sense intermediate between <code>HashSet</code> and <code>TreeSet</code>. Implemented as a hash table with a linked list running through it, it provides <em>insertion-ordered</em> iteration (least recently inserted to most recently) and runs nearly as fast as <code>HashSet</code>. The <code>LinkedHashSet</code> implementation spares its clients from the unspecified, generally chaotic ordering provided by <code>HashSet</code> without incurring the increased cost associated with <code>TreeSet</code>.</p>
+<p>One thing worth keeping in mind about <code>HashSet</code> is that iteration is linear in the sum of the number of entries and the number of buckets (the <em>capacity</em>). Thus, choosing an initial capacity that's too high can waste both space and time. On the other hand, choosing an initial capacity that's too low wastes time by copying the data structure each time it's forced to increase its capacity. If you don't specify an initial capacity, the default is 16. In the past, there was some advantage to choosing a prime number as the initial capacity. This is no longer true. Internally, the capacity is always rounded up to a power of two. The initial capacity is specified by using the <code>int</code> constructor. The following line of code allocates a <code>HashSet</code> whose initial capacity is 64.</p>
+<p>WHATSON? defd19d7-0287-4ddf-88f5-e4059e154128</p>
+<pre>
+Set&lt;String&gt; s = new HashSet&lt;String&gt;(64);
+</pre>
+<p>The <code>HashSet</code> class has one other tuning parameter called the <em>load factor</em>. If you care a lot about the space consumption of your <code>HashSet</code>, read the <code>HashSet</code> documentation for more information. Otherwise, just accept the default; it's almost always the right thing to do.</p>
+<p>If you accept the default load factor but want to specify an initial capacity, pick a number that's about twice the size to which you expect the set to grow. If your guess is way off, you may waste a bit of space, time, or both, but it's unlikely to be a big problem.</p>
+<p><code>LinkedHashSet</code> has the same tuning parameters as <code>HashSet</code>, but iteration time is not affected by capacity. <code>TreeSet</code> has no tuning parameters.</p>
+<h2>Special-Purpose Set Implementations</h2>
+<p>There are two special-purpose <code>Set</code> implementations  
+<code>EnumSet</code> and 
+<code>CopyOnWriteArraySet</code>.</p>
+<p><code>EnumSet</code> is a high-performance <code>Set</code> implementation for enum types. All of the members of an enum set must be of the same enum type. Internally, it is represented by a bit-vector, typically a single <code>long</code>. Enum sets support iteration over ranges of enum types. For example, given the enum declaration for the days of the week, you can iterate over the weekdays. The <code>EnumSet</code> class provides a static factory that makes it easy.</p>
+<p>WHATSON? 1d250c51-a34f-4626-9fc6-365dee859e87</p>
+<pre>
+    for (Day d : EnumSet.range(Day.MONDAY, Day.FRIDAY))
+        System.out.println(d);
+</pre>
+<p>Enum sets also provide a rich, typesafe replacement for traditional bit flags.</p>
+<p>WHATSON? d9543060-b289-46be-b8e3-1f37b8da51c8</p>
+<pre>
+    EnumSet.of(Style.BOLD, Style.ITALIC)
+</pre>
+<p><code>CopyOnWriteArraySet</code> is a <code>Set</code> implementation backed up by a copy-on-write array. All mutative operations, such as <code>add</code>, <code>set</code>, and <code>remove</code>, are implemented by making a new copy of the array; no locking is ever required. Even iteration may safely proceed concurrently with element insertion and deletion. Unlike most <code>Set</code> implementations, the <code>add</code>, <code>remove</code>, and <code>contains</code> methods require time proportional to the size of the set. This implementation is <em>only</em> appropriate for sets that are rarely modified but frequently iterated. It is well suited to maintaining event-handler lists that must prevent duplicates.</p>
+</body>
+</html>

@@ -1,0 +1,501 @@
+<h1 id="firstHeading" class="firstHeading" lang="en"><span dir="auto">Chain-of-responsibility pattern</span></h1>
+<p>In <a href="/wiki/Object-oriented_design" title="Object-oriented design">object-oriented design</a>, the <b>chain-of-responsibility pattern</b> is a <a href="/wiki/Design_pattern_(computer_science)" title="Design pattern (computer science)" class="mw-redirect">design pattern</a> consisting of a source of <a href="/wiki/Command_pattern" title="Command pattern">command objects</a> and a series of <b>processing objects</b>.<sup id="cite_ref-1" class="reference"><a href="#cite_note-1"><span>[</span>1<span>]</span></a></sup> Each processing object contains logic that defines the types of command objects that it can handle; the rest are passed to the next processing object in the chain. A mechanism also exists for adding new processing objects to the end of this chain.</p>
+<p>In a variation of the standard chain-of-responsibility model, some handlers may act as <a href="/wiki/Dynamic_dispatch" title="Dynamic dispatch">dispatchers</a>, capable of sending commands out in a variety of directions, forming a <i>tree of responsibility</i>. In some cases, this can occur recursively, with processing objects calling higher-up processing objects with commands that attempt to solve some smaller part of the problem; in this case recursion continues until the command is processed, or the entire tree has been explored. An XML interpreter might work in this manner.</p>
+<p>This pattern promotes the idea of <a href="/wiki/Loose_coupling" title="Loose coupling">loose coupling</a>, which is considered a <a href="/wiki/Best_coding_practices" title="Best coding practices">programming best practice</a>.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Example"><span class="tocnumber">1</span> <span class="toctext">Example</span></a>
+<ul>
+<li class="toclevel-2 tocsection-2"><a href="#Java"><span class="tocnumber">1.1</span> <span class="toctext">Java</span></a></li>
+<li class="toclevel-2 tocsection-3"><a href="#C.23"><span class="tocnumber">1.2</span> <span class="toctext">C#</span></a></li>
+<li class="toclevel-2 tocsection-4"><a href="#Another_Java_example"><span class="tocnumber">1.3</span> <span class="toctext">Another Java example</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-5"><a href="#Implementations"><span class="tocnumber">2</span> <span class="toctext">Implementations</span></a>
+<ul>
+<li class="toclevel-2 tocsection-6"><a href="#Cocoa_and_Cocoa_Touch"><span class="tocnumber">2.1</span> <span class="toctext">Cocoa and Cocoa Touch</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-7"><a href="#See_also"><span class="tocnumber">3</span> <span class="toctext">See also</span></a></li>
+<li class="toclevel-1 tocsection-8"><a href="#References"><span class="tocnumber">4</span> <span class="toctext">References</span></a></li>
+</ul>
+<ul>
+<li class="toclevel-2 tocsection-2"><a href="#Java"><span class="tocnumber">1.1</span> <span class="toctext">Java</span></a></li>
+<li class="toclevel-2 tocsection-3"><a href="#C.23"><span class="tocnumber">1.2</span> <span class="toctext">C#</span></a></li>
+<li class="toclevel-2 tocsection-4"><a href="#Another_Java_example"><span class="tocnumber">1.3</span> <span class="toctext">Another Java example</span></a></li>
+</ul>
+<ul>
+<li class="toclevel-2 tocsection-6"><a href="#Cocoa_and_Cocoa_Touch"><span class="tocnumber">2.1</span> <span class="toctext">Cocoa and Cocoa Touch</span></a></li>
+</ul>
+<p></p>
+<h2><span class="mw-headline" id="Example">Example</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Chain-of-responsibility_pattern&amp;action=edit&amp;section=1" title="Edit section: Example">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>The following code illustrates the pattern with the example of a logging class. Each logging handler acts as the processing object. Each handler decides if any action is to be taken at this log level and then passes the message on to the next logging handler. Note that this example should not be seen as a recommendation on how to write logging classes.</p>
+<p>Also, note that in a 'pure' implementation of the chain-of-responsibility pattern, a processing object may not pass responsibility further down the chain after handling a message. But in this example, a message will be passed down the logger chain whether it is handled or not. Its behavior allows logging to both stdout and to an e-mail address.</p>
+<h3><span class="mw-headline" id="Java">Java</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Chain-of-responsibility_pattern&amp;action=edit&amp;section=2" title="Edit section: Java">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>WHATSON? 56cc88da-45cb-4a06-b429-d02562097ee7</p>
+<pre class="de1">
+<span class="kw1">package</span> <span class="co2">chainofresp</span><span class="sy0">;</span>
+ 
+<span class="kw1">abstract</span> <span class="kw1">class</span> Logger <span class="br0">{</span>
+    <span class="kw1">public</span> <span class="kw1">static</span> <span class="kw4">int</span> ERR <span class="sy0">=</span> <span class="nu0">3</span><span class="sy0">;</span>
+    <span class="kw1">public</span> <span class="kw1">static</span> <span class="kw4">int</span> NOTICE <span class="sy0">=</span> <span class="nu0">5</span><span class="sy0">;</span>
+    <span class="kw1">public</span> <span class="kw1">static</span> <span class="kw4">int</span> DEBUG <span class="sy0">=</span> <span class="nu0">7</span><span class="sy0">;</span>
+    <span class="kw1">protected</span> <span class="kw4">int</span> mask<span class="sy0">;</span>
+ 
+    <span class="co1">// The next element in the chain of responsibility</span>
+    <span class="kw1">protected</span> Logger next<span class="sy0">;</span>
+ 
+    <span class="kw1">public</span> <span class="kw4">void</span> setNext<span class="br0">(</span>Logger log<span class="br0">)</span> <span class="br0">{</span>
+        next <span class="sy0">=</span> log<span class="sy0">;</span>
+    <span class="br0">}</span>
+ 
+    <span class="kw1">public</span> <span class="kw4">void</span> message<span class="br0">(</span><span class="kw3">String</span> msg, <span class="kw4">int</span> priority<span class="br0">)</span> <span class="br0">{</span>
+        <span class="kw1">if</span> <span class="br0">(</span>priority <span class="sy0">&lt;=</span> mask<span class="br0">)</span> <span class="br0">{</span>
+            writeMessage<span class="br0">(</span>msg<span class="br0">)</span><span class="sy0">;</span>
+        <span class="br0">}</span>
+        <span class="kw1">if</span> <span class="br0">(</span>next <span class="sy0">!=</span> <span class="kw2">null</span><span class="br0">)</span> <span class="br0">{</span>
+            next.<span class="me1">message</span><span class="br0">(</span>msg, priority<span class="br0">)</span><span class="sy0">;</span>
+        <span class="br0">}</span>
+    <span class="br0">}</span>
+ 
+    <span class="kw1">abstract</span> <span class="kw1">protected</span> <span class="kw4">void</span> writeMessage<span class="br0">(</span><span class="kw3">String</span> msg<span class="br0">)</span><span class="sy0">;</span>
+<span class="br0">}</span>
+ 
+<span class="kw1">class</span> StdoutLogger <span class="kw1">extends</span> Logger <span class="br0">{</span>
+    <span class="kw1">public</span> StdoutLogger<span class="br0">(</span><span class="kw4">int</span> mask<span class="br0">)</span> <span class="br0">{</span>
+        <span class="kw1">this</span>.<span class="me1">mask</span> <span class="sy0">=</span> mask<span class="sy0">;</span>
+    <span class="br0">}</span>
+ 
+    <span class="kw1">protected</span> <span class="kw4">void</span> writeMessage<span class="br0">(</span><span class="kw3">String</span> msg<span class="br0">)</span> <span class="br0">{</span>
+        <span class="kw3">System</span>.<span class="me1">out</span>.<span class="me1">println</span><span class="br0">(</span><span class="st0">"Writing to stdout: "</span> <span class="sy0">+</span> msg<span class="br0">)</span><span class="sy0">;</span>
+    <span class="br0">}</span>
+<span class="br0">}</span>
+ 
+<span class="kw1">class</span> EmailLogger <span class="kw1">extends</span> Logger <span class="br0">{</span>
+    <span class="kw1">public</span> EmailLogger<span class="br0">(</span><span class="kw4">int</span> mask<span class="br0">)</span> <span class="br0">{</span>
+        <span class="kw1">this</span>.<span class="me1">mask</span> <span class="sy0">=</span> mask<span class="sy0">;</span>
+    <span class="br0">}</span>
+ 
+    <span class="kw1">protected</span> <span class="kw4">void</span> writeMessage<span class="br0">(</span><span class="kw3">String</span> msg<span class="br0">)</span> <span class="br0">{</span>
+        <span class="kw3">System</span>.<span class="me1">out</span>.<span class="me1">println</span><span class="br0">(</span><span class="st0">"Sending via e-mail: "</span> <span class="sy0">+</span> msg<span class="br0">)</span><span class="sy0">;</span>
+    <span class="br0">}</span>
+<span class="br0">}</span>
+ 
+<span class="kw1">class</span> StderrLogger <span class="kw1">extends</span> Logger <span class="br0">{</span>
+    <span class="kw1">public</span> StderrLogger<span class="br0">(</span><span class="kw4">int</span> mask<span class="br0">)</span> <span class="br0">{</span>
+        <span class="kw1">this</span>.<span class="me1">mask</span> <span class="sy0">=</span> mask<span class="sy0">;</span>
+    <span class="br0">}</span>
+ 
+    <span class="kw1">protected</span> <span class="kw4">void</span> writeMessage<span class="br0">(</span><span class="kw3">String</span> msg<span class="br0">)</span> <span class="br0">{</span>
+        <span class="kw3">System</span>.<span class="me1">err</span>.<span class="me1">println</span><span class="br0">(</span><span class="st0">"Sending to stderr: "</span> <span class="sy0">+</span> msg<span class="br0">)</span><span class="sy0">;</span>
+    <span class="br0">}</span>
+<span class="br0">}</span>
+ 
+<span class="kw1">public</span> <span class="kw1">class</span> ChainOfResponsibilityExample <span class="br0">{</span>
+ 
+    <span class="kw1">private</span> <span class="kw1">static</span> Logger createChain<span class="br0">(</span><span class="br0">)</span> <span class="br0">{</span>
+        <span class="co1">// Build the chain of responsibility</span>
+ 
+        Logger logger <span class="sy0">=</span> <span class="kw1">new</span> StdoutLogger<span class="br0">(</span>Logger.<span class="me1">DEBUG</span><span class="br0">)</span><span class="sy0">;</span>
+ 
+        Logger logger1 <span class="sy0">=</span> <span class="kw1">new</span> EmailLogger<span class="br0">(</span>Logger.<span class="me1">NOTICE</span><span class="br0">)</span><span class="sy0">;</span>
+        logger.<span class="me1">setNext</span><span class="br0">(</span>logger1<span class="br0">)</span><span class="sy0">;</span>
+ 
+        Logger logger2 <span class="sy0">=</span> <span class="kw1">new</span> StderrLogger<span class="br0">(</span>Logger.<span class="me1">ERR</span><span class="br0">)</span><span class="sy0">;</span>
+        logger1.<span class="me1">setNext</span><span class="br0">(</span>logger2<span class="br0">)</span><span class="sy0">;</span>
+ 
+        <span class="kw1">return</span> logger<span class="sy0">;</span>
+    <span class="br0">}</span>
+ 
+    <span class="kw1">public</span> <span class="kw1">static</span> <span class="kw4">void</span> main<span class="br0">(</span><span class="kw3">String</span><span class="br0">[</span><span class="br0">]</span> args<span class="br0">)</span> <span class="br0">{</span>
+        Logger chain <span class="sy0">=</span> createChain<span class="br0">(</span><span class="br0">)</span><span class="sy0">;</span>
+ 
+        <span class="co1">// Handled by StdoutLogger (level = 7)</span>
+        chain.<span class="me1">message</span><span class="br0">(</span><span class="st0">"Entering function y."</span>, Logger.<span class="me1">DEBUG</span><span class="br0">)</span><span class="sy0">;</span>
+ 
+        <span class="co1">// Handled by StdoutLogger and EmailLogger (level = 5)</span>
+        chain.<span class="me1">message</span><span class="br0">(</span><span class="st0">"Step1 completed."</span>, Logger.<span class="me1">NOTICE</span><span class="br0">)</span><span class="sy0">;</span>
+ 
+        <span class="co1">// Handled by all three loggers (level = 3)</span>
+        chain.<span class="me1">message</span><span class="br0">(</span><span class="st0">"An error has occurred."</span>, Logger.<span class="me1">ERR</span><span class="br0">)</span><span class="sy0">;</span>
+    <span class="br0">}</span>
+<span class="br0">}</span>
+<span class="coMULTI">/*
+The output is:
+   Writing to stdout:   Entering function y.
+   Writing to stdout:   Step1 completed.
+   Sending via e-mail:  Step1 completed.
+   Writing to stdout:   An error has occurred.
+   Sending via e-mail:  An error has occurred.
+   Sending to stderr:   An error has occurred.
+*/</span>
+</pre>
+<h3><span class="mw-headline" id="C.23">C#</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Chain-of-responsibility_pattern&amp;action=edit&amp;section=3" title="Edit section: C#">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>WHATSON? 88fcce20-a500-4ec2-b890-60c12c345eb4</p>
+<pre class="de1">
+<span class="co1">//IVSR: ChainOfResponsibility example</span>
+<span class="kw1">namespace</span> IVSR<span class="sy0">.</span><span class="me1">DesignPatterns</span><span class="sy0">.</span><span class="me1">ChainOfResponsibility</span>
+<span class="br0">{</span>
+    <span class="br0">[</span>Flags<span class="br0">]</span>
+    <span class="kw1">public</span> <span class="kw4">enum</span> LogLevel
+    <span class="br0">{</span>
+        None <span class="sy0">=</span> <span class="nu0">0</span>,                 <span class="co1">//        0</span>
+        Info <span class="sy0">=</span> <span class="nu0">1</span>,                 <span class="co1">//        1</span>
+        Debug <span class="sy0">=</span> <span class="nu0">2</span>,                <span class="co1">//       10</span>
+        Warning <span class="sy0">=</span> <span class="nu0">4</span>,              <span class="co1">//      100</span>
+        Error <span class="sy0">=</span> <span class="nu0">8</span>,                <span class="co1">//     1000</span>
+        FunctionalMessage <span class="sy0">=</span> <span class="nu0">16</span>,   <span class="co1">//    10000</span>
+        FunctionalError <span class="sy0">=</span> <span class="nu0">32</span>,     <span class="co1">//   100000</span>
+        All <span class="sy0">=</span> <span class="nu0">63</span>                  <span class="co1">//   111111</span>
+    <span class="br0">}</span>
+ 
+    <span class="co1">/// &lt;summary&gt;</span>
+    <span class="co1">/// Abstract Handler in chain of responsibility pattern.</span>
+    <span class="co1">/// &lt;/summary&gt;</span>
+    <span class="kw1">public</span> <span class="kw1">abstract</span> <span class="kw4">class</span> Logger
+    <span class="br0">{</span>
+        <span class="kw1">protected</span> LogLevel logMask<span class="sy0">;</span>
+ 
+        <span class="co1">// The next Handler in the chain</span>
+        <span class="kw1">protected</span> Logger next<span class="sy0">;</span>
+ 
+        <span class="kw1">public</span> Logger<span class="br0">(</span>LogLevel mask<span class="br0">)</span>
+        <span class="br0">{</span>
+            <span class="kw1">this</span><span class="sy0">.</span><span class="me1">logMask</span> <span class="sy0">=</span> mask<span class="sy0">;</span>
+        <span class="br0">}</span>
+ 
+        <span class="co1">/// &lt;summary&gt;</span>
+        <span class="co1">/// Sets the Next logger to make a list/chain of Handlers.</span>
+        <span class="co1">/// &lt;/summary&gt;</span>
+        <span class="kw1">public</span> Logger SetNext<span class="br0">(</span>Logger nextlogger<span class="br0">)</span>
+        <span class="br0">{</span>
+            next <span class="sy0">=</span> nextlogger<span class="sy0">;</span>
+            <span class="kw1">return</span> nextlogger<span class="sy0">;</span>
+        <span class="br0">}</span>
+ 
+        <span class="kw1">public</span> <span class="kw4">void</span> Message<span class="br0">(</span><span class="kw4">string</span> msg, LogLevel severity<span class="br0">)</span>
+        <span class="br0">{</span>
+            <span class="kw1">if</span> <span class="br0">(</span><span class="br0">(</span>severity <span class="sy0">&amp;</span> logMask<span class="br0">)</span> <span class="sy0">!=</span> <span class="nu0">0</span><span class="br0">)</span> <span class="co1">//True only if all logMask bits are set in severity</span>
+            <span class="br0">{</span>
+                WriteMessage<span class="br0">(</span>msg<span class="br0">)</span><span class="sy0">;</span>
+            <span class="br0">}</span>
+            <span class="kw1">if</span> <span class="br0">(</span>next <span class="sy0">!=</span> <span class="kw1">null</span><span class="br0">)</span> 
+            <span class="br0">{</span>
+                next<span class="sy0">.</span><span class="me1">Message</span><span class="br0">(</span>msg, severity<span class="br0">)</span><span class="sy0">;</span> 
+            <span class="br0">}</span>
+        <span class="br0">}</span>
+ 
+        <span class="kw1">abstract</span> <span class="kw1">protected</span> <span class="kw4">void</span> WriteMessage<span class="br0">(</span><span class="kw4">string</span> msg<span class="br0">)</span><span class="sy0">;</span>
+    <span class="br0">}</span>
+ 
+    <span class="kw1">public</span> <span class="kw4">class</span> ConsoleLogger <span class="sy0">:</span> Logger
+    <span class="br0">{</span>
+        <span class="kw1">public</span> ConsoleLogger<span class="br0">(</span>LogLevel mask<span class="br0">)</span>
+            <span class="sy0">:</span> <span class="kw1">base</span><span class="br0">(</span>mask<span class="br0">)</span>
+        <span class="br0">{</span> <span class="br0">}</span>
+ 
+        <span class="kw1">protected</span> <span class="kw1">override</span> <span class="kw4">void</span> WriteMessage<span class="br0">(</span><span class="kw4">string</span> msg<span class="br0">)</span>
+        <span class="br0">{</span>
+            Console<span class="sy0">.</span><span class="me1">WriteLine</span><span class="br0">(</span><span class="st0">"Writing to console: "</span> <span class="sy0">+</span> msg<span class="br0">)</span><span class="sy0">;</span>
+        <span class="br0">}</span>
+    <span class="br0">}</span>
+ 
+    <span class="kw1">public</span> <span class="kw4">class</span> EmailLogger <span class="sy0">:</span> Logger
+    <span class="br0">{</span>
+        <span class="kw1">public</span> EmailLogger<span class="br0">(</span>LogLevel mask<span class="br0">)</span>
+            <span class="sy0">:</span> <span class="kw1">base</span><span class="br0">(</span>mask<span class="br0">)</span>
+        <span class="br0">{</span> <span class="br0">}</span>
+ 
+        <span class="kw1">protected</span> <span class="kw1">override</span> <span class="kw4">void</span> WriteMessage<span class="br0">(</span><span class="kw4">string</span> msg<span class="br0">)</span>
+        <span class="br0">{</span>
+            <span class="co1">// Placeholder for mail send logic, usually the email configurations are saved in config file.</span>
+            Console<span class="sy0">.</span><span class="me1">WriteLine</span><span class="br0">(</span><span class="st0">"Sending via email: "</span> <span class="sy0">+</span> msg<span class="br0">)</span><span class="sy0">;</span>
+        <span class="br0">}</span>
+    <span class="br0">}</span>
+ 
+    <span class="kw4">class</span> FileLogger <span class="sy0">:</span> Logger
+    <span class="br0">{</span>
+        <span class="kw1">public</span> FileLogger<span class="br0">(</span>LogLevel mask<span class="br0">)</span>
+            <span class="sy0">:</span> <span class="kw1">base</span><span class="br0">(</span>mask<span class="br0">)</span>
+        <span class="br0">{</span> <span class="br0">}</span>
+ 
+        <span class="kw1">protected</span> <span class="kw1">override</span> <span class="kw4">void</span> WriteMessage<span class="br0">(</span><span class="kw4">string</span> msg<span class="br0">)</span>
+        <span class="br0">{</span>
+            <span class="co1">// Placeholder for File writing logic</span>
+            Console<span class="sy0">.</span><span class="me1">WriteLine</span><span class="br0">(</span><span class="st0">"Writing to Log File: "</span> <span class="sy0">+</span> msg<span class="br0">)</span><span class="sy0">;</span>
+        <span class="br0">}</span>
+    <span class="br0">}</span>
+ 
+    <span class="kw1">public</span> <span class="kw4">class</span> Program
+    <span class="br0">{</span>
+        <span class="kw1">public</span> <span class="kw1">static</span> <span class="kw4">void</span> Main<span class="br0">(</span><span class="kw4">string</span><span class="br0">[</span><span class="br0">]</span> args<span class="br0">)</span>
+        <span class="br0">{</span>
+            <span class="co1">// Build the chain of responsibility</span>
+            Logger logger, logger1, logger2<span class="sy0">;</span>
+            logger <span class="sy0">=</span> <span class="kw3">new</span> ConsoleLogger<span class="br0">(</span>LogLevel<span class="sy0">.</span><span class="me1">All</span><span class="br0">)</span><span class="sy0">;</span>
+            logger1 <span class="sy0">=</span> logger<span class="sy0">.</span><span class="me1">SetNext</span><span class="br0">(</span><span class="kw3">new</span> EmailLogger<span class="br0">(</span>LogLevel<span class="sy0">.</span><span class="me1">FunctionalMessage</span> <span class="sy0">|</span> LogLevel<span class="sy0">.</span><span class="me1">FunctionalError</span><span class="br0">)</span><span class="br0">)</span><span class="sy0">;</span>
+            logger2 <span class="sy0">=</span> logger1<span class="sy0">.</span><span class="me1">SetNext</span><span class="br0">(</span><span class="kw3">new</span> FileLogger<span class="br0">(</span>LogLevel<span class="sy0">.</span><span class="me1">Warning</span> <span class="sy0">|</span> LogLevel<span class="sy0">.</span><span class="me1">Error</span><span class="br0">)</span><span class="br0">)</span><span class="sy0">;</span>
+ 
+            <span class="co1">// Handled by ConsoleLogger since the console has a loglevel of all</span>
+            logger<span class="sy0">.</span><span class="me1">Message</span><span class="br0">(</span><span class="st0">"Entering function ProcessOrder()."</span>, LogLevel<span class="sy0">.</span><span class="me1">Debug</span><span class="br0">)</span><span class="sy0">;</span>
+            logger<span class="sy0">.</span><span class="me1">Message</span><span class="br0">(</span><span class="st0">"Order record retrieved."</span>, LogLevel<span class="sy0">.</span><span class="me1">Info</span><span class="br0">)</span><span class="sy0">;</span>
+ 
+            <span class="co1">// Handled by ConsoleLogger and FileLogger since filelogger implements Warning &amp; Error</span>
+            logger<span class="sy0">.</span><span class="me1">Message</span><span class="br0">(</span><span class="st0">"Customer Address details missing in Branch DataBase."</span>, LogLevel<span class="sy0">.</span><span class="me1">Warning</span><span class="br0">)</span><span class="sy0">;</span>
+            logger<span class="sy0">.</span><span class="me1">Message</span><span class="br0">(</span><span class="st0">"Customer Address details missing in Organization DataBase."</span>, LogLevel<span class="sy0">.</span><span class="me1">Error</span><span class="br0">)</span><span class="sy0">;</span>
+ 
+            <span class="co1">// Handled by ConsoleLogger and EmailLogger as it implements functional error</span>
+            logger<span class="sy0">.</span><span class="me1">Message</span><span class="br0">(</span><span class="st0">"Unable to Process Order ORD1 Dated D1 For Customer C1."</span>, LogLevel<span class="sy0">.</span><span class="me1">FunctionalError</span><span class="br0">)</span><span class="sy0">;</span>
+ 
+            <span class="co1">// Handled by ConsoleLogger and EmailLogger</span>
+            logger<span class="sy0">.</span><span class="me1">Message</span><span class="br0">(</span><span class="st0">"Order Dispatched."</span>, LogLevel<span class="sy0">.</span><span class="me1">FunctionalMessage</span><span class="br0">)</span><span class="sy0">;</span>
+        <span class="br0">}</span>
+    <span class="br0">}</span>
+<span class="br0">}</span>
+ 
+<span class="coMULTI">/* Output
+Writing to console: Entering function ProcessOrder().
+Writing to console: Order record retrieved.
+Writing to console: Customer Address details missing in Branch DataBase.
+Writing to Log File: Customer Address details missing in Branch DataBase.
+Writing to console: Customer Address details missing in Organization DataBase.
+Writing to Log File: Customer Address details missing in Organization DataBase.
+Writing to console: Unable to Process Order ORD1 Dated D1 For Customer C1.
+Sending via email: Unable to Process Order ORD1 Dated D1 For Customer C1.
+Writing to console: Order Dispatched.
+Sending via email: Order Dispatched.
+*/</span>
+</pre>
+<h3><span class="mw-headline" id="Another_Java_example">Another Java example</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Chain-of-responsibility_pattern&amp;action=edit&amp;section=4" title="Edit section: Another Java example">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Below is another example of this pattern in Java. In this example we have different roles, each having a fixed purchasing limit and a successor. Every time a user in a role receives a purchase request that exceeds his or her limit, the request is passed to his or her successor.</p>
+<p>The PurchasePower abstract class with the abstract method processRequest.</p>
+<p>WHATSON? 5cd1aea7-3baa-49ea-8b8e-91073c6082a0</p>
+<pre class="de1">
+<span class="kw1">abstract</span> <span class="kw1">class</span> PurchasePower <span class="br0">{</span>
+    <span class="kw1">protected</span> <span class="kw1">static</span> <span class="kw1">final</span> <span class="kw4">double</span> BASE <span class="sy0">=</span> <span class="nu0">500</span><span class="sy0">;</span>
+    <span class="kw1">protected</span> PurchasePower successor<span class="sy0">;</span>
+ 
+    <span class="kw1">public</span> <span class="kw4">void</span> setSuccessor<span class="br0">(</span>PurchasePower successor<span class="br0">)</span> <span class="br0">{</span>
+        <span class="kw1">this</span>.<span class="me1">successor</span> <span class="sy0">=</span> successor<span class="sy0">;</span>
+    <span class="br0">}</span>
+ 
+    <span class="kw1">abstract</span> <span class="kw1">public</span> <span class="kw4">void</span> processRequest<span class="br0">(</span>PurchaseRequest request<span class="br0">)</span><span class="sy0">;</span>
+<span class="br0">}</span>
+</pre>
+<p>Four implementations of the abstract class above: Manager, Director, Vice President, President</p>
+<p>WHATSON? a4fc1bd1-2818-42d8-a699-7a8791b7b5ef</p>
+<pre class="de1">
+<span class="kw1">class</span> ManagerPPower <span class="kw1">extends</span> PurchasePower <span class="br0">{</span>
+    <span class="kw1">private</span> <span class="kw1">final</span> <span class="kw4">double</span> ALLOWABLE <span class="sy0">=</span> <span class="nu0">10</span> <span class="sy0">*</span> BASE<span class="sy0">;</span>
+ 
+    <span class="kw1">public</span> <span class="kw4">void</span> processRequest<span class="br0">(</span>PurchaseRequest request<span class="br0">)</span> <span class="br0">{</span>
+        <span class="kw1">if</span> <span class="br0">(</span>request.<span class="me1">getAmount</span><span class="br0">(</span><span class="br0">)</span> <span class="sy0">&lt;</span> ALLOWABLE<span class="br0">)</span> <span class="br0">{</span>
+            <span class="kw3">System</span>.<span class="me1">out</span>.<span class="me1">println</span><span class="br0">(</span><span class="st0">"Manager will approve $"</span> <span class="sy0">+</span> request.<span class="me1">getAmount</span><span class="br0">(</span><span class="br0">)</span><span class="br0">)</span><span class="sy0">;</span>
+        <span class="br0">}</span> <span class="kw1">else</span> <span class="kw1">if</span> <span class="br0">(</span>successor <span class="sy0">!=</span> <span class="kw2">null</span><span class="br0">)</span> <span class="br0">{</span>
+            successor.<span class="me1">processRequest</span><span class="br0">(</span>request<span class="br0">)</span><span class="sy0">;</span>
+        <span class="br0">}</span>
+    <span class="br0">}</span>
+<span class="br0">}</span>
+ 
+<span class="kw1">class</span> DirectorPPower <span class="kw1">extends</span> PurchasePower <span class="br0">{</span>
+    <span class="kw1">private</span> <span class="kw1">final</span> <span class="kw4">double</span> ALLOWABLE <span class="sy0">=</span> <span class="nu0">20</span> <span class="sy0">*</span> BASE<span class="sy0">;</span>
+ 
+    <span class="kw1">public</span> <span class="kw4">void</span> processRequest<span class="br0">(</span>PurchaseRequest request<span class="br0">)</span> <span class="br0">{</span>
+        <span class="kw1">if</span> <span class="br0">(</span>request.<span class="me1">getAmount</span><span class="br0">(</span><span class="br0">)</span> <span class="sy0">&lt;</span> ALLOWABLE<span class="br0">)</span> <span class="br0">{</span>
+            <span class="kw3">System</span>.<span class="me1">out</span>.<span class="me1">println</span><span class="br0">(</span><span class="st0">"Director will approve $"</span> <span class="sy0">+</span> request.<span class="me1">getAmount</span><span class="br0">(</span><span class="br0">)</span><span class="br0">)</span><span class="sy0">;</span>
+        <span class="br0">}</span> <span class="kw1">else</span> <span class="kw1">if</span> <span class="br0">(</span>successor <span class="sy0">!=</span> <span class="kw2">null</span><span class="br0">)</span> <span class="br0">{</span>
+            successor.<span class="me1">processRequest</span><span class="br0">(</span>request<span class="br0">)</span><span class="sy0">;</span>
+        <span class="br0">}</span>
+    <span class="br0">}</span>
+<span class="br0">}</span>
+ 
+<span class="kw1">class</span> VicePresidentPPower <span class="kw1">extends</span> PurchasePower <span class="br0">{</span>
+    <span class="kw1">private</span> <span class="kw1">final</span> <span class="kw4">double</span> ALLOWABLE <span class="sy0">=</span> <span class="nu0">40</span> <span class="sy0">*</span> BASE<span class="sy0">;</span>
+ 
+    <span class="kw1">public</span> <span class="kw4">void</span> processRequest<span class="br0">(</span>PurchaseRequest request<span class="br0">)</span> <span class="br0">{</span>
+        <span class="kw1">if</span> <span class="br0">(</span>request.<span class="me1">getAmount</span><span class="br0">(</span><span class="br0">)</span> <span class="sy0">&lt;</span> ALLOWABLE<span class="br0">)</span> <span class="br0">{</span>
+            <span class="kw3">System</span>.<span class="me1">out</span>.<span class="me1">println</span><span class="br0">(</span><span class="st0">"Vice President will approve $"</span> <span class="sy0">+</span> request.<span class="me1">getAmount</span><span class="br0">(</span><span class="br0">)</span><span class="br0">)</span><span class="sy0">;</span>
+        <span class="br0">}</span> <span class="kw1">else</span> <span class="kw1">if</span> <span class="br0">(</span>successor <span class="sy0">!=</span> <span class="kw2">null</span><span class="br0">)</span> <span class="br0">{</span>
+            successor.<span class="me1">processRequest</span><span class="br0">(</span>request<span class="br0">)</span><span class="sy0">;</span>
+        <span class="br0">}</span>
+    <span class="br0">}</span>
+<span class="br0">}</span>
+ 
+<span class="kw1">class</span> PresidentPPower <span class="kw1">extends</span> PurchasePower <span class="br0">{</span>
+    <span class="kw1">private</span> <span class="kw1">final</span> <span class="kw4">double</span> ALLOWABLE <span class="sy0">=</span> <span class="nu0">60</span> <span class="sy0">*</span> BASE<span class="sy0">;</span>
+ 
+    <span class="kw1">public</span> <span class="kw4">void</span> processRequest<span class="br0">(</span>PurchaseRequest request<span class="br0">)</span> <span class="br0">{</span>
+        <span class="kw1">if</span> <span class="br0">(</span>request.<span class="me1">getAmount</span><span class="br0">(</span><span class="br0">)</span> <span class="sy0">&lt;</span> ALLOWABLE<span class="br0">)</span> <span class="br0">{</span>
+            <span class="kw3">System</span>.<span class="me1">out</span>.<span class="me1">println</span><span class="br0">(</span><span class="st0">"President will approve $"</span> <span class="sy0">+</span> request.<span class="me1">getAmount</span><span class="br0">(</span><span class="br0">)</span><span class="br0">)</span><span class="sy0">;</span>
+        <span class="br0">}</span> <span class="kw1">else</span> <span class="br0">{</span>
+            <span class="kw3">System</span>.<span class="me1">out</span>.<span class="me1">println</span><span class="br0">(</span> <span class="st0">"Your request for $"</span> <span class="sy0">+</span> request.<span class="me1">getAmount</span><span class="br0">(</span><span class="br0">)</span> <span class="sy0">+</span> <span class="st0">" needs a board meeting!"</span><span class="br0">)</span><span class="sy0">;</span>
+        <span class="br0">}</span>
+    <span class="br0">}</span>
+<span class="br0">}</span>
+</pre>
+<p>The following code defines the PurchaseRequest class that keeps the request data in this example.</p>
+<p>WHATSON? 749889f4-fbb4-471c-9b29-552492120f9f</p>
+<pre class="de1">
+<span class="kw1">class</span> PurchaseRequest <span class="br0">{</span>
+    <span class="kw1">private</span> <span class="kw4">double</span> amount<span class="sy0">;</span>
+    <span class="kw1">private</span> <span class="kw3">String</span> purpose<span class="sy0">;</span>
+ 
+    <span class="kw1">public</span> PurchaseRequest<span class="br0">(</span><span class="kw4">double</span> amount, <span class="kw3">String</span> purpose<span class="br0">)</span> <span class="br0">{</span>
+        <span class="kw1">this</span>.<span class="me1">amount</span> <span class="sy0">=</span> amount<span class="sy0">;</span>
+        <span class="kw1">this</span>.<span class="me1">purpose</span> <span class="sy0">=</span> purpose<span class="sy0">;</span>
+    <span class="br0">}</span>
+ 
+    <span class="kw1">public</span> <span class="kw4">double</span> getAmount<span class="br0">(</span><span class="br0">)</span> <span class="br0">{</span>
+        <span class="kw1">return</span> amount<span class="sy0">;</span>
+    <span class="br0">}</span>
+    <span class="kw1">public</span> <span class="kw4">void</span> setAmount<span class="br0">(</span><span class="kw4">double</span> amt<span class="br0">)</span>  <span class="br0">{</span>
+        amount <span class="sy0">=</span> amt<span class="sy0">;</span>
+    <span class="br0">}</span>
+ 
+    <span class="kw1">public</span> <span class="kw3">String</span> getPurpose<span class="br0">(</span><span class="br0">)</span> <span class="br0">{</span>
+        <span class="kw1">return</span> purpose<span class="sy0">;</span>
+    <span class="br0">}</span>
+    <span class="kw1">public</span> <span class="kw4">void</span> setPurpose<span class="br0">(</span><span class="kw3">String</span> reason<span class="br0">)</span> <span class="br0">{</span>
+        purpose <span class="sy0">=</span> reason<span class="sy0">;</span>
+    <span class="br0">}</span>
+<span class="br0">}</span>
+</pre>
+<p>In the following usage example, the successors are set as follows: Manager -&gt; Director -&gt; Vice President -&gt; President</p>
+<p>WHATSON? e00da18d-9552-4ba0-8969-1a9bbe0e8e5e</p>
+<pre class="de1">
+<span class="kw1">class</span> CheckAuthority <span class="br0">{</span>
+    <span class="kw1">public</span> <span class="kw1">static</span> <span class="kw4">void</span> main<span class="br0">(</span><span class="kw3">String</span><span class="br0">[</span><span class="br0">]</span> args<span class="br0">)</span> <span class="br0">{</span>
+        ManagerPPower manager <span class="sy0">=</span> <span class="kw1">new</span> ManagerPPower<span class="br0">(</span><span class="br0">)</span><span class="sy0">;</span>
+        DirectorPPower director <span class="sy0">=</span> <span class="kw1">new</span> DirectorPPower<span class="br0">(</span><span class="br0">)</span><span class="sy0">;</span>
+        VicePresidentPPower vp <span class="sy0">=</span> <span class="kw1">new</span> VicePresidentPPower<span class="br0">(</span><span class="br0">)</span><span class="sy0">;</span>
+        PresidentPPower president <span class="sy0">=</span> <span class="kw1">new</span> PresidentPPower<span class="br0">(</span><span class="br0">)</span><span class="sy0">;</span>
+        manager.<span class="me1">setSuccessor</span><span class="br0">(</span>director<span class="br0">)</span><span class="sy0">;</span>
+        director.<span class="me1">setSuccessor</span><span class="br0">(</span>vp<span class="br0">)</span><span class="sy0">;</span>
+        vp.<span class="me1">setSuccessor</span><span class="br0">(</span>president<span class="br0">)</span><span class="sy0">;</span>
+ 
+        <span class="co1">// Press Ctrl+C to end.</span>
+        <span class="kw1">try</span> <span class="br0">{</span>
+            <span class="kw1">while</span> <span class="br0">(</span><span class="kw2">true</span><span class="br0">)</span> <span class="br0">{</span>
+                <span class="kw3">System</span>.<span class="me1">out</span>.<span class="me1">println</span><span class="br0">(</span><span class="st0">"Enter the amount to check who should approve your expenditure."</span><span class="br0">)</span><span class="sy0">;</span>
+                <span class="kw3">System</span>.<span class="me1">out</span>.<span class="me1">print</span><span class="br0">(</span><span class="st0">"&gt;"</span><span class="br0">)</span><span class="sy0">;</span>
+                <span class="kw4">double</span> d <span class="sy0">=</span> <span class="kw3">Double</span>.<span class="me1">parseDouble</span><span class="br0">(</span><span class="kw1">new</span> <span class="kw3">BufferedReader</span><span class="br0">(</span><span class="kw1">new</span> <span class="kw3">InputStreamReader</span><span class="br0">(</span><span class="kw3">System</span>.<span class="me1">in</span><span class="br0">)</span><span class="br0">)</span>.<span class="me1">readLine</span><span class="br0">(</span><span class="br0">)</span><span class="br0">)</span><span class="sy0">;</span>
+                manager.<span class="me1">processRequest</span><span class="br0">(</span><span class="kw1">new</span> PurchaseRequest<span class="br0">(</span>d, <span class="st0">"General"</span><span class="br0">)</span><span class="br0">)</span><span class="sy0">;</span>
+           <span class="br0">}</span>
+        <span class="br0">}</span> <span class="kw1">catch</span><span class="br0">(</span><span class="kw3">Exception</span> e<span class="br0">)</span> <span class="br0">{</span>
+            <span class="kw3">System</span>.<span class="me1">exit</span><span class="br0">(</span><span class="nu0">1</span><span class="br0">)</span><span class="sy0">;</span>
+        <span class="br0">}</span>
+    <span class="br0">}</span>
+<span class="br0">}</span>
+</pre>
+<h2><span class="mw-headline" id="Implementations">Implementations</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Chain-of-responsibility_pattern&amp;action=edit&amp;section=5" title="Edit section: Implementations">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<h3><span class="mw-headline" id="Cocoa_and_Cocoa_Touch">Cocoa and Cocoa Touch</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Chain-of-responsibility_pattern&amp;action=edit&amp;section=6" title="Edit section: Cocoa and Cocoa Touch">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>The <a href="/wiki/Cocoa_(API)" title="Cocoa (API)">Cocoa</a> and <a href="/wiki/Cocoa_Touch" title="Cocoa Touch">Cocoa Touch</a> frameworks, used for <a href="/wiki/OS_X" title="OS X">OS X</a> and <a href="/wiki/IOS" title="IOS">iOS</a> applications respectively, actively use the chain-of-responsibility pattern for handling events. Objects that participate in the chain are called <i>responder</i> objects, inheriting from the <code>NSResponder</code> (OS X)/<code>UIResponder</code> (iOS) class. All view objects (<code>NSView</code>/<code>UIView</code>), view controller objects (<code>NSViewController</code>/<code>UIViewController</code>), window objects (<code>NSWindow</code>/<code>UIWindow</code>), and the application object (<code>NSApplication</code>/<code>UIApplication</code>) are responder objects.</p>
+<p>Typically, when a view receives an event which it can't handle, it dispatches it to its superview until it reaches the view controller or window object. If the window can't handle the event, the event is dispatched to the application object, which is the last object in the chain. For example:</p>
+<ul>
+<li>On OS X, moving a textured window with the mouse can be done from any location (not just the title bar), unless on that location there's a view which handles dragging events, like slider controls. If no such view (or superview) is there, dragging events are sent up the chain to the window which does handle the dragging event.</li>
+<li>On iOS, it's typical to handle view events in the view controller which manages the view hierarchy, instead of subclassing the view itself. Since a view controller lies in the responder chain after all of its managed subviews, it can intercept any view events and handle them.</li>
+</ul>
+<h2><span class="mw-headline" id="See_also">See also</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Chain-of-responsibility_pattern&amp;action=edit&amp;section=7" title="Edit section: See also">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul>
+<li><a href="/wiki/Single_responsibility_principle" title="Single responsibility principle">Single responsibility principle</a></li>
+</ul>
+<h2><span class="mw-headline" id="References">References</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Chain-of-responsibility_pattern&amp;action=edit&amp;section=8" title="Edit section: References">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ol class="references">
+<li id="cite_note-1"><span class="mw-cite-backlink"><b><a href="#cite_ref-1">^</a></b></span> <span class="reference-text"><a rel="nofollow" class="external free" href="http://www.blackwasp.co.uk/ChainOfResponsibility.aspx">http://www.blackwasp.co.uk/ChainOfResponsibility.aspx</a></span></li>
+</ol>
+<ul>
+<li class="nv-view"><a href="/wiki/Template:Design_Patterns_patterns" title="Template:Design Patterns patterns"><span title="View this template" style=";;background:none transparent;border:none;;">v</span></a></li>
+<li class="nv-talk"><a href="/w/index.php?title=Template_talk:Design_Patterns_patterns&amp;action=edit&amp;redlink=1" class="new" title="Template talk:Design Patterns patterns (page does not exist)"><span title="Discuss this template" style=";;background:none transparent;border:none;;">t</span></a></li>
+<li class="nv-edit"><a class="external text" href="//en.wikipedia.org/w/index.php?title=Template:Design_Patterns_patterns&amp;action=edit"><span title="Edit this template" style=";;background:none transparent;border:none;;">e</span></a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Abstract_factory_pattern" title="Abstract factory pattern">Abstract factory</a></li>
+<li><a href="/wiki/Builder_pattern" title="Builder pattern">Builder</a></li>
+<li><a href="/wiki/Factory_method_pattern" title="Factory method pattern">Factory method</a></li>
+<li><a href="/wiki/Prototype_pattern" title="Prototype pattern">Prototype</a></li>
+<li><a href="/wiki/Singleton_pattern" title="Singleton pattern">Singleton</a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Adapter_pattern" title="Adapter pattern">Adapter</a></li>
+<li><a href="/wiki/Bridge_pattern" title="Bridge pattern">Bridge</a></li>
+<li><a href="/wiki/Composite_pattern" title="Composite pattern">Composite</a></li>
+<li><a href="/wiki/Decorator_pattern" title="Decorator pattern">Decorator</a></li>
+<li><a href="/wiki/Facade_pattern" title="Facade pattern">Facade</a></li>
+<li><a href="/wiki/Flyweight_pattern" title="Flyweight pattern">Flyweight</a></li>
+<li><a href="/wiki/Proxy_pattern" title="Proxy pattern">Proxy</a></li>
+</ul>
+<ul>
+<li><strong class="selflink">Chain of responsibility</strong></li>
+<li><a href="/wiki/Command_pattern" title="Command pattern">Command</a></li>
+<li><a href="/wiki/Interpreter_pattern" title="Interpreter pattern">Interpreter</a></li>
+<li><a href="/wiki/Iterator_pattern" title="Iterator pattern">Iterator</a></li>
+<li><a href="/wiki/Mediator_pattern" title="Mediator pattern">Mediator</a></li>
+<li><a href="/wiki/Memento_pattern" title="Memento pattern">Memento</a></li>
+<li><a href="/wiki/Observer_pattern" title="Observer pattern">Observer</a></li>
+<li><a href="/wiki/State_pattern" title="State pattern">State</a></li>
+<li><a href="/wiki/Strategy_pattern" title="Strategy pattern">Strategy</a></li>
+<li><a href="/wiki/Template_method_pattern" title="Template method pattern">Template method</a></li>
+<li><a href="/wiki/Visitor_pattern" title="Visitor pattern">Visitor</a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Active_object" title="Active object">Active object</a></li>
+<li><a href="/wiki/Balking_pattern" title="Balking pattern">Balking</a></li>
+<li><a href="/wiki/Double-checked_locking" title="Double-checked locking">Double-checked locking</a></li>
+<li><a href="/wiki/Asynchronous_method_invocation" title="Asynchronous method invocation">Event-based asynchronous</a></li>
+<li><a href="/wiki/Guarded_suspension" title="Guarded suspension">Guarded suspension</a></li>
+<li><a href="/wiki/Join-pattern" title="Join-pattern">Join</a></li>
+<li><a href="/wiki/Lock_pattern" title="Lock pattern" class="mw-redirect">Lock</a></li>
+<li><a href="/wiki/Monitor_(synchronization)" title="Monitor (synchronization)">Monitor</a></li>
+<li><a href="/wiki/Proactor_pattern" title="Proactor pattern">Proactor</a></li>
+<li><a href="/wiki/Reactor_pattern" title="Reactor pattern">Reactor</a></li>
+<li><a href="/wiki/Readers%E2%80%93writer_lock" title="Readers–writer lock">Read write lock</a></li>
+<li><a href="/wiki/Scheduler_pattern" title="Scheduler pattern">Scheduler</a></li>
+<li><a href="/wiki/Thread_pool_pattern" title="Thread pool pattern">Thread pool</a></li>
+<li><a href="/wiki/Thread-local_storage" title="Thread-local storage">Thread-local storage</a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Front_controller" title="Front controller" class="mw-redirect">Front controller</a></li>
+<li><a href="/wiki/Interceptor_pattern" title="Interceptor pattern">Interceptor</a></li>
+<li><a href="/wiki/Model%E2%80%93view%E2%80%93controller" title="Model–view–controller">MVC</a></li>
+<li><a href="/wiki/Multitier_architecture" title="Multitier architecture"><i>n</i>-tier</a></li>
+<li><a href="/wiki/Specification_pattern" title="Specification pattern">Specification</a></li>
+<li><a href="/wiki/Publish%E2%80%93subscribe_pattern" title="Publish–subscribe pattern">Publish-subscribe</a></li>
+<li><a href="/wiki/Naked_objects" title="Naked objects">Naked objects</a></li>
+<li><a href="/wiki/Service_locator_pattern" title="Service locator pattern">Service Locator</a></li>
+<li><a href="/wiki/Active_record" title="Active record" class="mw-redirect">Active record</a></li>
+<li><a href="/wiki/Identity_map_pattern" title="Identity map pattern">Identity map</a></li>
+<li><a href="/wiki/Data_access_object" title="Data access object">Data access object</a></li>
+<li><a href="/wiki/Data_transfer_object" title="Data transfer object">Data transfer object</a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Dependency_injection" title="Dependency injection">Dependency injection</a></li>
+<li><a href="/wiki/Lazy_loading" title="Lazy loading">Lazy loading</a></li>
+<li><a href="/wiki/Mock_object" title="Mock object">Mock object</a></li>
+<li><a href="/wiki/Null_object_pattern" title="Null object pattern" class="mw-redirect">Null object</a></li>
+<li><a href="/wiki/Object_pool_pattern" title="Object pool pattern">Object pool</a></li>
+<li><a href="/wiki/Servant_(design_pattern)" title="Servant (design pattern)">Servant</a></li>
+<li><a href="/wiki/Type_Tunnel_pattern" title="Type Tunnel pattern">Type tunnel</a></li>
+</ul>
+<ul>
+<li><i><a href="/wiki/Design_Patterns" title="Design Patterns">Design Patterns</a></i></li>
+<li><i><a href="/wiki/Enterprise_Integration_Patterns" title="Enterprise Integration Patterns">Enterprise Integration Patterns</a></i></li>
+</ul>
+<ul>
+<li><a href="/wiki/Christopher_Alexander" title="Christopher Alexander">Christopher Alexander</a></li>
+<li><a href="/wiki/Erich_Gamma" title="Erich Gamma">Erich Gamma</a></li>
+<li><a href="/wiki/Ralph_Johnson_(computer_scientist)" title="Ralph Johnson (computer scientist)">Ralph Johnson</a></li>
+<li><a href="/wiki/John_Vlissides" title="John Vlissides">John Vlissides</a></li>
+<li><a href="/wiki/Grady_Booch" title="Grady Booch">Grady Booch</a></li>
+<li><a href="/wiki/Kent_Beck" title="Kent Beck">Kent Beck</a></li>
+<li><a href="/wiki/Ward_Cunningham" title="Ward Cunningham">Ward Cunningham</a></li>
+<li><a href="/wiki/Martin_Fowler" title="Martin Fowler">Martin Fowler</a></li>
+<li><a href="/wiki/Robert_Cecil_Martin" title="Robert Cecil Martin">Robert Martin</a></li>
+<li><a href="/wiki/Jim_Coplien" title="Jim Coplien">Jim Coplien</a></li>
+<li><a href="/wiki/Douglas_C._Schmidt" title="Douglas C. Schmidt">Douglas Schmidt</a></li>
+<li><a href="/wiki/Linda_Rising" title="Linda Rising">Linda Rising</a></li>
+</ul>
+<ul>
+<li><a href="/wiki/The_Hillside_Group" title="The Hillside Group">The Hillside Group</a></li>
+<li><a href="/wiki/Portland_Pattern_Repository" title="Portland Pattern Repository">The Portland Pattern Repository</a></li>
+</ul>

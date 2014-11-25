@@ -1,0 +1,67 @@
+<h1>Compatibility</h1>
+<p>The Java Collections Framework was designed to ensure complete interoperability between the core 
+<a class="TutorialLink" target="_top" href="../interfaces/index.html">collection interfaces</a> and the types that were used to represent collections in the early versions of the Java platform: 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/util/Vector.html"><code>Vector</code></a>, 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/util/Hashtable.html"><code>Hashtable</code></a>, 
+<a class="TutorialLink" target="_top" href="../../java/nutsandbolts/arrays.html">array</a>, and 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/util/Enumeration.html"><code>Enumeration</code></a>. In this section, you'll learn how to transform old collections to the Java Collections Framework collections and vice versa.</p>
+<h2>Upward Compatibility</h2>
+<p>Suppose that you're using an API that returns legacy collections in tandem with another API that requires objects implementing the collection interfaces. To make the two APIs interoperate smoothly, you'll have to transform the legacy collections into modern collections. Luckily, the Java Collections Framework makes this easy.</p>
+<p>Suppose the old API returns an array of objects and the new API requires a <code>Collection</code>. The Collections Framework has a convenience implementation that allows an array of objects to be viewed as a <code>List</code>. You use 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/util/Arrays.html#asList-T...-"><code>Arrays.asList</code></a> to pass an array to any method requiring a <code>Collection</code> or a <code>List</code>.</p>
+<p>WHATSON? 1c7a0862-4d09-4fbf-a0af-8bc1ccd7839f</p>
+<pre>
+Foo[] result = oldMethod(arg);
+newMethod(Arrays.asList(result));
+</pre>
+<p>If the old API returns a <code>Vector</code> or a <code>Hashtable</code>, you have no work to do at all because <code>Vector</code> was retrofitted to implement the <code>List</code> interface, and <code>Hashtable</code> was retrofitted to implement <code>Map</code>. Therefore, a <code>Vector</code> may be passed directly to any method calling for a <code>Collection</code> or a <code>List</code>.</p>
+<p>WHATSON? c05c9f2f-53c9-4093-b604-7c52b4715ca3</p>
+<pre>
+Vector result = oldMethod(arg);
+newMethod(result);
+</pre>
+<p>Similarly, a <code>Hashtable</code> may be passed directly to any method calling for a <code>Map</code>.</p>
+<p>WHATSON? 5f1b54dd-c40d-4f44-9e8d-3db52ac05503</p>
+<pre>
+Hashtable result = oldMethod(arg);
+newMethod(result);
+</pre>
+<p>Less frequently, an API may return an <code>Enumeration</code> that represents a collection of objects. The <code>Collections.list</code> method translates an <code>Enumeration</code> into a <code>Collection</code>.</p>
+<p>WHATSON? 5e4758b9-03cb-4cc4-87f9-ce421aa93373</p>
+<pre>
+Enumeration e = oldMethod(arg);
+newMethod(Collections.list(e));
+</pre>
+<h2>Backward Compatibility</h2>
+<p>Suppose you're using an API that returns modern collections in tandem with another API that requires you to pass in legacy collections. To make the two APIs interoperate smoothly, you have to transform modern collections into old collections. Again, the Java Collections Framework makes this easy.</p>
+<p>Suppose the new API returns a <code>Collection</code>, and the old API requires an array of <code>Object</code>. As you're probably aware, the <code>Collection</code> interface contains a <code>toArray</code> method designed expressly for this situation.</p>
+<p>WHATSON? ab97dcae-c13a-4476-b75a-68da2589318d</p>
+<pre>
+Collection c = newMethod();
+oldMethod(c.toArray());
+</pre>
+<p>What if the old API requires an array of <code>String</code> (or another type) instead of an array of <code>Object</code>? You just use the other form of <code>toArray</code>  the one that takes an array on input.</p>
+<p>WHATSON? a2a842ef-d495-4c31-9bc7-2af2efbb63f7</p>
+<pre>
+Collection c = newMethod();
+oldMethod((String[]) c.toArray(new String[0]));
+</pre>
+<p>If the old API requires a <code>Vector</code>, the standard collection constructor comes in handy.</p>
+<p>WHATSON? 738fe63a-e590-4d80-9bf0-088cdbc99498</p>
+<pre>
+Collection c = newMethod();
+oldMethod(new Vector(c));
+</pre>
+<p>The case where the old API requires a <code>Hashtable</code> is handled analogously.</p>
+<p>WHATSON? 1703dedf-46eb-4325-9b98-172f752b676f</p>
+<pre>
+Map m = newMethod();
+oldMethod(new Hashtable(m));
+</pre>
+<p>Finally, what do you do if the old API requires an <code>Enumeration</code>? This case isn't common, but it does happen from time to time, and the 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/util/Collections.html#enumeration-java.util.Collection-"><code>Collections.enumeration</code></a> method was provided to handle it. This is a static factory method that takes a <code>Collection</code> and returns an <code>Enumeration</code> over the elements of the <code>Collection</code>.</p>
+<p>WHATSON? 5c71d63b-a184-4747-86c1-17c2b359e44e</p>
+<pre>
+Collection c = newMethod();
+oldMethod(Collections.enumeration(c));
+</pre>

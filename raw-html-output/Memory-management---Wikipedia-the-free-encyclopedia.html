@@ -1,0 +1,178 @@
+<h1 id="firstHeading" class="firstHeading" lang="en"><span dir="auto">Memory management</span></h1>
+<p><b>Memory management</b> is the act of managing <a href="/wiki/Computer_memory" title="Computer memory">computer memory</a>. The essential requirement of memory management is to provide ways to dynamically allocate portions of memory to programs at their request, and free it for reuse when no longer needed. This is critical to any advanced computer system where more than a single <a href="/wiki/Process_(computing)" title="Process (computing)">process</a> might be underway at any time.<sup id="cite_ref-1" class="reference"><a href="#cite_note-1"><span>[</span>1<span>]</span></a></sup></p>
+<p>Several methods have been devised that increase the effectiveness of memory management. <a href="/wiki/Virtual_memory" title="Virtual memory">Virtual memory</a> systems separate the memory addresses used by a process from actual physical addresses, allowing separation of processes and increasing the effectively available amount of <a href="/wiki/Random-access_memory" title="Random-access memory">RAM</a> using <a href="/wiki/Paging" title="Paging">paging</a> or swapping to <a href="/wiki/Secondary_storage" title="Secondary storage" class="mw-redirect">secondary storage</a>. The quality of the virtual memory manager can have an extensive effect on overall system performance.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#Dynamic_memory_allocation"><span class="tocnumber">1</span> <span class="toctext">Dynamic memory allocation</span></a>
+<ul>
+<li class="toclevel-2 tocsection-2"><a href="#Details"><span class="tocnumber">1.1</span> <span class="toctext">Details</span></a></li>
+<li class="toclevel-2 tocsection-3"><a href="#Efficiency"><span class="tocnumber">1.2</span> <span class="toctext">Efficiency</span></a></li>
+<li class="toclevel-2 tocsection-4"><a href="#Implementations"><span class="tocnumber">1.3</span> <span class="toctext">Implementations</span></a>
+<ul>
+<li class="toclevel-3 tocsection-5"><a href="#Fixed-size_blocks_allocation"><span class="tocnumber">1.3.1</span> <span class="toctext">Fixed-size blocks allocation</span></a></li>
+<li class="toclevel-3 tocsection-6"><a href="#Buddy_blocks"><span class="tocnumber">1.3.2</span> <span class="toctext">Buddy blocks</span></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-7"><a href="#Systems_with_virtual_memory"><span class="tocnumber">2</span> <span class="toctext">Systems with virtual memory</span></a>
+<ul>
+<li class="toclevel-2 tocsection-8"><a href="#Protection"><span class="tocnumber">2.1</span> <span class="toctext">Protection</span></a></li>
+<li class="toclevel-2 tocsection-9"><a href="#Sharing"><span class="tocnumber">2.2</span> <span class="toctext">Sharing</span></a></li>
+<li class="toclevel-2 tocsection-10"><a href="#Physical_organization"><span class="tocnumber">2.3</span> <span class="toctext">Physical organization</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-11"><a href="#See_also"><span class="tocnumber">3</span> <span class="toctext">See also</span></a></li>
+<li class="toclevel-1 tocsection-12"><a href="#Notes"><span class="tocnumber">4</span> <span class="toctext">Notes</span></a></li>
+<li class="toclevel-1 tocsection-13"><a href="#References"><span class="tocnumber">5</span> <span class="toctext">References</span></a></li>
+<li class="toclevel-1 tocsection-14"><a href="#Further_reading"><span class="tocnumber">6</span> <span class="toctext">Further reading</span></a></li>
+<li class="toclevel-1 tocsection-15"><a href="#External_links"><span class="tocnumber">7</span> <span class="toctext">External links</span></a></li>
+</ul>
+<ul>
+<li class="toclevel-2 tocsection-2"><a href="#Details"><span class="tocnumber">1.1</span> <span class="toctext">Details</span></a></li>
+<li class="toclevel-2 tocsection-3"><a href="#Efficiency"><span class="tocnumber">1.2</span> <span class="toctext">Efficiency</span></a></li>
+<li class="toclevel-2 tocsection-4"><a href="#Implementations"><span class="tocnumber">1.3</span> <span class="toctext">Implementations</span></a>
+<ul>
+<li class="toclevel-3 tocsection-5"><a href="#Fixed-size_blocks_allocation"><span class="tocnumber">1.3.1</span> <span class="toctext">Fixed-size blocks allocation</span></a></li>
+<li class="toclevel-3 tocsection-6"><a href="#Buddy_blocks"><span class="tocnumber">1.3.2</span> <span class="toctext">Buddy blocks</span></a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toclevel-3 tocsection-5"><a href="#Fixed-size_blocks_allocation"><span class="tocnumber">1.3.1</span> <span class="toctext">Fixed-size blocks allocation</span></a></li>
+<li class="toclevel-3 tocsection-6"><a href="#Buddy_blocks"><span class="tocnumber">1.3.2</span> <span class="toctext">Buddy blocks</span></a></li>
+</ul>
+<ul>
+<li class="toclevel-2 tocsection-8"><a href="#Protection"><span class="tocnumber">2.1</span> <span class="toctext">Protection</span></a></li>
+<li class="toclevel-2 tocsection-9"><a href="#Sharing"><span class="tocnumber">2.2</span> <span class="toctext">Sharing</span></a></li>
+<li class="toclevel-2 tocsection-10"><a href="#Physical_organization"><span class="tocnumber">2.3</span> <span class="toctext">Physical organization</span></a></li>
+</ul>
+<p></p>
+<h2><span class="mw-headline" id="Dynamic_memory_allocation"><span id="DYNAMIC"></span><span id="HEAP"></span>Dynamic memory allocation</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Memory_management&amp;action=edit&amp;section=1" title="Edit section: Dynamic memory allocation">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<h3><span class="mw-headline" id="Details">Details</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Memory_management&amp;action=edit&amp;section=2" title="Edit section: Details">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>The task of fulfilling an allocation request consists of locating a block of unused memory of sufficient size. Memory requests are satisfied by allocating portions from a large pool of memory called the <b>heap</b> or <b>free store</b>. At any given time, some parts of the heap are in use, while some are "free" (unused) and thus available for future allocations.</p>
+<p>Several issues complicate the implementation, such as <a href="/wiki/Fragmentation_(computer)#External_fragmentation" title="Fragmentation (computer)" class="mw-redirect">external fragmentation</a>, which arises when there are many small gaps between allocated memory blocks, which invalidates their use for an allocation request. The allocator's <a href="/wiki/Metadata_(computing)" title="Metadata (computing)" class="mw-redirect">metadata</a> can also inflate the size of (individually) small allocations. This is managed often by <a href="/wiki/Chunking_(computing)" title="Chunking (computing)">chunking</a>. The memory management system must track outstanding allocations to ensure that they do not overlap and that no memory is ever "lost" as a <a href="/wiki/Memory_leak" title="Memory leak">memory leak</a>.</p>
+<h3><span class="mw-headline" id="Efficiency">Efficiency</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Memory_management&amp;action=edit&amp;section=3" title="Edit section: Efficiency">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>The specific dynamic memory allocation algorithm implemented can impact performance significantly. A study conducted in 1994 by <a href="/wiki/Digital_Equipment_Corporation" title="Digital Equipment Corporation">Digital Equipment Corporation</a> illustrates the <a href="/wiki/Computational_overhead" title="Computational overhead" class="mw-redirect">overheads</a> involved for a variety of allocators. The lowest average <a href="/wiki/Instruction_path_length" title="Instruction path length">instruction path length</a> required to allocate a single memory slot was 52 (as measured with an instruction level <a href="/wiki/Profiling_(computer_programming)" title="Profiling (computer programming)">profiler</a> on a variety of software).<sup id="cite_ref-2" class="reference"><a href="#cite_note-2"><span>[</span>2<span>]</span></a></sup></p>
+<h3><span class="mw-headline" id="Implementations">Implementations</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Memory_management&amp;action=edit&amp;section=4" title="Edit section: Implementations">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Since the precise location of the allocation is not known in advance, the memory is accessed indirectly, usually through a <a href="/wiki/Pointer_(computer_programming)" title="Pointer (computer programming)">pointer</a> <a href="/wiki/Reference_(computer_science)" title="Reference (computer science)">reference</a>. The specific algorithm used to organize the memory area and allocate and deallocate chunks is interlinked with the <a href="/wiki/Kernel_(computing)" title="Kernel (computing)" class="mw-redirect">kernel</a>, and may use any of the following methods:</p>
+<h4><span class="mw-headline" id="Fixed-size_blocks_allocation"><span id="FIXED-SIZE"></span>Fixed-size blocks allocation</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Memory_management&amp;action=edit&amp;section=5" title="Edit section: Fixed-size blocks allocation">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<p>Fixed-size blocks allocation, also called memory pool allocation, uses a <a href="/wiki/Free_list" title="Free list">free list</a> of fixed-size blocks of memory (often all of the same size). This works well for simple <a href="/wiki/Embedded_system" title="Embedded system">embedded systems</a> where no large objects need to be allocated, but suffers from <a href="/wiki/Fragmentation_(computing)" title="Fragmentation (computing)">fragmentation</a>, especially with long memory addresses. However, due to the significantly reduced overhead this method can substantially improve performance for objects that need frequent allocation / de-allocation and is often used in video games.</p>
+<h4><span class="mw-headline" id="Buddy_blocks">Buddy blocks</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Memory_management&amp;action=edit&amp;section=6" title="Edit section: Buddy blocks">edit</a><span class="mw-editsection-bracket">]</span></span></h4>
+<p>In this system, memory is allocated into several pools of memory instead of just one, where each pool represents blocks of memory of a certain <a href="/wiki/Power_of_two" title="Power of two">power of two</a> in size. All blocks of a particular size are kept in a sorted <a href="/wiki/Linked_list" title="Linked list">linked list</a> or <a href="/wiki/Tree_data_structure" title="Tree data structure" class="mw-redirect">tree</a> and all new blocks that are formed during allocation are added to their respective memory pools for later use. If a smaller size is requested than is available, the smallest available size is selected and halved. One of the resulting halves is selected, and the process repeats until the request is complete. When a block is allocated, the allocator will start with the smallest sufficiently large block to avoid needlessly breaking blocks. When a block is freed, it is compared to its buddy. If they are both free, they are combined and placed in the next-largest size buddy-block list.</p>
+<h2><span class="mw-headline" id="Systems_with_virtual_memory">Systems with virtual memory</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Memory_management&amp;action=edit&amp;section=7" title="Edit section: Systems with virtual memory">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><a href="/wiki/Virtual_memory" title="Virtual memory">Virtual memory</a> is a method of decoupling the memory organization from the physical hardware. The applications operate memory via <i>virtual addresses</i>. Each time an attempt to access stored data is made, virtual memory data orders translate the virtual address to a <i>physical address</i>. In this way addition of virtual memory enables granular control over memory systems and methods of access.</p>
+<h3><span class="mw-headline" id="Protection">Protection</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Memory_management&amp;action=edit&amp;section=8" title="Edit section: Protection">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>In virtual memory systems the operating system limits how a <a href="/wiki/Process_(computing)" title="Process (computing)">process</a> can access the memory. This feature can be used to disallow a process to read or write to memory that is not allocated to it, preventing malicious or malfunctioning code in one program from interfering with the operation of another.</p>
+<h3><span class="mw-headline" id="Sharing">Sharing</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Memory_management&amp;action=edit&amp;section=9" title="Edit section: Sharing">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Even though the memory allocated for specific processes is normally isolated, processes sometimes need to be able to share information. Shared memory is one of the fastest techniques for <a href="/wiki/Inter-process_communication" title="Inter-process communication">inter-process communication</a>.</p>
+<h3><span class="mw-headline" id="Physical_organization">Physical organization</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Memory_management&amp;action=edit&amp;section=10" title="Edit section: Physical organization">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Memory is usually classed by access rate as with <a href="/wiki/Primary_storage" title="Primary storage" class="mw-redirect">primary storage</a> and <a href="/wiki/Secondary_storage" title="Secondary storage" class="mw-redirect">secondary storage</a>. Memory management systems handle moving information between these two levels of memory.</p>
+<h2><span class="mw-headline" id="See_also">See also</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Memory_management&amp;action=edit&amp;section=11" title="Edit section: See also">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul>
+<li><a href="/wiki/Automatic_memory_allocation" title="Automatic memory allocation" class="mw-redirect">Automatic memory allocation</a></li>
+<li><a href="/wiki/Demand_paging" title="Demand paging">Demand paging</a></li>
+<li><a href="/wiki/Dynamic_array" title="Dynamic array">Dynamic array</a></li>
+<li><a href="/wiki/Garbage_collection_(computer_science)" title="Garbage collection (computer science)">Garbage collection</a></li>
+<li><a href="/wiki/Memory_management_(operating_systems)" title="Memory management (operating systems)">Memory management (operating systems)</a></li>
+<li><a href="/wiki/Memory_management_unit" title="Memory management unit">Memory management unit</a> (MMU)</li>
+<li><a href="/wiki/Memory_pool" title="Memory pool">Memory pool</a></li>
+<li><a href="/wiki/Region-based_memory_management" title="Region-based memory management">Region-based memory management</a></li>
+<li><a href="/wiki/Resource_management_(computing)" title="Resource management (computing)">Resource management</a></li>
+<li><a href="/wiki/Slab_allocation" title="Slab allocation">Slab allocation</a></li>
+<li><a href="/wiki/Stack-based_memory_allocation" title="Stack-based memory allocation">Stack-based memory allocation</a></li>
+<li><a href="/wiki/Page_table" title="Page table">Page table</a></li>
+<li><a href="/wiki/Paging" title="Paging">Paging</a></li>
+<li><a href="/wiki/Pointer_(computer_programming)" title="Pointer (computer programming)">Pointer</a></li>
+<li><a href="/wiki/Virtual_memory" title="Virtual memory">Virtual memory</a></li>
+</ul>
+<h2><span class="mw-headline" id="Notes">Notes</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Memory_management&amp;action=edit&amp;section=12" title="Edit section: Notes">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ol class="references">
+<li id="cite_note-1"><span class="mw-cite-backlink"><b><a href="#cite_ref-1">^</a></b></span> <span class="reference-text"><span class="citation journal"><a href="/wiki/Steve_Gibson_(computer_programmer)" title="Steve Gibson (computer programmer)">Gibson, Steve</a> (August 15, 1988). <a rel="nofollow" class="external text" href="http://books.google.com/books?id=ZzoEAAAAMBAJ&amp;pg=PA34">"Tech Talk: Placing the IBM/Microsoft XMS Spec Into Perspective"</a>. <i><a href="/wiki/InfoWorld" title="InfoWorld">InfoWorld</a></i>.</span><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AMemory+management&amp;rft.atitle=Tech+Talk%3A+Placing+the+IBM%2FMicrosoft+XMS+Spec+Into+Perspective&amp;rft.aufirst=Steve&amp;rft.au=Gibson%2C+Steve&amp;rft.aulast=Gibson&amp;rft.date=August+15%2C+1988&amp;rft.genre=article&amp;rft_id=http%3A%2F%2Fbooks.google.com%2Fbooks%3Fid%3DZzoEAAAAMBAJ%26pg%3DPA34&amp;rft.jtitle=InfoWorld&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Ajournal" class="Z3988"><span style="display:none;"> </span></span></span></li>
+<li id="cite_note-2"><span class="mw-cite-backlink"><b><a href="#cite_ref-2">^</a></b></span> <span class="reference-text"><span class="citation journal">Detlefs, D.; Dosser, A.; Zorn, B. (June 1994). <a rel="nofollow" class="external text" href="http://www.eecs.northwestern.edu/~robby/uc-courses/15400-2008-spring/spe895.pdf">"Memory allocation costs in large C and C++ programs"</a>. <i>Software: Practice and Experience</i> <b>24</b> (6): 527–542. <a href="/wiki/Digital_object_identifier" title="Digital object identifier">doi</a>:<a rel="nofollow" class="external text" href="http://dx.doi.org/10.1002%2Fspe.4380240602">10.1002/spe.4380240602</a>. <a href="/wiki/CiteSeer#CiteSeerX" title="CiteSeer">CiteSeerX</a>: <span class="url"><a rel="nofollow" class="external text" href="http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.30.3073">10.1.1.30.3073</a></span>.</span><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AMemory+management&amp;rft.atitle=Memory+allocation+costs+in+large+C+and+C%2B%2B+programs&amp;rft.au=Detlefs%2C+D.&amp;rft.au=Dosser%2C+A.&amp;rft.aufirst=D.&amp;rft.aulast=Detlefs&amp;rft.au=Zorn%2C+B.&amp;rft.date=June+1994&amp;rft.genre=article&amp;rft_id=http%3A%2F%2Fwww.eecs.northwestern.edu%2F~robby%2Fuc-courses%2F15400-2008-spring%2Fspe895.pdf&amp;rft_id=info%3Adoi%2F10.1002%2Fspe.4380240602&amp;rft.issue=6&amp;rft.jtitle=Software%3A+Practice+and+Experience&amp;rft.pages=527-542&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Ajournal&amp;rft.volume=24" class="Z3988"><span style="display:none;"> </span></span> <span class="plainlinks noprint" style="font-size:smaller"><a class="external text" href="//en.wikipedia.org/w/index.php?title=Template:Cite_doi/10.1002.2Fspe.4380240602&amp;action=edit&amp;editintro=Template:Cite_doi/editintro2">edit</a></span></span></li>
+</ol>
+<h2><span class="mw-headline" id="References">References</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Memory_management&amp;action=edit&amp;section=13" title="Edit section: References">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul>
+<li><a href="/wiki/Donald_Knuth" title="Donald Knuth">Donald Knuth</a>. <i>Fundamental Algorithms</i>, Third Edition. Addison-Wesley, 1997. <a href="/wiki/Special:BookSources/0201896834" class="internal mw-magiclink-isbn">ISBN 0-201-89683-4</a>. Section 2.5: Dynamic Storage Allocation, pp. 435–456.</li>
+<li><a rel="nofollow" class="external text" href="http://buzzan.tistory.com/m/post/view/id/428">Simple Memory Allocation Algorithms</a> (originally published on OSDEV Community)</li>
+<li><span class="citation journal">Wilson, P. R.; Johnstone, M. S.; Neely, M.; Boles, D. (1995). "Dynamic storage allocation: A survey and critical review". "Memory Management". Lecture Notes in Computer Science <b>986</b>. pp. 1–116. <a href="/wiki/Digital_object_identifier" title="Digital object identifier">doi</a>:<a rel="nofollow" class="external text" href="http://dx.doi.org/10.1007%2F3-540-60368-9_19">10.1007/3-540-60368-9_19</a>. <a href="/wiki/International_Standard_Book_Number" title="International Standard Book Number">ISBN</a> <a href="/wiki/Special:BookSources/978-3-540-60368-9" title="Special:BookSources/978-3-540-60368-9">978-3-540-60368-9</a>. <a href="/wiki/CiteSeer#CiteSeerX" title="CiteSeer">CiteSeerX</a>: <span class="url"><a rel="nofollow" class="external text" href="http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.47.275">10.1.1.47.275</a></span>.</span><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AMemory+management&amp;rft.atitle=Memory+Management&amp;rft.au=Boles%2C+D.&amp;rft.aufirst=P.+R.&amp;rft.au=Johnstone%2C+M.+S.&amp;rft.aulast=Wilson&amp;rft.au=Neely%2C+M.&amp;rft.au=Wilson%2C+P.+R.&amp;rft.btitle=Dynamic+storage+allocation%3A+A+survey+and+critical+review&amp;rft.date=1995&amp;rft.genre=bookitem&amp;rft_id=info%3Adoi%2F10.1007%2F3-540-60368-9_19&amp;rft.isbn=978-3-540-60368-9&amp;rft.pages=1-116&amp;rft.series=Lecture+Notes+in+Computer+Science&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook&amp;rft.volume=986" class="Z3988"><span style="display:none;"> </span></span> <span class="plainlinks noprint" style="font-size:smaller"><a class="external text" href="//en.wikipedia.org/w/index.php?title=Template:Cite_doi/10.1007.2F3-540-60368-9_19&amp;action=edit&amp;editintro=Template:Cite_doi/editintro2">edit</a></span></li>
+<li><span class="citation conference">Berger, E. D.; Zorn, B. G.; <a href="/wiki/Kathryn_S._McKinley" title="Kathryn S. McKinley">McKinley, K. S.</a> (June 2001). <a rel="nofollow" class="external text" href="http://www.cs.umass.edu/%7Eemery/pubs/berger-pldi2001.pdf">"Composing High-Performance Memory Allocators"</a>. "Proceedings of the ACM SIGPLAN 2001 conference on Programming language design and implementation". <a href="/wiki/Programming_Language_Design_and_Implementation" title="Programming Language Design and Implementation">PLDI</a> '01. pp. 114–124. <a href="/wiki/Digital_object_identifier" title="Digital object identifier">doi</a>:<a rel="nofollow" class="external text" href="http://dx.doi.org/10.1145%2F378795.378821">10.1145/378795.378821</a>. <a href="/wiki/International_Standard_Book_Number" title="International Standard Book Number">ISBN</a> <a href="/wiki/Special:BookSources/1-58113-414-2" title="Special:BookSources/1-58113-414-2">1-58113-414-2</a>. <a href="/wiki/CiteSeer#CiteSeerX" title="CiteSeer">CiteSeerX</a>: <span class="url"><a rel="nofollow" class="external text" href="http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.1.2112">10.1.1.1.2112</a></span>.</span><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AMemory+management&amp;rft.atitle=Proceedings+of+the+ACM+SIGPLAN+2001+conference+on+Programming+language+design+and+implementation&amp;rft.au=Berger%2C+E.+D.&amp;rft.aufirst=E.+D.&amp;rft.aulast=Berger&amp;rft.au=McKinley%2C+K.+S.&amp;rft.au=Zorn%2C+B.+G.&amp;rft.btitle=Composing+High-Performance+Memory+Allocators&amp;rft.date=June+2001&amp;rft.genre=bookitem&amp;rft_id=http%3A%2F%2Fwww.cs.umass.edu%2F%257Eemery%2Fpubs%2Fberger-pldi2001.pdf&amp;rft_id=info%3Adoi%2F10.1145%2F378795.378821&amp;rft.isbn=1-58113-414-2&amp;rft.pages=114-124&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook" class="Z3988"><span style="display:none;"> </span></span> <span class="plainlinks noprint" style="font-size:smaller"><a class="external text" href="//en.wikipedia.org/w/index.php?title=Template:Cite_doi/10.1145.2F378795.378821&amp;action=edit&amp;editintro=Template:Cite_doi/editintro2">edit</a></span></li>
+<li><span class="citation conference">Berger, E. D.; Zorn, B. G.; <a href="/wiki/Kathryn_S._McKinley" title="Kathryn S. McKinley">McKinley, K. S.</a> (November 2002). <a rel="nofollow" class="external text" href="http://people.cs.umass.edu/~emery/pubs/berger-oopsla2002.pdf">"Reconsidering Custom Memory Allocation"</a>. "Proceedings of the 17th ACM SIGPLAN conference on Object-oriented programming, systems, languages, and applications". <a href="/wiki/OOPSLA" title="OOPSLA">OOPSLA</a> '02. pp. 1–12. <a href="/wiki/Digital_object_identifier" title="Digital object identifier">doi</a>:<a rel="nofollow" class="external text" href="http://dx.doi.org/10.1145%2F582419.582421">10.1145/582419.582421</a>. <a href="/wiki/International_Standard_Book_Number" title="International Standard Book Number">ISBN</a> <a href="/wiki/Special:BookSources/1-58113-471-1" title="Special:BookSources/1-58113-471-1">1-58113-471-1</a>. <a href="/wiki/CiteSeer#CiteSeerX" title="CiteSeer">CiteSeerX</a>: <span class="url"><a rel="nofollow" class="external text" href="http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.119.5298">10.1.1.119.5298</a></span>.</span><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AMemory+management&amp;rft.atitle=Proceedings+of+the+17th+ACM+SIGPLAN+conference+on+Object-oriented+programming%2C+systems%2C+languages%2C+and+applications&amp;rft.au=Berger%2C+E.+D.&amp;rft.aufirst=E.+D.&amp;rft.aulast=Berger&amp;rft.au=McKinley%2C+K.+S.&amp;rft.au=Zorn%2C+B.+G.&amp;rft.btitle=Reconsidering+Custom+Memory+Allocation&amp;rft.date=November+2002&amp;rft.genre=bookitem&amp;rft_id=http%3A%2F%2Fpeople.cs.umass.edu%2F~emery%2Fpubs%2Fberger-oopsla2002.pdf&amp;rft_id=info%3Adoi%2F10.1145%2F582419.582421&amp;rft.isbn=1-58113-471-1&amp;rft.pages=1-12&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Abook" class="Z3988"><span style="display:none;"> </span></span> <span class="plainlinks noprint" style="font-size:smaller"><a class="external text" href="//en.wikipedia.org/w/index.php?title=Template:Cite_doi/10.1145.2F582419.582421&amp;action=edit&amp;editintro=Template:Cite_doi/editintro2">edit</a></span></li>
+<li><a rel="nofollow" class="external text" href="http://www.memorymanagement.org/">memorymanagement.org</a> A small old site dedicated to memory management.</li>
+</ul>
+<h2><span class="mw-headline" id="Further_reading">Further reading</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Memory_management&amp;action=edit&amp;section=14" title="Edit section: Further reading">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul>
+<li><a rel="nofollow" class="external text" href="http://www.cs.northwestern.edu/~pdinda/icsclass/doc/dsa.pdf">"Dynamic Storage Allocation: A Survey and Critical Review"</a>, Department of Computer Sciences <a href="/wiki/University_of_Texas_at_Austin" title="University of Texas at Austin">University of Texas at Austin</a></li>
+</ul>
+<h2><span class="mw-headline" id="External_links">External links</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Memory_management&amp;action=edit&amp;section=15" title="Edit section: External links">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul>
+<li><a rel="nofollow" class="external text" href="http://memory-mgr.sourceforge.net/">"Generic Memory Manager" C++ library</a></li>
+<li><a rel="nofollow" class="external text" href="https://code.google.com/p/arena-memory-allocation/downloads/list">Sample bit-mapped arena memory allocator in C</a></li>
+<li><a rel="nofollow" class="external text" href="http://www.gii.upv.es/tlsf/">TLSF: a constant time allocator for real-time systems</a></li>
+<li><a rel="nofollow" class="external text" href="https://users.cs.jmu.edu/bernstdh/web/common/lectures/slides_cpp_dynamic-memory.php">Slides on Dynamic memory allocation</a></li>
+<li><a rel="nofollow" class="external text" href="http://www.flounder.com/inside_storage_allocation.htm">Inside A Storage Allocator</a></li>
+<li><a rel="nofollow" class="external text" href="http://www.memorymanagement.org/">The Memory Management Reference</a></li>
+</ul>
+<ul>
+<li><a rel="nofollow" class="external text" href="http://www.memorymanagement.org/articles/alloc.html">The Memory Management Reference, Beginner's Guide Allocation</a></li>
+</ul>
+<ul>
+<li><a rel="nofollow" class="external text" href="http://linux-mm.org/">Linux Memory Management</a></li>
+<li><a rel="nofollow" class="external text" href="http://www.enderunix.org/docs/memory.pdf">Memory Management For System Programmers</a></li>
+<li><a rel="nofollow" class="external text" href="http://www.puredevsoftware.com/">VMem - general malloc/free replacement. Fast thread safe C++ allocator</a></li>
+</ul>
+<ul>
+<li class="nv-view"><a href="/wiki/Template:Memory_management_navbox" title="Template:Memory management navbox"><span title="View this template" style=";;background:none transparent;border:none;;">v</span></a></li>
+<li class="nv-talk"><a href="/wiki/Template_talk:Memory_management_navbox" title="Template talk:Memory management navbox"><span title="Discuss this template" style=";;background:none transparent;border:none;;">t</span></a></li>
+<li class="nv-edit"><a class="external text" href="//en.wikipedia.org/w/index.php?title=Template:Memory_management_navbox&amp;action=edit"><span title="Edit this template" style=";;background:none transparent;border:none;;">e</span></a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Memory_management_(operating_systems)" title="Memory management (operating systems)">Memory management as a function of an operating system</a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Static_memory_allocation" title="Static memory allocation">Static memory allocation</a></li>
+<li><a href="/wiki/C_dynamic_memory_allocation" title="C dynamic memory allocation">C dynamic memory allocation</a></li>
+<li><a href="/wiki/New_(C%2B%2B)" title="New (C++)">new (C++)</a></li>
+<li><a href="/wiki/Delete_(C%2B%2B)" title="Delete (C++)">delete (C++)</a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Demand_paging" title="Demand paging">Demand paging</a></li>
+<li><a href="/wiki/Page_table" title="Page table">Page table</a></li>
+<li><a href="/wiki/Paging" title="Paging">Paging</a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Memory_management_unit" title="Memory management unit">Memory management unit</a></li>
+<li><a href="/wiki/Translation_lookaside_buffer" title="Translation lookaside buffer">Translation lookaside buffer</a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Boehm_garbage_collector" title="Boehm garbage collector">Boehm garbage collector</a></li>
+<li><a href="/wiki/Finalizer" title="Finalizer">Finalizer</a></li>
+<li><a href="/wiki/Garbage_(computer_science)" title="Garbage (computer science)">Garbage</a></li>
+<li><a href="/wiki/Mark-compact_algorithm" title="Mark-compact algorithm">Mark-compact algorithm</a></li>
+<li><a href="/wiki/Reference_counting" title="Reference counting">Reference counting</a></li>
+<li><a href="/wiki/Strong_reference" title="Strong reference">Strong reference</a></li>
+<li><a href="/wiki/Weak_reference" title="Weak reference">Weak reference</a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Protected_mode" title="Protected mode">Protected mode</a></li>
+<li><a href="/wiki/Real_mode" title="Real mode">Real mode</a></li>
+<li><a href="/wiki/Virtual_8086_mode" title="Virtual 8086 mode">Virtual 8086 mode</a></li>
+<li><a href="/wiki/X86_memory_segmentation" title="X86 memory segmentation">x86 memory segmentation</a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Buffer_overflow" title="Buffer overflow">Buffer overflow</a></li>
+<li><a href="/wiki/Buffer_over-read" title="Buffer over-read">Buffer over-read</a></li>
+<li><a href="/wiki/Dangling_pointer" title="Dangling pointer">Dangling pointer</a></li>
+<li><a href="/wiki/Stack_overflow" title="Stack overflow">Stack overflow</a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Fragmentation_(computing)" title="Fragmentation (computing)">Fragmentation</a></li>
+<li><a href="/wiki/Memory_leak" title="Memory leak">Memory leak</a></li>
+<li><a href="/wiki/Unreachable_memory" title="Unreachable memory">Unreachable memory</a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Automatic_variable" title="Automatic variable">Automatic variable</a></li>
+<li><a href="/wiki/International_Symposium_on_Memory_Management" title="International Symposium on Memory Management">International Symposium on Memory Management</a></li>
+<li><a href="/wiki/Region-based_memory_management" title="Region-based memory management">Region-based memory management</a></li>
+</ul>

@@ -1,0 +1,226 @@
+<h1 itemprop="name">Debugging Web Apps</h1>
+<h2>Quickview</h2>
+<ul>
+  <li>You can debug your web app using console methods in JavaScript</li>
+  <li>If debugging in a custom WebView, you need to implement a callback method to handle debug
+messages</li>
+</ul>
+<h2>In this document</h2>
+<ol>
+  <li><a href="#Browser">Using Console APIs in the Android Browser</a></li>
+  <li><a href="#WebView">Using Console APIs in WebView</a></li>
+</ol>
+<h2>See also</h2>
+<ol>
+  <li><a class="external-link" href="https://developers.google.com/chrome-developer-tools/docs/remote-debugging">Remote
+Debugging on Android</a></li>
+  <li><a href="/tools/debugging/index.html">Debugging</a></li>
+</ol>
+<p>If you are testing your web app with a device running Android 4.4 or higher,
+you can remotely debug your web pages in <code><a href="/reference/android/webkit/WebView.html">WebView</a></code> with
+Chrome Developer Tools, while continuing to support older versions of Android.
+For more information, see <a class="external-link" href="https://developers.google.com/chrome-developer-tools/docs/remote-debugging">Remote
+Debugging on Android</a>.</p>
+<p>If you don't have a device running Android 4.4 or higher, you can debug your JavaScript using the
+<code>console</code> JavaScript APIs and view the output messages to logcat. If you're familiar with
+debugging web pages with Firebug or Web Inspector, then you're probably familiar
+with using <code>console</code> (such as <code>console.log()</code>). Android's WebKit framework supports most
+of the same APIs, so you can receive logs from your web page when debugging in Android's Browser
+or in your own <code><a href="/reference/android/webkit/WebView.html">WebView</a></code>. This document describes how to use the
+console APIs for debugging.</p>
+<h2 id="Browser">Using Console APIs in the Android Browser</h2>
+<h2>Logcat</h2>
+<p>Logcat is a tool that dumps a log of system messages. The messages include a stack trace when
+the device throws an error, as well as log messages written from your application and
+those written using JavaScript <code>console</code> APIs.</p>
+<p>To run logcat and view messages, execute
+<code>adb logcat</code> from your Android SDK <code>tools/</code> directory, or, from DDMS, select
+<strong>Device &gt; Run logcat</strong>. When using the <a href="/tools/sdk/eclipse-adt.html">ADT
+plugin for Eclipse</a>, you can also view logcat messages by opening the Logcat view, available from
+<strong>Window &gt; Show View &gt; Other &gt; Android &gt; Logcat</strong>.</p>
+<p>See <a href="/tools/debugging/debugging-log.html">Debugging</a>
+  for more information about <codelogcat>.</codelogcat></p>
+<p>When you call a <code>console</code> function (in the DOM's <code>window.console</code> object),
+the output appears in logcat. For example, if your web page executes the following
+JavaScript:</p>
+<p>WHATSON? a9ffdbd2-654d-4667-9173-906653bc0461</p>
+<pre>
+console.log("Hello World");
+</pre>
+<p>Then the logcat message looks something like this:</p>
+<p>WHATSON? 3ea00b71-7a36-406e-af38-3ba5483c2ec6</p>
+<pre class="no-pretty-print">
+Console: Hello World http://www.example.com/hello.html :82
+</pre>
+<p>The format of the message might appear different depending on which version of Android you're
+using. On Android 2.1 and higher, console messages from the Android Browser
+are tagged with the name "browser". On Android 1.6 and lower, Android Browser
+messages are tagged with the name "WebCore".</p>
+<p>Android's WebKit does not implement all of the console APIs available in other desktop browsers.
+You can, however, use the basic text logging functions:</p>
+<ul>
+  <li><code>console.log(String)</code></li>
+  <li><code>console.info(String)</code></li>
+  <li><code>console.warn(String)</code></li>
+  <li><code>console.error(String)</code></li>
+</ul>
+<p>Other console functions don't raise errors, but might not behave the same as what you
+expect from other web browsers.</p>
+<h2 id="WebView">Using Console APIs in WebView</h2>
+<p>All the console APIs shown above are also
+supported when debugging in <code><a href="/reference/android/webkit/WebView.html">WebView</a></code>. 
+If you're targeting Android 2.1 (API level 7) and higher, you must
+provide a <code><a href="/reference/android/webkit/WebChromeClient.html">WebChromeClient</a></code>
+that implements the <code><a href="/reference/android/webkit/WebChromeClient.html#onConsoleMessage(java.lang.String,%20int,%20java.lang.String)">onConsoleMessage()</a></code> method in order for console messages to appear in logcat.
+Then, apply the <code><a href="/reference/android/webkit/WebChromeClient.html">WebChromeClient</a></code> to your <code><a href="/reference/android/webkit/WebView.html">WebView</a></code> with <code><a href="/reference/android/webkit/WebView.html#setWebChromeClient(android.webkit.WebChromeClient)">setWebChromeClient()</a></code>.
+
+</p>
+<p>For example, to support API level 7, this is how your code for <code><a href="/reference/android/webkit/WebChromeClient.html#onConsoleMessage(java.lang.String,%20int,%20java.lang.String)">onConsoleMessage(String, int, String)</a></code> might look:</p>
+<p>WHATSON? ee701965-41f9-4a9d-9330-609daed29f1d</p>
+<pre>
+WebView myWebView = (WebView) findViewById(R.id.webview);
+myWebView.setWebChromeClient(new WebChromeClient() {
+  public void onConsoleMessage(String message, int lineNumber, String sourceID) {
+    Log.d("MyApplication", message + " -- From line "
+                         + lineNumber + " of "
+                         + sourceID);
+  }
+});
+</pre>
+<p>However, if your lowest supported version is API level 8 or higher, you should instead
+implement <code><a href="/reference/android/webkit/WebChromeClient.html#onConsoleMessage(android.webkit.ConsoleMessage)">onConsoleMessage(ConsoleMessage)</a></code>. For example:</p>
+<p>WHATSON? 21973305-767b-48d2-83a7-6b0bba9cf821</p>
+<pre>
+WebView myWebView = (WebView) findViewById(R.id.webview);
+myWebView.setWebChromeClient(new WebChromeClient() {
+  public boolean onConsoleMessage(ConsoleMessage cm) {
+    Log.d("MyApplication", cm.<code><a href="/reference/android/webkit/ConsoleMessage.html#message()">message()</a></code> + " -- From line "
+                         + cm.<code><a href="/reference/android/webkit/ConsoleMessage.html#lineNumber()">lineNumber()</a></code> + " of "
+                         + cm.<code><a href="/reference/android/webkit/ConsoleMessage.html#sourceId()">sourceId()</a></code> );
+    return true;
+  }
+});
+</pre>
+<p>The <code><a href="/reference/android/webkit/ConsoleMessage.html">ConsoleMessage</a></code> also includes a <code><a href="/reference/android/webkit/ConsoleMessage.MessageLevel.html">MessageLevel</a></code> object to indicate the type of console
+message being delivered. You can query the message level with <code><a href="/reference/android/webkit/ConsoleMessage.html#messageLevel()">messageLevel()</a></code> to determine the severity of the message, then
+use the appropriate <code><a href="/reference/android/util/Log.html">Log</a></code> method or take other appropriate actions.</p>
+<p>Whether you're using <code><a href="/reference/android/webkit/WebChromeClient.html#onConsoleMessage(java.lang.String,%20int,%20java.lang.String)">onConsoleMessage(String, int, String)</a></code> or <code><a href="/reference/android/webkit/WebChromeClient.html#onConsoleMessage(android.webkit.ConsoleMessage)">onConsoleMessage(ConsoleMessage)</a></code>, when you execute a console method
+in your web page, Android calls the appropriate <code><a href="/reference/android/webkit/WebChromeClient.html#onConsoleMessage(java.lang.String,%20int,%20java.lang.String)">onConsoleMessage()</a></code> method so you can report the error. For example, with the example code above,
+a logcat message is printed that looks like this:</p>
+<p>WHATSON? d392da9e-1cf0-4f50-b62a-f35b1a7d6a16</p>
+<pre class="no-pretty-print">
+Hello World -- From line 82 of http://www.example.com/hello.html
+</pre>
+<h1 itemprop="name">Debugging Web Apps</h1>
+<h2>Quickview</h2>
+<ul>
+  <li>You can debug your web app using console methods in JavaScript</li>
+  <li>If debugging in a custom WebView, you need to implement a callback method to handle debug
+messages</li>
+</ul>
+<h2>In this document</h2>
+<ol>
+  <li><a href="#Browser">Using Console APIs in the Android Browser</a></li>
+  <li><a href="#WebView">Using Console APIs in WebView</a></li>
+</ol>
+<h2>See also</h2>
+<ol>
+  <li><a class="external-link" href="https://developers.google.com/chrome-developer-tools/docs/remote-debugging">Remote
+Debugging on Android</a></li>
+  <li><a href="/tools/debugging/index.html">Debugging</a></li>
+</ol>
+<p>If you are testing your web app with a device running Android 4.4 or higher,
+you can remotely debug your web pages in <code><a href="/reference/android/webkit/WebView.html">WebView</a></code> with
+Chrome Developer Tools, while continuing to support older versions of Android.
+For more information, see <a class="external-link" href="https://developers.google.com/chrome-developer-tools/docs/remote-debugging">Remote
+Debugging on Android</a>.</p>
+<p>If you don't have a device running Android 4.4 or higher, you can debug your JavaScript using the
+<code>console</code> JavaScript APIs and view the output messages to logcat. If you're familiar with
+debugging web pages with Firebug or Web Inspector, then you're probably familiar
+with using <code>console</code> (such as <code>console.log()</code>). Android's WebKit framework supports most
+of the same APIs, so you can receive logs from your web page when debugging in Android's Browser
+or in your own <code><a href="/reference/android/webkit/WebView.html">WebView</a></code>. This document describes how to use the
+console APIs for debugging.</p>
+<h2 id="Browser">Using Console APIs in the Android Browser</h2>
+<h2>Logcat</h2>
+<p>Logcat is a tool that dumps a log of system messages. The messages include a stack trace when
+the device throws an error, as well as log messages written from your application and
+those written using JavaScript <code>console</code> APIs.</p>
+<p>To run logcat and view messages, execute
+<code>adb logcat</code> from your Android SDK <code>tools/</code> directory, or, from DDMS, select
+<strong>Device &gt; Run logcat</strong>. When using the <a href="/tools/sdk/eclipse-adt.html">ADT
+plugin for Eclipse</a>, you can also view logcat messages by opening the Logcat view, available from
+<strong>Window &gt; Show View &gt; Other &gt; Android &gt; Logcat</strong>.</p>
+<p>See <a href="/tools/debugging/debugging-log.html">Debugging</a>
+  for more information about <codelogcat>.</codelogcat></p>
+<p>When you call a <code>console</code> function (in the DOM's <code>window.console</code> object),
+the output appears in logcat. For example, if your web page executes the following
+JavaScript:</p>
+<p>WHATSON? 9d005a86-400b-4c1e-85b7-7c926587f8e4</p>
+<pre>
+console.log("Hello World");
+</pre>
+<p>Then the logcat message looks something like this:</p>
+<p>WHATSON? da7d7bef-0903-4a29-844a-5c23dac1de81</p>
+<pre class="no-pretty-print">
+Console: Hello World http://www.example.com/hello.html :82
+</pre>
+<p>The format of the message might appear different depending on which version of Android you're
+using. On Android 2.1 and higher, console messages from the Android Browser
+are tagged with the name "browser". On Android 1.6 and lower, Android Browser
+messages are tagged with the name "WebCore".</p>
+<p>Android's WebKit does not implement all of the console APIs available in other desktop browsers.
+You can, however, use the basic text logging functions:</p>
+<ul>
+  <li><code>console.log(String)</code></li>
+  <li><code>console.info(String)</code></li>
+  <li><code>console.warn(String)</code></li>
+  <li><code>console.error(String)</code></li>
+</ul>
+<p>Other console functions don't raise errors, but might not behave the same as what you
+expect from other web browsers.</p>
+<h2 id="WebView">Using Console APIs in WebView</h2>
+<p>All the console APIs shown above are also
+supported when debugging in <code><a href="/reference/android/webkit/WebView.html">WebView</a></code>. 
+If you're targeting Android 2.1 (API level 7) and higher, you must
+provide a <code><a href="/reference/android/webkit/WebChromeClient.html">WebChromeClient</a></code>
+that implements the <code><a href="/reference/android/webkit/WebChromeClient.html#onConsoleMessage(java.lang.String,%20int,%20java.lang.String)">onConsoleMessage()</a></code> method in order for console messages to appear in logcat.
+Then, apply the <code><a href="/reference/android/webkit/WebChromeClient.html">WebChromeClient</a></code> to your <code><a href="/reference/android/webkit/WebView.html">WebView</a></code> with <code><a href="/reference/android/webkit/WebView.html#setWebChromeClient(android.webkit.WebChromeClient)">setWebChromeClient()</a></code>.
+
+</p>
+<p>For example, to support API level 7, this is how your code for <code><a href="/reference/android/webkit/WebChromeClient.html#onConsoleMessage(java.lang.String,%20int,%20java.lang.String)">onConsoleMessage(String, int, String)</a></code> might look:</p>
+<p>WHATSON? 7a9e99d1-1b6c-4c7d-ac84-a16f4c4c7263</p>
+<pre>
+WebView myWebView = (WebView) findViewById(R.id.webview);
+myWebView.setWebChromeClient(new WebChromeClient() {
+  public void onConsoleMessage(String message, int lineNumber, String sourceID) {
+    Log.d("MyApplication", message + " -- From line "
+                         + lineNumber + " of "
+                         + sourceID);
+  }
+});
+</pre>
+<p>However, if your lowest supported version is API level 8 or higher, you should instead
+implement <code><a href="/reference/android/webkit/WebChromeClient.html#onConsoleMessage(android.webkit.ConsoleMessage)">onConsoleMessage(ConsoleMessage)</a></code>. For example:</p>
+<p>WHATSON? 2969fbf1-b8d3-4d1a-aab3-cdb1049342bd</p>
+<pre>
+WebView myWebView = (WebView) findViewById(R.id.webview);
+myWebView.setWebChromeClient(new WebChromeClient() {
+  public boolean onConsoleMessage(ConsoleMessage cm) {
+    Log.d("MyApplication", cm.<code><a href="/reference/android/webkit/ConsoleMessage.html#message()">message()</a></code> + " -- From line "
+                         + cm.<code><a href="/reference/android/webkit/ConsoleMessage.html#lineNumber()">lineNumber()</a></code> + " of "
+                         + cm.<code><a href="/reference/android/webkit/ConsoleMessage.html#sourceId()">sourceId()</a></code> );
+    return true;
+  }
+});
+</pre>
+<p>The <code><a href="/reference/android/webkit/ConsoleMessage.html">ConsoleMessage</a></code> also includes a <code><a href="/reference/android/webkit/ConsoleMessage.MessageLevel.html">MessageLevel</a></code> object to indicate the type of console
+message being delivered. You can query the message level with <code><a href="/reference/android/webkit/ConsoleMessage.html#messageLevel()">messageLevel()</a></code> to determine the severity of the message, then
+use the appropriate <code><a href="/reference/android/util/Log.html">Log</a></code> method or take other appropriate actions.</p>
+<p>Whether you're using <code><a href="/reference/android/webkit/WebChromeClient.html#onConsoleMessage(java.lang.String,%20int,%20java.lang.String)">onConsoleMessage(String, int, String)</a></code> or <code><a href="/reference/android/webkit/WebChromeClient.html#onConsoleMessage(android.webkit.ConsoleMessage)">onConsoleMessage(ConsoleMessage)</a></code>, when you execute a console method
+in your web page, Android calls the appropriate <code><a href="/reference/android/webkit/WebChromeClient.html#onConsoleMessage(java.lang.String,%20int,%20java.lang.String)">onConsoleMessage()</a></code> method so you can report the error. For example, with the example code above,
+a logcat message is printed that looks like this:</p>
+<p>WHATSON? b8f9b8cb-113d-4722-b18c-4db2df100b2e</p>
+<pre class="no-pretty-print">
+Hello World -- From line 82 of http://www.example.com/hello.html
+</pre>

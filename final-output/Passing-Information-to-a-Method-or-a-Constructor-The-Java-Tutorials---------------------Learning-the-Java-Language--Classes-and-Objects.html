@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Passing-Information-to-a-Method-or-a-Constructor-The-Java-Tutorials---------------------Learning-the-Java-Language--Classes-and-Objects.html</title></head>
+<body>
+<h1>Passing Information to a Method or a Constructor</h1>
+<p>The declaration for a method or a constructor declares the number and the type of the arguments for that method or constructor. For example, the following is a method that computes the monthly payments for a home loan, based on the amount of the loan, the interest rate, the length of the loan (the number of periods), and the future value of the loan:</p>
+<p>WHATSON? 909f1f3c-7617-4394-b4d7-12452f69bc72</p>
+<pre>
+public double computePayment(
+                  double <b>loanAmt</b>,
+                  double <b>rate</b>,
+                  double <b>futureValue</b>,
+                  int <b>numPeriods</b>) {
+    double interest = <b>rate</b> / 100.0;
+    double partial1 = Math.pow((1 + interest), 
+                    - <b>numPeriods</b>);
+    double denominator = (1 - partial1) / interest;
+    double answer = (-<b>loanAmt</b> / denominator)
+                    - ((<b>futureValue</b> * partial1) / denominator);
+    return answer;
+}
+</pre>
+<p>This method has four parameters: the loan amount, the interest rate, the future value and the number of periods. The first three are double-precision floating point numbers, and the fourth is an integer. The parameters are used in the method body and at runtime will take on the values of the arguments that are passed in.</p>
+<h2>Parameter Types</h2>
+<p>You can use any data type for a parameter of a method or a constructor. This includes primitive data types, such as doubles, floats, and integers, as you saw in the <code>computePayment</code> method, and reference data types, such as objects and arrays.</p>
+<p>Here's an example of a method that accepts an array as an argument. In this example, the method creates a new <code>Polygon</code> object and initializes it from an array of <code>Point</code> objects (assume that <code>Point</code> is a class that represents an x, y coordinate):</p>
+<p>WHATSON? 3484712a-3117-4c78-833a-1b2dfbab4181</p>
+<pre>
+public Polygon polygonFrom(Point[] corners) {
+    // method body goes here
+}
+</pre>
+<h2>Arbitrary Number of Arguments</h2>
+<p>You can use a construct called <em>varargs</em> to pass an arbitrary number of values to a method. You use varargs when you don't know how many of a particular type of argument will be passed to the method. It's a shortcut to creating an array manually (the previous method could have used varargs rather than an array).</p>
+<p>To use varargs, you follow the type of the last parameter by an ellipsis (three dots, ...), then a space, and the parameter name. The method can then be called with any number of that parameter, including none.</p>
+<p>WHATSON? 143dcbf0-ed27-4fcf-a1c4-640746f17809</p>
+<pre>
+public Polygon polygonFrom(Point... corners) {
+    int numberOfSides = corners.length;
+    double squareOfSide1, lengthOfSide1;
+    squareOfSide1 = (corners[1].x - corners[0].x)
+                     * (corners[1].x - corners[0].x) 
+                     + (corners[1].y - corners[0].y)
+                     * (corners[1].y - corners[0].y);
+    lengthOfSide1 = Math.sqrt(squareOfSide1);
+
+    // more method body code follows that creates and returns a 
+    // polygon connecting the Points
+}
+</pre>
+<p>You can see that, inside the method, <code>corners</code> is treated like an array. The method can be called either with an array or with a sequence of arguments. The code in the method body will treat the parameter as an array in either case.</p>
+<p>You will most commonly see varargs with the printing methods; for example, this <code>printf</code> method:</p>
+<p>WHATSON? 02c375e5-3e24-4311-865c-cbf78deac71f</p>
+<pre>
+public PrintStream printf(String format, Object... args)
+</pre>
+<p>allows you to print an arbitrary number of objects. It can be called like this:</p>
+<p>WHATSON? 33ef3a8b-4d57-4a5e-8a33-324d0eac49f9</p>
+<pre>
+System.out.printf("%s: %d, %s%n", name, idnum, address);
+</pre>
+<p>or like this</p>
+<p>WHATSON? 9eea292c-d47a-4444-aabc-c31697fa57eb</p>
+<pre>
+System.out.printf("%s: %d, %s, %s, %s%n", name, idnum, address, phone, email);
+</pre>
+<p>or with yet a different number of arguments.</p>
+<h2>Parameter Names</h2>
+<p>When you declare a parameter to a method or a constructor, you provide a name for that parameter. This name is used within the method body to refer to the passed-in argument.</p>
+<p>The name of a parameter must be unique in its scope. It cannot be the same as the name of another parameter for the same method or constructor, and it cannot be the name of a local variable within the method or constructor.</p>
+<p>A parameter can have the same name as one of the class's fields. If this is the case, the parameter is said to <i>shadow</i> the field. Shadowing fields can make your code difficult to read and is conventionally used only within constructors and methods that set a particular field. For example, consider the following <code>Circle</code> class and its <code>setOrigin</code> method:</p>
+<p>WHATSON? f0b8f182-8692-493c-a890-848224012393</p>
+<pre>
+public class Circle {
+    private int x, y, radius;
+    public void setOrigin(int x, int y) {
+        ...
+    }
+}
+</pre>
+<p>The <code>Circle</code> class has three fields: <code>x</code>, <code>y</code>, and <code>radius</code>. The <code>setOrigin</code> method has two parameters, each of which has the same name as one of the fields. Each method parameter shadows the field that shares its name. So using the simple names <code>x</code> or <code>y</code> within the body of the method refers to the parameter, <i>not</i> to the field. To access the field, you must use a qualified name. This will be discussed later in this 
+lesson 
+in the section titled "Using the <code>this</code> Keyword."</p>
+<h2>Passing Primitive Data Type Arguments</h2>
+<p>Primitive arguments, such as an <code>int</code> or a <code>double</code>, are passed into methods <i>by value</i>. This means that any changes to the values of the parameters exist only within the scope of the method. When the method returns, the parameters are gone and any changes to them are lost. Here is an example:</p>
+<p>WHATSON? 685d9a41-3f14-4cd3-b3a6-43d5c30f35f7</p>
+<pre>
+public class PassPrimitiveByValue {
+
+    public static void main(String[] args) {
+           
+        int x = 3;
+           
+        // invoke passMethod() with 
+        // x as argument
+        passMethod(x);
+           
+        // print x to see if its 
+        // value has changed
+        System.out.println("After invoking passMethod, x = " + x);
+           
+    }
+        
+    // change parameter in passMethod()
+    public static void passMethod(int p) {
+        p = 10;
+    }
+}
+</pre>
+<p>When you run this program, the output is:</p>
+<p>WHATSON? b0fab19a-60ae-47f1-96be-15c6130e31d7</p>
+<pre>
+After invoking passMethod, x = 3
+</pre>
+<h2>Passing Reference Data Type Arguments</h2>
+<p>Reference data type parameters, such as objects, are also passed into methods <i>by value</i>. This means that when the method returns, the passed-in reference still references the same object as before. <i>However</i>, the values of the object's fields <i>can</i> be changed in the method, if they have the proper access level.</p>
+<p>For example, consider a method in an arbitrary class that moves <code>Circle</code> objects:</p>
+<p>WHATSON? f710db4c-ab05-4522-98c0-06ed61815cb5</p>
+<pre>
+public void moveCircle(Circle circle, int deltaX, int deltaY) {
+    // code to move origin of circle to x+deltaX, y+deltaY
+    circle.setX(circle.getX() + deltaX);
+    circle.setY(circle.getY() + deltaY);
+        
+    // code to assign a new reference to circle
+    circle = new Circle(0, 0);
+}
+</pre>
+<p>Let the method be invoked with these arguments:</p>
+<p>WHATSON? aac575b7-7b7c-4085-9fb9-a514f09d77d5</p>
+<pre>
+moveCircle(myCircle, 23, 56)
+</pre>
+<p>Inside the method, <code>circle</code> initially refers to <code>myCircle</code>. The method changes the x and y coordinates of the object that <code>circle</code> references (i.e., <code>myCircle</code>) by 23 and 56, respectively. These changes will persist when the method returns. Then <code>circle</code> is assigned a reference to a new <code>Circle</code> object with <code>x = y = 0</code>. This reassignment has no permanence, however, because the reference was passed in by value and cannot change. Within the method, the object pointed to by <code>circle</code> has changed, but, when the method returns, <code>myCircle</code> still references the same <code>Circle</code> object as before the method was called.</p>
+</body>
+</html>

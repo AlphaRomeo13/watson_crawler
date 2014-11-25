@@ -1,0 +1,158 @@
+<h1>Deploying an Applet</h1>
+<p>To deploy your Java applet, first compile the source code, package it as a JAR file, and sign the JAR file.</p>
+<p>Java applets can be launched in two ways.</p>
+<ul>
+<li>You can launch your applet by using Java Network Launch Protocol (JNLP). Applets launched by using JNLP have access to powerful JNLP APIs and extensions.</li>
+<li>Alternatively, you can launch an applet by specifying the applet's launch properties directly in the applet tag. However, this old way of deploying applets imposes severe security restrictions on the applet.</li>
+</ul>
+<p>The Deployment Toolkit script contains useful JavaScript functions that can be used to deploy applets in a web page.</p>
+<p>If you are unfamiliar with these deployment technologies, review the 
+<a class="TutorialLink" target="_top" href="../deploymentInDepth/index.html">Deployment In-Depth</a> lesson before proceeding further.</p>
+<p>Here are some step-by-step instructions to package and deploy your applet. The Dynamic Tree Demo applet is used to illustrate applet deployment. You might want to set up build scripts to execute some of the following steps.</p>
+<ol>
+<li>Compile your applet's Java code and make sure all class files and resources such as images are in a separate directory.
+<p>In the case of the DynamicTree Demo applet, the compiled classes are placed in the <code>build/classes/appletComponentArch</code> directory.</p>
+</li>
+<li>Create a text file that contains any JAR file manifest attributes that your applet needs.
+<p>For the DynamicTree Demo applet, create a file named <code>mymanifest.txt</code> in the <code>build/classes</code> directory, and add the <code>Permissions</code>, <code>Codebase</code>, and <code>Application-Name</code> attributes. The applet does not require access to the user's system resources, so use <code>sandbox</code> for the permissions. Use the domain from which you will load the sample for the code base, for example, <code>myserver.com</code>. Add the following attributes to the <code>mymanifest.txt</code> file. </p>
+<div class="codeblock"><pre>
+Permissions: sandbox
+Codebase: myserver.com
+Application-Name: Dynamic Tree Demo
+</pre></div>    
+<p>Other manifest attributes are available to restrict an applet to using only trusted code, and to provide security for applets that need to make calls between privileged Java code and sandbox Java code, or have JavaScript code that calls the applet. See the
+<a class="TutorialLink" target="_top" href="../jar/secman.html">Enhancing Security with Manifest Attributes</a> lesson to learn more about the manifest attributes that are available.</p></li>
+<li>Create a JAR file containing your applet's class files and resources. Include the manifest attributes in the <code>mymanifest.txt</code> file that you created in the previous step.
+<p>For example, the following command creates a JAR file with the class files in the <code>build/classes/appletComponentArch</code> directory and the manifest file in the <code>build/classes</code> directory.</p>
+<div class="codeblock"><pre>
+% cd build/classes
+% jar cvfm DynamicTreeDemo.jar mymanifest.txt appletComponentArch
+</pre></div>    
+<p>See the 
+<a class="TutorialLink" target="_top" href="../jar/index.html">Packaging Programs in JAR Files</a> lesson to learn more about creating and using JAR files.</p></li>
+<li>Sign the JAR file for your applet and time stamp the signature. Use a valid, current code signing certificate issued by a trusted certificate authority to provide your users with assurance that it is safe to run the applet.
+<p>See the
+<a class="TutorialLink" target="_top" href="../jar/signing.html">Signing JAR Files</a> lesson for more information.</p>
+<p>If you want to use a signed JNLP file for security, create the JNLP file as described in the next step and include it in the JAR file before the JAR file is signed. See
+<a class="OutsideLink" target="_blank" href="http://docs.oracle.com/javase/8/docs/technotes/guides/deploy/signedJNLP.html">Signed JNLP Files</a> in the Java Platform, Standard Edition Deployment Guide for information.</p></li>
+<li>Create a JNLP file that describes how your applet should be launched.
+<p>Here is the JNLP file used to launch the Dynamic Tree Demo applet.</p>
+The source for 
+<a class="SourceLink" target="_blank" href="examples/applet_ComponentArch_DynamicTreeDemo/src/dynamictree_applet.jnlp" onclick="showCode('../../displayCode.html', 'examples/applet_ComponentArch_DynamicTreeDemo/src/dynamictree_applet.jnlp'); return false;"><code><code>dynamictree_applet.jnlp</code></code></a> follows:
+<div class="codeblock"><pre>    
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;jnlp spec="1.0+" codebase="" href=""&gt;
+    &lt;information&gt;
+        &lt;title&gt;Dynamic Tree Demo&lt;/title&gt;
+        &lt;vendor&gt;Dynamic Team&lt;/vendor&gt;
+    &lt;/information&gt;
+    &lt;resources&gt;
+        &lt;!-- Application Resources --&gt;
+        &lt;j2se version="1.7+"
+            href="http://java.sun.com/products/autodl/j2se" /&gt;
+        &lt;jar href="DynamicTreeDemo.jar" main="true" /&gt;
+
+    &lt;/resources&gt;
+    &lt;applet-desc 
+         name="Dynamic Tree Demo Applet"
+         main-class="components.DynamicTreeApplet"
+         width="300"
+         height="300"&gt;
+     &lt;/applet-desc&gt;
+     &lt;update check="background"/&gt;
+&lt;/jnlp&gt;                                   
+</pre></div>
+<p>Note that the security element for requesting additional permissions is not present in the JNLP file, therefore the applet runs only in the security sandbox.</p>
+<p>The topic, 
+<a class="TutorialLink" target="_top" href="../deploymentInDepth/jnlpFileSyntax.html">Structure of the JNLP File</a>, describes JNLP file syntax and options.</p></li>
+<li>Create the HTML page that will display the applet. Invoke Deployment Toolkit functions to deploy the applet.
+<p>In our example, the Dynamic Tree Demo applet is deployed in 
+<a class="SourceLink" target="_blank" href="examples/dist/applet_ComponentArch_DynamicTreeDemo/AppletPage.html" onclick="showCode('../../displayCode.html', 'examples/dist/applet_ComponentArch_DynamicTreeDemo/AppletPage.html'); return false;"><code><code>AppletPage.html</code></code></a>.</p>
+<div class="codeblock"><pre>
+&lt;body&gt;
+    &lt;!-- ... --&gt;
+    &lt;script src="https://www.java.com/js/deployJava.js"&gt;&lt;/script&gt;
+    &lt;script&gt; 
+        var attributes = {
+            code:'components.DynamicTreeApplet',  width:300, height:300} ; 
+        var parameters = {jnlp_href: 'dynamictree_applet.jnlp'} ; 
+        deployJava.runApplet(attributes, parameters, '1.7'); 
+    &lt;/script&gt;
+    &lt;!-- ... --&gt;
+&lt;/body&gt;
+</pre></div>
+</li>
+<li>Place the applet's JAR file, JNLP file and HTML page in the appropriate folder(s).
+<p>For this example, place <code>DynamicTreeDemo.jar</code>, <code>dynamictree_applet.jnlp</code>, and <code>AppletPage.html</code> in the same directory on the local machine or a web server. A web server is preferred. To run from the local machine, you must add your application to the exception site list, which is managed from the Security tab of the Java Control Panel.</p>
+</li>
+<li>Open the applet's HTML page in a browser to view the applet. Agree to run the applet when prompted. Check the Java Console log for error and debugging messages.</li>
+</ol>
+<p>In the case of the DynamicTree Demo applet, the compiled classes are placed in the <code>build/classes/appletComponentArch</code> directory.</p>
+<p>For the DynamicTree Demo applet, create a file named <code>mymanifest.txt</code> in the <code>build/classes</code> directory, and add the <code>Permissions</code>, <code>Codebase</code>, and <code>Application-Name</code> attributes. The applet does not require access to the user's system resources, so use <code>sandbox</code> for the permissions. Use the domain from which you will load the sample for the code base, for example, <code>myserver.com</code>. Add the following attributes to the <code>mymanifest.txt</code> file. </p>
+<p>WHATSON? 55114bfe-5436-4940-9445-2466e96e96a5</p>
+<pre>
+Permissions: sandbox
+Codebase: myserver.com
+Application-Name: Dynamic Tree Demo
+</pre>
+<p>Other manifest attributes are available to restrict an applet to using only trusted code, and to provide security for applets that need to make calls between privileged Java code and sandbox Java code, or have JavaScript code that calls the applet. See the
+<a class="TutorialLink" target="_top" href="../jar/secman.html">Enhancing Security with Manifest Attributes</a> lesson to learn more about the manifest attributes that are available.</p>
+<p>For example, the following command creates a JAR file with the class files in the <code>build/classes/appletComponentArch</code> directory and the manifest file in the <code>build/classes</code> directory.</p>
+<p>WHATSON? 39ba867e-fb4d-4c11-9cb0-fca8f51ce9f4</p>
+<pre>
+% cd build/classes
+% jar cvfm DynamicTreeDemo.jar mymanifest.txt appletComponentArch
+</pre>
+<p>See the 
+<a class="TutorialLink" target="_top" href="../jar/index.html">Packaging Programs in JAR Files</a> lesson to learn more about creating and using JAR files.</p>
+<p>See the
+<a class="TutorialLink" target="_top" href="../jar/signing.html">Signing JAR Files</a> lesson for more information.</p>
+<p>If you want to use a signed JNLP file for security, create the JNLP file as described in the next step and include it in the JAR file before the JAR file is signed. See
+<a class="OutsideLink" target="_blank" href="http://docs.oracle.com/javase/8/docs/technotes/guides/deploy/signedJNLP.html">Signed JNLP Files</a> in the Java Platform, Standard Edition Deployment Guide for information.</p>
+<p>Here is the JNLP file used to launch the Dynamic Tree Demo applet.</p>
+<p>WHATSON? 3d540570-a557-4a07-bf5a-05dcebc17514</p>
+<pre>    
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;jnlp spec="1.0+" codebase="" href=""&gt;
+    &lt;information&gt;
+        &lt;title&gt;Dynamic Tree Demo&lt;/title&gt;
+        &lt;vendor&gt;Dynamic Team&lt;/vendor&gt;
+    &lt;/information&gt;
+    &lt;resources&gt;
+        &lt;!-- Application Resources --&gt;
+        &lt;j2se version="1.7+"
+            href="http://java.sun.com/products/autodl/j2se" /&gt;
+        &lt;jar href="DynamicTreeDemo.jar" main="true" /&gt;
+
+    &lt;/resources&gt;
+    &lt;applet-desc 
+         name="Dynamic Tree Demo Applet"
+         main-class="components.DynamicTreeApplet"
+         width="300"
+         height="300"&gt;
+     &lt;/applet-desc&gt;
+     &lt;update check="background"/&gt;
+&lt;/jnlp&gt;                                   
+</pre>
+<p>Note that the security element for requesting additional permissions is not present in the JNLP file, therefore the applet runs only in the security sandbox.</p>
+<p>The topic, 
+<a class="TutorialLink" target="_top" href="../deploymentInDepth/jnlpFileSyntax.html">Structure of the JNLP File</a>, describes JNLP file syntax and options.</p>
+<p>In our example, the Dynamic Tree Demo applet is deployed in 
+<a class="SourceLink" target="_blank" href="examples/dist/applet_ComponentArch_DynamicTreeDemo/AppletPage.html" onclick="showCode('../../displayCode.html', 'examples/dist/applet_ComponentArch_DynamicTreeDemo/AppletPage.html'); return false;"><code><code>AppletPage.html</code></code></a>.</p>
+<p>WHATSON? bc570890-9bf0-49f6-8150-92e7626798a3</p>
+<pre>
+&lt;body&gt;
+    &lt;!-- ... --&gt;
+    &lt;script src="https://www.java.com/js/deployJava.js"&gt;&lt;/script&gt;
+    &lt;script&gt; 
+        var attributes = {
+            code:'components.DynamicTreeApplet',  width:300, height:300} ; 
+        var parameters = {jnlp_href: 'dynamictree_applet.jnlp'} ; 
+        deployJava.runApplet(attributes, parameters, '1.7'); 
+    &lt;/script&gt;
+    &lt;!-- ... --&gt;
+&lt;/body&gt;
+</pre>
+<p>For this example, place <code>DynamicTreeDemo.jar</code>, <code>dynamictree_applet.jnlp</code>, and <code>AppletPage.html</code> in the same directory on the local machine or a web server. A web server is preferred. To run from the local machine, you must add your application to the exception site list, which is managed from the Security tab of the Java Control Panel.</p>
+<p>
+<a class="TutorialLink" target="_top" href="examplesIndex.html#ComponentArchDynamicTreeDemo">Download source code</a> for the <em>Dynamic Tree Demo Applet</em> example to experiment further.</p>

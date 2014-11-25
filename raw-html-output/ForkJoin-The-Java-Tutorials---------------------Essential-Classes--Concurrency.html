@@ -1,0 +1,132 @@
+<h1>Fork/Join</h1>
+<p>The fork/join framework is an implementation of the <code>ExecutorService</code> interface that helps you take advantage of multiple processors. It is designed for work that can be broken into smaller pieces recursively. The goal is to use all the available processing power to enhance the performance of your application.</p>
+<p>As with any <code>ExecutorService</code> implementation, the fork/join framework distributes tasks to worker threads in a thread pool. The fork/join framework is distinct because it uses a <i>work-stealing</i> algorithm. Worker threads that run out of things to do can steal tasks from other threads that are still busy.</p>
+<p>The center of the fork/join framework is the 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ForkJoinPool.html"><code>ForkJoinPool</code></a> class, an extension of the <code>AbstractExecutorService</code> class. <code>ForkJoinPool</code> implements the core work-stealing algorithm and can execute 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ForkJoinTask.html"><code>ForkJoinTask</code></a> processes.</p>
+<h2>Basic Use</h2>
+<p>The first step for using the fork/join framework is to write code that performs a segment of the work. Your code should look similar to the following pseudocode:</p>
+<p>WHATSON? 5d6affb8-74a9-4434-8456-e701be8f81e1</p>
+<pre>
+if (my portion of the work is small enough)
+  do the work directly
+else
+  split my work into two pieces
+  invoke the two pieces and wait for the results
+</pre>
+<p>Wrap this code in a <code>ForkJoinTask</code> subclass, typically using one of its more specialized types, either 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/util/concurrent/RecursiveTask.html"><code>RecursiveTask</code></a> (which can return a result) or 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/util/concurrent/RecursiveAction.html"><code>RecursiveAction</code></a>.</p>
+<p>After your <code>ForkJoinTask</code> subclass is ready, create the object that represents all the work to be done and pass it to the <code>invoke()</code> method of a <code>ForkJoinPool</code> instance.</p>
+<h2>Blurring for Clarity</h2>
+<p>To help you understand how the fork/join framework works, consider the following example. Suppose that you want to blur an image. The original <i>source</i> image is represented by an array of integers, where each integer contains the color values for a single pixel. The blurred <i>destination</i> image is also represented by an integer array with the same size as the source.</p>
+<p>Performing the blur is accomplished by working through the source array one pixel at a time. Each pixel is averaged with its surrounding pixels (the red, green, and blue components are averaged), and the result is placed in the destination array. Since an image is a large array, this process can take a long time. You can take advantage of concurrent processing on multiprocessor systems by implementing the algorithm using the fork/join framework. Here is one possible implementation:</p>
+<p>WHATSON? ceb8745f-b941-4669-a1bd-9fa40181ff88</p>
+<pre>
+public class ForkBlur extends RecursiveAction {
+    private int[] mSource;
+    private int mStart;
+    private int mLength;
+    private int[] mDestination;
+  
+    // Processing window size; should be odd.
+    private int mBlurWidth = 15;
+  
+    public ForkBlur(int[] src, int start, int length, int[] dst) {
+        mSource = src;
+        mStart = start;
+        mLength = length;
+        mDestination = dst;
+    }
+
+    protected void computeDirectly() {
+        int sidePixels = (mBlurWidth - 1) / 2;
+        for (int index = mStart; index &lt; mStart + mLength; index++) {
+            // Calculate average.
+            float rt = 0, gt = 0, bt = 0;
+            for (int mi = -sidePixels; mi &lt;= sidePixels; mi++) {
+                int mindex = Math.min(Math.max(mi + index, 0),
+                                    mSource.length - 1);
+                int pixel = mSource[mindex];
+                rt += (float)((pixel &amp; 0x00ff0000) &gt;&gt; 16)
+                      / mBlurWidth;
+                gt += (float)((pixel &amp; 0x0000ff00) &gt;&gt;  8)
+                      / mBlurWidth;
+                bt += (float)((pixel &amp; 0x000000ff) &gt;&gt;  0)
+                      / mBlurWidth;
+            }
+          
+            // Reassemble destination pixel.
+            int dpixel = (0xff000000     ) |
+                   (((int)rt) &lt;&lt; 16) |
+                   (((int)gt) &lt;&lt;  8) |
+                   (((int)bt) &lt;&lt;  0);
+            mDestination[index] = dpixel;
+        }
+    }
+  
+  ...
+</pre>
+<p>Now you implement the abstract <code>compute()</code> method, which either performs the blur directly or splits it into two smaller tasks. A simple array length threshold helps determine whether the work is performed or split.</p>
+<p>WHATSON? 26c8a7f1-ccf7-4b4a-a539-1dcb2553eac0</p>
+<pre>
+protected static int sThreshold = 100000;
+
+protected void compute() {
+    if (mLength &lt; sThreshold) {
+        computeDirectly();
+        return;
+    }
+    
+    int split = mLength / 2;
+    
+    invokeAll(new ForkBlur(mSource, mStart, split, mDestination),
+              new ForkBlur(mSource, mStart + split, mLength - split,
+                           mDestination));
+}
+</pre>
+<p>If the previous methods are in a subclass of the <code>RecursiveAction</code> class, then setting up the task to run in a <code>ForkJoinPool</code> is straightforward, and involves the following steps:</p>
+<ol>
+<li><p>Create a task that represents all of the work to be done.</p>
+<div class="codeblock"><pre>
+// source image pixels are in src
+// destination image pixels are in dst
+ForkBlur fb = new ForkBlur(src, 0, src.length, dst);
+</pre></div>
+</li>
+<li><p>Create the <code>ForkJoinPool</code> that will run the task.</p>
+<div class="codeblock"><pre>
+ForkJoinPool pool = new ForkJoinPool();
+</pre></div>
+</li>
+<li><p>Run the task.</p>
+<div class="codeblock"><pre>
+pool.invoke(fb);
+</pre></div>
+</li>
+</ol>
+<p>Create a task that represents all of the work to be done.</p>
+<p>WHATSON? 0e0e4b57-edb0-435c-abc7-5422a1ce4345</p>
+<pre>
+// source image pixels are in src
+// destination image pixels are in dst
+ForkBlur fb = new ForkBlur(src, 0, src.length, dst);
+</pre>
+<p>Create the <code>ForkJoinPool</code> that will run the task.</p>
+<p>WHATSON? 1b04bd34-b739-49b5-ba2c-bba90c0e214b</p>
+<pre>
+ForkJoinPool pool = new ForkJoinPool();
+</pre>
+<p>Run the task.</p>
+<p>WHATSON? 7500b5a8-58d3-48b1-85ab-a15c62b2e09a</p>
+<pre>
+pool.invoke(fb);
+</pre>
+<p>For the full source code, including some extra code that creates the destination image file, see the 
+<a class="SourceLink" target="_blank" href="examples/ForkBlur.java" onclick="showCode('../../displayCode.html', 'examples/ForkBlur.java'); return false;"><code><code>ForkBlur</code></code></a> example.</p>
+<h2>Standard Implementations</h2>
+<p>Besides using the fork/join framework to implement custom algorithms for tasks to be performed concurrently on a multiprocessor system (such as the <code>ForkBlur.java</code> example in the previous section), there are some generally useful features in Java SE which are already implemented using the fork/join framework. One such implementation, introduced in Java SE 8, is used by the 
+<a class="APILink" target="_blank" href="http://docs.oracle.com/javase/8/docs/api/java/util/Arrays.html"><code>java.util.Arrays</code></a> class for its <code>parallelSort()</code> methods. These methods are similar to <code>sort()</code>, but leverage concurrency via the fork/join framework. Parallel sorting of large arrays is faster than sequential sorting when run on multiprocessor systems. However, how exactly the fork/join framework is leveraged by these methods is outside the scope of the Java Tutorials. For this information, see the Java API documentation.</p>
+<p>Another implementation of the fork/join framework is used by methods in the <code>java.util.streams</code> package, which is part of 
+<a class="OutsideLink" target="_blank" href="http://openjdk.java.net/projects/lambda/">Project Lambda</a> scheduled for the Java SE 8 release. For more information, see the  
+<a class="TutorialLink" target="_top" href="../../java/javaOO/lambdaexpressions.html">Lambda Expressions</a> section.</p>

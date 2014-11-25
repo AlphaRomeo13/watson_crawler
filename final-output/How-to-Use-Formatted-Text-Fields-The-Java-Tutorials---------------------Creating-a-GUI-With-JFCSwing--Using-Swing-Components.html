@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>How-to-Use-Formatted-Text-Fields-The-Java-Tutorials---------------------Creating-a-GUI-With-JFCSwing--Using-Swing-Components.html</title></head>
+<body>
+<h1>How to Use Formatted Text Fields</h1>
+<p>Formatted text fields provide a way for developers to specify the valid set of characters that can be typed in a text field. Specifically, the 
+<code>JFormattedTextField</code> class adds a <em>formatter</em> and an object <em>value</em> to the features inherited from the <code>JTextField</code> class. The formatter translates the field's value into the text it displays, and the text into the field's value.</p>
+<p>Using the formatters that Swing provides, you can set up formatted text fields to type dates and numbers in localized formats. Another kind of formatter enables you to use a character mask to specify the set of characters that can be typed at each position in the field. For example, you can specify a mask for typing phone numbers in a particular format, such as (XX) X-XX-XX-XX-XX.</p>
+<p>If the possible values of a formatted text field have an obvious order, use a spinner instead. A spinner uses a formatted text field by default, but adds two buttons that enable the user to choose a value in a sequence.</p>
+<p>Another alternative or adjunct to using a formatted text field is installing an 
+input verifier on the field. A component's input verifier is called when the component nearly loses the keyboard focus. The input verifier enables you to check whether the value of the component is valid and optionally change it or stop the focus from being transferred.</p>
+<p>This GUI uses formatted text fields to display numbers in four different formats.</p>
+<ol>
+<li>Click the Launch button to run FormattedTextFieldDemo using 
+Java™ Web Start  (download JDK 7 or later). Alternatively, to compile and run the example yourself, consult the example index.<img src="../../images/jws-launch-button.png" width="88" height="23" align="bottom" alt="Launches the FormattedTextFieldDemo Application"><br></li>
+<li>Experiment with different loan amounts, annual percentage rates (APRs), and loan lengths.<br>
+Note that as long as the text you type is valid, the Month Payment field is updated when you press Enter or move the focus out of the field that you are editing.</li>
+<li>Type invalid text such as "abcd" in the Loan Amount field and then press Enter.<br>
+The Month Payment field remains the same. When you move the focus from the Loan Amount field, the text reverts to the field's last valid value.</li>
+<li>Type marginally valid text such as "2000abcd" in the Loan Amount field and press Enter.<br>
+The Monthly Payment field is updated, though the Loan Amount field still displays <code>2000abcd</code>. When you move the focus from the Loan Amount field, the text it displays is updated to a neatly formatted version of its value, for example, "2,000".</li>
+</ol>
+<p>You can find the entire code for this program in 
+<code><code>FormattedTextFieldDemo.java</code></code>. This code creates the first field.</p>
+<p>WHATSON? 7d971bb9-0af3-4762-a436-a6064f9fe193</p>
+<pre>
+amountField = new JFormattedTextField(amountFormat);
+amountField.setValue(new Double(amount));
+amountField.setColumns(10);
+amountField.addPropertyChangeListener("value", this);
+...
+amountFormat = NumberFormat.getNumberInstance();
+</pre>
+<p>The constructor used to create the <code>amountField</code> object takes a <code>java.text.Format</code> argument. The <code>Format</code> object is used by the field's formatter to translate the field's value to text and the text to the field's value.</p>
+<p>The remaining code sets up the <code>amountField</code> object. The <code>setValue</code> method sets the field's value property to a floating-point number represented as a <code>Double</code> object. The <code>setColumns</code> method, inherited from the <code>JTextField</code> class, hints about the preferred size of the field. The call to the <code>addPropertyChangeListener</code> method registers a listener for the value property of the field, so the program can update the Monthly Payment field whenever the user changes the loan amount.</p>
+<p>The rest of this section covers the following topics:</p>
+<ul>
+<li>Creating and Initializing Formatted Text Fields</li>
+<li>Setting and Getting the Field's Value</li>
+<li>Specifying Formats</li>
+<li>Using MaskFormatter</li>
+<li>Specifying Formatters and Using Formatter Factories</li>
+</ul>
+<p>This section does not explain the API inherited from the <code>JTextField</code> class. That API is described in How to Use Text Fields.</p>
+<h2>Creating and Initializing Formatted Text Fields</h2>
+<p>The following code creates and initializes the remaining three fields in the <code>FormattedTextFieldDemo</code> example.</p>
+<p>WHATSON? 4d5a3803-b81a-4d47-9bb5-f573f3df574a</p>
+<pre>
+rateField = new JFormattedTextField(percentFormat);
+rateField.setValue(new Double(rate));
+rateField.setColumns(10);
+rateField.addPropertyChangeListener("value", this);
+
+numPeriodsField = new JFormattedTextField();
+numPeriodsField.setValue(new Integer(numPeriods));
+numPeriodsField.setColumns(10);
+numPeriodsField.addPropertyChangeListener("value", this);
+
+paymentField = new JFormattedTextField(paymentFormat);
+paymentField.setValue(new Double(payment));
+paymentField.setColumns(10);
+paymentField.setEditable(false);
+paymentField.setForeground(Color.red);
+
+...
+percentFormat = NumberFormat.getNumberInstance();
+percentFormat.setMinimumFractionDigits(2);
+
+paymentFormat = NumberFormat.getCurrencyInstance();
+</pre>
+<p>The code for setting up the <code>rateField</code> object is almost identical to the code listed previously for other fields. The only difference is that the format is slightly different, thanks to the code <code>percentFormat.setMinimumFractionDigits(2)</code>.</p>
+<p>The code that creates the <code>numPeriodsField</code> object does not explicitly set a format or formatter. Instead, it sets the value to an <code>Integer</code> and enables the field to use the default formatter for <code>Integer</code> objects. The code did not do this in the previous two fields because the default formatter is not being used for <code>Double</code> objects. The result was not what was needed. How to specify formats and formatters is covered later in this section.</p>
+<p>The payment field is different from the other fields because it is uneditable, uses a different color for its text, and does not have a property change listener. Otherwise, it is identical to the other fields. We could have chosen to use a text field or label instead. Whatever the component, we could still use the <code>paymentFormat</code> method to parse the payment amount into the text to be displayed.</p>
+<h2>Setting and Getting the Field's Value</h2>
+<p>Keep the following in mind when using a formatted text field:</p>
+<p><strong>A formatted text field's <em>text</em> and its <em>value</em> are two different properties, and the value often lags behind the text.</strong></p>
+<p>The <em>text</em> property is defined by the <code>JTextField</code> class. This property always reflects what the field displays. The <em>value</em> property, defined by the <code>JFormattedTextField</code> class, might not reflect the latest text displayed in the field. While the user is typing, the text property changes, but the value property does not change until the changes are <em>committed</em>.</p>
+<p>To be more precise, the value of a formatted text field can be set by using either the <code>setValue</code> method or the <code>commitEdit</code> method. The <code>setValue</code> method sets the value to the specified argument. The argument can technically be any <code>Object</code>, but the formatter needs to be able to convert it into a string. Otherwise, the text field does not display any substantive information.</p>
+<p>The <code>commitEdit</code> method sets the value to whatever object the formatter determines is represented by the field's text. The <code>commitEdit</code> method is automatically called when either of the following happens:</p>
+<ul>
+<li>When the user presses Enter while the field has the focus.</li>
+<li>By default, when the field loses the focus, for example, when the user presses the Tab key to change the focus to another component. You can use the <code>setFocusLostBehavior</code> method to specify a different outcome when the field loses the focus.</li>
+</ul>
+<p>Some formatters might update the value constantly, rendering the loss of focus meaningless, as the value is always the same as what the text specifies.</p>
+<p>When you set the value of a formatted text field, the field's text is updated to reflect the value. Exactly how the value is represented as text depends on the field's formatter.</p>
+<p>Note that although the <code>JFormattedTextField</code> class inherits the <code>setText</code> method from the <code>JTextField</code> class, you do not usually call the <code>setText</code> method on a formatted text field. If you do, the field's display changes accordingly but the value is not updated (unless the field's formatter updates it constantly).</p>
+<p>To obtain a formatted text field's current value, use the <code>getValue</code> method. If necessary, you can ensure that the value reflects the text by calling the <code>commitEdit</code> method before <code>getValue</code>. Because the <code>getValue</code> method returns an <code>Object</code>, you need to cast it to the type used for your field's value. For example:</p>
+<p>WHATSON? d7a804cd-76c0-4edd-a8cf-a63648406b31</p>
+<pre>
+Date enteredDate = (Date)dateField.getValue();
+</pre>
+<p>To detect changes in a formatted text field's value, you can register a property change listener on the formatted text field to listen for changes to the "value" property. The property change listener is taken from the <code>FormattedTextFieldDemo</code> example:</p>
+<p>WHATSON? 6906f7a2-13e6-4500-a6f9-4e225ca78cf1</p>
+<pre>
+<em>//The property change listener is registered on each
+//field using code like this:
+//    someField.addPropertyChangeListener("value", this);</em>
+
+/** Called when a field's "value" property changes. */
+public void propertyChange(PropertyChangeEvent e) {
+    Object source = e.getSource();
+    if (source == amountField) {
+        amount = ((Number)amountField.getValue()).doubleValue();
+    } else if (source == rateField) {
+        rate = ((Number)rateField.getValue()).doubleValue();
+    } else if (source == numPeriodsField) {
+        numPeriods = ((Number)numPeriodsField.getValue()).intValue();
+    }
+
+    double payment = computePayment(amount, rate, numPeriods);
+    paymentField.setValue(new Double(payment));
+}
+</pre>
+<h2>Specifying Formats</h2>
+<p>The 
+<code>Format</code> class provides a way to format locale-sensitive information such as dates and numbers. Formatters that descend from the 
+<code>InternationalFormatter</code> class, such as the 
+<code>DateFormatter</code> and 
+<code>NumberFormatter</code> classes, use <code>Format</code> objects to translate between the field's text and value. You can obtain a <code>Format</code> object by calling one of the factory methods in the 
+<code>DateFormat</code> or 
+<code>NumberFormat</code> classes, or by using one of the 
+<code>SimpleDateFormat</code> constructors.</p>
+<p>A third commonly used formatter class, <code>MaskFormatter</code>, does not descend from the <code>InternationalFormatter</code> class and does not use formats. The <code>MaskFormatter</code> is discussed in Using MaskFormatter.</p>
+<p>You can customize certain format aspects when you create the <code>Format</code> object, and others through a format-specific API. For example, 
+<code>DecimalFormat</code> objects, which inherit from <code>NumberFormat</code> and are often returned by its factory methods, can be customized by using the <code>setMaximumFractionDigits</code> and <code>setNegativePrefix</code> methods. For information about using <code>Format</code> objects, see the 
+Formatting lesson of the Internationalization trail.</p>
+<p>The easiest way to associate a customized format with a formatted text field is to create the field by using the <code>JFormattedTextField</code> constructor that takes a <code>Format</code> as an argument. You can see this association in the previous code examples that create <code>amountField</code> and <code>rateField</code> objects.</p>
+<h2>Using MaskFormatter</h2>
+<p>The 
+<code>MaskFormatter</code> class implements a formatter that specifies exactly which characters are valid in each position of the field's text. For example, the following code creates a <code>MaskFormatter</code> that lets the user to type a five-digit zip code:</p>
+<p>WHATSON? 7c42a15e-cfcb-4eb5-b49d-c5eaa330bb3b</p>
+<pre>
+zipField = new JFormattedTextField(
+                    createFormatter("#####"));
+...
+protected MaskFormatter createFormatter(String s) {
+    MaskFormatter formatter = null;
+    try {
+        formatter = new MaskFormatter(s);
+    } catch (java.text.ParseException exc) {
+        System.err.println("formatter is bad: " + exc.getMessage());
+        System.exit(-1);
+    }
+    return formatter;
+}
+</pre>
+<p>You can try out the results of the preceding code by running <code>TextInputDemo</code>. Click the Launch button to run TextInputDemo using 
+Java™ Web Start  (download JDK 7 or later). Alternatively, to compile and run the example yourself, consult the example index.</p>
+<p>The program's GUI is displayed.</p>
+<p>The following table shows the characters that you can use in the formatting mask:</p>
+<h2>Specifying Formatters and Using Formatter Factories</h2>
+<p>When specifying formatters, keep in mind that each formatter object can be used by at most one formatted text field at a time. Each field should have at least one formatter associated with it, of which exactly one is used at any time.</p>
+<p>You can specify the formatters to be used by a formatted text field in several ways:</p>
+<ul>
+<li><b>Use the <code>JFormattedTextField</code> constructor that takes a <code>Format</code> argument.</b><br>
+A formatter for the field is automatically created that uses the specified format.</li>
+<li><b>Use the <code>JFormattedTextField</code> constructor that takes a <code>JFormattedTextField.AbstractFormatter</code> argument.</b><br>
+The specified formatter is used for the field.</li>
+<li><b>Set the value of a formatted text field that has no format, formatter, or formatter factory specified.</b><br>
+A formatter is assigned to the field by the default formatter factory, using the type of the field's value as a guide. If the value is a <code>Date</code>, the formatter is a <code>DateFormatter</code>. If the value is a <code>Number</code>, the formatter is a <code>NumberFormatter</code>. Other types result in an instance of <code>DefaultFormatter</code>.</li>
+<li><b>Make the formatted text field use a formatter factory that returns customized formatter objects.</b><br>
+This is the most flexible approach. It is useful when you want to associate more than one formatter with a field or add a new kind of formatter to be used for multiple fields. An example of the former use is a field that interprets the user typing in a certain way but displays the value (when the user is not typing) in another way. An example of the latter use is several fields with custom class values, for example, <code>PhoneNumber</code>. You can set up the fields to use a formatter factory that returns specialized formatters for phone numbers.</li>
+</ul>
+<p>You can set a field's formatter factory either by creating the field using a constructor that takes a formatter factory argument, or by calling the <code>setFormatterFactory</code> method on the field. To create a formatter factory, you can often use an instance of 
+<code>DefaultFormatterFactory</code> class. A <code>DefaultFormatterFactory</code> object enables you to specify the formatters returned when a value is being edited, is not being edited, or has a null value.</p>
+<p>The following figures show an application based on the <code>FormattedTextFieldDemo</code> example that uses formatter factories to set multiple editors for the Loan Amount and APR fields. While the user is editing the Loan Amount, the $ character is not used so that the user is not forced to type it. Similarly, while the user is editing the APR field, the % character is not required.</p>
+<p>Click the Launch button to run FormatterFactoryDemo using 
+Java™ Web Start  (download JDK 7 or later). Alternatively, to compile and run the example yourself, consult the example index.</p>
+<p>
+<img src="../../figures/uiswing/components/FormatterFactoryDemoMetal.png" width="260" height="154" alt="FormatterFactoryDemo, with amount field being edited"> 
+<img src="../../figures/uiswing/components/FormatterFactoryDemo2Metal.png" width="260" height="154" alt="FormatterFactoryDemo, with no custom editors installed"></p>
+<p>The following code that creates the formatters and sets them up by using instances of the <code>DefaultFormatterFactory</code> class:</p>
+<p>WHATSON? 278880e1-a795-4640-930c-af31d133822a</p>
+<pre>
+private double rate = .075;  //7.5 %
+...
+amountField = new JFormattedTextField(
+                    <b>new DefaultFormatterFactory(
+                        new NumberFormatter(amountDisplayFormat),
+                        new NumberFormatter(amountDisplayFormat),
+                        new NumberFormatter(amountEditFormat))</b>);
+...
+NumberFormatter percentEditFormatter =
+        new NumberFormatter(percentEditFormat) {
+    public String valueToString(Object o)
+          throws ParseException {
+        Number number = (Number)o;
+        if (number != null) {
+            double d = number.doubleValue() * 100.0;
+            number = new Double(d);
+        }
+        return super.valueToString(number);
+    }
+    public Object stringToValue(String s)
+           throws ParseException {
+        Number number = (Number)super.stringToValue(s);
+        if (number != null) {
+            double d = number.doubleValue() / 100.0;
+            number = new Double(d);
+        }
+        return number;
+    }
+};
+rateField = new JFormattedTextField(
+                     <b>new DefaultFormatterFactory(
+                        new NumberFormatter(percentDisplayFormat),
+                        new NumberFormatter(percentDisplayFormat),
+                        percentEditFormatter)</b>);
+...
+amountDisplayFormat = NumberFormat.getCurrencyInstance();
+amountDisplayFormat.setMinimumFractionDigits(0);
+amountEditFormat = NumberFormat.getNumberInstance();
+
+percentDisplayFormat = NumberFormat.getPercentInstance();
+percentDisplayFormat.setMinimumFractionDigits(2);
+percentEditFormat = NumberFormat.getNumberInstance();
+percentEditFormat.setMinimumFractionDigits(2);
+</pre>
+<p>The boldface code highlights the calls to <code>DefaultFormatterFactory</code> constructors. The first argument to the constructor specifies the default formatter to use for the formatted text field. The second argument specifies the display formatter, which is used when the field does not have the focus. The third argument specifies the edit formatter, which is used when the field has the focus. The code does not use a fourth argument, but if it did, the fourth argument would specify the null formatter, which is used when the field's value is null. Because no null formatter is specified, the default formatter is used when the value is null.</p>
+<p>The code customizes the formatter that uses <code>percentEditFormat</code> by creating a subclass of the <code>NumberFormatter</code> class. This subclass overrides the <code>valueToString</code> and <code>stringToValue</code> methods of <code>NumberFormatter</code> so that they convert the displayed number to the value actually used in calculations, and convert the value to a number. Specifically, the displayed number is 100 times the actual value. The reason is that the percent format used by the display formatter automatically displays the text as 100 times the value, so the corresponding editor formatter must display the text at the same value. The <code>FormattedTextFieldDemo</code> example does not need to take care of this conversion because this demo uses only one format for both display and editing.</p>
+<p>You can find the code for the entire program in 
+<code><code>FormatterFactoryDemo.java</code></code>.</p>
+<h2>Formatted Text Field API</h2>
+<p>The following tables list some of the commonly used APIs for using formatted text fields.</p>
+<ul>
+<li>Classes Related to Formatted Text Fields</li>
+<li>JFormattedTextField Methods</li>
+<li>DefaultFormatter Options</li>
+</ul>
+<h2>Examples That Use Formatted Text Fields</h2>
+<p>This table lists examples that use formatted text fields and points to where those examples are described.</p>
+</body>
+</html>

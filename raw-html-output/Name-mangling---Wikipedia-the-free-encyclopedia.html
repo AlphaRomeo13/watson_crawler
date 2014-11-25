@@ -1,0 +1,395 @@
+<h1 id="firstHeading" class="firstHeading" lang="en"><span dir="auto">Name mangling</span></h1>
+<p>In <a href="/wiki/Compiler_construction" title="Compiler construction">compiler construction</a>, <b>name mangling</b> (also called <b>name decoration</b>) is a technique used to solve various problems caused by the need to resolve unique names for programming entities in many modern <a href="/wiki/Programming_language" title="Programming language">programming languages</a>.</p>
+<p>It provides a way of encoding additional information in the name of a <a href="/wiki/Function_(programming)" title="Function (programming)" class="mw-redirect">function</a>, <a href="/wiki/Structure" title="Structure">structure</a>, <a href="/wiki/Class_(computer_science)" title="Class (computer science)" class="mw-redirect">class</a> or another <a href="/wiki/Datatype" title="Datatype" class="mw-redirect">datatype</a> in order to pass more semantic information from the <a href="/wiki/Compiler" title="Compiler">compilers</a> to <a href="/wiki/Linker_(computing)" title="Linker (computing)">linkers</a>.</p>
+<p>The need arises where the language allows different entities to be named with the same <a href="/wiki/Identifier" title="Identifier">identifier</a> as long as they occupy a different <a href="/wiki/Namespace" title="Namespace">namespace</a> (where a namespace is typically defined by a module, class, or explicit <i>namespace</i> directive) or have different signatures (such as <a href="/wiki/Function_overloading" title="Function overloading">function overloading</a>).</p>
+<p>Any <a href="/wiki/Object_code" title="Object code">object code</a> produced by compilers is usually linked with other pieces of object code (produced by the same or another compiler) by a type of program called a <a href="/wiki/Linker_(computing)" title="Linker (computing)">linker</a>. The linker needs a great deal of information on each program entity. For example, to correctly link a function it needs its name, the number of arguments and their types, and so on.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li class="toclevel-1 tocsection-1"><a href="#C_name_decoration_in_Microsoft_Windows"><span class="tocnumber">1</span> <span class="toctext">C name decoration in Microsoft Windows</span></a></li>
+<li class="toclevel-1 tocsection-2"><a href="#Name_mangling_in_C.2B.2B"><span class="tocnumber">2</span> <span class="toctext">Name mangling in C++</span></a>
+<ul>
+<li class="toclevel-2 tocsection-3"><a href="#Simple_example"><span class="tocnumber">2.1</span> <span class="toctext">Simple example</span></a></li>
+<li class="toclevel-2 tocsection-4"><a href="#Complex_example"><span class="tocnumber">2.2</span> <span class="toctext">Complex example</span></a></li>
+<li class="toclevel-2 tocsection-5"><a href="#How_different_compilers_mangle_the_same_functions"><span class="tocnumber">2.3</span> <span class="toctext">How different compilers mangle the same functions</span></a></li>
+<li class="toclevel-2 tocsection-6"><a href="#Handling_of_C_symbols_when_linking_from_C.2B.2B"><span class="tocnumber">2.4</span> <span class="toctext">Handling of C symbols when linking from C++</span></a></li>
+<li class="toclevel-2 tocsection-7"><a href="#Standardised_name_mangling_in_C.2B.2B"><span class="tocnumber">2.5</span> <span class="toctext">Standardised name mangling in C++</span></a></li>
+<li class="toclevel-2 tocsection-8"><a href="#Real-world_effects_of_C.2B.2B_name_mangling"><span class="tocnumber">2.6</span> <span class="toctext">Real-world effects of C++ name mangling</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-9"><a href="#Name_mangling_in_Java"><span class="tocnumber">3</span> <span class="toctext">Name mangling in Java</span></a>
+<ul>
+<li class="toclevel-2 tocsection-10"><a href="#Creating_unique_names_for_inner_and_anonymous_classes"><span class="tocnumber">3.1</span> <span class="toctext">Creating unique names for inner and anonymous classes</span></a></li>
+<li class="toclevel-2 tocsection-11"><a href="#Java_Native_Interface"><span class="tocnumber">3.2</span> <span class="toctext">Java Native Interface</span></a></li>
+</ul>
+</li>
+<li class="toclevel-1 tocsection-12"><a href="#Name_mangling_in_Python"><span class="tocnumber">4</span> <span class="toctext">Name mangling in Python</span></a></li>
+<li class="toclevel-1 tocsection-13"><a href="#Name_mangling_in_Borland.27s_Turbo_Pascal_.2F_Delphi_range"><span class="tocnumber">5</span> <span class="toctext">Name mangling in Borland's Turbo Pascal / Delphi range</span></a></li>
+<li class="toclevel-1 tocsection-14"><a href="#Name_mangling_in_Free_Pascal"><span class="tocnumber">6</span> <span class="toctext">Name mangling in Free Pascal</span></a></li>
+<li class="toclevel-1 tocsection-15"><a href="#Name_mangling_in_Objective-C"><span class="tocnumber">7</span> <span class="toctext">Name mangling in Objective-C</span></a></li>
+<li class="toclevel-1 tocsection-16"><a href="#Name_mangling_in_Fortran"><span class="tocnumber">8</span> <span class="toctext">Name mangling in Fortran</span></a></li>
+<li class="toclevel-1 tocsection-17"><a href="#Name_mangling_in_Rust"><span class="tocnumber">9</span> <span class="toctext">Name mangling in Rust</span></a></li>
+<li class="toclevel-1 tocsection-18"><a href="#See_also"><span class="tocnumber">10</span> <span class="toctext">See also</span></a></li>
+<li class="toclevel-1 tocsection-19"><a href="#References"><span class="tocnumber">11</span> <span class="toctext">References</span></a></li>
+<li class="toclevel-1 tocsection-20"><a href="#External_links"><span class="tocnumber">12</span> <span class="toctext">External links</span></a></li>
+</ul>
+<ul>
+<li class="toclevel-2 tocsection-3"><a href="#Simple_example"><span class="tocnumber">2.1</span> <span class="toctext">Simple example</span></a></li>
+<li class="toclevel-2 tocsection-4"><a href="#Complex_example"><span class="tocnumber">2.2</span> <span class="toctext">Complex example</span></a></li>
+<li class="toclevel-2 tocsection-5"><a href="#How_different_compilers_mangle_the_same_functions"><span class="tocnumber">2.3</span> <span class="toctext">How different compilers mangle the same functions</span></a></li>
+<li class="toclevel-2 tocsection-6"><a href="#Handling_of_C_symbols_when_linking_from_C.2B.2B"><span class="tocnumber">2.4</span> <span class="toctext">Handling of C symbols when linking from C++</span></a></li>
+<li class="toclevel-2 tocsection-7"><a href="#Standardised_name_mangling_in_C.2B.2B"><span class="tocnumber">2.5</span> <span class="toctext">Standardised name mangling in C++</span></a></li>
+<li class="toclevel-2 tocsection-8"><a href="#Real-world_effects_of_C.2B.2B_name_mangling"><span class="tocnumber">2.6</span> <span class="toctext">Real-world effects of C++ name mangling</span></a></li>
+</ul>
+<ul>
+<li class="toclevel-2 tocsection-10"><a href="#Creating_unique_names_for_inner_and_anonymous_classes"><span class="tocnumber">3.1</span> <span class="toctext">Creating unique names for inner and anonymous classes</span></a></li>
+<li class="toclevel-2 tocsection-11"><a href="#Java_Native_Interface"><span class="tocnumber">3.2</span> <span class="toctext">Java Native Interface</span></a></li>
+</ul>
+<p></p>
+<h2><span class="mw-headline" id="C_name_decoration_in_Microsoft_Windows">C name decoration in Microsoft Windows</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Name_mangling&amp;action=edit&amp;section=1" title="Edit section: C name decoration in Microsoft Windows">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Although name mangling is not generally required or used by languages that do not support <a href="/wiki/Function_overloading" title="Function overloading">function overloading</a> (such as C and classic Pascal), they use it in some cases to provide additional information about a function. For example, compilers targeted at Microsoft Windows platforms support a variety of <a href="/wiki/Calling_convention" title="Calling convention">calling conventions</a>, which determine the manner in which parameters are sent to subroutines and results returned. Because the different calling conventions are not compatible with one another, compilers mangle symbols with codes detailing which convention should be used to call the specific routine.</p>
+<p>The mangling scheme was established by Microsoft, and has been informally followed by other compilers including Digital Mars, Borland, and GNU GCC, when compiling code for the Windows platforms. The scheme even applies to other languages, such as <a href="/wiki/Pascal_programming_language" title="Pascal programming language" class="mw-redirect">Pascal</a>, <a href="/wiki/D_programming_language" title="D programming language" class="mw-redirect">D</a>, <a href="/wiki/Embarcadero_Delphi" title="Embarcadero Delphi" class="mw-redirect">Delphi</a>, <a href="/wiki/Fortran" title="Fortran">Fortran</a>, and <a href="/wiki/C_Sharp_(programming_language)" title="C Sharp (programming language)">C#</a>. This allows subroutines written in those languages to call, or be called by, existing Windows libraries using a calling convention different from their default.</p>
+<p>When compiling the following C examples:</p>
+<p>WHATSON? 1f9b8276-68c6-44dd-83f9-dcce1ef5bd60</p>
+<pre class="de1">
+<span class="kw4">int</span> _cdecl    f <span class="br0">(</span><span class="kw4">int</span> x<span class="br0">)</span> <span class="br0">{</span> <span class="kw1">return</span> <span class="nu0">0</span><span class="sy0">;</span> <span class="br0">}</span>
+<span class="kw4">int</span> _stdcall  g <span class="br0">(</span><span class="kw4">int</span> y<span class="br0">)</span> <span class="br0">{</span> <span class="kw1">return</span> <span class="nu0">0</span><span class="sy0">;</span> <span class="br0">}</span>
+<span class="kw4">int</span> _fastcall h <span class="br0">(</span><span class="kw4">int</span> z<span class="br0">)</span> <span class="br0">{</span> <span class="kw1">return</span> <span class="nu0">0</span><span class="sy0">;</span> <span class="br0">}</span>
+</pre>
+<p>32 bit compilers emit, respectively:</p>
+<p>WHATSON? 827226b0-2e4d-4a4c-8acc-a524f60f8c1c</p>
+<pre>
+_f
+_g@4
+@h@4
+</pre>
+<p>In the <tt>stdcall</tt> and <tt>fastcall</tt> mangling schemes, the function is encoded as <tt>_<b>name</b>@<b>X</b></tt> and <tt>@<b>name</b>@<b>X</b></tt> respectively, where <b>X</b> is the number of bytes, in decimal, of the argument(s) in the parameter list (including those passed in registers, for fastcall). In the case of <tt>cdecl</tt>, the function name is merely prefixed by an underscore.</p>
+<p>Note that the 64-bit convention on Windows (Microsoft C) is no leading underscore. This difference may in some rare cases lead to unresolved externals when porting such code to 64 bits. For example, Fortran code can use 'alias' to link against a C method by name as follows:</p>
+<p>WHATSON? ef504e73-911e-4cc0-8bfc-8fa783678b00</p>
+<pre class="de1">
+<span class="kw1">SUBROUTINE</span> f<span class="br0">(</span><span class="br0">)</span>
+<span class="co1">!DEC$ ATTRIBUTES C, ALIAS:'_f' :: f</span>
+<span class="kw1">END</span> <span class="kw1">SUBROUTINE</span>
+</pre>
+<p>This will compile and link fine under 32 bits, but generate an unresolved external '_f' under 64 bits. One work around for this is to not use 'alias' at all (in which the method names typically need to be capitalized in C and Fortran), or to use the BIND option:</p>
+<p>WHATSON? fe359a72-85a1-4acb-aadd-9ccf63c82e33</p>
+<pre class="de1">
+<span class="kw1">SUBROUTINE</span> f<span class="br0">(</span><span class="br0">)</span> BIND<span class="br0">(</span>C,<span class="kw1">NAME</span><span class="sy0">=</span><span class="st0">"f"</span><span class="br0">)</span>
+<span class="kw1">END</span> <span class="kw1">SUBROUTINE</span>
+</pre>
+<h2><span class="mw-headline" id="Name_mangling_in_C.2B.2B">Name mangling in C++</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Name_mangling&amp;action=edit&amp;section=2" title="Edit section: Name mangling in C++">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><a href="/wiki/C%2B%2B" title="C++">C++</a> compilers are the most widespread users of name mangling. The first C++ compilers were implemented as translators to <a href="/wiki/C_(programming_language)" title="C (programming language)">C</a> source code, which would then be compiled by a C compiler to object code; because of this, symbol names had to conform to C identifier rules. Even later, with the emergence of compilers which produced machine code or assembly directly, the system's <a href="/wiki/Linker_(computing)" title="Linker (computing)">linker</a> generally did not support C++ symbols, and mangling was still required.</p>
+<p>The <a href="/wiki/C%2B%2B" title="C++">C++</a> language does not define a standard decoration scheme, so each compiler uses its own. C++ also has complex language features, such as <a href="/wiki/C%2B%2B_class" title="C++ class" class="mw-redirect">classes</a>, <a href="/wiki/C%2B%2B_template" title="C++ template" class="mw-redirect">templates</a>, <a href="/wiki/Namespace_(C%2B%2B)" title="Namespace (C++)" class="mw-redirect">namespaces</a>, and <a href="/wiki/Operator_overloading" title="Operator overloading">operator overloading</a>, that alter the meaning of specific symbols based on context or usage. Meta-data about these features can be disambiguated by mangling (decorating) the name of a <a href="/wiki/Debug_symbol" title="Debug symbol">symbol</a>. Because the name-mangling systems for such features are not standardized across compilers, few linkers can link object code that was produced by different compilers.</p>
+<h3><span class="mw-headline" id="Simple_example">Simple example</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Name_mangling&amp;action=edit&amp;section=3" title="Edit section: Simple example">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Consider the following two definitions of <tt>f()</tt> in a C++ program:</p>
+<p>WHATSON? 2d92252e-85bf-47b5-bf5f-318244d06c92</p>
+<pre class="de1">
+<span class="kw4">int</span>  f <span class="br0">(</span><span class="kw4">void</span><span class="br0">)</span> <span class="br0">{</span> <span class="kw1">return</span> <span class="nu0">1</span><span class="sy4">;</span> <span class="br0">}</span>
+<span class="kw4">int</span>  f <span class="br0">(</span><span class="kw4">int</span><span class="br0">)</span>  <span class="br0">{</span> <span class="kw1">return</span> <span class="nu0">0</span><span class="sy4">;</span> <span class="br0">}</span>
+<span class="kw4">void</span> g <span class="br0">(</span><span class="kw4">void</span><span class="br0">)</span> <span class="br0">{</span> <span class="kw4">int</span> i <span class="sy1">=</span> f<span class="br0">(</span><span class="br0">)</span>, j <span class="sy1">=</span> f<span class="br0">(</span><span class="nu0">0</span><span class="br0">)</span><span class="sy4">;</span> <span class="br0">}</span>
+</pre>
+<p>These are distinct functions, with no relation to each other apart from the name. If they were natively translated into C with no changes, the result would be an error — C does not permit two functions with the same name. The C++ compiler therefore will encode the type information in the symbol name, the result being something resembling:</p>
+<p>WHATSON? 1a3c291c-8157-41b4-ba32-6e52db80bd4a</p>
+<pre class="de1">
+<span class="kw4">int</span>  __f_v <span class="br0">(</span><span class="kw4">void</span><span class="br0">)</span> <span class="br0">{</span> <span class="kw1">return</span> <span class="nu0">1</span><span class="sy4">;</span> <span class="br0">}</span>
+<span class="kw4">int</span>  __f_i <span class="br0">(</span><span class="kw4">int</span><span class="br0">)</span>  <span class="br0">{</span> <span class="kw1">return</span> <span class="nu0">0</span><span class="sy4">;</span> <span class="br0">}</span>
+<span class="kw4">void</span> __g_v <span class="br0">(</span><span class="kw4">void</span><span class="br0">)</span> <span class="br0">{</span> <span class="kw4">int</span> i <span class="sy1">=</span> __f_v<span class="br0">(</span><span class="br0">)</span>, j <span class="sy1">=</span> __f_i<span class="br0">(</span><span class="nu0">0</span><span class="br0">)</span><span class="sy4">;</span> <span class="br0">}</span>
+</pre>
+<p>Notice that <tt>g()</tt> is mangled even though there is no conflict; name mangling applies to <b>all</b> symbols.</p>
+<h3><span class="mw-headline" id="Complex_example">Complex example</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Name_mangling&amp;action=edit&amp;section=4" title="Edit section: Complex example">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>For a more complex example, we'll consider an example of a real-world name mangling implementation that is used by GNU GCC 3.<i>x</i>, and how it mangles the following example class. The mangled symbol is shown below the respective identifier name.</p>
+<p>WHATSON? f2f77840-5c39-4a3f-9c3a-4cc91b1cae01</p>
+<pre class="de1">
+<span class="kw2">namespace</span> wikipedia 
+<span class="br0">{</span>
+   <span class="kw2">class</span> article 
+   <span class="br0">{</span>
+   <span class="kw2">public</span><span class="sy4">:</span>
+      std<span class="sy4">::</span><span class="me2">string</span> format <span class="br0">(</span><span class="kw4">void</span><span class="br0">)</span><span class="sy4">;</span> 
+         <span class="coMULTI">/* = _ZN9wikipedia7article6formatEv */</span>
+ 
+      <span class="kw4">bool</span> print_to <span class="br0">(</span>std<span class="sy4">::</span><span class="me2">ostream</span><span class="sy3">&amp;</span><span class="br0">)</span><span class="sy4">;</span> 
+         <span class="coMULTI">/* = _ZN9wikipedia7article8print_toERSo */</span>
+ 
+      <span class="kw2">class</span> wikilink 
+      <span class="br0">{</span>
+      <span class="kw2">public</span><span class="sy4">:</span>
+         wikilink <span class="br0">(</span>std<span class="sy4">::</span><span class="me2">string</span> <span class="kw4">const</span><span class="sy3">&amp;</span> name<span class="br0">)</span><span class="sy4">;</span>
+            <span class="coMULTI">/* = _ZN9wikipedia7article8wikilinkC1ERKSs */</span>
+      <span class="br0">}</span><span class="sy4">;</span>
+   <span class="br0">}</span><span class="sy4">;</span>
+<span class="br0">}</span>
+</pre>
+<p>All mangled symbols begin with <b>_Z</b> (note that an underscore followed by a capital is a <a href="/wiki/Reserved_identifier" title="Reserved identifier" class="mw-redirect">reserved identifier</a> in C, so conflict with user identifiers is avoided); for nested names (including both namespaces and classes), this is followed by <tt><b>N</b></tt>, then a series of &lt;length, id&gt; pairs (the length being the length of the next identifier), and finally <tt><b>E</b></tt>. For example, <tt>wikipedia::article::format</tt> becomes</p>
+<p>WHATSON? b5bc7ee7-8700-4692-9fc8-04d8f05ae90e</p>
+<pre>
+_ZN<i>9</i><b>wikipedia</b><i>7</i><b>article</b><i>6</i><b>format</b>E
+</pre>
+<p>For functions, this is then followed by the type information; as <tt>format()</tt> is a <tt>void</tt> function, this is simply <tt><b>v</b></tt>; hence:</p>
+<p>WHATSON? fa3bf36f-9235-4e77-913e-d6ef0fb28f15</p>
+<pre>
+_ZN<i>9</i><b>wikipedia</b><i>7</i><b>article</b><i>6</i><b>format</b>E<b>v</b>
+</pre>
+<p>For <tt>print_to</tt>, a standard type <tt>std::ostream</tt> (or more properly <tt>std::basic_ostream&lt;char, char_traits&lt;char&gt; &gt;</tt>) is used, which has the special alias <tt><b>So</b></tt>; a reference to this type is therefore <tt><b>RSo</b></tt>, with the complete name for the function being:</p>
+<p>WHATSON? 7ba43581-3d5c-4887-8652-64e9cf3ce7b4</p>
+<pre>
+_ZN<i>9</i><b>wikipedia</b><i>7</i><b>article</b><i>8</i><b>print_to</b>E<b>RSo</b>
+</pre>
+<h3><span class="mw-headline" id="How_different_compilers_mangle_the_same_functions">How different compilers mangle the same functions</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Name_mangling&amp;action=edit&amp;section=5" title="Edit section: How different compilers mangle the same functions">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>There isn't a standard scheme by which even trivial C++ identifiers are mangled, and consequently different compiler vendors (or even different versions of the same compiler, or the same compiler on different platforms) mangle public symbols in radically different (and thus totally incompatible) ways. Consider how different C++ compilers mangle the same functions:</p>
+<p>Notes:</p>
+<ul>
+<li>The Compaq C++ compiler on OpenVMS VAX and Alpha (but not IA-64) and Tru64 has two name mangling schemes. The original, pre-standard scheme is known as ARM model, and is based on the name mangling described in the C++ Annotated Reference Manual (ARM). With the advent of new features in standard C++, particularly <a href="/wiki/Template_(programming)" title="Template (programming)" class="mw-redirect">templates</a>, the ARM scheme became more and more unsuitable — it could not encode certain function types, or produced identical mangled names for different functions. It was therefore replaced by the newer "ANSI" model, which supported all ANSI template features, but was not backwards compatible.</li>
+<li>On IA-64, a standard <a href="/wiki/Application_binary_interface" title="Application binary interface">ABI</a> exists (see <a href="#External_links">external links</a>), which defines (among other things) a standard name-mangling scheme, and which is used by all the IA-64 compilers. GNU GCC 3.<i>x</i>, in addition, has adopted the name mangling scheme defined in this standard for use on other, non-Intel platforms.</li>
+<li>The Visual Studio and Windows SDK include the program <code>undname</code> which prints the C-style function prototype for a given mangled name.</li>
+<li>On Microsoft Windows the Intel compiler uses the Visual C++ name mangling for compatibility.<sup id="cite_ref-1" class="reference"><a href="#cite_note-1"><span>[</span>1<span>]</span></a></sup></li>
+</ul>
+<h3><span class="mw-headline" id="Handling_of_C_symbols_when_linking_from_C.2B.2B">Handling of C symbols when linking from C++</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Name_mangling&amp;action=edit&amp;section=6" title="Edit section: Handling of C symbols when linking from C++">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>The job of the common C++ idiom:</p>
+<p>WHATSON? 25cddbdd-a4e5-42f1-aec0-599468b69ff5</p>
+<pre class="de1">
+<span class="co2">#ifdef __cplusplus </span>
+<span class="kw4">extern</span> <span class="st0">"C"</span> <span class="br0">{</span>
+<span class="co2">#endif</span>
+    <span class="coMULTI">/* ... */</span>
+<span class="co2">#ifdef __cplusplus</span>
+<span class="br0">}</span>
+<span class="co2">#endif</span>
+</pre>
+<p>is to ensure that the symbols following are "unmangled" – that the compiler emits a binary file with their names undecorated, as a C compiler would do. As C language definitions are unmangled, the C++ compiler needs to avoid mangling references to these identifiers.</p>
+<p>For example, the standard strings library, <tt>&lt;string.h&gt;</tt> usually contains something resembling:</p>
+<p>WHATSON? 8001b93e-aae5-497e-a341-f2222fbd649f</p>
+<pre class="de1">
+<span class="co2">#ifdef __cplusplus</span>
+<span class="kw4">extern</span> <span class="st0">"C"</span> <span class="br0">{</span>
+<span class="co2">#endif</span>
+ 
+<span class="kw4">void</span> <span class="sy2">*</span><span class="kw3">memset</span> <span class="br0">(</span><span class="kw4">void</span> <span class="sy2">*</span>, <span class="kw4">int</span>, <span class="kw4">size_t</span><span class="br0">)</span><span class="sy4">;</span>
+<span class="kw4">char</span> <span class="sy2">*</span><span class="kw3">strcat</span> <span class="br0">(</span><span class="kw4">char</span> <span class="sy2">*</span>, <span class="kw4">const</span> <span class="kw4">char</span> <span class="sy2">*</span><span class="br0">)</span><span class="sy4">;</span>
+<span class="kw4">int</span>   <span class="kw3">strcmp</span> <span class="br0">(</span><span class="kw4">const</span> <span class="kw4">char</span> <span class="sy2">*</span>, <span class="kw4">const</span> <span class="kw4">char</span> <span class="sy2">*</span><span class="br0">)</span><span class="sy4">;</span>
+<span class="kw4">char</span> <span class="sy2">*</span><span class="kw3">strcpy</span> <span class="br0">(</span><span class="kw4">char</span> <span class="sy2">*</span>, <span class="kw4">const</span> <span class="kw4">char</span> <span class="sy2">*</span><span class="br0">)</span><span class="sy4">;</span>
+ 
+<span class="co2">#ifdef __cplusplus</span>
+<span class="br0">}</span>
+<span class="co2">#endif</span>
+</pre>
+<p>Thus, code such as:</p>
+<p>WHATSON? 895f7345-d319-4e34-8bb9-46e6de962390</p>
+<pre class="de1">
+<span class="kw1">if</span> <span class="br0">(</span><span class="kw3">strcmp</span><span class="br0">(</span>argv<span class="br0">[</span><span class="nu0">1</span><span class="br0">]</span>, <span class="st0">"-x"</span><span class="br0">)</span> <span class="sy1">==</span> <span class="nu0">0</span><span class="br0">)</span> 
+    <span class="kw3">strcpy</span><span class="br0">(</span>a, argv<span class="br0">[</span><span class="nu0">2</span><span class="br0">]</span><span class="br0">)</span><span class="sy4">;</span>
+<span class="kw1">else</span> 
+    <span class="kw3">memset</span> <span class="br0">(</span>a, <span class="nu0">0</span>, <span class="kw3">sizeof</span><span class="br0">(</span>a<span class="br0">)</span><span class="br0">)</span><span class="sy4">;</span>
+</pre>
+<p>uses the correct, unmangled <tt>strcmp</tt> and <tt>memset</tt>. If the <tt>extern</tt> had not been used, the (SunPro) C++ compiler would produce code equivalent to:</p>
+<p>WHATSON? 2aad085e-d82b-44a6-904c-8b5aeec48b7a</p>
+<pre class="de1">
+<span class="kw1">if</span> <span class="br0">(</span>__1cGstrcmp6Fpkc1_i_<span class="br0">(</span>argv<span class="br0">[</span><span class="nu0">1</span><span class="br0">]</span>, <span class="st0">"-x"</span><span class="br0">)</span> <span class="sy1">==</span> <span class="nu0">0</span><span class="br0">)</span> 
+    __1cGstrcpy6Fpcpkc_0_<span class="br0">(</span>a, argv<span class="br0">[</span><span class="nu0">2</span><span class="br0">]</span><span class="br0">)</span><span class="sy4">;</span>
+<span class="kw1">else</span> 
+    __1cGmemset6FpviI_0_ <span class="br0">(</span>a, <span class="nu0">0</span>, <span class="kw3">sizeof</span><span class="br0">(</span>a<span class="br0">)</span><span class="br0">)</span><span class="sy4">;</span>
+</pre>
+<p>Since those symbols do not exist in the C runtime library (<i>e.g.</i> <tt>libc</tt>), link errors would result.</p>
+<h3><span class="mw-headline" id="Standardised_name_mangling_in_C.2B.2B">Standardised name mangling in C++</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Name_mangling&amp;action=edit&amp;section=7" title="Edit section: Standardised name mangling in C++">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Though it would seem that standardised name mangling in the C++ language would lead to greater interoperability between compiler implementations, such a standardization by itself would not suffice to guarantee C++ compiler interoperability and it might even create a false impression that interoperability is possible and safe when it isn't. Name mangling is only one of several <a href="/wiki/Application_binary_interface" title="Application binary interface">application binary interface</a> (ABI) details that need to be decided and observed by a C++ implementation. Other ABI aspects like <a href="/wiki/Exception_handling" title="Exception handling">exception handling</a>, <a href="/wiki/Virtual_table" title="Virtual table" class="mw-redirect">virtual table</a> layout, structure and stack frame <a href="/wiki/Padding" title="Padding">padding</a>, <i>etc.</i> also cause differing C++ implementations to be incompatible. Further, requiring a particular form of mangling would cause issues for systems where implementation limits (e.g., length of symbols) dictate a particular mangling scheme. A standardised <i>requirement</i> for name mangling would also prevent an implementation where mangling was not required at all — for example, a linker which understood the C++ language.</p>
+<p>The <a href="/wiki/ISO/IEC_14882" title="ISO/IEC 14882" class="mw-redirect">C++ standard</a> therefore does not attempt to standardise name mangling. On the contrary, the <i>Annotated C++ Reference Manual</i> (also known as <i>ARM</i>, <a href="/wiki/Special:BookSources/0201514591" class="internal mw-magiclink-isbn">ISBN 0-201-51459-1</a>, section 7.2.1c) actively encourages the use of different mangling schemes to prevent linking when other aspects of the ABI, such as <a href="/wiki/Exception_handling" title="Exception handling">exception handling</a> and <a href="/wiki/Virtual_table" title="Virtual table" class="mw-redirect">virtual table</a> layout, are incompatible.</p>
+<p>Nevertheless, as detailed in the section above, on some platforms<sup class="noprint Inline-Template" style="white-space:nowrap;">[<i><a href="/wiki/Wikipedia:AUDIENCE" title="Wikipedia:AUDIENCE" class="mw-redirect"><span title="Wikipedia:AUDIENCE">example needed</span></a></i>]</sup> the full C++ ABI has been standardized, including name mangling.</p>
+<h3><span class="mw-headline" id="Real-world_effects_of_C.2B.2B_name_mangling">Real-world effects of C++ name mangling</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Name_mangling&amp;action=edit&amp;section=8" title="Edit section: Real-world effects of C++ name mangling">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Because C++ symbols are routinely exported from <a href="/wiki/Dynamic-link_library" title="Dynamic-link library">DLL</a> and <a href="/wiki/Shared_object" title="Shared object" class="mw-redirect">shared object</a> files, the name mangling scheme is not merely a compiler-internal matter. Different compilers (or different versions of the same compiler, in many cases) produce such binaries under different name decoration schemes, meaning that symbols are frequently unresolved if the compilers used to create the library and the program using it employed different schemes. For example, if a system with multiple C++ compilers installed (e.g., GNU GCC and the OS vendor's compiler) wished to install the <a href="/wiki/Boost_C%2B%2B_Libraries" title="Boost C++ Libraries" class="mw-redirect">Boost C++ Libraries</a>, it would have to be compiled twice — once for the vendor compiler and once for GCC.</p>
+<p>It is good for safety purposes that compilers producing incompatible object codes (codes based on different ABIs, regarding e.g., classes and exceptions) use different name mangling schemes. This guarantees that these incompatibilities are detected at the linking phase, not when executing the software (which could lead to obscure bugs and serious stability issues).</p>
+<p>For this reason name decoration is an important aspect of any C++-related <a href="/wiki/Application_binary_interface" title="Application binary interface">ABI</a>.</p>
+<h2><span class="mw-headline" id="Name_mangling_in_Java">Name mangling in Java</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Name_mangling&amp;action=edit&amp;section=9" title="Edit section: Name mangling in Java">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>In Java, the <b>signature</b> of a method or a class contains its name and the types of its method arguments and return value where applicable. The format of signatures is documented, as the language, compiler, and .class file format were all designed together (and had object-orientation and universal interoperability in mind from the start).</p>
+<h3><span class="mw-headline" id="Creating_unique_names_for_inner_and_anonymous_classes">Creating unique names for inner and anonymous classes</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Name_mangling&amp;action=edit&amp;section=10" title="Edit section: Creating unique names for inner and anonymous classes">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>The scope of anonymous classes is confined to their parent class, so the compiler must produce a "qualified" public name for the inner class, to avoid conflict where other classes with the same name (inner or not) exist in the same namespace. Similarly, anonymous classes must have "fake" public names generated for them (as the concept of anonymous classes only exists in the compiler, not the runtime). So, compiling the following java program</p>
+<p>WHATSON? 28da72ee-5532-4163-83a5-08302bcaa2dd</p>
+<pre class="de1">
+<span class="kw1">public</span> <span class="kw1">class</span> foo <span class="br0">{</span>
+    <span class="kw1">class</span> bar <span class="br0">{</span>
+        <span class="kw1">public</span> <span class="kw4">int</span> x<span class="sy0">;</span>
+    <span class="br0">}</span>
+ 
+    <span class="kw1">public</span> <span class="kw4">void</span> zark <span class="br0">(</span><span class="br0">)</span> <span class="br0">{</span>
+        <span class="kw3">Object</span> f <span class="sy0">=</span> <span class="kw1">new</span> <span class="kw3">Object</span> <span class="br0">(</span><span class="br0">)</span> <span class="br0">{</span>
+            <span class="kw1">public</span> <span class="kw3">String</span> toString<span class="br0">(</span><span class="br0">)</span> <span class="br0">{</span>
+                <span class="kw1">return</span> <span class="st0">"hello"</span><span class="sy0">;</span>
+            <span class="br0">}</span>
+        <span class="br0">}</span><span class="sy0">;</span>
+    <span class="br0">}</span>
+<span class="br0">}</span>
+</pre>
+<p>will produce three <b>.class</b> files:</p>
+<ul>
+<li><b>foo.class</b>, containing the main (outer) class <i>foo</i></li>
+<li><b>foo$bar.class</b>, containing the named inner class <i>foo.bar</i></li>
+<li><b>foo$1.class</b>, containing the anonymous inner class (local to method <i>foo.zark</i>)</li>
+</ul>
+<p>All of these class names are valid (as $ symbols are permitted in the JVM specification) and these names are "safe" for the compiler to generate, as the Java language definition prohibits $ symbols in normal java class definitions.</p>
+<p>Name resolution in Java is further complicated at runtime, as <a href="/wiki/Fully_qualified_name" title="Fully qualified name">fully qualified class names</a> are unique only inside a specific <a href="/wiki/Classloader" title="Classloader" class="mw-redirect">classloader</a> instance. Classloaders are ordered hierarchically and each Thread in the JVM has a so-called context class loader, so in cases where two different classloader instances contain classes with the same name, the system first tries to load the class using the root (or system) classloader and then goes down the hierarchy to the context class loader.</p>
+<h3><span class="mw-headline" id="Java_Native_Interface">Java Native Interface</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Name_mangling&amp;action=edit&amp;section=11" title="Edit section: Java Native Interface">edit</a><span class="mw-editsection-bracket">]</span></span></h3>
+<p>Java's native method support allows java language programs to call out to programs written in another language (generally either C or C++). There are two name-resolution concerns here, neither of which is implemented in a particularly standard manner:</p>
+<ul>
+<li>Java to native name translation</li>
+<li>normal C++ name mangling</li>
+</ul>
+<h2><span class="mw-headline" id="Name_mangling_in_Python">Name mangling in Python</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Name_mangling&amp;action=edit&amp;section=12" title="Edit section: Name mangling in Python">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>In <a href="/wiki/Python_(programming_language)" title="Python (programming language)">Python</a>, mangling is used for "private" class members which are designated as such by giving them a name with two leading underscores and no more than one trailing underscore. For example, <code>__thing</code> will be mangled, as will <code>___thing</code> and <code>__thing_</code>, but <code>__thing__</code> and <code>__thing___</code> will not. Python's runtime does not restrict access to such members, the mangling only prevents name collisions if a derived class defines a member with the same name.</p>
+<p>On encountering name mangled attributes, Python transforms these names by a single underscore and the name of the enclosing class, for example:</p>
+<p>WHATSON? 091cc43f-45d5-4703-ac6e-4fc90eacdee1</p>
+<pre class="de1">
+<span class="kw1">class</span> Test<span class="br0">(</span><span class="kw2">object</span><span class="br0">)</span>:
+    <span class="kw1">def</span> __mangled_name<span class="br0">(</span><span class="kw2">self</span><span class="br0">)</span>:
+        <span class="kw1">pass</span>
+    <span class="kw1">def</span> normal_name<span class="br0">(</span><span class="kw2">self</span><span class="br0">)</span>:
+        <span class="kw1">pass</span>
+ 
+<span class="kw1">print</span> <span class="kw2">dir</span><span class="br0">(</span>Test<span class="br0">)</span>
+</pre>
+<p>will output:</p>
+<p>WHATSON? 86303021-897a-47b0-a862-f334da1500cb</p>
+<pre>
+['_Test__mangled_name', 
+'__doc__', 
+'__module__', 
+'normal_name']
+</pre>
+<h2><span class="mw-headline" id="Name_mangling_in_Borland.27s_Turbo_Pascal_.2F_Delphi_range">Name mangling in Borland's Turbo Pascal / Delphi range</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Name_mangling&amp;action=edit&amp;section=13" title="Edit section: Name mangling in Borland's Turbo Pascal / Delphi range">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>To avoid name mangling in Pascal, use:</p>
+<p>WHATSON? 30deff0d-92e5-4ef1-b200-a771ca62804e</p>
+<pre class="de1">
+<span class="kw1">exports</span>
+  myFunc <span class="kw1">name</span> <span class="st0">'myFunc'</span><span class="sy1">,</span>
+  myProc <span class="kw1">name</span> <span class="st0">'myProc'</span><span class="sy1">;</span>
+</pre>
+<h2><span class="mw-headline" id="Name_mangling_in_Free_Pascal">Name mangling in Free Pascal</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Name_mangling&amp;action=edit&amp;section=14" title="Edit section: Name mangling in Free Pascal">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p><a href="/wiki/Free_Pascal" title="Free Pascal">Free Pascal</a> supports <a href="/wiki/Function_overloading" title="Function overloading">function</a> and operator overloading, thus it also uses name mangling to support these features. On the other hand, Free Pascal is capable of calling symbols defined in external modules created with another language and exporting its own symbols to be called by another language. For further information, consult <a rel="nofollow" class="external text" href="http://www.freepascal.org/docs-html/prog/progse21.html">Chapter 6.2</a> and <a rel="nofollow" class="external text" href="http://www.freepascal.org/docs-html/prog/progse27.html">Chapter 7.1</a> of <a rel="nofollow" class="external text" href="http://www.freepascal.org/docs-html/prog/prog.html">Free Pascal Programmer's Guide</a>.</p>
+<h2><span class="mw-headline" id="Name_mangling_in_Objective-C">Name mangling in Objective-C</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Name_mangling&amp;action=edit&amp;section=15" title="Edit section: Name mangling in Objective-C">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Essentially two forms of method exist in Objective-C, the <a href="/wiki/Static_method" title="Static method" class="mw-redirect">class ("static") method</a>, and the <a href="/wiki/Instance_method" title="Instance method" class="mw-redirect">instance method</a>. A method declaration in Objective-C is of the following form</p>
+<p>WHATSON? 60da36e3-f6de-4e30-bb2b-a815084b7d4a</p>
+<pre>
++ <i>method name</i>: <i>argument</i> <i>name</i><sub>1</sub>:<i>parameter</i><sub>1</sub> ...
+– <i>method name</i>: <i>argument</i> <i>name</i><sub>1</sub>:<i>parameter</i><sub>1</sub> ...
+</pre>
+<p>Class methods are signified by +, instance methods use -. A typical class method declaration may then look like:</p>
+<p>WHATSON? 7aed47e9-c46f-4b61-97a0-98e05567297c</p>
+<pre class="de1">
+ <span class="sy0">+</span> <span class="br0">(</span><span class="kw4">id</span><span class="br0">)</span> initWithX<span class="sy0">:</span> <span class="br0">(</span><span class="kw4">int</span><span class="br0">)</span> number andY<span class="sy0">:</span> <span class="br0">(</span><span class="kw4">int</span><span class="br0">)</span> number;
+ <span class="sy0">+</span> <span class="br0">(</span><span class="kw4">id</span><span class="br0">)</span> new;
+</pre>
+<p>with instance methods looking like</p>
+<p>WHATSON? c3ac79d5-ec89-4d06-ad06-1c11a50c3ccd</p>
+<pre class="de1">
+ – <span class="br0">(</span><span class="kw4">id</span><span class="br0">)</span> value;
+ – <span class="br0">(</span><span class="kw4">id</span><span class="br0">)</span> setValue<span class="sy0">:</span> <span class="br0">(</span><span class="kw4">id</span><span class="br0">)</span> new_value;
+</pre>
+<p>Each of these method declarations have a specific internal representation. When compiled, each method is named according to the following scheme for class methods:</p>
+<p>WHATSON? c4bfbc70-e8b8-4284-97a9-16395d2f9590</p>
+<pre>
+_c_<i>Class</i>_<i>methodname</i>_<i>name</i><sub>1</sub>_<i>name</i><sub>2</sub>_ ...
+</pre>
+<p>and this for instance methods:</p>
+<p>WHATSON? 835126b5-7084-48f3-8714-0331e5db6b66</p>
+<pre>
+_i_<i>Class</i>_<i>methodname</i>_<i>name</i><sub>1</sub>_<i>name</i><sub>2</sub>_ ...
+</pre>
+<p>The colons in the Objective-C syntax are translated to underscores. So, the Objective-C class method <tt>+ (id) initWithX: (int) number andY: (int) number;</tt>, if belonging to the <tt>Point</tt> class would translate as <tt>_c_Point_initWithX_andY_</tt>, and the instance method (belonging to the same class) <tt>- (id) value;</tt> would translate to <tt>_i_Point_value</tt>.</p>
+<p>Each of the methods of a class are labeled in this way. However, in order to look up a method that a class may respond to would be tedious if all methods are represented in this fashion. Each of the methods is assigned a unique symbol (such as an integer). Such a symbol is known as a <i>selector</i>. In Objective-C, one can manage selectors directly — they have a specific type in Objective-C — <tt>SEL</tt>.</p>
+<p>During compilation, a table is built that maps the textual representation (such as <tt>_i_Point_value</tt>) to selectors (which are given a type SEL). Managing selectors is more efficient than manipulating the textual representation of a method. Note that a selector only matches a method's name, not the class it belongs to — different classes can have different implementations of a method with the same name. Because of this, implementations of a method are given a specific identifier too — these are known as implementation pointers, and are given a type also, <tt>IMP</tt>.</p>
+<p>Message sends are encoded by the compiler as calls to the <tt>id objc_msgSend (id receiver, SEL selector, ...)</tt> function, or one of its cousins, where <tt>receiver</tt> is the receiver of the message, and SEL determines the method to call. Each class has its own table that maps selectors to their implementations — the implementation pointer specifies where in memory the actual implementation of the method resides. There are separate tables for class and instance methods. Apart from being stored in the <tt>SEL</tt> to <tt>IMP</tt> lookup tables, the functions are essentially anonymous.</p>
+<p>The <tt>SEL</tt> value for a selector does not vary between classes. This enables polymorphism.</p>
+<p>The Objective-C runtime maintains information about the argument and return types of methods. However, this information is not part of the name of the method, and can vary from class to class.</p>
+<p>Since Objective-C does not support <a href="/wiki/Namespace_(programming)" title="Namespace (programming)" class="mw-redirect">namespaces</a>, there is no need for mangling of class names (that do appear as symbols in generated binaries).</p>
+<h2><span class="mw-headline" id="Name_mangling_in_Fortran">Name mangling in Fortran</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Name_mangling&amp;action=edit&amp;section=16" title="Edit section: Name mangling in Fortran">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Name mangling is also necessary in <a href="/wiki/Fortran" title="Fortran">Fortran</a> compilers, originally because the language is <a href="/wiki/Case_insensitive" title="Case insensitive" class="mw-redirect">case insensitive</a>. Further mangling requirements were imposed later in the evolution of the language because of the addition of <a href="/wiki/Module_(programming)" title="Module (programming)" class="mw-redirect">modules</a> and other features in the Fortran 90 standard. The case mangling, especially, is a common issue that must be dealt with in order to call Fortran libraries (such as <a href="/wiki/LAPACK" title="LAPACK">LAPACK</a>) from other languages (such as <a href="/wiki/C_(programming_language)" title="C (programming language)">C</a>).</p>
+<p>Because of the case insensitivity, the name of a subroutine or function "FOO" must be converted to a canonical case and format by the Fortran compiler so that it will be linked in the same way regardless of case. Different compilers have implemented this in various ways, and no standardization has occurred. The <a href="/wiki/IBM_AIX_(operating_system)" title="IBM AIX (operating system)" class="mw-redirect">AIX</a> and <a href="/wiki/HP-UX" title="HP-UX">HP-UX</a> Fortran compilers convert all identifiers to lower case ("foo"), while the <a href="/wiki/Cray" title="Cray">Cray</a> <a href="/wiki/Unicos" title="Unicos" class="mw-redirect">Unicos</a> Fortran compilers converted identifiers all upper case ("FOO"). The <a href="/wiki/GNU" title="GNU">GNU</a> <a href="/wiki/GNU_Compiler_Collection" title="GNU Compiler Collection">g77</a> compiler converts identifiers to lower case plus an underscore ("foo_"), except that identifiers already containing an underscore ("FOO_BAR") have two underscores appended ("foo_bar__"), following a convention established by <a href="/wiki/F2c" title="F2c">f2c</a>. Many other compilers, including <a href="/wiki/Silicon_Graphics" title="Silicon Graphics">SGI</a>'s <a href="/wiki/IRIX" title="IRIX">IRIX</a> compilers, <a href="/wiki/Gfortran" title="Gfortran">gfortran</a>, and <a href="/wiki/Intel" title="Intel">Intel</a>'s Fortran compiler, convert all identifiers to lower case plus an underscore ("foo_" and "foo_bar_").</p>
+<p>Identifiers in Fortran 90 modules must be further mangled, because the same procedure name may occur in different modules. Since the Fortran 2003 Standard requires that module procedure names not conflict with other external symbols,<sup id="cite_ref-2" class="reference"><a href="#cite_note-2"><span>[</span>2<span>]</span></a></sup> compilers tend to use the module name and the procedure name, with a distinct marker in between. For example, in the following module</p>
+<p>WHATSON? 036d552a-c643-4231-8252-7d5313ed995e</p>
+<pre class="de1">
+<span class="kw1">module</span> m 
+<span class="co1">contains</span>
+   <span class="kw3">integer</span> <span class="kw1">function</span> five<span class="br0">(</span><span class="br0">)</span>
+      five <span class="sy0">=</span> <span class="nu0">5</span>
+   <span class="kw1">end</span> <span class="kw1">function</span> five
+<span class="kw1">end</span> <span class="kw1">module</span> m
+</pre>
+<p>The name of the function will be mangled as <tt>__m_MOD_five</tt> (e.g., GNU's gfortran), <tt>m_MP_five_</tt> (e.g., Intel's ifort), <tt>m.five_</tt> (e.g., Oracle's sun95), etc. Since Fortran does not allow overloading the name of a procedure, but uses <a href="/wiki/Fortran_95_language_features#Overloading_and_generic_interfaces" title="Fortran 95 language features">generic interface blocks</a> and generic type-bound procedures instead, the mangled names do not need to incorporate clues about the arguments.</p>
+<p>The Fortran 2003 BIND option overrides any name mangling done by the compiler, as shown <a href="#C_name_decoration_in_Microsoft_Windows">above</a>.</p>
+<h2><span class="mw-headline" id="Name_mangling_in_Rust">Name mangling in Rust</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Name_mangling&amp;action=edit&amp;section=17" title="Edit section: Name mangling in Rust">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<p>Function names are mangled by default in <a href="/wiki/Rust_(programming_language)" title="Rust (programming language)">Rust</a>. However, this can be disabled by the <tt>#[no_mangle]</tt> function attribute. This attribute can be used to export functions to C, C++, or Objective-C. Additionally, along with the <tt>#[start]</tt> function attribute or the <tt>#[no_main]</tt> crate attribute, it allows the user to define a C-style entry point for the program.<sup id="cite_ref-3" class="reference"><a href="#cite_note-3"><span>[</span>3<span>]</span></a></sup></p>
+<h2><span class="mw-headline" id="See_also">See also</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Name_mangling&amp;action=edit&amp;section=18" title="Edit section: See also">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul>
+<li><a href="/wiki/Language_binding" title="Language binding">Language binding</a></li>
+<li><a href="/wiki/Foreign_function_interface" title="Foreign function interface">Foreign function interface</a></li>
+<li><a href="/wiki/Calling_convention" title="Calling convention">Calling convention</a></li>
+<li><a href="/wiki/Stropping_(syntax)" title="Stropping (syntax)">Stropping</a></li>
+<li><a href="/wiki/Application_programming_interface" title="Application programming interface">Application programming interface</a> – API</li>
+<li><a href="/wiki/Application_Binary_Interface" title="Application Binary Interface" class="mw-redirect">Application Binary Interface</a> – ABI</li>
+<li><a href="/wiki/Comparison_of_application_virtual_machines" title="Comparison of application virtual machines" class="mw-redirect">Comparison of application virtual machines</a></li>
+<li><a href="/wiki/Java_Native_Interface" title="Java Native Interface">Java Native Interface</a></li>
+<li><a href="/wiki/SWIG" title="SWIG">SWIG</a> – opensource interfaces bindings generator from many languages to many languages</li>
+<li><a href="/wiki/Microsoft_Visual_C%2B%2B_Name_Mangling" title="Microsoft Visual C++ Name Mangling" class="mw-redirect">Microsoft Visual C++ Name Mangling</a></li>
+</ul>
+<h2><span class="mw-headline" id="References">References</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Name_mangling&amp;action=edit&amp;section=19" title="Edit section: References">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ol class="references">
+<li id="cite_note-1"><span class="mw-cite-backlink"><b><a href="#cite_ref-1">^</a></b></span> <span class="reference-text"><a rel="nofollow" class="external free" href="http://software.intel.com/en-us/forums/showthread.php?t=56817">http://software.intel.com/en-us/forums/showthread.php?t=56817</a></span></li>
+<li id="cite_note-2"><span class="mw-cite-backlink"><b><a href="#cite_ref-2">^</a></b></span> <span class="reference-text"><a rel="nofollow" class="external free" href="https://software.intel.com/en-us/node/510637">https://software.intel.com/en-us/node/510637</a></span></li>
+<li id="cite_note-3"><span class="mw-cite-backlink"><b><a href="#cite_ref-3">^</a></b></span> <span class="reference-text"><span class="citation web"><a rel="nofollow" class="external text" href="http://doc.rust-lang.org/guide-unsafe.html#avoiding-the-standard-library">"Writing Safe Unsafe and Low-Level Code"</a>. <i>Rust Manual</i>. rust-lang.org<span class="reference-accessdate">. Retrieved 23 June 2014</span>.</span><span title="ctx_ver=Z39.88-2004&amp;rfr_id=info%3Asid%2Fen.wikipedia.org%3AName+mangling&amp;rft.atitle=Writing+Safe+Unsafe+and+Low-Level+Code&amp;rft.genre=article&amp;rft_id=http%3A%2F%2Fdoc.rust-lang.org%2Fguide-unsafe.html%23avoiding-the-standard-library&amp;rft.jtitle=Rust+Manual&amp;rft.pub=rust-lang.org&amp;rft_val_fmt=info%3Aofi%2Ffmt%3Akev%3Amtx%3Ajournal" class="Z3988"><span style="display:none;"> </span></span></span></li>
+</ol>
+<h2><span class="mw-headline" id="External_links">External links</span><span class="mw-editsection"><span class="mw-editsection-bracket">[</span><a href="/w/index.php?title=Name_mangling&amp;action=edit&amp;section=20" title="Edit section: External links">edit</a><span class="mw-editsection-bracket">]</span></span></h2>
+<ul>
+<li><a rel="nofollow" class="external text" href="http://mentorembedded.github.com/cxx-abi/abi.html#mangling">Linux Itanium ABI for C++</a>, including name mangling scheme.</li>
+<li><a rel="nofollow" class="external text" href="http://developer.apple.com/tools/mpw-tools/compilers/docs/abi_spec.pdf">Macintosh C/C++ ABI Standard Specification</a></li>
+<li><a rel="nofollow" class="external text" href="http://sources.redhat.com/binutils/docs-2.15/binutils/c--filt.html">c++filt</a> — filter to demangle encoded C++ symbols for GNU/Intel compilers</li>
+<li><a rel="nofollow" class="external text" href="http://msdn2.microsoft.com/en-us/library/5x49w699.aspx">undname</a> — msvc tool to demangle names.</li>
+<li><a rel="nofollow" class="external text" href="http://demangler.com">demangler.com</a> — An online tool for demangling GCC and MSVC C++ symbols</li>
+<li><a rel="nofollow" class="external text" href="http://developer.apple.com/legacy/mac/library/documentation/Cocoa/Conceptual/OOPandObjC1/Articles/ocRuntimeSystem.html#//apple_ref/doc/uid/TP40005191-CH9-CJBBBCHG">The Objective-C Runtime System</a> — From Apple's <i><a rel="nofollow" class="external text" href="http://developer.apple.com/legacy/mac/library/documentation/Cocoa/Conceptual/OOPandObjC1/Introduction/introObjectiveC.html">The Objective-C Programming Language 1.0</a></i></li>
+<li><a rel="nofollow" class="external text" href="http://www.agner.org/optimize/calling_conventions.pdf">Calling conventions for different C++ compilers</a> by Agner Fog contains detailed description of name mangling schemes for various x86 and x64 C++ compilers (pp. 24–42 in 2011-06-08 version)</li>
+<li><a rel="nofollow" class="external text" href="http://www.kegel.com/mangle.html#operators">C++ Name Mangling/Demangling</a> Quite detailed explanation of Visual C++ compiler name mangling scheme</li>
+<li><a rel="nofollow" class="external text" href="http://sourceforge.net/projects/php-ms-demangle/">PHP UnDecorateSymbolName</a> a php script that demangles Microsoft Visual C's function names.</li>
+<li><a rel="nofollow" class="external text" href="http://www.parashift.com/c++-faq-lite/mixing-c-and-cpp.html">Mixing C and C++ Code</a></li>
+<li><a rel="nofollow" class="external text" href="http://www.iecc.com/linker/linker05.html">Symbol management – 'Linkers and Loaders' by John R. Levine</a></li>
+<li><a rel="nofollow" class="external text" href="http://www.int0x80.gr/papers/name_mangling.pdf">Name mangling demystified by Fivos Kefallonitis</a></li>
+</ul>
+<ul>
+<li class="nv-view"><a href="/wiki/Template:Application_binary_interface" title="Template:Application binary interface"><span title="View this template" style=";;background:none transparent;border:none;;">v</span></a></li>
+<li class="nv-talk"><a href="/w/index.php?title=Template_talk:Application_binary_interface&amp;action=edit&amp;redlink=1" class="new" title="Template talk:Application binary interface (page does not exist)"><span title="Discuss this template" style=";;background:none transparent;border:none;;">t</span></a></li>
+<li class="nv-edit"><a class="external text" href="//en.wikipedia.org/w/index.php?title=Template:Application_binary_interface&amp;action=edit"><span title="Edit this template" style=";;background:none transparent;border:none;;">e</span></a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Data_structure_alignment" title="Data structure alignment">Alignment</a></li>
+<li><a href="/wiki/Calling_convention" title="Calling convention">Calling convention</a></li>
+<li><a href="/wiki/Call_stack" title="Call stack">Call stack</a></li>
+<li><a href="/wiki/Library_(computing)" title="Library (computing)">Library</a>
+<ul>
+<li><a href="/wiki/Static_library" title="Static library">static</a></li>
+</ul>
+</li>
+<li><a href="/wiki/Machine_code" title="Machine code">Machine code</a></li>
+<li><a href="/wiki/Memory_segmentation" title="Memory segmentation">Memory segmentation</a></li>
+<li><strong class="selflink">Name mangling</strong></li>
+<li><a href="/wiki/Object_code" title="Object code">Object code</a></li>
+<li><a href="/wiki/Opaque_pointer" title="Opaque pointer">Opaque pointer</a></li>
+<li><a href="/wiki/Position-independent_code" title="Position-independent code">Position-independent code</a></li>
+<li><a href="/wiki/Register_allocation" title="Register allocation">Register allocation</a></li>
+<li><a href="/wiki/Relocation_(computing)" title="Relocation (computing)">Relocation</a></li>
+<li><a href="/wiki/System_call" title="System call">System call</a></li>
+<li><a href="/wiki/Virtual_method_table" title="Virtual method table">Virtual method table</a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Static_library" title="Static library">static</a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Binary_code_compatibility" title="Binary code compatibility">Binary code compatibility</a></li>
+<li><a href="/wiki/Foreign_function_interface" title="Foreign function interface">Foreign function interface</a></li>
+<li><a href="/wiki/Language_binding" title="Language binding">Language binding</a></li>
+<li><a href="/wiki/Linker_(computing)" title="Linker (computing)">Linker</a>
+<ul>
+<li><a href="/wiki/Dynamic_linker" title="Dynamic linker">dynamic</a></li>
+</ul>
+</li>
+<li><a href="/wiki/Loader_(computing)" title="Loader (computing)">Loader</a></li>
+<li><a href="/wiki/Year_2038_problem" title="Year 2038 problem">Year 2038 problem</a></li>
+</ul>
+<ul>
+<li><a href="/wiki/Dynamic_linker" title="Dynamic linker">dynamic</a></li>
+</ul>
