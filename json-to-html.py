@@ -2,7 +2,7 @@ import json
 import uuid
 import re
 
-jsonFP = open('json-output/oop-wikipedia.json')
+jsonFP = open('items.json')
 data = json.load(jsonFP)
 
 codeJsonFP = open('code.json', 'r+')
