@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>How-to-Write-a-Key-Listener-The-Java-Tutorials---------------------Creating-a-GUI-With-JFCSwing--Writing-Event-Listeners.html</title></head>
+<body>
+<h1>How to Write a Key Listener</h1>
+<p>Key events indicate when the user is typing at the keyboard. Specifically, key events are fired by the component with the keyboard focus when the user presses or releases keyboard keys. For detailed information about focus, see 
+How to Use the Focus Subsystem.</p>
+<p>To define special reactions to particular keys, use key bindings instead of a key listener. For further information, see 
+How to Use Key Bindings.</p>
+<p>Notifications are sent about two basic kinds of key events:</p>
+<ul>
+<li>The typing of a Unicode character</li>
+<li>The pressing or releasing of a key on the keyboard</li>
+</ul>
+<p>The first kind of event is called a <em>key-typed</em> event. The second kind is either a <em>key-pressed</em> or <em>key-released</em> event.</p>
+<p>In general, you react to only key-typed events unless you need to know when the user presses keys that do not correspond to characters. For example, to know when the user types a Unicode character ??? whether by pressing one key such as 'a' or by pressing several keys in sequence ??? you handle key-typed events. On the other hand, to know when the user presses the F1 key, or whether the user pressed the '3' key on the number pad, you handle key-pressed events.</p>
+<p>To fire keyboard events, a component <em>must</em> have the keyboard focus.</p>
+<p>To make a component get the keyboard focus, follow these steps:</p>
+<ol>
+<li>Make sure the component's <code>isFocusable</code> method returns <code>true</code>. This state allows the component to receive the focus. For example, you can enable keyboard focus for a <code>JLabel</code> component by calling the <code>setFocusable(true)</code> method on the label.</li>
+<li>Make sure the component requests the focus when appropriate. For custom components, implement a mouse listener that calls the <code>requestFocusInWindow</code> method when the component is clicked.</li>
+</ol>
+<p>The focus subsystem consumes focus traversal keys, such as Tab and Shift Tab. If you need to prevent the focus traversal keys from being consumed, you can call</p>
+<p>WHATSON? 59f18de4-b0c9-4dea-9ffd-807c0c6ecb2c</p>
+<pre>
+component.setFocusTraversalKeysEnabled(false)
+</pre>
+<p>on the component that is firing the key events. Your program must then handle focus traversal on its own. Alternatively, you can use the 
+<code>KeyEventDispatcher</code> class to pre-listen to all key events. The 
+focus page has detailed information on the focus subsystem.</p>
+<p>You can obtain detailed information about a particular key-pressed event. For example, you can query a key-pressed event to determine if it was fired from an action key. Examples of action keys include Copy, Paste, Page Up, Undo, and the arrow and function keys. You can also query a key-pressed or key-released event to determine the location of the key that fired the event. Most key events are fired from the standard keyboard, but the events for some keys, such as Shift, have information on whether the user pressed the Shift key on the left or the right side of the keyboard. Likewise, the number '2' can be typed from either the standard keyboard or from the number pad.</p>
+<p>For key-typed events you can obtain the key character value as well as any modifiers used.</p>
+<p>You should not rely on the key character value returned from <code>getKeyChar</code> unless it is involved in a key-typed event.</p>
+<p>The following example demonstrates key events. It consists of a text field that you can type into, followed by a text area that displays a message every time the text field fires a key event. A button at the bottom of the window lets you clear both the text field and text area.</p>
+<ol>
+<li>Click the Launch button to run KeyEventDemo using 
+Java™ Web Start (download JDK 7 or later). Alternatively, to compile and run the example yourself, consult the example index.<img src="../../images/jws-launch-button.png" width="88" align="bottom" alt="Launches the KeyEventDemo application"><br></li>
+<li>Type a lowercase 'a' by pressing and releasing the A key on the keyboard.<br>
+The text field fires three events: a key-pressed event, a key-typed event, and a key-released event. Note that the key-typed event doesn't have key code information, and key-pressed and key-released events don't have key character information. None of the events so far are from modifier or action keys and the key location, reported on the key-pressed and key-released events, is most likely standard.</li>
+<li>Press the Clear button.<br>
+You might want to do this after each of the following steps.</li>
+<li>Press and release the Shift key.<br>
+The text field fires two events: a key-pressed and a key-released. The text field doesn't fire a key-typed event because Shift, by itself, doesn't correspond to any character.</li>
+<li>Type an uppercase 'A' by pressing the Shift and A keys.<br>
+You'll see the following events, although perhaps not in this order: key-pressed (Shift), key-pressed (A), key typed ('A'), key-released (A), key-released (Shift). Note that Shift is listed as the modifier key for the key-typed and key-pressed events.</li>
+<li>Type an uppercase 'A' by pressing and releasing the Caps Lock key, and then pressing the A key.<br>
+You should see the following events: key-pressed (Caps Lock), key-pressed (A), key typed ('A'), key-released (A). Note that Caps Lock is <em>not</em> listed as a modifier key.</li>
+<li>Press the Tab key. No Tab key-pressed or key-released events are received by the key event listener. This is because the focus subsystem consumes focus traversal keys, such as Tab and Shift Tab. Press Tab twice more to return the focus to the text area.</li>
+<li>Press a function key, such as F3. You'll see that the function key is an action key.</li>
+<li>Press the left Shift key, followed by the right Shift key. The key-pressed and key-released events indicate which Shift key was typed.</li>
+<li>Press the Num Lock key if your keyboard has a number pad.<br>
+As for Caps Lock, there is a key-pressed event, but no key-released event.</li>
+<li>Press the '2' key on the number pad. You see the key-pressed, key-typed, and key-released events for the number '2'.</li>
+<li>Press the '2' key on the standard keyboard. Again, you see the three event messages. The key-typed events for both number 2 keys are identical. But the key-pressed and key-released events indicate different key codes and different key locations.</li>
+<li>Press the Num Lock key again. A key-released event is fired.</li>
+</ol>
+<p>You can find the example's code in 
+<code>KeyEventDemo.java</code>. Here is the demo's key event handling code:</p>
+<p>WHATSON? 4c61641d-3e13-4bae-a563-a9446fff7fd2</p>
+<pre>
+public class KeyEventDemo ...  implements KeyListener ... {
+    <em>...//where initialization occurs:</em>
+        typingArea = new JTextField(20);
+        typingArea.addKeyListener(this);
+
+        //Uncomment this if you wish to turn off focus
+        //traversal.  The focus subsystem consumes
+        //focus traversal keys, such as Tab and Shift Tab.
+        //If you uncomment the following line of code, this
+        //disables focus traversal and the Tab events 
+        //become available to the key event listener.
+        //typingArea.setFocusTraversalKeysEnabled(false);
+    ...
+    /** Handle the key typed event from the text field. */
+    public void keyTyped(KeyEvent e) {
+        displayInfo(e, "KEY TYPED: ");
+    }
+
+    /** Handle the key-pressed event from the text field. */
+    public void keyPressed(KeyEvent e) {
+        displayInfo(e, "KEY PRESSED: ");
+    }
+
+    /** Handle the key-released event from the text field. */
+    public void keyReleased(KeyEvent e) {
+        displayInfo(e, "KEY RELEASED: ");
+    }
+    ...
+    private void displayInfo(KeyEvent e, String keyStatus){
+        
+        //You should only rely on the key char if the event
+        //is a key typed event.
+        int id = e.getID();
+        String keyString;
+        if (id == KeyEvent.KEY_TYPED) {
+            char c = e.getKeyChar();
+            keyString = "key character = '" + c + "'";
+        } else {
+            int keyCode = e.getKeyCode();
+            keyString = "key code = " + keyCode
+                    + " ("
+                    + KeyEvent.getKeyText(keyCode)
+                    + ")";
+        }
+        
+        int modifiersEx = e.getModifiersEx();
+        String modString = "extended modifiers = " + modifiersEx;
+        String tmpString = KeyEvent.getModifiersExText(modifiersEx);
+        if (tmpString.length() &gt; 0) {
+            modString += " (" + tmpString + ")";
+        } else {
+            modString += " (no extended modifiers)";
+        }
+        
+        String actionString = "action key? ";
+        if (e.isActionKey()) {
+            actionString += "YES";
+        } else {
+            actionString += "NO";
+        }
+        
+        String locationString = "key location: ";
+        int location = e.getKeyLocation();
+        if (location == KeyEvent.KEY_LOCATION_STANDARD) {
+            locationString += "standard";
+        } else if (location == KeyEvent.KEY_LOCATION_LEFT) {
+            locationString += "left";
+        } else if (location == KeyEvent.KEY_LOCATION_RIGHT) {
+            locationString += "right";
+        } else if (location == KeyEvent.KEY_LOCATION_NUMPAD) {
+            locationString += "numpad";
+        } else { // (location == KeyEvent.KEY_LOCATION_UNKNOWN)
+            locationString += "unknown";
+        }
+        
+        <em>...//Display information about the KeyEvent...</em>
+    }
+}
+</pre>
+<h2>The Key Listener API</h2>
+<p>The KeyListener Interface</p>
+<p><em>The corresponding adapter class is 
+<code>KeyAdapter</code>.</em></p>
+<p>The KeyEvent Class</p>
+<p>The <code>KeyEvent</code> class inherits many useful methods from the 
+<code>InputEvent</code> class, such as <code>getModifiersEx</code>, and a couple of useful methods from the 
+<code>ComponentEvent</code> and 
+<code>AWTEvent</code> classes. See the InputEvent Class table in the mouse listener page for a complete list.</p>
+<h2>Examples that Use Key Listeners</h2>
+<p>The following table lists the examples that use key listeners.</p>
+</body>
+</html>

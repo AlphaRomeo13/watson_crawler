@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Building-Web-Apps-in-WebView--Android-Developers.html</title></head>
+<body>
+<h1>Building Web Apps in WebView</h1>
+<h2>Quickview</h2>
+<ul>
+  <li>Use <code>WebView</code> to display web pages in your Android application
+layout</li>
+  <li>You can create interfaces from your JavaScript to your client-side Android code</li>
+</ul>
+<h2>In this document</h2>
+<ol>
+  <li>Adding a WebView to Your Application</li>
+  <li>Using JavaScript in WebView
+    <ol>
+      <li>Enabling JavaScript</li>
+      <li>Binding JavaScript code to Android code</li>
+    </ol>
+  </li>
+  <li>Handling Page Navigation
+    <ol>
+      <li>Navigating web page history</li>
+    </ol>
+  </li>
+</ol>
+<ol>
+      <li>Enabling JavaScript</li>
+      <li>Binding JavaScript code to Android code</li>
+    </ol>
+<ol>
+      <li>Navigating web page history</li>
+    </ol>
+<h2>Key classes</h2>
+<ol>
+  <li><code>WebView</code></li>
+  <li><code>WebSettings</code></li>
+  <li><code>WebViewClient</code></li>
+</ol>
+<p>If you want to deliver a web application (or just a web page) as a part of a client application,
+you can do it using <code>WebView</code>. The <code>WebView</code> class is an
+extension of Android's <code>View</code> class that allows you to display web pages as a
+part of your activity layout. It does <em>not</em> include any features of a fully developed web
+browser, such as navigation controls or an address bar. All that <code>WebView</code>
+does, by default, is show a web page.</p>
+<p>A common scenario in which using <code>WebView</code> is helpful is when you want to
+provide information in your application that you might need to update, such as an end-user agreement
+or a user guide. Within your Android application, you can create an <code>Activity</code>
+that contains a <code>WebView</code>, then use that to display your document that's
+hosted online.</p>
+<p>Another scenario in which <code>WebView</code> can help is if your application provides
+data to the user that
+always requires an Internet connection to retrieve data, such as email. In this case, you might
+find that it's easier to build a <code>WebView</code> in your Android application that
+shows a web page with all
+the user data, rather than performing a network request, then parsing the data and rendering it in
+an Android layout. Instead, you can design a web page that's tailored for Android devices
+and then implement a <code>WebView</code> in your Android application that loads the web
+page.</p>
+<p>This document shows you how to get started with <code>WebView</code> and how to do some
+additional things, such as handle page navigation and bind JavaScript from your web page to
+client-side code in your Android application.</p>
+<h2>Adding a WebView to Your Application</h2>
+<p>To add a <code>WebView</code> to your Application, simply include the <code>&lt;WebView&gt;</code> element in your activity layout. For example, here's a layout file in which the
+<code>WebView</code> fills the screen:</p>
+<p>WHATSON? f788ffaf-e8e4-48fd-85d5-90752c8c3e81</p>
+<pre>
+&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;WebView  xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/webview"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+/&gt;
+</pre>
+<p>To load a web page in the <code>WebView</code>, use <code>loadUrl()</code>. For example:</p>
+<p>WHATSON? ccff3485-4905-439c-a785-d84650ea3f02</p>
+<pre>
+WebView myWebView = (WebView) findViewById(R.id.webview);
+myWebView.loadUrl("http://www.example.com");
+</pre>
+<p>Before this will work, however, your application must have access to the Internet. To get
+Internet access, request the <code>INTERNET</code> permission in your
+manifest file. For example:</p>
+<p>WHATSON? e797113d-b3dc-4ea5-9aaa-bfe516a3f207</p>
+<pre>
+&lt;manifest ... &gt;
+    &lt;uses-permission android:name="android.permission.INTERNET" /&gt;
+    ...
+&lt;/manifest&gt;
+</pre>
+<p>That's all you need for a basic <code>WebView</code> that displays a web page.</p>
+<h2>Using JavaScript in WebView</h2>
+<p>If the web page you plan to load in your <code>WebView</code> use JavaScript, you
+must enable JavaScript for your <code>WebView</code>. Once JavaScript is enabled, you can
+also create interfaces between your application code and your JavaScript code.</p>
+<h3>Enabling JavaScript</h3>
+<p>JavaScript is disabled in a <code>WebView</code> by default. You can enable it
+through the <code>WebSettings</code> attached to your <code>WebView</code>. You can retrieve <code>WebSettings</code> with <code>getSettings()</code>, then enable
+JavaScript with <code>setJavaScriptEnabled()</code>.</p>
+<p>For example:</p>
+<p>WHATSON? 2c2da560-ec01-4cba-9823-569412cf4b67</p>
+<pre>
+WebView myWebView = (WebView) findViewById(R.id.webview);
+WebSettings webSettings = myWebView.getSettings();
+webSettings.setJavaScriptEnabled(true);
+</pre>
+<p><code>WebSettings</code> provides access to a variety of other settings that you might
+find useful. For example, if you're developing a web application
+that's designed specifically for the <code>WebView</code> in your Android application,
+then you can define a
+custom user agent string with <code>setUserAgentString()</code>, then query the custom user agent in your web page to verify that the
+client requesting your web page is actually your Android application.</p>
+<h3>Binding JavaScript code to Android code</h3>
+<p>When developing a web application that's designed specifically for the <code>WebView</code> in your Android
+application, you can create interfaces between your JavaScript code and client-side Android code.
+For example, your JavaScript code can call a method in your Android code to display a <code>Dialog</code>, instead of using JavaScript's <code>alert()</code> function.</p>
+<p>To bind a new interface between your JavaScript and Android code, call <code>addJavascriptInterface()</code>, passing it
+a class instance to bind to your JavaScript and an interface name that your JavaScript can call to
+access the class.</p>
+<p>For example, you can include the following class in your Android application:</p>
+<p>WHATSON? fef0fbf9-ddd9-45e3-8364-c48a5712827d</p>
+<pre>
+public class WebAppInterface {
+    Context mContext;
+
+    /** Instantiate the interface and set the context */
+    WebAppInterface(Context c) {
+        mContext = c;
+    }
+
+    /** Show a toast from the web page */
+    @JavascriptInterface
+    public void showToast(String toast) {
+        Toast.makeText(mContext, toast, Toast.LENGTH_SHORT).show();
+    }
+}
+</pre>
+<p><strong>Caution:</strong> If you've set your <code>targetSdkVersion</code>
+to 17 or higher, <strong>you
+must add the <code>@JavascriptInterface</code> annotation</strong> to any method that you want
+available to your JavaScript (the method must also be public). If you do not provide the
+annotation, the method is not accessible by your web page when running on Android 4.2 or
+higher.</p>
+<p>In this example, the <code>WebAppInterface</code> class allows the web page to create a <code>Toast</code> message, using the <code>showToast()</code> method.</p>
+<p>You can bind this class to the JavaScript that runs in your <code>WebView</code> with
+<code>addJavascriptInterface()</code> and
+name the interface <code>Android</code>. For example:</p>
+<p>WHATSON? 14f6a2fe-57ff-4e55-ac2d-3cdf4e4c6058</p>
+<pre>
+WebView webView = (WebView) findViewById(R.id.webview);
+webView.addJavascriptInterface(new WebAppInterface(this), "Android");
+</pre>
+<p>This creates an interface called <code>Android</code> for JavaScript running in the <code>WebView</code>. At this point, your web application has access to the <code>WebAppInterface</code> class. For example, here's some HTML and JavaScript that creates a toast
+message using the new interface when the user clicks a button:</p>
+<p>WHATSON? e3d1472b-1a1f-49b0-a078-5aa4ef595575</p>
+<pre>
+&lt;input type="button" value="Say hello" onClick="showAndroidToast('Hello Android!')" /&gt;
+
+&lt;script type="text/javascript"&gt;
+    function showAndroidToast(toast) {
+        Android.showToast(toast);
+    }
+&lt;/script&gt;
+</pre>
+<p>There's no need to initialize the <code>Android</code> interface from JavaScript. The <code>WebView</code> automatically makes it
+available to your web page. So, at the click of the button, the <code>showAndroidToast()</code>
+function uses the <code>Android</code> interface to call the <code>WebAppInterface.showToast()</code>
+method.</p>
+<p><strong>Note:</strong> The object that is bound to your JavaScript runs in
+another thread and not in the thread in which it was constructed.</p>
+<p><strong>Caution:</strong> Using <code>addJavascriptInterface()</code> allows
+JavaScript to control your Android application. This can be a very useful feature or a dangerous
+security issue. When the HTML in the <code>WebView</code> is untrustworthy (for example,
+part or all of the HTML
+is provided by an unknown person or process), then an attacker can include HTML that executes
+your client-side code and possibly any code of the attacker's choosing. As such, you should not use
+<code>addJavascriptInterface()</code> unless
+you wrote all of the HTML and JavaScript that appears in your <code>WebView</code>. You
+should also not allow the user to
+navigate to other web pages that are not your own, within your <code>WebView</code>
+(instead, allow the user's
+default browser application to open foreign links—by default, the user's web browser
+opens all URL links, so be careful only if you handle page navigation as described in the
+following section).</p>
+<h2>Handling Page Navigation</h2>
+<p>When the user clicks a link from a web page in your <code>WebView</code>, the default
+behavior is
+for Android to launch an application that handles URLs. Usually, the default web browser opens and
+loads the destination URL. However, you can override this behavior for your <code>WebView</code>,
+so links open within your <code>WebView</code>. You can then allow the user to navigate
+backward and forward through their web page history that's maintained by your <code>WebView</code>.</p>
+<p>To open links clicked by the user, simply provide a <code>WebViewClient</code> for your <code>WebView</code>, using <code>setWebViewClient()</code>. For example:</p>
+<p>WHATSON? 8c72eb8d-1181-4a5d-ad5d-454f9a406744</p>
+<pre>
+WebView myWebView = (WebView) findViewById(R.id.webview);
+myWebView.<code>setWebViewClient</code>(new WebViewClient());
+</pre>
+<p>That's it. Now all links the user clicks load in your <code>WebView</code>.</p>
+<p>If you want more control over where a clicked link load, create your own <code>WebViewClient</code> that overrides the <code>shouldOverrideUrlLoading()</code> method. For example:</p>
+<p>WHATSON? ce7ff77d-c1ef-42a7-9814-e8e16144bc77</p>
+<pre>
+private class MyWebViewClient extends WebViewClient {
+    @Override
+    public boolean <code>shouldOverrideUrlLoading</code>(WebView view, String url) {
+        if (Uri.parse(url).getHost().equals("www.example.com")) {
+            // This is my web site, so do not override; let my WebView load the page
+            return false;
+        }
+        // Otherwise, the link is not for a page on my site, so launch another Activity that handles URLs
+        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+        startActivity(intent);
+        return true;
+    }
+}
+</pre>
+<p>Then create an instance of this new <code>WebViewClient</code> for the <code>WebView</code>:</p>
+<p>WHATSON? 68f20511-84af-4bd6-a9ed-4a1dcc007555</p>
+<pre>
+WebView myWebView = (WebView) findViewById(R.id.webview);
+myWebView.<code>setWebViewClient</code>(new MyWebViewClient());
+</pre>
+<p>Now when the user clicks a link, the system calls
+<code>shouldOverrideUrlLoading()</code>, which checks whether the URL host matches a specific domain (as defined
+above). If it does match, then the method returns false in order to <em>not</em> override the URL
+loading (it allows the <code>WebView</code> to load the URL as usual). If the URL host
+does not match, then an <code>Intent</code> is created to
+launch the default Activity for handling URLs (which resolves to the user's default web
+browser).</p>
+<h3>Navigating web page history</h3>
+<p>When your <code>WebView</code> overrides URL loading, it automatically accumulates a
+history of visited web
+pages. You can navigate backward and forward through the history with <code>goBack()</code> and <code>goForward()</code>.</p>
+<p>For example, here's how your <code>Activity</code> can use the device <em>Back</em> button
+to navigate backward:</p>
+<p>WHATSON? 25df609e-c039-4678-8d24-5b8ad6a32ed5</p>
+<pre>
+@Override
+public boolean <code>onKeyDown</code>(int keyCode, KeyEvent event) {
+    // Check if the key event was the Back button and if there's history
+    if ((keyCode == KeyEvent.KEYCODE_BACK) &amp;&amp; myWebView.<code>canGoBack</code>()) {
+        myWebView.<code>goBack</code>();
+        return true;
+    }
+    // If it wasn't the Back key or there's no web page history, bubble up to the default
+    // system behavior (probably exit the activity)
+    return super.onKeyDown(keyCode, event);
+}
+</pre>
+<p>The <code>canGoBack()</code> method returns
+true if there is actually web page history for the user to visit. Likewise, you can use <code>canGoForward()</code> to check whether there is a forward history. If you don't
+perform this check, then once the user reaches the end of the history, <code>goBack()</code> or <code>goForward()</code> does nothing.</p>
+<h1>Building Web Apps in WebView</h1>
+<h2>Quickview</h2>
+<ul>
+  <li>Use <code>WebView</code> to display web pages in your Android application
+layout</li>
+  <li>You can create interfaces from your JavaScript to your client-side Android code</li>
+</ul>
+<h2>In this document</h2>
+<ol>
+  <li>Adding a WebView to Your Application</li>
+  <li>Using JavaScript in WebView
+    <ol>
+      <li>Enabling JavaScript</li>
+      <li>Binding JavaScript code to Android code</li>
+    </ol>
+  </li>
+  <li>Handling Page Navigation
+    <ol>
+      <li>Navigating web page history</li>
+    </ol>
+  </li>
+</ol>
+<ol>
+      <li>Enabling JavaScript</li>
+      <li>Binding JavaScript code to Android code</li>
+    </ol>
+<ol>
+      <li>Navigating web page history</li>
+    </ol>
+<h2>Key classes</h2>
+<ol>
+  <li><code>WebView</code></li>
+  <li><code>WebSettings</code></li>
+  <li><code>WebViewClient</code></li>
+</ol>
+<p>If you want to deliver a web application (or just a web page) as a part of a client application,
+you can do it using <code>WebView</code>. The <code>WebView</code> class is an
+extension of Android's <code>View</code> class that allows you to display web pages as a
+part of your activity layout. It does <em>not</em> include any features of a fully developed web
+browser, such as navigation controls or an address bar. All that <code>WebView</code>
+does, by default, is show a web page.</p>
+<p>A common scenario in which using <code>WebView</code> is helpful is when you want to
+provide information in your application that you might need to update, such as an end-user agreement
+or a user guide. Within your Android application, you can create an <code>Activity</code>
+that contains a <code>WebView</code>, then use that to display your document that's
+hosted online.</p>
+<p>Another scenario in which <code>WebView</code> can help is if your application provides
+data to the user that
+always requires an Internet connection to retrieve data, such as email. In this case, you might
+find that it's easier to build a <code>WebView</code> in your Android application that
+shows a web page with all
+the user data, rather than performing a network request, then parsing the data and rendering it in
+an Android layout. Instead, you can design a web page that's tailored for Android devices
+and then implement a <code>WebView</code> in your Android application that loads the web
+page.</p>
+<p>This document shows you how to get started with <code>WebView</code> and how to do some
+additional things, such as handle page navigation and bind JavaScript from your web page to
+client-side code in your Android application.</p>
+<h2>Adding a WebView to Your Application</h2>
+<p>To add a <code>WebView</code> to your Application, simply include the <code>&lt;WebView&gt;</code> element in your activity layout. For example, here's a layout file in which the
+<code>WebView</code> fills the screen:</p>
+<p>WHATSON? 9678b09a-210b-4586-bae0-a90c636d31d0</p>
+<pre>
+&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;WebView  xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/webview"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+/&gt;
+</pre>
+<p>To load a web page in the <code>WebView</code>, use <code>loadUrl()</code>. For example:</p>
+<p>WHATSON? 09138b33-2e11-4b29-bb02-83070ae0fb9f</p>
+<pre>
+WebView myWebView = (WebView) findViewById(R.id.webview);
+myWebView.loadUrl("http://www.example.com");
+</pre>
+<p>Before this will work, however, your application must have access to the Internet. To get
+Internet access, request the <code>INTERNET</code> permission in your
+manifest file. For example:</p>
+<p>WHATSON? e68c3db1-f0aa-4d81-80a3-9c14c77299a4</p>
+<pre>
+&lt;manifest ... &gt;
+    &lt;uses-permission android:name="android.permission.INTERNET" /&gt;
+    ...
+&lt;/manifest&gt;
+</pre>
+<p>That's all you need for a basic <code>WebView</code> that displays a web page.</p>
+<h2>Using JavaScript in WebView</h2>
+<p>If the web page you plan to load in your <code>WebView</code> use JavaScript, you
+must enable JavaScript for your <code>WebView</code>. Once JavaScript is enabled, you can
+also create interfaces between your application code and your JavaScript code.</p>
+<h3>Enabling JavaScript</h3>
+<p>JavaScript is disabled in a <code>WebView</code> by default. You can enable it
+through the <code>WebSettings</code> attached to your <code>WebView</code>. You can retrieve <code>WebSettings</code> with <code>getSettings()</code>, then enable
+JavaScript with <code>setJavaScriptEnabled()</code>.</p>
+<p>For example:</p>
+<p>WHATSON? b1ff6067-3c93-472c-9cf8-570a2864380f</p>
+<pre>
+WebView myWebView = (WebView) findViewById(R.id.webview);
+WebSettings webSettings = myWebView.getSettings();
+webSettings.setJavaScriptEnabled(true);
+</pre>
+<p><code>WebSettings</code> provides access to a variety of other settings that you might
+find useful. For example, if you're developing a web application
+that's designed specifically for the <code>WebView</code> in your Android application,
+then you can define a
+custom user agent string with <code>setUserAgentString()</code>, then query the custom user agent in your web page to verify that the
+client requesting your web page is actually your Android application.</p>
+<h3>Binding JavaScript code to Android code</h3>
+<p>When developing a web application that's designed specifically for the <code>WebView</code> in your Android
+application, you can create interfaces between your JavaScript code and client-side Android code.
+For example, your JavaScript code can call a method in your Android code to display a <code>Dialog</code>, instead of using JavaScript's <code>alert()</code> function.</p>
+<p>To bind a new interface between your JavaScript and Android code, call <code>addJavascriptInterface()</code>, passing it
+a class instance to bind to your JavaScript and an interface name that your JavaScript can call to
+access the class.</p>
+<p>For example, you can include the following class in your Android application:</p>
+<p>WHATSON? cd8d239c-1f44-464b-a8db-93c762a42593</p>
+<pre>
+public class WebAppInterface {
+    Context mContext;
+
+    /** Instantiate the interface and set the context */
+    WebAppInterface(Context c) {
+        mContext = c;
+    }
+
+    /** Show a toast from the web page */
+    @JavascriptInterface
+    public void showToast(String toast) {
+        Toast.makeText(mContext, toast, Toast.LENGTH_SHORT).show();
+    }
+}
+</pre>
+<p><strong>Caution:</strong> If you've set your <code>targetSdkVersion</code>
+to 17 or higher, <strong>you
+must add the <code>@JavascriptInterface</code> annotation</strong> to any method that you want
+available to your JavaScript (the method must also be public). If you do not provide the
+annotation, the method is not accessible by your web page when running on Android 4.2 or
+higher.</p>
+<p>In this example, the <code>WebAppInterface</code> class allows the web page to create a <code>Toast</code> message, using the <code>showToast()</code> method.</p>
+<p>You can bind this class to the JavaScript that runs in your <code>WebView</code> with
+<code>addJavascriptInterface()</code> and
+name the interface <code>Android</code>. For example:</p>
+<p>WHATSON? d3e34455-7672-470d-855b-5eb925549cf2</p>
+<pre>
+WebView webView = (WebView) findViewById(R.id.webview);
+webView.addJavascriptInterface(new WebAppInterface(this), "Android");
+</pre>
+<p>This creates an interface called <code>Android</code> for JavaScript running in the <code>WebView</code>. At this point, your web application has access to the <code>WebAppInterface</code> class. For example, here's some HTML and JavaScript that creates a toast
+message using the new interface when the user clicks a button:</p>
+<p>WHATSON? e368549e-468b-43f4-bbd5-618a89d6bbe5</p>
+<pre>
+&lt;input type="button" value="Say hello" onClick="showAndroidToast('Hello Android!')" /&gt;
+
+&lt;script type="text/javascript"&gt;
+    function showAndroidToast(toast) {
+        Android.showToast(toast);
+    }
+&lt;/script&gt;
+</pre>
+<p>There's no need to initialize the <code>Android</code> interface from JavaScript. The <code>WebView</code> automatically makes it
+available to your web page. So, at the click of the button, the <code>showAndroidToast()</code>
+function uses the <code>Android</code> interface to call the <code>WebAppInterface.showToast()</code>
+method.</p>
+<p><strong>Note:</strong> The object that is bound to your JavaScript runs in
+another thread and not in the thread in which it was constructed.</p>
+<p><strong>Caution:</strong> Using <code>addJavascriptInterface()</code> allows
+JavaScript to control your Android application. This can be a very useful feature or a dangerous
+security issue. When the HTML in the <code>WebView</code> is untrustworthy (for example,
+part or all of the HTML
+is provided by an unknown person or process), then an attacker can include HTML that executes
+your client-side code and possibly any code of the attacker's choosing. As such, you should not use
+<code>addJavascriptInterface()</code> unless
+you wrote all of the HTML and JavaScript that appears in your <code>WebView</code>. You
+should also not allow the user to
+navigate to other web pages that are not your own, within your <code>WebView</code>
+(instead, allow the user's
+default browser application to open foreign links—by default, the user's web browser
+opens all URL links, so be careful only if you handle page navigation as described in the
+following section).</p>
+<h2>Handling Page Navigation</h2>
+<p>When the user clicks a link from a web page in your <code>WebView</code>, the default
+behavior is
+for Android to launch an application that handles URLs. Usually, the default web browser opens and
+loads the destination URL. However, you can override this behavior for your <code>WebView</code>,
+so links open within your <code>WebView</code>. You can then allow the user to navigate
+backward and forward through their web page history that's maintained by your <code>WebView</code>.</p>
+<p>To open links clicked by the user, simply provide a <code>WebViewClient</code> for your <code>WebView</code>, using <code>setWebViewClient()</code>. For example:</p>
+<p>WHATSON? 352d54ab-8bed-4ed0-92f7-fd7c7af0eecb</p>
+<pre>
+WebView myWebView = (WebView) findViewById(R.id.webview);
+myWebView.<code>setWebViewClient</code>(new WebViewClient());
+</pre>
+<p>That's it. Now all links the user clicks load in your <code>WebView</code>.</p>
+<p>If you want more control over where a clicked link load, create your own <code>WebViewClient</code> that overrides the <code>shouldOverrideUrlLoading()</code> method. For example:</p>
+<p>WHATSON? a7687a0c-c166-470a-a675-6824e1e4e3b8</p>
+<pre>
+private class MyWebViewClient extends WebViewClient {
+    @Override
+    public boolean <code>shouldOverrideUrlLoading</code>(WebView view, String url) {
+        if (Uri.parse(url).getHost().equals("www.example.com")) {
+            // This is my web site, so do not override; let my WebView load the page
+            return false;
+        }
+        // Otherwise, the link is not for a page on my site, so launch another Activity that handles URLs
+        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+        startActivity(intent);
+        return true;
+    }
+}
+</pre>
+<p>Then create an instance of this new <code>WebViewClient</code> for the <code>WebView</code>:</p>
+<p>WHATSON? 0e70add8-446d-4af5-b237-0d79fa5a66a7</p>
+<pre>
+WebView myWebView = (WebView) findViewById(R.id.webview);
+myWebView.<code>setWebViewClient</code>(new MyWebViewClient());
+</pre>
+<p>Now when the user clicks a link, the system calls
+<code>shouldOverrideUrlLoading()</code>, which checks whether the URL host matches a specific domain (as defined
+above). If it does match, then the method returns false in order to <em>not</em> override the URL
+loading (it allows the <code>WebView</code> to load the URL as usual). If the URL host
+does not match, then an <code>Intent</code> is created to
+launch the default Activity for handling URLs (which resolves to the user's default web
+browser).</p>
+<h3>Navigating web page history</h3>
+<p>When your <code>WebView</code> overrides URL loading, it automatically accumulates a
+history of visited web
+pages. You can navigate backward and forward through the history with <code>goBack()</code> and <code>goForward()</code>.</p>
+<p>For example, here's how your <code>Activity</code> can use the device <em>Back</em> button
+to navigate backward:</p>
+<p>WHATSON? 6fc75b00-54a6-4d7f-92f8-db37090aba88</p>
+<pre>
+@Override
+public boolean <code>onKeyDown</code>(int keyCode, KeyEvent event) {
+    // Check if the key event was the Back button and if there's history
+    if ((keyCode == KeyEvent.KEYCODE_BACK) &amp;&amp; myWebView.<code>canGoBack</code>()) {
+        myWebView.<code>goBack</code>();
+        return true;
+    }
+    // If it wasn't the Back key or there's no web page history, bubble up to the default
+    // system behavior (probably exit the activity)
+    return super.onKeyDown(keyCode, event);
+}
+</pre>
+<p>The <code>canGoBack()</code> method returns
+true if there is actually web page history for the user to visit. Likewise, you can use <code>canGoForward()</code> to check whether there is a forward history. If you don't
+perform this check, then once the user reaches the end of the history, <code>goBack()</code> or <code>goForward()</code> does nothing.</p>
+</body>
+</html>

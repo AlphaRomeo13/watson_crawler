@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Associative-array---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Associative array</h1>
+<p>In computer science, an <b>associative array</b>, <b>map</b>, <b>symbol table</b>, or <b>dictionary</b> is an abstract data type composed of a collection of <img class="mwe-math-fallback-image-inline tex" alt="(key, value)" src="//upload.wikimedia.org/math/8/6/3/863cb7894fca458a29399859e3255b14.png"> pairs, such that each possible key appears at most once in the collection.</p>
+<p>Operations associated with this data type allow:</p>
+<ul>
+<li>the addition of pairs to the collection</li>
+<li>the removal of pairs from the collection</li>
+<li>the modification of the values of existing pairs</li>
+<li>the lookup of the value associated with a particular key</li>
+</ul>
+<p>The <b>dictionary problem</b> is a classic computer science problem: the task of designing a data structure that maintains a set of data during 'search' 'delete' and 'insert' operations. A standard solution to the dictionary problem is a hash table; in some cases it is also possible to solve the problem using directly addressed arrays, binary search trees, or other more specialized structures.</p>
+<p>Many programming languages include associative arrays as primitive data types, and they are available in software libraries for many others. Content-addressable memory is a form of direct hardware-level support for associative arrays.</p>
+<p>Associative arrays have many applications including such fundamental programming patterns as memoization and the decorator pattern.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Operations</li>
+<li>2 Example</li>
+<li>3 Implementation</li>
+<li>4 Language support</li>
+<li>5 See also</li>
+<li>6 References</li>
+<li>7 External links</li>
+</ul>
+<p></p>
+<h2>Operations</h2>
+<p>In an associative array, the association between a key and a value is often known as a "binding", and the same word "binding" may also be used to refer to the process of creating a new association.</p>
+<p>The operations that are usually defined for an associative array are:</p>
+<ul>
+<li><b>Add</b> or <b>insert</b>: add a new <img class="mwe-math-fallback-image-inline tex" alt="(key, value)" src="//upload.wikimedia.org/math/8/6/3/863cb7894fca458a29399859e3255b14.png"> pair to the collection, binding the new key to its new value. The arguments to this operation are the key and the value.</li>
+<li><b>Reassign</b>: replace the value in one of the <img class="mwe-math-fallback-image-inline tex" alt="(key, value)" src="//upload.wikimedia.org/math/8/6/3/863cb7894fca458a29399859e3255b14.png"> pairs that are already in the collection, binding an old key to a new value. As with an insertion, the arguments to this operation are the key and the value.</li>
+<li><b>Remove</b> or <b>delete</b>: remove a <img class="mwe-math-fallback-image-inline tex" alt="(key, value)" src="//upload.wikimedia.org/math/8/6/3/863cb7894fca458a29399859e3255b14.png"> pair from the collection, unbinding a given key from its value. The argument to this operation is the key.</li>
+<li><b>Lookup</b>: find the value (if any) that is bound to a given key. The argument to this operation is the key, and the value is returned from the operation. If no value is found, some associative array implementations raise an exception.</li>
+</ul>
+<p>In addition, associative arrays may also include other operations such as determining the number of bindings or constructing an iterator to loop over all the bindings. Usually, for such an operation, the order in which the bindings are returned may be arbitrary.</p>
+<p>A multimap generalizes an associative array by allowing multiple values to be associated with a single key. A bidirectional map is a related abstract data type in which the bindings operate in both directions: each value must be associated with a unique key, and a second lookup operation takes a value as argument and looks up the key associated with that value.</p>
+<h2>Example</h2>
+<p>Suppose that the set of loans made by a library is to be represented in a data structure. Each book in a library may be checked out only by a single library patron at a time. However, a single patron may be able to check out multiple books. Therefore, the information about which books are checked out to which patrons may be represented by an associative array, in which the books are the keys and the patrons are the values. For instance (using notation from Python, or JSON (JavaScript Object Notation), in which a binding is represented by placing a colon between the key and the value), the current checkouts may be represented by an associative array</p>
+<p>WHATSON? fb6506f2-8cba-4fe6-9e0c-e69c27ceed00</p>
+<pre>
+{
+    "Great Expectations": "John",
+    "Pride and Prejudice": "Alice",
+    "Wuthering Heights": "Alice"
+}
+</pre>
+<p>A lookup operation with the key "Great Expectations" in this array would return the name of the person who checked out that book, John. If John returns his book, that would cause a deletion operation in the associative array, and if Pat checks out another book, that would cause an insertion operation, leading to a different state:</p>
+<p>WHATSON? a019fd54-32b0-424f-aa9c-d68011246f14</p>
+<pre>
+{
+    "Pride and Prejudice": "Alice",
+    "The Brothers Karamazov": "Pat",
+    "Wuthering Heights": "Alice"
+}
+</pre>
+<p>In this new state, the same lookup as before, with the key "Great Expectations", would raise an exception, because this key is no longer present in the array.</p>
+<h2>Implementation</h2>
+<p>For dictionaries with very small numbers of bindings, it may make sense to implement the dictionary using an association list, a linked list of bindings. With this implementation, the time to perform the basic dictionary operations is linear in the total number of bindings; however, it is easy to implement and the constant factors in its running time are small.</p>
+<p>Another very simple implementation technique, usable when the keys are restricted to a narrow range of integers, is direct addressing into an array: the value for a given key <i>k</i> is stored at the array cell <i>A</i>[<i>k</i>], or if there is no binding for <i>k</i> then the cell stores a special sentinel value that indicates the absence of a binding. As well as being simple, this technique is fast: each dictionary operation takes constant time. However, the space requirement for this structure is the size of the entire keyspace, making it impractical unless the keyspace is small.</p>
+<p>The most frequently used general purpose implementation of an associative array is with a hash table: an array of bindings, together with a hash function that maps each possible key into an array index. The basic idea of a hash table is that the binding for a given key is stored at the position given by applying the hash function to that key, and that lookup operations are performed by looking at that cell of the array and using the binding found there. However, hash table based dictionaries must be prepared to handle collisions that occur when two keys are mapped by the hash function to the same index, and many different collision resolution strategies have been developed for dealing with this situation, often based either on open addressing (looking at a sequence of hash table indices instead of a single index, until finding either the given key or an empty cell) or on hash chaining (storing a small association list instead of a single binding in each hash table cell).</p>
+<p>Dictionaries may also be stored in binary search trees or in data structures specialized to a particular type of keys such as radix trees, tries, Judy arrays, or van Emde Boas trees, but these implementation methods are less efficient than hash tables as well as placing greater restrictions on the types of data that they can handle. The advantages of these alternative structures come from their ability to handle operations beyond the basic ones of an associative array, such as finding the binding whose key is the closest to a queried key, when the query is not itself present in the set of bindings.</p>
+<h2>Language support</h2>
+<p>Associative arrays can be implemented in any programming language as a package and many language systems provide them as part of their standard library. In some languages, they are not only built into the standard system, but have special syntax, often using array-like subscripting.</p>
+<p>Built-in syntactic support for associative arrays was introduced by SNOBOL4, under the name "table". MUMPS made multi-dimensional associative arrays, optionally persistent, its key data structure. SETL supported them as one possible implementation of sets and maps. Most modern scripting languages, starting with AWK and including Rexx, Perl, Tcl, JavaScript, Python, Ruby, and Lua, support associative arrays as a primary container type. In many more languages, they are available as library functions without special syntax.</p>
+<p>In Smalltalk, Objective-C, .NET, Python, REALbasic, and Swift they are called <i>dictionaries</i>; in Perl, Ruby and Seed7 they are called <i>hashes</i>; in C++, Java, Go, Clojure, Scala, OCaml, Haskell they are called <i>maps</i> (see map (C++), unordered_map (C++), and <code>Map</code>); in Common Lisp and Windows PowerShell, they are called <i>hash tables</i> (since both typically use this implementation). In PHP, all arrays can be associative, except that the keys are limited to integers and strings. In JavaScript (see also JSON), all objects behave as associative arrays. In Lua, they are called <i>tables</i>, and are used as the primitive building block for all data structures. In Visual FoxPro, they are called <i>Collections</i>. The D language also has support for associative arrays </p>
+<h2>See also</h2>
+<ul>
+<li>Tuple</li>
+<li>Function (mathematics)</li>
+<li>Key-value data store</li>
+<li>JSON</li>
+</ul>
+</body>
+</html>

@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>How-to-Use-Tables-The-Java-Tutorials---------------------Creating-a-GUI-With-JFCSwing--Using-Swing-Components.html</title></head>
+<body>
+<h1>How to Use Tables</h1>
+<p>With the 
+<code>JTable</code> class you can display tables of data, optionally allowing the user to edit the data. <code>JTable</code> does not contain or cache data; it is simply a view of your data. Here is a picture of a typical table displayed within a scroll pane:</p>
+<p>The rest of this section shows you how to accomplish some common table-related tasks. Here are the topics this section covers:</p>
+<ul>
+<li>Creating a Simple Table</li>
+<li>Adding a Table to a Container</li>
+<li>Setting and Changing Column Widths</li>
+<li>User Selections</li>
+<li>Creating a Table Model</li>
+<li>Listening for Data Changes</li>
+<li>Firing Data Change Events</li>
+<li>Concepts: Editors and Renderers</li>
+<li>Using Custom Renderers</li>
+<li>Specifying Tool Tips for Cells</li>
+<li>Specifying Tool Tips for Column Headers</li>
+<li>Sorting and Filtering</li>
+<li>Using a Combo Box as an Editor</li>
+<li>Using Other Editors</li>
+<li>Using an Editor to Validate User-Entered Text</li>
+<li>Printing</li>
+<li>Examples that Use Tables</li>
+</ul>
+<h2>Creating a Simple Table</h2>
+<ol>
+<li>
+<p>Click the Launch button to run <code>SimpleTableDemo</code> using 
+Java™ Web Start (download JDK 7 or later). Or, to compile and run the example yourself, consult the example index.</p>
+<img src="../../images/jws-launch-button.png" width="88" height="23" align="bottom" alt="Launches the SimpleTableDemo example"><br></li>
+<li>
+<p>Click the cell that contains "Snowboarding".<br>
+The entire first row is selected, indicating that you have selected Kathy Smith's data. A special highlight indicates that the "Snowboarding" cell is editable. Generally, you begin editing a text cell by double-clicking it.</p>
+</li>
+<li>
+<p>Position the cursor over "First Name". Now press the mouse button and drag to the right.<br>
+As you can see, users can rearrange columns in tables.</p>
+</li>
+<li>
+<p>Position the cursor just to the right of a column header. Now press the mouse button and drag to the right or left.<br>
+The column changes size, and the other columns adjust to fill the remaining space.</p>
+</li>
+<li>Resize the window containing the table so that it's bigger than necessary to display the whole table.<br>
+All the table cells become wider, expanding to fill the extra horizontal space.</li>
+</ol>
+<p>Click the Launch button to run <code>SimpleTableDemo</code> using 
+Java™ Web Start (download JDK 7 or later). Or, to compile and run the example yourself, consult the example index.</p>
+<p>Click the cell that contains "Snowboarding".<br>
+The entire first row is selected, indicating that you have selected Kathy Smith's data. A special highlight indicates that the "Snowboarding" cell is editable. Generally, you begin editing a text cell by double-clicking it.</p>
+<p>Position the cursor over "First Name". Now press the mouse button and drag to the right.<br>
+As you can see, users can rearrange columns in tables.</p>
+<p>Position the cursor just to the right of a column header. Now press the mouse button and drag to the right or left.<br>
+The column changes size, and the other columns adjust to fill the remaining space.</p>
+<p>The table in 
+<code>SimpleTableDemo.java</code> declares the column names in a String array:</p>
+<p>WHATSON? d86d814d-80eb-41c2-bdec-d08abce2bfc8</p>
+<pre>
+String[] columnNames = {"First Name",
+                        "Last Name",
+                        "Sport",
+                        "# of Years",
+                        "Vegetarian"};
+</pre>
+<p>Its data is initialized and stored in a two-dimensional Object array:</p>
+<p>WHATSON? f01a1924-e778-4e14-b010-7cb4f4b72603</p>
+<pre>
+Object[][] data = {
+    {"Kathy", "Smith",
+     "Snowboarding", new Integer(5), new Boolean(false)},
+    {"John", "Doe",
+     "Rowing", new Integer(3), new Boolean(true)},
+    {"Sue", "Black",
+     "Knitting", new Integer(2), new Boolean(false)},
+    {"Jane", "White",
+     "Speed reading", new Integer(20), new Boolean(true)},
+    {"Joe", "Brown",
+     "Pool", new Integer(10), new Boolean(false)}
+};
+</pre>
+<p>Then the Table is constructed using these data and columnNames:</p>
+<p>WHATSON? 43b8c1f6-da61-48bc-95da-536f0c1777ef</p>
+<pre>
+JTable table = new JTable(data, columnNames);
+</pre>
+<p>There are two <code>JTable</code> constructors that directly accept data (<code>SimpleTableDemo</code> uses the first):</p>
+<ul>
+<li><code>JTable(Object[][] rowData, Object[] columnNames)</code></li>
+<li><code>JTable(Vector rowData, Vector columnNames)</code></li>
+</ul>
+<p>The advantage of these constructors is that they are easy to use. However, these constructors also have disadvantages:</p>
+<ul>
+<li>They automatically make every cell editable.</li>
+<li>They treat all data types the same (as strings). For example, if a table column has <code>Boolean</code> data, the table can display the data in a check box. However, if you use either of the two <code>JTable</code> constructors listed previously, your <code>Boolean</code> data is displayed as a string. You can see this difference in the <code>Vegetarian</code> column of the previous figure.</li>
+<li>They require that you put all of the table's data in an array or vector, which may not be appropriate for some data. For example, if you are instantiating a set of objects from a database, you might want to query the objects directly for their values, rather than copying all their values into an array or vector.</li>
+</ul>
+<p>If you want to get around these restrictions, you need to implement your own table model, as described in Creating a Table Model.</p>
+<h2>Adding a Table to a Container</h2>
+<p>Here is typical code for creating a scroll pane that serves as a container for a table:</p>
+<p>WHATSON? 133c193d-5caf-4575-98c0-af8edb36060d</p>
+<pre>
+JScrollPane scrollPane = new JScrollPane(table);
+table.setFillsViewportHeight(true);
+</pre>
+<p>The two lines in this snippet do the following:</p>
+<ul>
+<li>The <code>JScrollPane</code> constructor is invoked with an argument that refers to the table object. This creates a scroll pane as a container for the table; the table is automatically added to the container.</li>
+<li><code>JTable.setFillsViewportHeight</code> is invoked to set the <code>fillsViewportHeight</code> property. When this property is <code>true</code> the table uses the entire height of the container, even if the table doesn't have enough rows to use the whole vertical space. This makes it easier to use the table as a drag-and-drop target.</li>
+</ul>
+<p>The scroll pane automatically places the table header at the top of the viewport. The column names remain visible at the top of the viewing area when the table data is scrolled.</p>
+<p>If you are using a table without a scroll pane, then you must get the table header component and place it yourself. For example:</p>
+<p>WHATSON? 088dd956-27c7-41d9-b08a-10a8050d2bb0</p>
+<pre>
+container.setLayout(new BorderLayout());
+container.add(table.getTableHeader(), BorderLayout.PAGE_START);
+container.add(table, BorderLayout.CENTER);
+</pre>
+<h2>Setting and Changing Column Widths</h2>
+<p>By default, all columns in a table start out with equal width, and the columns automatically fill the entire width of the table. When the table becomes wider or narrower (which might happen when the user resizes the window containing the table), all the column widths change appropriately.</p>
+<p>When the user resizes a column by dragging its right border, then either other columns must change size, or the table's size must change. By default, the table's size remains the same, and all columns to the right of the drag point resize to accommodate space added to or removed from the column to the left of the drag point.</p>
+<p>To customize initial column widths, you can invoke <code>setPreferredWidth</code> on each of your table's columns. This sets both the preferred widths of the columns and their approximate relative widths. For example, adding the following code to <code>SimpleTableDemo</code> makes its third column bigger than the other columns:</p>
+<p>WHATSON? c9ce8f32-63f2-4fab-aded-bf41d0e7a3d1</p>
+<pre>
+TableColumn column = null;
+for (int i = 0; i &lt; 5; i++) {
+    column = table.getColumnModel().getColumn(i);
+    if (i == 2) {
+        column.setPreferredWidth(100); //third column is bigger
+    } else {
+        column.setPreferredWidth(50);
+    }
+}
+</pre>
+<p>As the preceding code shows, each column in a table is represented by a 
+<code>TableColumn</code> object. <code>TableColumn</code> supplies getter and setter methods for the minimum, preferred, and maximum widths of a column, as well as a method for getting the current width. For an example of setting cell widths based on an approximation of the space needed to draw the cells' contents, see the <code>initColumnSizes</code> method in 
+<code>TableRenderDemo.java</code>.</p>
+<p>When the user explicitly resizes columns, the columns' <em>preferred</em> widths are set such that the user-specified sizes become the columns' new <em>current</em> widths. However, when table itself is resized  typically because the window has resized ; the columns' preferred widths do not change. Instead, the existing preferred widths are used to calculate new column widths to fill the available space.</p>
+<p>You can change a table's resize behavior by invoking 
+<code>setAutoResizeMode</code>.</p>
+<p>
+</p>
+<h2>User Selections</h2>
+<p>In its default configuration, a table supports a selection that consists of one or more rows. The user can select a contiguous range of rows or an arbitrary set of rows. The last cell that the user indicated gets a special indication; in the Metal look and feel, the cell is outlined. This cell is known as the <em>lead selection</em>; it is sometimes called "the cell with the focus" or "the current cell".</p>
+<p>The user uses the mouse and/or keyboard to make selections, as described in the following table:</p>
+<p>To see how selections work, click the Launch button to run <code>TableSelectionDemo</code> using 
+Java™ Web Start (download JDK 7 or later). Or, to compile and run the example yourself, consult the example index.</p>
+<p>This example program presents the familiar table, and allows the user to manipulate certain JTable options. There is also a text pane that logs selection events.</p>
+<p>In the screenshot below, a user has run the program, clicked in the first row, then control-clicked in the third row. Notice the outline around the last cell clicked; this is how the Metal look and feel highlights the lead selection.</p>
+<p>Under "Selection Mode" there are a set of radio buttons. Click the one labelled "Single Selection". Now you can only select one row at a time. If you click on the "Single Interval Selection" radio button, you can select a set of rows that must be contiguous.</p>
+<p>All of the radio buttons under "Selection Mode" invoke 
+<code>JTable.setSelectionMode</code>. This method takes a single argument, which must be one of the following constants defined in <code>javax.swing.ListSelectionModel</code>: <code>MULTIPLE_INTERVAL_SELECTION</code>, <code>SINGLE_INTERVAL_SELECTION</code>, and <code>SINGLE_SELECTION</code>.</p>
+<p>Returning to <code>TableSelectionDemo</code>, notice the three option checkboxes under "Selection Options." Each of checkbox controls the state of a <code>boolean</code> bound variable defined by <code>JTable</code>:</p>
+<ul>
+<li>"Row Selection" controls <code>rowSelectionAllowed</code> which has setter method <code>setRowSelectionAllowed</code> and getter method <code>getRowSelectionAllowed</code>. When this bound property is <code>true</code> (and the <code>columnSelectionAllowed</code> property is <code>false</code>), the user can select by row.</li>
+<li>"Column Selection" controls <code>columnSelectionAllowed</code> which has setter method <code>setColumnSelectionAllowed</code> and getter method <code>getColumnSelectionAllowed</code>. When this bound property is <code>true</code> (and the <code>rowSelectionAllowed</code> bound property is <code>false</code>), the user can select by column.</li>
+<li>"Cell Selection" controls <code>cellSelectionEnabled</code>, which has setter method <code>setCellSelectionEnabled</code> and getter method <code>getCellSelectionEnabled</code>. When this bound property is <code>true</code>, the user can select a single cell or rectangular block of cells.</li>
+</ul>
+<p>If you clear all three check boxes (setting all three bound properties to <code>false</code>), there is no selection; only the lead selection is shown.</p>
+<p>You may notice that the "Cell Selection" checkbox is disabled in multiple interval selection mode. This is because cell selection is not supported in this mode in the demo. You can specify selection by cell in multiple interval selection mode, but the result is a table that does not produce useful selections.</p>
+<p>You may also notice that changing any of the three selection options can affect the others. This is because allowing both row selection and column selection is exactly the same as enabling cell selection. <code>JTable</code> automatically updates the three bound variables as necessary to keep them consistent.</p>
+<p>To retrieve the current selection, use 
+<code>JTable.getSelectedRows</code> which returns an array of row indexes, and 
+<code>JTable.getSelectedColumns</code> which returns an array of column indexes. To retrieve the coordinates of the lead selection, refer to the selection models for the table itself and for the table's column model. The following code formats a string containing the row and column of the lead selection:</p>
+<p>WHATSON? b621105b-5b76-4ee7-ad7c-5f34239ea909</p>
+<pre>
+String.format("Lead Selection: %d, %d. ",
+    table.getSelectionModel().getLeadSelectionIndex(),
+    table.getColumnModel().getSelectionModel().getLeadSelectionIndex());
+</pre>
+<p>User selections generate a number of events. For information on these, refer to 
+How to Write a List Selection Listener in the 
+Writing Event Listeners lesson.</p>
+<h2>Creating a Table Model</h2>
+<p>Every table object uses a <em>table model object</em> to manage the actual table data. A table model object must implement the 
+<code>TableModel</code> interface. If the programmer does not provide a table model object, <code>JTable</code> automatically creates an instance of 
+<code>DefaultTableModel</code>. This relationship is illustrated below.</p>
+<p>The <code>JTable</code> constructor used by <code>SimpleTableDemo</code> creates its table model with code like this:</p>
+<p>WHATSON? b12a214f-b4fe-4a1e-b1f7-7761b164de67</p>
+<pre>
+new AbstractTableModel() {
+    public String getColumnName(int col) {
+        return columnNames[col].toString();
+    }
+    public int getRowCount() { return rowData.length; }
+    public int getColumnCount() { return columnNames.length; }
+    public Object getValueAt(int row, int col) {
+        return rowData[row][col];
+    }
+    public boolean isCellEditable(int row, int col)
+        { return true; }
+    public void setValueAt(Object value, int row, int col) {
+        rowData[row][col] = value;
+        fireTableCellUpdated(row, col);
+    }
+}
+</pre>
+<p>As the preceding code shows, implementing a table model can be simple. Generally, you implement your table model in a subclass of the 
+<code>AbstractTableModel</code> class.</p>
+<p>Your model might hold its data in an array, vector, or hash map, or it might get the data from an outside source such as a database. It might even generate the data at execution time.</p>
+<p>This table is different from the <code>SimpleTableDemo</code> table in the following ways:</p>
+<ul>
+<li><code>TableDemo</code>'s custom table model, even though it is simple, can easily determine the data's type, helping the <code>JTable</code> display the data in the best format. <code>SimpleTableDemo</code>'s automatically created table model, on the other hand, does not know that the <b># of Years</b> column contains numbers (which should generally be right aligned and have a particular format). It also does not know that the <code>Vegetarian</code> column contains boolean values, which can be represented by check boxes.</li>
+<li>The custom table model implemented in <code>TableDemo</code> does not let you edit the name columns; it does, however, let you edit the other columns. In <code>SimpleTableDemo</code>, all cells are editable.</li>
+</ul>
+<p>See below the code taken from 
+<code>TableDemo.java</code> that is different from the 
+<code>SimpleTableDemo.java</code>. Bold font indicates the code that makes this table's model different from the table model defined automatically for <code>SimpleTableDemo</code>.</p>
+<p>WHATSON? 68b4735a-f848-4742-96ec-725af5724192</p>
+<pre>
+public TableDemo() {
+    ...
+    JTable table = new JTable(new MyTableModel());
+    ...
+}
+
+class MyTableModel extends AbstractTableModel {
+    private String[] columnNames = <em>...//same as before...</em>
+    private Object[][] data = <em>...//same as before...</em>
+
+    public int getColumnCount() {
+        return columnNames.length;
+    }
+
+    public int getRowCount() {
+        return data.length;
+    }
+
+    public String getColumnName(int col) {
+        return columnNames[col];
+    }
+
+    public Object getValueAt(int row, int col) {
+        return data[row][col];
+    }
+
+    <b>public Class getColumnClass(int c) {
+        return getValueAt(0, c).getClass();
+    }</b>
+
+    /*
+     * Don't need to implement this method unless your table's
+     * editable.
+     */
+    public boolean isCellEditable(int row, int col) {
+        //Note that the data/cell address is constant,
+        //no matter where the cell appears onscreen.
+        <b>if (col &lt; 2) {
+            return false;
+        } else {
+            return true;
+        }</b>
+    }
+
+    /*
+     * Don't need to implement this method unless your table's
+     * data can change.
+     */
+    public void setValueAt(Object value, int row, int col) {
+        data[row][col] = value;
+        fireTableCellUpdated(row, col);
+    }
+    ...
+}
+</pre>
+<h2>Listening for Data Changes</h2>
+<p>A table model can have a set of listeners that are notified whenever the table data changes. Listeners are instances of 
+<code>TableModelListener</code>. In the following example code, <code>SimpleTableDemo</code> is extended to include such a listener. New code is in bold.</p>
+<p>WHATSON? 81696e71-44e1-4998-a8ee-81d2b790a4d5</p>
+<pre>
+<b>import javax.swing.event.*;
+import javax.swing.table.TableModel;</b>
+
+public class SimpleTableDemo ... <b>implements TableModelListener </b>{
+    ...
+    public SimpleTableDemo() {
+        ...
+        <b>table.getModel().addTableModelListener(this);</b>
+        ...
+    }
+
+    <b>public void tableChanged(TableModelEvent e) {
+        int row = e.getFirstRow();
+        int column = e.getColumn();
+        TableModel model = (TableModel)e.getSource();
+        String columnName = model.getColumnName(column);
+        Object data = model.getValueAt(row, column);
+
+        <em>...// Do something with the data...</em></b>
+    }
+    ...
+}
+</pre>
+<h2>Firing Data Change Events</h2>
+<p>In order to fire data change events the table model must know how to construct a 
+<code>TableModelEvent</code> object. This can be a complex procedure, but is already implemented in <code>DefaultTableModel</code>. You can either allow <code>JTable</code> to use its default instance of <code>DefaultTableModel</code>, or create your own custom subclass of <code>DefaultTableModel</code>.</p>
+<p>If <code>DefaultTableModel</code> is not a suitable base class for your custom table model class, consider subclassing 
+<code>AbstractTableModel</code>. This class implements a simple framework for constructing <code>TableModelEvent</code> objects. Your custom class simply needs to invoke one the following <code>AbstractTableModel</code> methods each time table data is changed by an external source.</p>
+<h2>Concepts: Editors and Renderers</h2>
+<p>Before you go on to the next few tasks, you need to understand how tables draw their cells. You might expect each cell in a table to be a component. However, for performance reasons, Swing tables are implemented differently.</p>
+<p>Instead, a single <em>cell renderer</em> is generally used to draw all of the cells that contain the same type of data. You can think of the renderer as a configurable ink stamp that the table uses to stamp appropriately formatted data onto each cell. When the user starts to edit a cell's data, a <em>cell editor</em> takes over the cell, controlling the cell's editing behavior.</p>
+<p>For example, each cell in the <b># of Years</b> column in <code>TableDemo</code> contains <code>Number</code> data  specifically, an <code>Integer</code> object. By default, the cell renderer for a <code>Number</code>-containing column uses a single <code>JLabel</code> instance to draw the appropriate numbers, right-aligned, on the column's cells. If the user begins editing one of the cells, the default cell editor uses a right-aligned <code>JTextField</code> to control the cell editing.</p>
+<p>To choose the renderer that displays the cells in a column, a table first determines whether you specified a renderer for that particular column. If you did not, then the table invokes the table model's <code>getColumnClass</code> method, which gets the data type of the column's cells. Next, the table compares the column's data type with a list of data types for which cell renderers are registered. This list is initialized by the table, but you can add to it or change it. Currently, tables put the following types of data in the list:</p>
+<ul>
+<li><code>Boolean</code>  rendered with a check box.</li>
+<li><code>Number</code>  rendered by a right-aligned label.</li>
+<li><code>Double</code>, <code>Float</code>  same as <code>Number</code>, but the object-to-text translation is performed by a 
+<code>NumberFormat</code> instance (using the default number format for the current locale).</li>
+<li><code>Date</code>  rendered by a label, with the object-to-text translation performed by a 
+<code>DateFormat</code> instance (using a short style for the date and time).</li>
+<li><code>ImageIcon</code>, <code>Icon</code>  rendered by a centered label.</li>
+<li><code>Object</code>  rendered by a label that displays the object's string value.</li>
+</ul>
+<p>Cell editors are chosen using a similar algorithm.</p>
+<p>Remember that if you let a table create its own model, it uses <code>Object</code> as the type of every column. To specify more precise column types, the table model must define the <code>getColumnClass</code> method appropriately, as demonstrated by 
+<code>TableDemo.java</code>.</p>
+<p>Keep in mind that although renderers determine how each cell or column header looks and can specify its tool tip text, a renderer does not handle events. If you need to pick up the events that take place inside a table, the technique you use varies by the sort of event you are interested in:</p>
+<p>The next few sections tell you how to customize display and editing by specifying renderers and editors. You can specify cell renderers and editors either by column or by data type.</p>
+<h2>Using Custom Renderers</h2>
+<p>This section tells you how to create and specify a cell renderer. You can set a type-specific cell renderer using the <code>JTable</code> method <code>setDefaultRenderer</code>. To specify that cells in a particular column should use a renderer, you use the <code>TableColumn</code> method <code>setCellRenderer</code>. You can even specify a cell-specific renderer by creating a <code>JTable</code> subclass.</p>
+<p>It is easy to customize the text or image rendered by the default renderer, <code>DefaultTableCellRenderer</code>. You just create a subclass and implement the <code>setValue</code> method so that it invokes <code>setText</code> or <code>setIcon</code> with the appropriate string or image. For example, here is how the default date renderer is implemented:</p>
+<p>WHATSON? 5b5a5583-9822-484c-8c84-7bf17156caf2</p>
+<pre>
+static class DateRenderer extends DefaultTableCellRenderer {
+    DateFormat formatter;
+    public DateRenderer() { super(); }
+
+    public void setValue(Object value) {
+        if (formatter==null) {
+            formatter = DateFormat.getDateInstance();
+        }
+        setText((value == null) ? "" : formatter.format(value));
+    }
+}
+</pre>
+<p>If extending <code>DefaultTableCellRenderer</code> is insufficient, you can build a renderer using another superclass. The easiest way is to create a subclass of an existing component, making your subclass implement the 
+<code>TableCellRenderer</code> interface. <code>TableCellRenderer</code> requires just one method: <code>getTableCellRendererComponent</code>. Your implementation of this method should set up the rendering component to reflect the passed-in state, and then return the component.</p>
+<p>In the snapshot of <code>TableDialogEditDemo</code>, the renderer used for <b>Favorite Color</b> cells is a subclass of <code>JLabel</code> called <code>ColorRenderer</code>. Here are excerpts from 
+<code>ColorRenderer.java</code> that show how it is implemented.</p>
+<p>WHATSON? 985b0295-c130-4aa6-80da-a3b9f7768054</p>
+<pre>
+public class ColorRenderer extends JLabel
+                           implements TableCellRenderer {
+    ...
+    public ColorRenderer(boolean isBordered) {
+        this.isBordered = isBordered;
+        setOpaque(true); //MUST do this for background to show up.
+    }
+
+    public Component getTableCellRendererComponent(
+                            JTable table, Object color,
+                            boolean isSelected, boolean hasFocus,
+                            int row, int column) {
+        Color newColor = (Color)color;
+        setBackground(newColor);
+        if (isBordered) {
+            if (isSelected) {
+                ...
+                //selectedBorder is a solid border in the color
+                //table.getSelectionBackground().
+                setBorder(selectedBorder);
+            } else {
+                ...
+                //unselectedBorder is a solid border in the color
+                //table.getBackground().
+                setBorder(unselectedBorder);
+            }
+        }
+        
+        setToolTipText(...); <em>//Discussed in the following section</em>
+        return this;
+    }
+}
+</pre>
+<p>Here is the code from 
+<code>TableDialogEditDemo.java</code> that registers a <code>ColorRenderer</code> instance as the default renderer for all <code>Color</code> data:</p>
+<p>WHATSON? 2eb20b12-99e6-4657-bda5-3a3fb3687525</p>
+<pre>
+table.setDefaultRenderer(Color.class, new ColorRenderer(true));
+</pre>
+<p>To specify a cell-specific renderer, you need to define a <code>JTable</code> subclass that overrides the <code>getCellRenderer</code> method. For example, the following code makes the first cell in the first column of the table use a custom renderer:</p>
+<p>WHATSON? 0af7c97b-1724-40f8-8ce1-198faf941db8</p>
+<pre>
+TableCellRenderer weirdRenderer = new WeirdRenderer();
+table = new JTable(...) {
+    public TableCellRenderer getCellRenderer(int row, int column) {
+        if ((row == 0) &amp;&amp; (column == 0)) {
+            return weirdRenderer;
+        }
+        // else...
+        return super.getCellRenderer(row, column);
+    }
+};
+</pre>
+<h2>Specifying Tool Tips for Cells</h2>
+<p>By default, the tool tip text displayed for a table cell is determined by the cell's renderer. However, sometimes it can be simpler to specify tool tip text by overriding <code>JTable</code>'s implementation of the <code>getToolTipText(MouseEvent)</code> method. This section shows you how to use both techniques.</p>
+<p>To add a tool tip to a cell using its renderer, you first need to get or create the cell renderer. Then, after making sure the rendering component is a <code>JComponent</code>, invoke the <code>setToolTipText</code> method on it.</p>
+<p>An example of setting tool tips for cells is in <code>TableRenderDemo</code>. Click the Launch button to run it using 
+Java™ Web Start (download JDK 7 or later). Or, to compile and run the example yourself, consult the example index.</p>
+<p>The source code is in 
+<code>TableRenderDemo.java</code>. It adds tool tips to the cells of the <b>Sport</b> column with the following code:</p>
+<p>WHATSON? 35177d08-cbae-4646-bb6f-d67526b705c7</p>
+<pre>
+//Set up tool tips for the sport cells.
+DefaultTableCellRenderer renderer =
+        new DefaultTableCellRenderer();
+<b>renderer.setToolTipText("Click for combo box");</b>
+sportColumn.setCellRenderer(renderer);
+</pre>
+<p>Although the tool tip text in the previous example is static, you can also implement tool tips whose text changes depending on the state of the cell or program. Here are a couple ways to do so:</p>
+<ul>
+<li>Add a bit of code to the renderer's implementation of the <code>getTableCellRendererComponent</code> method.</li>
+<li>Override the <code>JTable</code> method <code>getToolTipText(MouseEvent)</code>.</li>
+</ul>
+<p>An example of adding code to a cell renderer is in <code>TableDialogEditDemo</code>. Click the Launch button to run it using 
+Java™ Web Start (download JDK 7 or later). Or, to compile and run the example yourself, consult the example index.</p>
+<p><code>TableDialogEditDemo</code> uses a renderer for colors, implemented in 
+<code>ColorRenderer.java</code>, that sets the tool tip text using the boldface code in the following snippet:</p>
+<p>WHATSON? 59c3d8bf-3706-40c5-9c9f-1261c85eaf99</p>
+<pre>
+public class ColorRenderer extends JLabel 
+                           implements TableCellRenderer {
+    ...
+    public Component getTableCellRendererComponent(
+                            JTable table, Object color,
+                            boolean isSelected, boolean hasFocus,
+                            int row, int column) {
+        Color newColor = (Color)color;
+        ...
+        <b>setToolTipText("RGB value: " + newColor.getRed() + ", "
+                                     + newColor.getGreen() + ", "
+                                     + newColor.getBlue());</b>
+        return this;
+    }
+}
+</pre>
+<p>Here is an example of what the tool tip looks like:</p>
+<p>You can specify tool tip text by overriding <code>JTable</code>'s <code>getToolTipText(MouseEvent)</code> method. The program <code>TableToolTipsDemo</code> shows how. Click the Launch button to run it using 
+Java™ Web Start (download JDK 7 or later). Or, to compile and run the example yourself, consult the example index.</p>
+<p>The cells with tool tips are in the <b>Sport</b> and <b>Vegetarian</b> columns. Here is a picture of its tool tip:</p>
+<p>Here is the code from 
+<code>TableToolTipsDemo.java</code> that implements tool tips for cells in the <b>Sport</b> and <b>Vegetarian</b> columns:</p>
+<p>WHATSON? 84b41f05-87d4-43e4-9e29-f68c2a183708</p>
+<pre>
+JTable table = new JTable(new MyTableModel()) {    
+    //Implement table cell tool tips.
+    public String getToolTipText(MouseEvent e) {
+        String tip = null;
+        java.awt.Point p = e.getPoint();
+        int rowIndex = rowAtPoint(p);
+        int colIndex = columnAtPoint(p);
+        int realColumnIndex = convertColumnIndexToModel(colIndex);
+
+        if (realColumnIndex == 2) { //Sport column
+            tip = "This person's favorite sport to "
+                   + "participate in is: "
+                   + getValueAt(rowIndex, colIndex);
+
+        } else if (realColumnIndex == 4) { //Veggie column
+            TableModel model = getModel();
+            String firstName = (String)model.getValueAt(rowIndex,0);
+            String lastName = (String)model.getValueAt(rowIndex,1);
+            Boolean veggie = (Boolean)model.getValueAt(rowIndex,4);
+            if (Boolean.TRUE.equals(veggie)) {
+                tip = firstName + " " + lastName
+                      + " is a vegetarian";
+            } else {
+                tip = firstName + " " + lastName
+                      + " is not a vegetarian";
+            }
+
+        } else { //another column
+            //You can omit this part if you know you don't 
+            //have any renderers that supply their own tool 
+            //tips.
+            tip = super.getToolTipText(e);
+        }
+        return tip;
+    }
+    ...
+}
+</pre>
+<p>The code is fairly straightforward, except perhaps for the call to <code>convertColumnIndexToModel</code>. That call is necessary because if the user moves the columns around, the view's index for the column will not match the model's index for the column. For example, the user might drag the <b>Vegetarian</b> column (which the model considers to be at index 4) so it is displayed as the first column  at view index 0. Since <code>prepareRenderer</code> provides the view index, you need to translate the view index to a model index so you can be sure the intended column has been selected.</p>
+<h2>Specifying Tool Tips for Column Headers</h2>
+<p>You can add a tool tip to a column header by setting the tool tip text for the table's <code>JTableHeader</code>. Often, different column headers require different tool tip text. You can change the text by overriding the table header's <code>getToolTipText</code> method. Alternately, you can invoke <code>TableColumn.setHeaderRenderer</code> to provide a custom renderer for the header.</p>
+<p>An example of using the same tool tip text for all column headers is in 
+<code>TableSorterDemo.java</code>.  Here is how it sets the tool tip text:</p>
+<p>WHATSON? 8177e28c-01c7-45f7-b07e-84836a821b77</p>
+<pre>
+table.getTableHeader().setToolTipText(
+        "Click to sort; Shift-Click to sort in reverse order");
+</pre>
+<p>
+<code>TableToolTipsDemo.java</code> has an example of implementing column header tool tips that vary by column. If you run <code>TableToolTipsDemo</code> (click the Launch button) using 
+Java™ Web Start (download JDK 7 or later). Or, to compile and run the example yourself, consult the example index.</p>
+<p>You will see the tool tips when you mouse over any column header except for the first two. No tool tips were suppled for the name columns since they seemed self-explanatory. Here is a picture of one of the column header tool tips:</p>
+<p>The following code implements the tool tips. Basically, it creates a subclass of <code>JTableHeader</code> that overrides the <code>getToolTipText(MouseEvent)</code> method so that it returns the text for the current column. To associate the revised table header with the table, the <code>JTable</code> method <code>createDefaultTableHeader</code> is overridden so that it returns an instance of the <code>JTableHeader</code> subclass.</p>
+<p>WHATSON? 247d7e07-f155-47f0-8652-239bd516467a</p>
+<pre>
+protected String[] columnToolTips = {
+    null, // "First Name" assumed obvious
+    null, // "Last Name" assumed obvious
+    "The person's favorite sport to participate in",
+    "The number of years the person has played the sport",
+    "If checked, the person eats no meat"};
+...
+
+JTable table = new JTable(new MyTableModel()) {
+    ...
+
+    //Implement table header tool tips.
+    protected JTableHeader createDefaultTableHeader() {
+        return new JTableHeader(columnModel) {
+            public String getToolTipText(MouseEvent e) {
+                String tip = null;
+                java.awt.Point p = e.getPoint();
+                int index = columnModel.getColumnIndexAtX(p.x);
+                int realIndex = 
+                        columnModel.getColumn(index).getModelIndex();
+                return columnToolTips[realIndex];
+            }
+        };
+    }
+};
+</pre>
+<h2>Sorting and Filtering</h2>
+<p>Table sorting and filtering is managed by a <i>sorter</i> object. The easiest way to provide a sorter object is to set <code>autoCreateRowSorter</code> bound property to <code>true</code>:</p>
+<p>WHATSON? ec4a9832-473c-4d8f-a911-b8af007af150</p>
+<pre>
+JTable table = new JTable();
+table.setAutoCreateRowSorter(true);
+</pre>
+<p>This action defines a row sorter that is an instance of 
+<code>javax.swing.table.TableRowSorter</code>. This provides a table that does a simple locale-specific sort when the user clicks on a column header. This is demonstrated in 
+<code><code>TableSortDemo.java</code></code>, as seen in this screen shot:</p>
+<p>To have more control over sorting, you can construct an instance of <code>TableRowSorter</code> and specify that it is the sorter object for your table.</p>
+<p>WHATSON? 899aa750-5e65-4b0e-8ede-a3e5929c2dbc</p>
+<pre>
+TableRowSorter&lt;TableModel&gt; sorter 
+    = new TableRowSorter&lt;TableModel&gt;(table.getModel());
+table.setRowSorter(sorter);
+</pre>
+<p><code>TableRowSorter</code> uses 
+<code>java.util.Comparator</code> objects to sort its rows. A class that implements this interface must provide a method called <code>compare</code> that defines how any two objects are compared for the purpose of sorting. For example, the following code creates a <code>Comparator</code> that sorts a set of strings by the last word in each string:</p>
+<p>WHATSON? 44c2c153-a8bf-463b-8e3e-71513a56f6bb</p>
+<pre>
+Comparator&lt;String&gt; comparator = new Comparator&lt;String&gt;() {
+    public int compare(String s1, String s2) {
+        String[] strings1 = s1.split("\\s");
+        String[] strings2 = s2.split("\\s");
+        return strings1[strings1.length - 1]
+            .compareTo(strings2[strings2.length - 1]);
+    }
+};
+</pre>
+<p>This example is fairly simplistic; more typically, a <code>Comparator</code> implementation is a subclass of 
+<code>java.text.Collator</code>. You can define your own subclass, use the factory methods in <code>Collator</code> to obtain a <code>Comparator</code> for a specific locale, or use 
+<code>java.text.RuleBasedCollator</code>.</p>
+<p>To determine which <code>Comparator</code> to use for a column, <code>TableRowSorter</code> attempts to apply each of the following rules in turn. Rules are followed in the order listed below; the first rule that provides the sorter with a <code>Comparator</code> is used, and the remainining rules ignored.</p>
+<ol>
+<li>If a comparator has been specified by invoking 
+<code>setComparator</code>, use that comparator.</li>
+<li>If the table model reports that the column data consists of strings (<code>TableModel.getColumnClass</code> returns <code>String.class</code> for that column), use a comparator that sorts the strings based on the current locale.</li>
+<li>If the column class returned by <code>TableModel.getColumnClass</code> implements <code>Comparable</code>, use a comparator that sorts the strings based on the values returned by 
+<code>Comparable.compareTo</code>.</li>
+<li>If a string convertor has been specified for the table by invoking 
+<code>setStringConverter</code>, use a comparator that sorts the resulting string representations based on the current locale.</li>
+<li>If none of the previous rules apply, use a comparator that invokes <code>toString</code> on the column data and sorts the resulting strings based on the current locale.</li>
+</ol>
+<p>For more sophisticated kinds of sorting, subclass <code>TableRowSorter</code> or its parent class 
+<code>javax.swing.DefaultRowSorter</code>.</p>
+<p>To specify the sort order and sort precedence for columns, invoke 
+<code>setSortKeys</code>. Here is an example that sorts the table used in the examples by the first two columns. The precedence of the columns in the sort is indicated by the order of the sort keys in the sort key list. In this case, the second column has the first sort key, so they rows are sorted by first name, then last name.</p>
+<p>WHATSON? caed6993-e5a1-42ec-8430-1b385679c3a6</p>
+<pre>
+List &lt;RowSorter.SortKey&gt; sortKeys 
+    = new ArrayList&lt;RowSorter.SortKey&gt;();
+sortKeys.add(new RowSorter.SortKey(1, SortOrder.ASCENDING));
+sortKeys.add(new RowSorter.SortKey(0, SortOrder.ASCENDING));
+sorter.setSortKeys(sortKeys); 
+</pre>
+<p>In addition to reordering the results, a table sorter can also specify which rows will be displayed. This is known as <i>filtering</i>. <code>TableRowSorter</code> implements filtering using 
+<code>javax.swing.RowFilter</code> objects. <code>RowFilter</code> implements several factory methods that create common kinds of filters. For example, 
+<code>regexFilter</code> returns a <code>RowFilter</code> that filters based on a 
+regular expression.</p>
+<p>In the following example code, you explicitly create a sorter object so you can later use it to specify a filter:</p>
+<p>WHATSON? 21f02328-ac17-4350-b22c-2aac1e024805</p>
+<pre>
+MyTableModel model = new MyTableModel();
+sorter = new TableRowSorter&lt;MyTableModel&gt;(model);
+table = new JTable(model);
+table.setRowSorter(sorter);
+</pre>
+<p>Then you filter based on the current value of a text field:</p>
+<p>WHATSON? 535d5531-13eb-4df6-b0c1-d5cce3ac536d</p>
+<pre>
+private void newFilter() {
+    RowFilter&lt;MyTableModel, Object&gt; rf = null;
+    //If current expression doesn't parse, don't update.
+    try {
+        rf = RowFilter.regexFilter(filterText.getText(), 0);
+    } catch (java.util.regex.PatternSyntaxException e) {
+        return;
+    }
+    sorter.setRowFilter(rf);
+}
+</pre>
+<p>In a subsequent example, <code>newFilter()</code> is invoked every time the text field changes. When the user enters complicated regular expressions, the <code>try...catch</code> prevents the syntax exception from interfering with input.</p>
+<p>When a table uses a sorter, the data the users sees may be in a different order than that specified by the data model, and may not include all rows specified by the data model. The data the user actually sees is known as the <i>view</i>, and has its own set of coordinates. <code>JTable</code> provides methods that convert from model coordinates to view coordinates  
+<code>convertColumnIndexToView</code> and 
+<code>convertRowIndexToView</code>  and that convert from view coordinates to model coordinates  
+<code>convertColumnIndexToModel</code> and 
+<code>convertRowIndexToModel</code>.</p>
+<p>The following example brings together the ideas discussed in this section. 
+<code><code>TableFilterDemo.java</code></code> adds a small number of changes to <code>TableDemo</code>. These include the code snippets earlier in this section, which provide a sorter for the main table, and use a text field to supply the filtering regular expression. The following screen shot shows <code>TableFilterDemo</code> before any sorting or filtering has been done. Notice that row 3 in the model is still the same as row 3 in the view:</p>
+<p>If the user clicks twice on the second column, the fourth row becomes the first row  but only in the view:</p>
+<p>As previously noted, the text the user enters in the "Filter Text" text field defines a filter that determines which rows are shown. As with sorting, filtering can cause view coordinates to diverge from model coordinates:</p>
+<p>Here is the code that updates the status field to reflect the current selection:</p>
+<p>WHATSON? a1463364-c0a4-4e6b-bf4b-2c55aa3a2a6e</p>
+<pre>
+table.getSelectionModel().addListSelectionListener(
+        new ListSelectionListener() {
+            public void valueChanged(ListSelectionEvent event) {
+                int viewRow = table.getSelectedRow();
+                if (viewRow &lt; 0) {
+                    //Selection got filtered away.
+                    statusText.setText("");
+                } else {
+                    int modelRow = 
+                        table.convertRowIndexToModel(viewRow);
+                    statusText.setText(
+                        String.format("Selected Row in view: %d. " +
+                            "Selected Row in model: %d.", 
+                            viewRow, modelRow));
+                }
+            }
+        }
+);
+</pre>
+<h2>Using a Combo Box as an Editor</h2>
+<p>Setting up a combo box as an editor is simple, as the following example shows. The bold line of code sets up the combo box as the editor for a specific column.</p>
+<p>WHATSON? f94185eb-4dea-4585-a6d9-587f070cf7bc</p>
+<pre>
+TableColumn sportColumn = table.getColumnModel().getColumn(2);
+...
+JComboBox comboBox = new JComboBox();
+comboBox.addItem("Snowboarding");
+comboBox.addItem("Rowing");
+comboBox.addItem("Chasing toddlers");
+comboBox.addItem("Speed reading");
+comboBox.addItem("Teaching high school");
+comboBox.addItem("None");
+<b>sportColumn.setCellEditor(new DefaultCellEditor(comboBox));</b>
+</pre>
+<p>Here is a picture of the combo box editor in use:</p>
+<p>The preceding code is from 
+<code>TableRenderDemo.java</code>. You can run <code>TableRenderDemo</code> (click the Launch button) using 
+Java™ Web Start (download JDK 7 or later). Or, to compile and run the example yourself, consult the example index.</p>
+<h2>Using Other Editors</h2>
+<p>Whether you are setting the editor for a single column of cells (using the <code>TableColumn</code> <code>setCellEditor</code> method) or for a specific type of data (using the <code>JTable</code> <code>setDefaultEditor</code> method), you specify the editor using an argument that adheres to the <code>TableCellEditor</code> interface. Fortunately, the <code>DefaultCellEditor</code> class implements this interface and provides constructors to let you specify an editing component that is a <code>JTextField</code>, <code>JCheckBox</code>, or <code>JComboBox</code>. Usually you do not have to explicitly specify a check box as an editor, since columns with <code>Boolean</code> data automatically use a check box renderer and editor.</p>
+<p>What if you want to specify an editor other than a text field, check box, or combo box? As <code>DefaultCellEditor</code> does not support other types of components, you must do a little more work. You need to create a class that implements the 
+<code>TableCellEditor</code> interface. The 
+<code>AbstractCellEditor</code> class is a good superclass to use. It implements <code>TableCellEditor</code>'s superinterface, 
+<code>CellEditor</code>, saving you the trouble of implementing the event firing code necessary for cell editors.</p>
+<p>Your cell editor class needs to define at least two methods  <code>getCellEditorValue</code> and <code>getTableCellEditorComponent</code>. The <code>getCellEditorValue</code> method, required by <code>CellEditor</code>, returns the cell's current value. The <code>getTableCellEditorComponent</code> method, required by <code>TableCellEditor</code>, should configure and return the component that you want to use as the editor.</p>
+<p>Here is a picture of a table with a dialog that serves, indirectly, as a cell editor. When the user begins editing a cell in the <b>Favorite Color</b> column, a button (the true cell editor) appears and brings up the dialog, with which the user can choose a different color.</p>
+<p></p>
+<p>You can run <code>TableDialogEditDemo</code> (click the Launch button) using 
+Java™ Web Start (download JDK 7 or later). Or, to compile and run the example yourself, consult the example index.</p>
+<p>Here is the code, taken from 
+<code>ColorEditor.java</code>, that implements the cell editor.</p>
+<p>WHATSON? 55e6c937-e11a-4d4c-80ed-60a464898b44</p>
+<pre>
+public class ColorEditor extends AbstractCellEditor
+                         implements TableCellEditor,
+                                    ActionListener {
+    Color currentColor;
+    JButton button;
+    JColorChooser colorChooser;
+    JDialog dialog;
+    protected static final String EDIT = "edit";
+
+    public ColorEditor() {
+        button = new JButton();
+        button.setActionCommand(EDIT);
+        button.addActionListener(this);
+        button.setBorderPainted(false);
+
+        //Set up the dialog that the button brings up.
+        colorChooser = new JColorChooser();
+        dialog = JColorChooser.createDialog(button,
+                                        "Pick a Color",
+                                        true,  //modal
+                                        colorChooser,
+                                        this,  //OK button handler
+                                        null); //no CANCEL button handler
+    }
+
+    public void actionPerformed(ActionEvent e) {
+        if (EDIT.equals(e.getActionCommand())) {
+            //The user has clicked the cell, so
+            //bring up the dialog.
+            button.setBackground(currentColor);
+            colorChooser.setColor(currentColor);
+            dialog.setVisible(true);
+
+            fireEditingStopped(); //Make the renderer reappear.
+
+        } else { //User pressed dialog's "OK" button.
+            currentColor = colorChooser.getColor();
+        }
+    }
+
+    //Implement the one CellEditor method that AbstractCellEditor doesn't.
+    public Object getCellEditorValue() {
+        return currentColor;
+    }
+
+    //Implement the one method defined by TableCellEditor.
+    public Component getTableCellEditorComponent(JTable table,
+                                                 Object value,
+                                                 boolean isSelected,
+                                                 int row,
+                                                 int column) {
+        currentColor = (Color)value;
+        return button;
+    }
+}
+</pre>
+<p>As you can see, the code is pretty simple. The only part that is a bit tricky is the call to <code>fireEditingStopped</code> at the end of the editor button's action handler. Without this call, the editor would remain active, even though the modal dialog is no longer visible. The call to <code>fireEditingStopped</code> lets the table know that it can deactivate the editor, letting the cell be handled by the renderer again.</p>
+<h2>Using an Editor to Validate User-Entered Text</h2>
+<p>If a cell's default editor allows text entry, you get some error checking for free if the cell's type is specified as something other than <code>String</code> or <code>Object</code>. The error checking is a side effect of converting the entered text into an object of the proper type.</p>
+<p>The automatic checking of user-entered strings occurs when the default editor attempts to create a new instance of the class associated with the cell's column. The default editor creates this instance using a constructor that takes a <code>String</code> as an argument. For example, in a column whose cells have type <code>Integer</code>, when the user types in "123" the default editor creates the corresponding <code>Integer</code> using code equivalent to <code>new Integer("123")</code>. If the constructor throws an exception, the cell's outline turns red and refuses to let focus move out of the cell. If you implement a class used as a column data type, you can use the default editor if your class supplies a constructor that takes a single argument of type <code>String</code>.</p>
+<p>If you like having a text field as the editor for a cell, but want to customize it  perhaps to check user-entered text more strictly or to react differently when the text is invalid  you can change the cell editor to use a formatted text field. The formatted text field can check the value either continuously while the user is typing or after the user has indicated the end of typing (such as by pressing Enter).</p>
+<p>The following code, taken from a demo named 
+<code>TableFTFEditDemo.java</code>, sets up a formatted text field as an editor that limits all integer values to be between 0 and 100. You can run <code>TableFTFEditDemo</code> (click the Launch button) using 
+Java™ Web Start (download JDK 7 or later). Or, to compile and run the example yourself, consult the example index.</p>
+<p>The following code makes the formatted text field the editor for all columns that contain data of type <code>Integer</code>.</p>
+<p>WHATSON? 350aeef0-30ab-489c-a17e-765b902b1538</p>
+<pre>
+table.setDefaultEditor(Integer.class,
+                       new IntegerEditor(0, 100));
+</pre>
+<p>The <code>IntegerEditor</code> class is implemented as a subclass of 
+<code>DefaultCellEditor</code> that uses a <code>JFormattedTextField</code> instead of the <code>JTextField</code> that <code>DefaultCellEditor</code> supports. It accomplishes this by first setting up a formatted text field to use an integer format and have the specified minimum and maximum values, using the API described in How to Use Formatted Text Fields. It then overrides the <code>DefaultCellEditor</code> implementation of the <code>getTableCellEditorComponent</code>, <code>getCellEditorValue</code>, and <code>stopCellEditing</code> methods, adding the operations that are necessary for formatted text fields.</p>
+<p>The override of <code>getTableCellEditorComponent</code> sets the formatted text field's <em>value</em> property (and not just the <em>text</em> property it inherits from <code>JTextField</code>) before the editor is shown. The override of <code>getCellEditorValue</code> keeps the cell value as an <code>Integer</code>, rather than, say, the <code>Long</code> value that the formatted text field's parser tends to return. Finally, overriding <code>stopCellEditing</code> lets you check whether the text is valid, possibly stopping the editor from being dismissed. If the text isn't valid, your implementation of <code>stopCellEditing</code> puts up a dialog that gives the user the option of continuing to edit or reverting to the last good value. The source code is a bit too long to include here, but you can find it in 
+<code>IntegerEditor.java</code>.</p>
+<h2>Printing</h2>
+<p><code>JTable</code> provides a simple API for printing tables. The easiest way to print out a table is to invoke 
+<code>JTable.print</code> with no arguments:</p>
+<p>WHATSON? dc07bdef-4350-4ea9-a171-d06936f14887</p>
+<pre>
+try {
+    if (! table.print()) {
+        System.err.println("User cancelled printing");
+    }
+} catch (java.awt.print.PrinterException e) {
+    System.err.format("Cannot print %s%n", e.getMessage());
+}
+</pre>
+<p>Invoking <code>print</code> on a normal Swing application brings up a standard printing dialog box. (On a headless application, the table is simply printed.) The return value indicates whether the user went ahead with the print job or cancelled it. <code>JTable.print</code> can throw <code>java.awt.print.PrinterException</code>, which is a 
+checked exception; that's why the above example uses a <code>try ... catch</code>.</p>
+<p><code>JTable</code> provides several overloads of <code>print</code> with various options. The following code from 
+<code><code>TablePrintDemo.java</code></code> shows how to define a page header:</p>
+<p>WHATSON? 84b051ef-f179-4371-9da8-e9e20c4cf081</p>
+<pre>
+MessageFormat header = new MessageFormat("Page {0,number,integer}");
+try {
+    table.print(JTable.PrintMode.FIT_WIDTH, header, null);
+} catch (java.awt.print.PrinterException e) {
+    System.err.format("Cannot print %s%n", e.getMessage());
+}
+</pre>
+<p>For more sophisticated printing applications, use 
+<code>JTable.getPrintable</code> to obtain a <code>Printable</code> object for the table. For more on <code>Printable</code>, refer to the 
+Printing lesson in the 
+2D Graphics trail.</p>
+<h2>Examples that Use Tables</h2>
+<p>This table lists examples that use <code>JTable</code> and where those examples are described.</p>
+</body>
+</html>

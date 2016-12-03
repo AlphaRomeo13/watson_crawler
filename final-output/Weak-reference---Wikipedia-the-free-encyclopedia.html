@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Weak-reference---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Weak reference</h1>
+<p>In computer programming, a <b>weak reference</b> is a reference that does not protect the referenced object from collection by a garbage collector, unlike a strong reference. An object referenced <i>only</i> by weak references – meaning "every chain of references that reaches the object includes at least one weak reference as a link" – is considered <i>weakly reachable,</i> and can be treated as unreachable and so may be collected at any time. Some garbage-collected languages feature or support various levels of weak references, such as Java, C#, Python, Perl, and Lisp，Shell.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Uses</li>
+<li>2 Garbage collection</li>
+<li>3 Variations</li>
+<li>4 Examples
+<ul>
+<li>4.1 Java</li>
+<li>4.2 Smalltalk</li>
+<li>4.3 Lua</li>
+<li>4.4 Objective-C 2.0</li>
+<li>4.5 Vala</li>
+</ul>
+</li>
+<li>5 See also</li>
+<li>6 Notes</li>
+<li>7 External links
+<ul>
+<li>7.1 C++</li>
+<li>7.2 Java</li>
+<li>7.3 Python</li>
+<li>7.4 Shell</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li>4.1 Java</li>
+<li>4.2 Smalltalk</li>
+<li>4.3 Lua</li>
+<li>4.4 Objective-C 2.0</li>
+<li>4.5 Vala</li>
+</ul>
+<ul>
+<li>7.1 C++</li>
+<li>7.2 Java</li>
+<li>7.3 Python</li>
+<li>7.4 Shell</li>
+</ul>
+<p></p>
+<h2>Uses</h2>
+<p>Weak references have a number of common use cases. When using reference counting garbage collection, weak references can break reference cycles, by using a weak reference for a link in the cycle. When one has an associative array (mapping, hash map) whose keys are (references to) objects, for example to hold auxiliary value about objects, using weak references for the keys avoids keeping the objects alive just because of their use as a key. When one has an object where other objects are registered, such as in the observer pattern (particularly in event handling), if a strong reference is kept, objects must be explicitly unregistered, otherwise a memory leak occurs (the lapsed listener problem), while a weak reference removes the need to unregister. When holding cached data that can be recreated if necessary, weak references allow the cache to be reclaimed, effectively producing discardable memory. This last case (a cache) is distinct from others, as it is preferable that the objects only be garbage collected if necessary, and there is thus a need for finer distinctions within weak references, here a stronger form of a weak reference. In many cases weak references do not need to be directly used, instead simply using a weak array or other container whose keys or values are weak references.</p>
+<h2>Garbage collection</h2>
+<p>Garbage collection is used to clean up unused objects and so reduce the potential for memory leaks and data corruption. There are two main types of garbage collection: tracing and reference counting. Reference counting schemes record the number of references to a given object and collect the object when the reference count becomes zero. Reference-counting cannot collect cyclic (or circular) references because only one object may be collected at a time. Groups of mutually referencing objects which are not directly referenced by other objects and are unreachable can thus become permanently resident; if an application continually generates such unreachable groups of unreachable objects this will have the effect of a memory leak. Weak references (references which are not counted in reference counting) may be used to solve the problem of circular references if the reference cycles are avoided by using weak references for some of the references within the group.</p>
+<p>A very common case of such strong vs. weak reference distinctions is in tree structures, such as the Document Object Model (DOM), where parent-to-child references are strong, but child-to-parent references are weak. For example, Apple's Cocoa framework recommends this approach. Indeed, even when the object graph is not a tree, a tree structure can often be imposed by the notion of object ownership, where ownership relationships are strong and form a tree, and non-ownership relationships are weak and need not follow the tree – this approach is common in C++, using raw pointers as weak references.</p>
+<p>Weak references are also used to minimize the number of unnecessary objects in memory by allowing the program to indicate which objects are of minor importance by only weakly referencing them.</p>
+<h2>Variations</h2>
+<p>Some languages have multiple levels of weak reference strength. For example, Java has, in order of decreasing strength, soft, weak, and phantom references, defined in the package java.lang.ref. Each reference type has an associated notion of reachability. The garbage collector (GC) uses an object's type of reachability to determine when to free the object. It is safe for the GC to free an object that is softly reachable, but the GC may decide not to do so if it believes the JVM can spare the memory (e.g. the JVM has lots of unused heap space). The GC will free a weakly reachable object as soon as the GC notices the object. Unlike the other reference types, a phantom reference cannot be followed. On the other hand, phantom references provide a mechanism to notify the program when an object has been freed (notification is implemented using ReferenceQueues).</p>
+<p>In C#, weak references are distinguished by whether they track object resurrection or not. This distinction does not occur for strong references, as objects are not finalized if they have any strong references to them. By default, in C# weak reference do not track resurrection, meaning a weak reference is not updated if an object is resurrected; these are called <b>short weak references</b>, and weak references that track resurrection are called <b>long weak references</b>.</p>
+<p>Some non-garbage-collected languages, such as C++, provide weak/strong reference functionality as part of supporting garbage collection libraries. In the case of C++, normal pointers are <i>weak</i> and smart pointers are <i>strong</i>; although pointers are not <i>true</i> weak references, as weak references are supposed to know when the object becomes unreachable.</p>
+<h2>Examples</h2>
+<p>Weak references can be useful when keeping a list of the current variables being referenced in the application. This list must have weak links to the objects. Otherwise, once objects are added to the list, they will be referenced by it and will persist for the duration of the program.</p>
+<h3>Java</h3>
+<p>Java was the first main language to introduce strong reference as the default object reference. Previously (ANSI) C only had <strong class="selflink">weak references</strong>. However it was noted by David Hostettler Wain and Scott Alexander Nesmith that event trees were not evaporating properly. Thus strong/weak references of counted and uncounted references was derived (~1998).</p>
+<p>If a weak reference is created, and then elsewhere in the code <code>get()</code> is used to get the actual object, the weak reference isn't strong enough to prevent garbage collection, so it may be (if there are no strong references to the object) that <code>get()</code> suddenly starts returning null.</p>
+<p>WHATSON? fe446e6c-b0ef-4dfb-8672-5f2221b1831a</p>
+<pre>
+import java.lang.ref.WeakReference;
+ 
+public class ReferenceTest {
+	public static void main(String[] args) throws InterruptedException {
+ 
+            WeakReference r = new WeakReference(new String("I'm here"));
+            WeakReference sr = new WeakReference("I'm here");
+            System.out.println("before gc: r=" + r.get() + ", static=" + sr.get());
+            System.gc();
+            Thread.sleep(100);
+ 
+            // only r.get() becomes null
+            System.out.println("after gc: r=" + r.get() + ", static=" + sr.get());
+ 
+	}
+}
+</pre>
+<p>Another use of weak references is in writing a cache. Using, for example, a weak hash map, one can store in the cache the various referred objects via a weak reference. When the garbage collector runs — when for example the application's memory usage gets sufficiently high — those cached objects which are no longer directly referenced by other objects are removed from the cache.</p>
+<h3>Smalltalk</h3>
+<p>WHATSON? 9e3698f2-4d31-428a-b416-c8c12109317a</p>
+<pre>
+|a s1 s2|
+ 
+s1 := 'hello' copy.     "that's a strong reference"
+s2 := 'world' copy.     "that's a strong reference"
+a := WeakArray with:s1 with:s2.
+a printOn: Transcript. 
+ObjectMemory collectGarbage.
+a printOn: Transcript.  "both elements still there"
+ 
+s1 := nil.              "strong reference goes away" 
+ObjectMemory collectGarbage.
+a printOn: Transcript.  "first element gone"
+ 
+s2 := nil.              "strong reference goes away" 
+ObjectMemory collectGarbage.
+a printOn: Transcript.  "second element gone"
+</pre>
+<h3>Lua</h3>
+<p>WHATSON? 3065824c-3f9e-41f2-9219-41ade3f15a6e</p>
+<pre>
+weak_table = setmetatable({}, {__mode="v"})
+weak_table.item = {}
+print(weak_table.item)
+collectgarbage()
+print(weak_table.item)
+</pre>
+<h3>Objective-C 2.0</h3>
+<p>In Objective-C 2.0, not only garbage collection, but also automatic reference counting will be affected by weak references. All variables and properties in the following example are weak.</p>
+<p>WHATSON? 394e3e19-96a6-4e26-bb44-895954032aa4</p>
+<pre>
+@interface WeakRef : NSObject
+{
+    __weak NSString *str1;
+    __unsafe_unretained NSString *str2;
+}
+ 
+@property (nonatomic, weak) NSString *str3;
+@property (nonatomic, unsafe_unretained) NSString *str4;
+ 
+@end
+</pre>
+<p>The difference between <code>weak</code> (<code>__weak</code>) and <code>unsafe_unretained</code> (<code>__unsafe_unretaineda</code>) is that when the object the variable pointed to is being deallocated, whether the value of the variable is going to be changed or not. <code>weak</code> ones will be updated to <code>nil</code> and the <code>unsafe_unretained</code> one will be left unchanged, as a dangling pointer. The <code>weak</code> references is added to Objective-C since Mac OS X 10.7 "Lion" and iOS 5, together with Xcode 4.1 (4.2 for iOS), and only when using ARC. Older versions of Mac OS X, iOS, and GNUstep support only <code>unsafe_unretained</code> references as weak ones.</p>
+<h3>Vala</h3>
+<p>WHATSON? 66d8eca0-99a1-4d79-901a-023917509d11</p>
+<pre>
+class Node {
+    public weak Node prev; // a weak reference is used to avoid circular references between nodes of a list
+    public Node next;
+}
+</pre>
+<h2>See also</h2>
+<ul>
+<li>Soft reference</li>
+<li>Phantom reference</li>
+<li>Circular reference</li>
+<li>Ephemeron</li>
+</ul>
+<h2>Notes</h2>
+<ol>
+<li><b>^</b> 8.8. weakref — Weak references, The Python Standard Library</li>
+<li><b>^</b> Practical Memory Management</li>
+<li><b>^</b> Nicholas, Ethan (May 4, 2006). "Understanding Weak References". java.net. Retrieved October 1, 2010. </li>
+<li><b>^</b> Goldshtein, Zurbalev &amp; Flatow 2012, p. 131.</li>
+<li><b>^</b> weblogs.java.net Java Examples</li>
+</ol>
+<ul>
+<li>Goldshtein, Sasha; Zurbalev, Dima; Flatow, Ido (2012). <i>Pro .NET Performance: Optimize Your C# Applications</i>. Apress. ISBN 978-1-4302-4458-5.  edit</li>
+</ul>
+<h2>External links</h2>
+<h3>C++</h3>
+<ul>
+<li>Boost 1.48 Reference</li>
+</ul>
+<h3>Java</h3>
+<ul>
+<li>Java developer article: 'Reference Objects and Garbage Collection'</li>
+</ul>
+<p>Nicholas, Ethan (May 4, 2006). "Understanding Weak References". java.net. Retrieved October 1, 2010. </p>
+<ul>
+<li>RCache - Java Library for weak/soft reference based cache</li>
+<li>Java theory and practice: Plugging memory leaks with weak references</li>
+</ul>
+<h3>Python</h3>
+<ul>
+<li>https://docs.python.org/2/library/weakref.html</li>
+<li>Fred L. Drake, Jr., <i>PEP 205: Weak References</i>, Python Enhancement Proposal, January 2001.</li>
+</ul>
+<h3>Shell</h3>
+<p>http://www.chinaunix.net/old_jh/24/686286.html</p>
+<ul>
+<li>v</li>
+<li>t</li>
+<li>e</li>
+</ul>
+<ul>
+<li>Memory management as a function of an operating system</li>
+</ul>
+<ul>
+<li>Static memory allocation</li>
+<li>C dynamic memory allocation</li>
+<li>new (C++)</li>
+<li>delete (C++)</li>
+</ul>
+<ul>
+<li>Demand paging</li>
+<li>Page table</li>
+<li>Paging</li>
+</ul>
+<ul>
+<li>Memory management unit</li>
+<li>Translation lookaside buffer</li>
+</ul>
+<ul>
+<li>Boehm garbage collector</li>
+<li>Finalizer</li>
+<li>Garbage</li>
+<li>Mark-compact algorithm</li>
+<li>Reference counting</li>
+<li>Strong reference</li>
+<li><strong class="selflink">Weak reference</strong></li>
+</ul>
+<ul>
+<li>Protected mode</li>
+<li>Real mode</li>
+<li>Virtual 8086 mode</li>
+<li>x86 memory segmentation</li>
+</ul>
+<ul>
+<li>Buffer overflow</li>
+<li>Buffer over-read</li>
+<li>Dangling pointer</li>
+<li>Stack overflow</li>
+</ul>
+<ul>
+<li>Fragmentation</li>
+<li>Memory leak</li>
+<li>Unreachable memory</li>
+</ul>
+<ul>
+<li>Automatic variable</li>
+<li>International Symposium on Memory Management</li>
+<li>Region-based memory management</li>
+</ul>
+</body>
+</html>

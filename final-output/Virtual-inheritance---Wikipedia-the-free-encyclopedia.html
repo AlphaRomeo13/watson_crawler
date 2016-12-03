@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Virtual-inheritance---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Virtual inheritance</h1>
+<p><b>Virtual inheritance</b> is a technique used in object-oriented programming, where a particular base class in an inheritance hierarchy is declared to share its member data instances with any other inclusions of that same base in further derived classes. For example, if class <i>A</i> is normally (non-virtually) derived from class <i>X</i> (assumed to contain data members), and class <i>B</i> likewise, and class <i>C</i> inherits from both classes <i>A</i> and <i>B</i>, it will contain two sets of the data members associated with class <i>X</i> (accessible independently, often with suitable disambiguating qualifiers). But if class <i>A</i> is virtually derived from class <i>X</i> instead, then objects of class <i>C</i> will contain only one set of the data members from class <i>X</i>. The best-known language that implements this feature is C++.</p>
+<p>This feature is most useful for multiple inheritance, as it makes the virtual base a common subobject for the deriving class and all classes that are derived from it. This can be used to avoid the problem of ambiguous hierarchy composition (known as the "diamond problem") by clarifying ambiguity over which ancestor class to use, as from the perspective of the deriving class (<i>C</i> in the example above) the virtual base (<i>X</i>) acts as though it were the direct base class of <i>C</i>, not a class derived indirectly through its base (<i>A</i>).</p>
+<p>It is used when inheritance represents restriction of a set rather than composition of parts. In C++, a base class intended to be common throughout the hierarchy is denoted as virtual with the <code>virtual</code> keyword.</p>
+<p>Consider the following class hierarchy.</p>
+<p>WHATSON? 28b95b37-ebee-4120-9ffc-f437925e9b6a</p>
+<pre>
+class Animal {
+ public:
+  virtual void eat();
+};
+ 
+class Mammal : public Animal {
+ public:
+  virtual void breathe();
+};
+ 
+class WingedAnimal : public Animal {
+ public:
+  virtual void flap();
+};
+ 
+// A bat is a winged mammal
+class Bat : public Mammal, public WingedAnimal {
+};
+ 
+Bat bat;
+</pre>
+<p>As declared above, a call to <code>bat.eat()</code> is ambiguous because there are two <code>Animal</code> (indirect) base classes in <code>Bat</code>, so any <code>Bat</code> object has two different <code>Animal</code> base class subobjects. So an attempt to directly bind a reference to the <code>Animal</code> subobject of a <code>Bat</code> object would fail, since the binding is inherently ambiguous:</p>
+<p>WHATSON? 45692c63-53b5-450d-9e3a-98307186fc3d</p>
+<pre>
+Bat b;
+Animal &amp;a = b; // error: which Animal subobject should a Bat cast into, 
+               // a Mammal::Animal or a WingedAnimal::Animal?
+</pre>
+<p>To disambiguate, one would have to explicitly convert <code>bat</code> to either base class subobject:</p>
+<p>WHATSON? 967674a7-587c-4c10-985d-2396282109fe</p>
+<pre>
+Bat b;
+Animal &amp;mammal = static_cast&lt;Mammal&amp;&gt; (b); 
+Animal &amp;winged = static_cast&lt;WingedAnimal&amp;&gt; (b);
+</pre>
+<p>In order to call <code>eat()</code>, the same disambiguation is needed: <code>static_cast&lt;Mammal&amp;&gt;(bat).eat()</code> or <code>static_cast&lt;WingedAnimal&amp;&gt;(bat).eat()</code>.</p>
+<p>In this case, the double inheritance of <code>Animal</code> is probably unwanted, as we want to model that the relation (<code>Bat</code> is an <code>Animal</code>) exists only once; that a <code>Bat</code> is a <code>Mammal</code> and is a <code>WingedAnimal</code> does not imply that it is an <code>Animal</code> twice: an <code>Animal</code> base class corresponds to a contract that <code>Bat</code> implements (the "is a" relationship above really means "<i>implements the requirements of</i>"), and a <code>Bat</code> only implements the <code>Animal</code> contract once. The real world meaning of "<i>is a</i> only once" is that <code>Bat</code> should have only one way of implementing <code>eat()</code>, not two different ways, depending on whether the <code>Mammal</code> view of the <code>Bat</code> is eating, or the <code>WingedAnimal</code> view of the <code>Bat</code>. (In the first code example we see that <code>eat()</code> is not overridden in either <code>Mammal</code> or <code>WingedAnimal</code>, so the two <code>Animal</code> subobjects will actually behave the same, but this is just a degenerate case, and that does not make a difference from the C++ point of view.)</p>
+<p>This situation is sometimes referred to as <b>diamond inheritance</b> (see Diamond problem) because the inheritance diagram is in the shape of a diamond. Virtual inheritance can help to solve this problem.</p>
+<h2>The solution</h2>
+<p>We can re-declare our classes as follows:</p>
+<p>WHATSON? ec1bbbf4-1712-4084-b3db-d30ccf7fd074</p>
+<pre>
+class Animal {
+ public:
+  virtual void eat();
+};
+ 
+// Two classes virtually inheriting Animal:
+class Mammal : public virtual Animal {
+ public:
+  virtual void breathe();
+};
+ 
+class WingedAnimal : public virtual Animal {
+ public:
+  virtual void flap();
+};
+ 
+// A bat is still a winged mammal
+class Bat : public Mammal, public WingedAnimal {
+};
+</pre>
+<p>The <code>Animal</code> portion of <code>Bat::WingedAnimal</code> is now the <i>same</i> <code>Animal</code> instance as the one used by <code>Bat::Mammal</code>, which is to say that a <code>Bat</code> has only one, shared, <code>Animal</code> instance in its representation and so a call to <code>Bat::eat()</code> is unambiguous. Additionally, a direct cast from <code>Bat</code> to <code>Animal</code> is also unambiguous, now that there exists only one <code>Animal</code> instance which <code>Bat</code> could be converted to.</p>
+<p>This is implemented by providing <code>Mammal</code> and <code>WingedAnimal</code> with an information of the memory offset between the beginning of a <code>Mammal</code> and of its <code>Animal</code> part is unknown until runtime. Thus Bat becomes (<code>vpointer</code>, <code>Mammal</code>, <code>vpointer</code>, <code>WingedAnimal</code>, <code>Bat</code>, <code>Animal</code>). There are two vtable pointers, one per inheritance hierarchy that virtually inherits <code>Animal</code>. In this example, one for <code>Mammal</code> and one for <code>WingedAnimal</code>. The object size has therefore increased by two pointers, but now there is only one <code>Animal</code> and no ambiguity. All objects of type <code>Bat</code> will have the same vpointers, but each <code>Bat</code> object will contain its own unique <code>Animal</code> object. If another class inherits from <code>Mammal</code>, such as <code>Squirrel</code>, then the vpointer in the <code>Mammal</code> object in a <code>Squirrel</code> will be different from the vpointer in the <code>Mammal</code> object in a <code>Bat</code>, although they can still be essentially the same in the special case that the <code>Squirrel</code> part of the object has the same size as the <code>Bat</code> part, because then the distance from the <code>Mammal</code> to the <code>Animal</code> part is the same. The vtables are not really the same, but all essential information in them (the distance) is.</p>
+<h2>See also</h2>
+<ul>
+<li>Object association</li>
+</ul>
+</body>
+</html>

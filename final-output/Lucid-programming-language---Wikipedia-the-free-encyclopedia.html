@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Lucid-programming-language---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Lucid (programming language)</h1>
+<p><b>Lucid</b> is a dataflow programming language. It is designed to experiment with non-von Neumann programming models. It was designed by Bill Wadge and Ed Ashcroft and described in the book <i>Lucid, the Dataflow Programming Language</i>.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Model</li>
+<li>2 Details</li>
+<li>3 Examples
+<ul>
+<li>3.1 Factorial</li>
+<li>3.2 Fibonacci sequence</li>
+<li>3.3 Total of a Sequence</li>
+<li>3.4 Running Average</li>
+<li>3.5 Prime numbers
+<ul>
+<li>3.5.1 Dataflow diagram</li>
+</ul>
+</li>
+<li>3.6 Quick sort
+<ul>
+<li>3.6.1 Data flow diagram</li>
+</ul>
+</li>
+<li>3.7 Square root</li>
+<li>3.8 Hamming problem
+<ul>
+<li>3.8.1 Dataflow Diagram</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>4 External links</li>
+</ul>
+<ul>
+<li>3.1 Factorial</li>
+<li>3.2 Fibonacci sequence</li>
+<li>3.3 Total of a Sequence</li>
+<li>3.4 Running Average</li>
+<li>3.5 Prime numbers
+<ul>
+<li>3.5.1 Dataflow diagram</li>
+</ul>
+</li>
+<li>3.6 Quick sort
+<ul>
+<li>3.6.1 Data flow diagram</li>
+</ul>
+</li>
+<li>3.7 Square root</li>
+<li>3.8 Hamming problem
+<ul>
+<li>3.8.1 Dataflow Diagram</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li>3.5.1 Dataflow diagram</li>
+</ul>
+<ul>
+<li>3.6.1 Data flow diagram</li>
+</ul>
+<ul>
+<li>3.8.1 Dataflow Diagram</li>
+</ul>
+<p></p>
+<h2>Model</h2>
+<p><b>Lucid</b> uses a demand-driven model for data computation. Each statement can be understood as an equation defining a network of processors and communication lines between them through which data flows. Each variable is an infinite stream of values and every function is a filter or a transformer. Iteration is simulated by 'current' values and 'fby' (read as 'followed by') operator allowing composition of streams.</p>
+<p>Lucid is based on an algebra of histories, a history being an infinite sequence of data items. Operationally, a history can be thought of as a record of the changing values of a variable, history operations such as first and next can be understood in ways suggested by their names. Lucid was originally conceived as a kind of very disciplined mathematically pure single assignment language in which verification would be very much simplified. However, the dataflow interpretation has been very important in helping the direction in which Lucid has evolved.[1]</p>
+<h2>Details</h2>
+<p>In Lucid (and other dataflow languages) an expression that contains a variable that was not yet bound waits until the variable is bound before proceeding. An expression like <code>x + y</code> will wait until both x and y are bound before returning with the output of the expression. An important result of this is that explicit logic for updating related values is avoided, which results in substantial code reduction compared to mainstream languages.</p>
+<p>Each variable in Lucid is a stream of values. An expression <code>n = 1 fby n + 1</code> defines a stream using the operator 'fby' (a mnemonic for "followed by"). fby defines what comes after the previous expression. (In this instance the stream produces 1,2,3,...). The values in a stream can be addressed by these operators (assuming x is the variable being used):</p>
+<p><code>'first x'</code> - fetches the first value in the stream x,</p>
+<p><code>'x'</code> - the current value of the stream,</p>
+<p><code>'next x'</code> - fetches the next value in the stream.</p>
+<p><code>'asa'</code> - an operator that does some thing 'as soon as' the condition given becomes true.</p>
+<p><code>'x upon p'</code> - upon is an operator that repeats the old value of the stream x, and updates to the new values only when the stream p makes a <code>true</code> value available. (It serves to slow down the stream x) i.e.: <code>x upon p</code> is the stream x with new values appearing upon the truth of p.</p>
+<p>The computation is carried out by defining filters or transformation functions that act on these time-varying streams of data.</p>
+<p>pLucid was the first interpreter for Lucid.</p>
+<h2>Examples</h2>
+<h3>Factorial</h3>
+<p>WHATSON? b972e162-7fb3-477e-976d-aef15edfd3c5</p>
+<pre>
+fac
+  where
+    n = 0 fby (n + 1);
+    fac = 1 fby ( fac * (n + 1) );
+  end
+
+</pre>
+<h3>Fibonacci sequence</h3>
+<p>WHATSON? 672974ee-081f-4648-9519-83865ae81769</p>
+<pre>
+fib
+  where
+    fib = 0 fby ( 1 fby fib + next fib );
+  end
+</pre>
+<h3>Total of a Sequence</h3>
+<p>WHATSON? 330de2c3-77be-4b0e-a291-a495ae234259</p>
+<pre>
+total
+  where
+     total = 0 fby total + x
+  end;
+</pre>
+<h3>Running Average</h3>
+<p>WHATSON? 820b1a5e-9a2c-4e7e-b630-0060ad868fd2</p>
+<pre>
+running_avg
+  where 
+     sum = first(input) fby sum + next(input);
+     n = 1 fby n + 1;
+     running_avg = sum / n;
+  end;
+</pre>
+<h3>Prime numbers</h3>
+<p>WHATSON? 2474dfa5-1c5b-4773-a52f-6cd360a47587</p>
+<pre>
+prime
+  where
+     prime = 2 fby (n whenever isprime(n));
+     n = 3 fby n+2;
+     isprime(n) = not(divs) asa divs or prime*prime &gt; N
+                     where
+                       N is current n;
+                       divs = N mod prime eq 0;
+                     end;
+  end
+</pre>
+<h4>Dataflow diagram</h4>
+<p>WHATSON? 8e4b224c-7405-4f3e-a409-1fac10d4767b</p>
+<pre>
+ ---+1&lt;--- --&gt;isprime----
+ |         |              |
+ |         |              V
+  -&gt;fby---------------&gt;whenever---&gt;
+     ^
+     |
+     2
+</pre>
+<h3>Quick sort</h3>
+<p>WHATSON? f5f1c3fb-919e-434a-9551-3dea135dbdd0</p>
+<pre>
+qsort(a) = if eof(first a) then a else follow(qsort(b0),qsort(b1)) fi
+  where
+     p = first a &lt; a;
+     b0 = a whenever p;
+     b1 = a whenever not p;
+     follow(x,y) = if xdone then y upon xdone else x fi
+                     where
+                        xdone = iseod x fby xdone or iseod x; 
+                     end
+  end
+</pre>
+<h4>Data flow diagram</h4>
+<p>WHATSON? b1e881bd-cfd8-4d0a-9f99-54e544afce03</p>
+<pre>
+    --------&gt; whenever -----&gt; qsort ---------
+   |             ^                           |
+   |             |                           |
+   |            not                          |
+   |             ^                           |
+   |---&gt; first   |                           |
+   |       |     |                           |
+   |       V     |                           |
+   |---&gt; less ---                            |
+   |             |                           |
+   |             V                           V
+---+--------&gt; whenever -----&gt; qsort -----&gt; conc -------&gt; ifthenelse -----&gt;
+   |                                                       ^   ^
+   |                                                       |   |
+    --------&gt; next ----&gt; first ------&gt; iseod --------------    |
+   |                                                           |
+    -----------------------------------------------------------
+</pre>
+<h3>Square root</h3>
+<p>WHATSON? 71424b1d-aeda-4794-bbd0-ee626f3999b0</p>
+<pre>
+sqroot(avg(square(a)))
+  where
+     square(x) = x*x;
+     avg(y)    = mean
+        where
+          n = 1 fby n+1;
+          mean = first y fby mean + d;
+          d = (next y - mean)/(n+1);
+        end;
+     sqroot(z) = approx asa  err &lt; 0.0001
+        where
+          Z is current z;
+          approx = Z/2 fby (approx + Z/approx)/2;
+          err    = abs(square(approx)-Z);
+        end;
+   end
+</pre>
+<h3>Hamming problem</h3>
+<p>WHATSON? ef38e024-8dd9-4d29-98d4-1325233eae7a</p>
+<pre>
+h
+   where
+     h = 1 fby merge(merge(2 * h, 3 * h), 5 * h);
+     merge(x,y) = if xx &lt;= yy then xx else yy fi
+        where 
+          xx = x upon xx &lt;= yy;
+          yy = y upon yy &lt;= xx;
+        end;
+   end;
+</pre>
+<h4>Dataflow Diagram</h4>
+<p>WHATSON? 103dec2f-4c97-48b4-a1df-c5ae3ea6b901</p>
+<pre>
+  --------------------*2---------
+ |       -------------*3---------|
+ |      |           --*5---------|
+ |      |          |             |
+ |      V          V             |
+  ---&gt;merge-----&gt;merge-----&gt;fby--------&gt;
+                             ^
+                             |
+                             1
+</pre>
+<h2>External links</h2>
+<ul>
+<li>pLucid</li>
+<li>Language overview</li>
+<li>Evolution of Lucid Archived May 14, 2011 at the Wayback Machine</li>
+<li>Bill Wadge's home page Archived June 29, 2007 at the Wayback Machine</li>
+<li>Fluid Programming in Lucid</li>
+<li>Lucid page of HaskellWiki</li>
+<li>Programming in Lucid</li>
+<li>An Eductive Interpreter Archived February 5, 2007 at the Wayback Machine</li>
+<li>Lucid Primer Archived February 5, 2007 at the Wayback Machine</li>
+<li>GIPSY</li>
+<li>Granular Lucid Archived October 5, 2000 at the Wayback Machine</li>
+<li>The Quil Language Website</li>
+</ul>
+</body>
+</html>

@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Restrictions-on-Generics-The-Java-Tutorials---------------------Learning-the-Java-Language--Generics-Updated.html</title></head>
+<body>
+<h1>Restrictions on Generics</h1>
+<p>
+To use Java generics effectively, you must consider the following restrictions:</p>
+<ul>
+<li>
+Cannot Instantiate Generic Types with Primitive Types</li>
+<li>
+Cannot Create Instances of Type Parameters</li>
+<li>
+Cannot Declare Static Fields Whose Types are Type Parameters</li>
+<li>
+Cannot Use Casts or <tt>instanceof</tt> With Parameterized Types</li>
+<li>
+Cannot Create Arrays of Parameterized Types</li>
+<li>
+Cannot Create, Catch, or Throw Objects of Parameterized Types</li>
+<li>
+Cannot Overload a Method Where the Formal Parameter Types of Each Overload Erase to the Same Raw Type</li>
+</ul>
+<h2>Cannot Instantiate Generic Types with Primitive Types</h2>
+<p>
+Consider the following parameterized type:</p>
+<p>WHATSON? 4642e6fe-0758-4ebc-9976-cf76a1efbe10</p>
+<pre>
+class Pair&lt;K, V&gt; {
+
+    private K key;
+    private V value;
+
+    public Pair(K key, V value) {
+        this.key = key;
+        this.value = value;
+    }
+
+    // ...
+}
+</pre>
+<p>
+When creating a <tt>Pair</tt> object, you cannot substitute a primitive type for the type parameter <tt>K</tt> or <tt>V</tt>:</p>
+<p>WHATSON? 079d6447-a3cb-4ce8-aebc-aa9c75579f89</p>
+<pre>
+Pair&lt;<strong>int, char</strong>&gt; p = new Pair&lt;&gt;(8, 'a');  // compile-time error
+</pre>
+<p>
+You can substitute only non-primitive types for the type parameters <tt>K</tt> and <tt>V</tt>:</p>
+<p>WHATSON? f7a43414-af09-477b-8339-97e8e65678bf</p>
+<pre>
+Pair&lt;<strong>Integer, Character</strong>&gt; p = new Pair&lt;&gt;(8, 'a');
+</pre>
+<p>
+Note that the Java compiler autoboxes <tt>8</tt> to <tt>Integer.valueOf(8)</tt> and '<tt>a</tt>' to <tt>Character('a')</tt>:</p>
+<p>WHATSON? cbc7586c-feec-4b81-b1cc-7ce459cc8551</p>
+<pre>
+Pair&lt;Integer, Character&gt; p = new Pair&lt;&gt;(Integer.valueOf(8), new Character('a'));
+</pre>
+<p>For more information on autoboxing, see
+Autoboxing and Unboxing in the
+Numbers and Strings lesson.</p>
+<h2>Cannot Create Instances of Type Parameters</h2>
+<p>
+You cannot create an instance of a type parameter. For example, the following code causes a compile-time error:</p>
+<p>WHATSON? ff628088-b32f-470a-a3d7-592ee07352ce</p>
+<pre>
+public static &lt;E&gt; void append(List&lt;E&gt; list) {
+    E elem = new E();  // compile-time error
+    list.add(elem);
+}
+</pre>
+<p>
+As a workaround, you can create an object of a type parameter through reflection:</p>
+<p>WHATSON? 51cfcba5-29d3-456c-9d47-8cefd2160f04</p>
+<pre>
+public static &lt;E&gt; void append(List&lt;E&gt; list, Class&lt;E&gt; cls) throws Exception {
+    E elem = cls.newInstance();   // OK
+    list.add(elem);
+}
+</pre>
+<p>
+You can invoke the <tt>append</tt> method as follows:</p>
+<p>WHATSON? a9075ee5-9586-41a9-ab0b-8ad2e7631809</p>
+<pre>
+List&lt;String&gt; ls = new ArrayList&lt;&gt;();
+append(ls, String.class);
+</pre>
+<h2>Cannot Declare Static Fields Whose Types are Type Parameters</h2>
+<p>
+A class's static field is a class-level variable shared by all non-static objects of the class.  Hence, static fields of type parameters are not allowed. Consider the following class:</p>
+<p>WHATSON? ca61a727-14b7-402a-bbec-9bb7bc72990d</p>
+<pre>
+public class MobileDevice&lt;T&gt; {
+    private static T os;
+
+    // ...
+}
+</pre>
+<p>
+If static fields of type parameters were allowed, then the following code would be confused:</p>
+<p>WHATSON? ae2dee8f-bd01-4332-9153-c324dea21ea2</p>
+<pre>
+MobileDevice&lt;Smartphone&gt; phone = new MobileDevice&lt;&gt;();
+MobileDevice&lt;Pager&gt; pager = new MobileDevice&lt;&gt;();
+MobileDevice&lt;TabletPC&gt; pc = new MobileDevice&lt;&gt;();
+</pre>
+<p>
+Because the static field <tt>os</tt> is shared by <tt>phone</tt>, <tt>pager</tt>, and <tt>pc</tt>, what is the actual type of <tt>os</tt>? It cannot be <tt>Smartphone</tt>, <tt>Pager</tt>, and <tt>TabletPC</tt> at the same time. You cannot, therefore, create static fields of type parameters.</p>
+<h2>Cannot Use Casts or <tt>instanceof</tt> with Parameterized Types</h2>
+<p>
+Because the Java compiler erases all type parameters in generic code, you cannot verify which parameterized type for a generic type is being used at runtime:</p>
+<p>WHATSON? 2ea213f5-808e-4bb3-8acb-17d867f7675a</p>
+<pre>
+public static &lt;E&gt; void rtti(List&lt;E&gt; list) {
+    if (list instanceof ArrayList&lt;Integer&gt;) {  // compile-time error
+        // ...
+    }
+}
+</pre>
+<p>
+The set of parameterized types passed to the <tt>rtti</tt> method is:</p>
+<p>WHATSON? 7b9f0199-1ebe-4caa-97d8-95ea92db5a39</p>
+<pre>
+S = { ArrayList&lt;Integer&gt;, ArrayList&lt;String&gt; LinkedList&lt;Character&gt;, ... }
+</pre>
+<p>
+The runtime does not keep track of type parameters, so it cannot tell the difference between an <tt>ArrayList&lt;Integer&gt;</tt> and an <tt>ArrayList&lt;String&gt;</tt>. The most you can do is to use an unbounded wildcard to verify that the list is an <tt>ArrayList</tt>:</p>
+<p>WHATSON? 9dddb110-2d44-49f5-aa05-862e38248eb8</p>
+<pre>
+public static void rtti(List&lt;?&gt; list) {
+    if (list instanceof ArrayList&lt;?&gt;) {  // OK; instanceof requires a reifiable type
+        // ...
+    }
+}
+</pre>
+<p>
+Typically, you cannot cast to a parameterized type unless it is parameterized by unbounded wildcards. For example:</p>
+<p>WHATSON? 13e3c7f5-dd7f-4c78-b135-7c56363d7fa9</p>
+<pre>
+List&lt;Integer&gt; li = new ArrayList&lt;&gt;();
+List&lt;Number&gt;  ln = (List&lt;Number&gt;) li;  // compile-time error
+</pre>
+<p>
+However, in some cases the compiler knows that a type parameter is always valid and allows the cast.  For example:</p>
+<p>WHATSON? ba13786a-aa87-4c03-b350-d09575d04ae7</p>
+<pre>
+List&lt;String&gt; l1 = ...;
+ArrayList&lt;String&gt; l2 = (ArrayList&lt;String&gt;)l1;  // OK
+</pre>
+<h2>Cannot Create Arrays of Parameterized Types</h2>
+<p>
+You cannot create arrays of parameterized types. For example, the following code does not compile:</p>
+<p>WHATSON? 0acc68fb-a1b9-4212-9fb8-5221d75c0487</p>
+<pre>
+List&lt;Integer&gt;[] arrayOfLists = new List&lt;Integer&gt;[2];  // compile-time error
+</pre>
+<p>
+The following code illustrates what happens when different types are inserted into an array:</p>
+<p>WHATSON? f455e635-cf9e-45d6-b236-babaa41e1435</p>
+<pre>
+Object[] strings = new String[2];
+strings[0] = "hi";   // OK
+strings[1] = 100;    // An ArrayStoreException is thrown.
+</pre>
+<p>
+If you try the same thing with a generic list, there would be a problem:</p>
+<p>WHATSON? 41634b66-bd73-461b-a951-fe34442280ab</p>
+<pre>
+Object[] stringLists = new List&lt;String&gt;[];  // compiler error, but pretend it's allowed
+stringLists[0] = new ArrayList&lt;String&gt;();   // OK
+stringLists[1] = new ArrayList&lt;Integer&gt;();  // An ArrayStoreException should be thrown,
+                                            // but the runtime can't detect it.
+</pre>
+<p>
+If arrays of parameterized lists were allowed, the previous code would fail to throw the desired <tt>ArrayStoreException</tt>.</p>
+<h2>Cannot Create, Catch, or Throw Objects of Parameterized Types</h2>
+<p>
+A generic class cannot extend the <tt>Throwable</tt> class directly or indirectly.  For example, the following classes will not compile:</p>
+<p>WHATSON? 9af33aec-3fa3-417f-b411-03b4456c4040</p>
+<pre>
+// Extends Throwable indirectly
+class MathException&lt;T&gt; extends Exception { /* ... */ }    // compile-time error
+
+// Extends Throwable directly
+class QueueFullException&lt;T&gt; extends Throwable { /* ... */ // compile-time error
+</pre>
+<p>
+A method cannot catch an instance of a type parameter:</p>
+<p>WHATSON? f965df1d-e84d-423d-a49a-363a9ee1bdc6</p>
+<pre>
+public static &lt;T extends Exception, J&gt; void execute(List&lt;J&gt; jobs) {
+    try {
+        for (J job : jobs)
+            // ...
+    } catch (T e) {   // compile-time error
+        // ...
+    }
+}
+</pre>
+<p>
+You can, however, use a type parameter in a <tt>throws</tt> clause:</p>
+<p>WHATSON? 50e11cb4-4fb6-44f3-a119-84c89ba51894</p>
+<pre>
+class Parser&lt;T extends Exception&gt; {
+    public void parse(File file) throws T {     // OK
+        // ...
+    }
+}
+</pre>
+<h2>Cannot Overload a Method Where the Formal Parameter Types of Each Overload Erase to the Same Raw Type</h2>
+<p>
+A class cannot have two overloaded methods that will have the same signature after type erasure.</p>
+<p>WHATSON? 24cdb8ab-3b84-4d88-8f19-7490e68a4264</p>
+<pre>
+public class Example {
+    public void print(Set&lt;String&gt; strSet) { }
+    public void print(Set&lt;Integer&gt; intSet) { }
+}
+</pre>
+<p>
+The overloads would all share the same classfile representation and will generate a compile-time error.</p>
+</body>
+</html>

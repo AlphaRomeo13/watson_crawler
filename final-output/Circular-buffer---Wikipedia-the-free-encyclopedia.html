@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Circular-buffer---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Circular buffer</h1>
+<p>A <b>circular buffer</b>, <b>cyclic buffer</b> or <b>ring buffer</b> is a data structure that uses a single, fixed-size buffer as if it were connected end-to-end. This structure lends itself easily to buffering data streams.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Uses</li>
+<li>2 How it works</li>
+<li>3 Circular buffer mechanics
+<ul>
+<li>3.1 Start/end pointers (head/tail)</li>
+</ul>
+</li>
+<li>4 Difficulties
+<ul>
+<li>4.1 Full / Empty Buffer Distinction
+<ul>
+<li>4.1.1 Always Keep One Slot Open</li>
+<li>4.1.2 Use a Fill Count</li>
+<li>4.1.3 Mirroring</li>
+<li>4.1.4 Read / Write Counts</li>
+<li>4.1.5 Absolute indices</li>
+<li>4.1.6 Record last operation</li>
+</ul>
+</li>
+<li>4.2 Multiple Read Pointers</li>
+<li>4.3 Chunked Buffer</li>
+</ul>
+</li>
+<li>5 Variants</li>
+<li>6 External links</li>
+</ul>
+<ul>
+<li>3.1 Start/end pointers (head/tail)</li>
+</ul>
+<ul>
+<li>4.1 Full / Empty Buffer Distinction
+<ul>
+<li>4.1.1 Always Keep One Slot Open</li>
+<li>4.1.2 Use a Fill Count</li>
+<li>4.1.3 Mirroring</li>
+<li>4.1.4 Read / Write Counts</li>
+<li>4.1.5 Absolute indices</li>
+<li>4.1.6 Record last operation</li>
+</ul>
+</li>
+<li>4.2 Multiple Read Pointers</li>
+<li>4.3 Chunked Buffer</li>
+</ul>
+<ul>
+<li>4.1.1 Always Keep One Slot Open</li>
+<li>4.1.2 Use a Fill Count</li>
+<li>4.1.3 Mirroring</li>
+<li>4.1.4 Read / Write Counts</li>
+<li>4.1.5 Absolute indices</li>
+<li>4.1.6 Record last operation</li>
+</ul>
+<p></p>
+<h2>Uses</h2>
+<p>The useful property of a circular buffer is that it does not need to have its elements shuffled around when one is consumed. (If a non-circular buffer were used then it would be necessary to shift all elements when one is consumed.) In other words, the circular buffer is well-suited as a FIFO buffer while a standard, non-circular buffer is well suited as a LIFO buffer.</p>
+<p>Circular buffering makes a good implementation strategy for a queue that has fixed maximum size. Should a maximum size be adopted for a queue, then a circular buffer is a completely ideal implementation; all queue operations are constant time. However, expanding a circular buffer requires shifting memory, which is comparatively costly. For arbitrarily expanding queues, a linked list approach may be preferred instead.</p>
+<p>In some situations, overwriting circular buffer can be used, e.g. in multimedia. If the buffer is used as the bounded buffer in the producer-consumer problem then it is probably desired for the producer (e.g., an audio generator) to overwrite old data if the consumer (e.g., the sound card) is unable to momentarily keep up. Also, the LZ77 family of lossless data compression algorithms operates on the assumption that strings seen more recently in a data stream are more likely to occur soon in the stream. Implementations store the most recent data in a circular buffer.</p>
+<h2>How it works</h2>
+<p>A circular buffer first starts empty and of some predefined length. For example, this is a 7-element buffer:</p>
+<p>Assume that a 1 is written into the middle of the buffer (exact starting location does not matter in a circular buffer):</p>
+<p>Then assume that two more elements are added — 2 &amp; 3 — which get appended after the 1:</p>
+<p>If two elements are then removed from the buffer, the oldest values inside the buffer are removed. The two elements removed, in this case, are 1 &amp; 2, leaving the buffer with just a 3:</p>
+<p>If the buffer has 7 elements then it is completely full:</p>
+<p>A consequence of the circular buffer is that when it is full and a subsequent write is performed, then it starts overwriting the oldest data. In this case, two more elements — A &amp; B — are added and they <i>overwrite</i> the 3 &amp; 4:</p>
+<p>Alternatively, the routines that manage the buffer could prevent overwriting the data and return an error or raise an exception. Whether or not data is overwritten is up to the semantics of the buffer routines or the application using the circular buffer.</p>
+<p>Finally, if two elements are now removed then what would be returned is <b>not</b> 3 &amp; 4 but A &amp; B because A &amp; B overwrote the 3 &amp; the 4 yielding the buffer with:</p>
+<h2>Circular buffer mechanics</h2>
+<p>What is not shown in the example above is the mechanics of how the circular buffer is managed.</p>
+<h3>Start/end pointers (head/tail)</h3>
+<p>Generally, a circular buffer requires four pointers:</p>
+<ul>
+<li>one to the actual buffer in memory</li>
+<li>one to the buffer end in memory (or alternately: the size of the buffer)</li>
+<li>one to point to the start of valid data (or alternately: amount of data written to the buffer)</li>
+<li>one to point to the end of valid data (or alternately: amount of data read from the buffer)</li>
+</ul>
+<p>Alternatively, a fixed-length buffer with two integers to keep track of indices can be used in languages that do not have pointers.</p>
+<p>Taking a couple of examples from above. (While there are numerous ways to label the pointers and exact semantics can vary, this is one way to do it.)</p>
+<p>This image shows a partially full buffer:</p>
+<p>This image shows a full buffer with two elements having been overwritten:</p>
+<p>What to note about the second one is that after each element is overwritten then the start pointer is incremented as well.</p>
+<h2>Difficulties</h2>
+<h3>Full / Empty Buffer Distinction</h3>
+<p>A small disadvantage of relying on pointers or relative indices of the start and end of data is, that in the case the buffer is entirely full, both pointers point to the same element:</p>
+<p>This is exactly the same situation as when the buffer is empty:</p>
+<p>To solve this confusion there are a number of solutions:</p>
+<ul>
+<li>Always keep one slot open.</li>
+<li>Use a fill count to distinguish the two cases.</li>
+<li>Use an extra mirroring bit to distinguish the two cases.</li>
+<li>Use read and write counts to get the fill count from.</li>
+<li>Use absolute indices.</li>
+<li>Record last operation.</li>
+</ul>
+<h4>Always Keep One Slot Open</h4>
+<p>This design always keeps one slot unallocated. A full buffer has at most <img class="mwe-math-fallback-image-inline tex" alt="(\text{size}-1)" src="//upload.wikimedia.org/math/9/a/9/9a94255a14f31ab5f26d04c51d326fee.png"> slots. If both pointers refer to the same slot, the buffer is empty. If the end (write) pointer refers to the slot preceding the one referred to by the start (read) pointer, the buffer is full.</p>
+<p>The advantage is:</p>
+<ul>
+<li>The solution is simple and robust.</li>
+</ul>
+<p>The disadvantages are:</p>
+<ul>
+<li>One slot is lost, so it is a bad compromise when the buffer size is small or the slot is big or is implemented in hardware.</li>
+<li>The full test requires a modulo operation</li>
+</ul>
+<p><b>Example implementation, 'C' language</b></p>
+<p>WHATSON? 771c639d-07d8-42aa-8664-ce6b57a72ea7</p>
+<pre>
+/* Circular buffer example, keeps one slot open */
+ 
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+ 
+/* Opaque buffer element type.  This would be defined by the application. */
+typedef struct { int value; } ElemType;
+ 
+/* Circular buffer object */
+typedef struct {
+    int         size;   /* maximum number of elements           */
+    int         start;  /* index of oldest element              */
+    int         end;    /* index at which to write new element  */
+    ElemType   *elems;  /* vector of elements                   */
+} CircularBuffer;
+ 
+void cbInit(CircularBuffer *cb, int size) {
+    cb-&gt;size  = size + 1; /* include empty elem */
+    cb-&gt;start = 0;
+    cb-&gt;end   = 0;
+    cb-&gt;elems = calloc(cb-&gt;size, sizeof(ElemType));
+}
+ 
+void cbFree(CircularBuffer *cb) {
+    free(cb-&gt;elems); /* OK if null */
+}
+ 
+int cbIsFull(CircularBuffer *cb) {
+    return (cb-&gt;end + 1) % cb-&gt;size == cb-&gt;start;
+}
+ 
+int cbIsEmpty(CircularBuffer *cb) {
+    return cb-&gt;end == cb-&gt;start;
+}
+ 
+/* Write an element, overwriting oldest element if buffer is full. App can
+   choose to avoid the overwrite by checking cbIsFull(). */
+void cbWrite(CircularBuffer *cb, ElemType *elem) {
+    cb-&gt;elems[cb-&gt;end] = *elem;
+    cb-&gt;end = (cb-&gt;end + 1) % cb-&gt;size;
+    if (cb-&gt;end == cb-&gt;start)
+        cb-&gt;start = (cb-&gt;start + 1) % cb-&gt;size; /* full, overwrite */
+}
+ 
+/* Read oldest element. App must ensure !cbIsEmpty() first. */
+void cbRead(CircularBuffer *cb, ElemType *elem) {
+    *elem = cb-&gt;elems[cb-&gt;start];
+    cb-&gt;start = (cb-&gt;start + 1) % cb-&gt;size;
+}
+ 
+int main(int argc, char **argv) {
+    CircularBuffer cb;
+    ElemType elem = {0};
+ 
+    int testBufferSize = 10; /* arbitrary size */
+    cbInit(&amp;cb, testBufferSize);
+ 
+    /* Fill buffer with test elements 3 times */
+    for (elem.value = 0; elem.value &lt; 3 * testBufferSize; ++ elem.value)
+        cbWrite(&amp;cb, &amp;elem);
+ 
+    /* Remove and print all elements */
+    while (!cbIsEmpty(&amp;cb)) {
+        cbRead(&amp;cb, &amp;elem);
+        printf("%d\n", elem.value);
+    }
+ 
+    cbFree(&amp;cb);
+    return 0;
+}
+</pre>
+<h4>Use a Fill Count</h4>
+<p>This approach replaces the end pointer with a counter that tracks the number of readable items in the buffer. This unambiguously indicates when the buffer is empty or full and allows use of all buffer slots.</p>
+<p>The performance impact should be negligible, since this approach adds the costs of maintaining the counter and computing the tail slot on writes but eliminates the need to maintain the end pointer and simplifies the fullness test.</p>
+<p>The advantage is:</p>
+<ul>
+<li>The test for full/empty is simple</li>
+</ul>
+<p>The disadvantages are:</p>
+<ul>
+<li>You need modulo for read and write</li>
+<li>Read and write operation must share the counter field, so it requires synchronization in multi-threaded situation.</li>
+</ul>
+<p>Note: When using semaphores in a Producer-consumer model, the semaphores act as a fill count.</p>
+<p><b>Differences from previous example</b></p>
+<p>WHATSON? f43e1658-b68c-4bac-8eda-85c247901730</p>
+<pre>
+/* This approach replaces the CircularBuffer 'end' field with the
+   'count' field and changes these functions: */
+ 
+void cbInit(CircularBuffer *cb, int size) {
+    cb-&gt;size  = size;
+    cb-&gt;start = 0;
+    cb-&gt;count = 0;
+    cb-&gt;elems = (ElemType *)calloc(cb-&gt;size, sizeof(ElemType));
+}
+ 
+int cbIsFull(CircularBuffer *cb) {
+    return cb-&gt;count == cb-&gt;size; }
+ 
+int cbIsEmpty(CircularBuffer *cb) {
+    return cb-&gt;count == 0; }
+ 
+void cbWrite(CircularBuffer *cb, ElemType *elem) {
+    int end = (cb-&gt;start + cb-&gt;count) % cb-&gt;size;
+    cb-&gt;elems[end] = *elem;
+    if (cb-&gt;count == cb-&gt;size)
+        cb-&gt;start = (cb-&gt;start + 1) % cb-&gt;size; /* full, overwrite */
+    else
+        ++ cb-&gt;count;
+}
+ 
+void cbRead(CircularBuffer *cb, ElemType *elem) {
+    *elem = cb-&gt;elems[cb-&gt;start];
+    cb-&gt;start = (cb-&gt;start + 1) % cb-&gt;size;
+    -- cb-&gt;count;
+}
+</pre>
+<h4>Mirroring</h4>
+<p>Another solution is to remember the number of times each read and write pointers have wrapped and compare this to distinguish empty and full situations. In fact only the parity of the number of wraps is necessary, so you only need to keep an extra bit. You can see this as if the buffer adds a virtual mirror and the pointers point either to the normal or to the mirrored buffer.</p>
+<p>It is easy to see above that when the pointers (including the extra msb bit) are equal, the buffer is empty, while if the pointers differ only by the extra msb bit, the buffer is full.</p>
+<p>The advantages are:</p>
+<ul>
+<li>The test for full/empty is simple</li>
+<li>No modulo operation is needed</li>
+<li>The source and sink of data can implement independent policies for dealing with a full buffer and overrun while adhering to the rule that only the source of data modifies the write count and only the sink of data modifies the read count. This can result in elegant and robust circular buffer implementations even in multi-threaded environments.</li>
+</ul>
+<p>The disadvantage is:</p>
+<ul>
+<li>You need one more bit for read and write pointer</li>
+</ul>
+<p><b>Differences from Always Keep One Slot Open example</b></p>
+<p>WHATSON? 4231dd97-3db1-48bb-92b2-127cb8432531</p>
+<pre>
+/* This approach adds one bit to end and start pointers */
+ 
+/* Circular buffer object */
+typedef struct {
+    int         size;   /* maximum number of elements           */
+    int         start;  /* index of oldest element              */
+    int         end;    /* index at which to write new element  */
+    int         s_msb;
+    int         e_msb;
+    ElemType   *elems;  /* vector of elements                   */
+} CircularBuffer;
+ 
+void cbInit(CircularBuffer *cb, int size) {
+    cb-&gt;size  = size;
+    cb-&gt;start = 0;
+    cb-&gt;end   = 0;
+    cb-&gt;s_msb = 0;
+    cb-&gt;e_msb = 0;
+    cb-&gt;elems = (ElemType *)calloc(cb-&gt;size, sizeof(ElemType));
+}
+ 
+int cbIsFull(CircularBuffer *cb) {
+    return cb-&gt;end == cb-&gt;start &amp;&amp; cb-&gt;e_msb != cb-&gt;s_msb; }
+ 
+int cbIsEmpty(CircularBuffer *cb) {
+    return cb-&gt;end == cb-&gt;start &amp;&amp; cb-&gt;e_msb == cb-&gt;s_msb; }
+ 
+void cbIncr(CircularBuffer *cb, int *p, int *msb) {
+    *p = *p + 1;
+    if (*p == cb-&gt;size) {
+        *msb ^= 1;
+        *p = 0;
+    }
+}
+ 
+void cbWrite(CircularBuffer *cb, ElemType *elem) {
+    cb-&gt;elems[cb-&gt;end] = *elem;
+    if (cbIsFull(cb)) /* full, overwrite moves start pointer */
+        cbIncr(cb, &amp;cb-&gt;start, &amp;cb-&gt;s_msb);
+    cbIncr(cb, &amp;cb-&gt;end, &amp;cb-&gt;e_msb);
+}
+ 
+void cbRead(CircularBuffer *cb, ElemType *elem) {
+    *elem = cb-&gt;elems[cb-&gt;start];
+    cbIncr(cb, &amp;cb-&gt;start, &amp;cb-&gt;s_msb);
+}
+</pre>
+<p>If the size is a power of two, the implementation is simpler and the separate msb variables are no longer necessary, removing the disadvantage:</p>
+<p><b>Differences from Always Keep One Slot Open example</b></p>
+<p>WHATSON? a22f2ecd-19b9-40a5-974c-a5994a72a7d2</p>
+<pre>
+/* This approach adds one bit to end and start pointers */
+ 
+/* Circular buffer object */
+typedef struct {
+    int         size;   /* maximum number of elements           */
+    int         start;  /* index of oldest element              */
+    int         end;    /* index at which to write new element  */
+    ElemType   *elems;  /* vector of elements                   */
+} CircularBuffer;
+ 
+void cbInit(CircularBuffer *cb, int size) {
+    cb-&gt;size  = size;
+    cb-&gt;start = 0;
+    cb-&gt;end   = 0;
+    cb-&gt;elems = (ElemType *)calloc(cb-&gt;size, sizeof(ElemType));
+}
+ 
+void cbPrint(CircularBuffer *cb) {
+    printf("size=0x%x, start=%d, end=%d\n", cb-&gt;size, cb-&gt;start, cb-&gt;end);
+}
+ 
+int cbIsFull(CircularBuffer *cb) {
+    return cb-&gt;end == (cb-&gt;start ^ cb-&gt;size); /* This inverts the most significant bit of start before comparison */ }
+ 
+int cbIsEmpty(CircularBuffer *cb) {
+    return cb-&gt;end == cb-&gt;start; }
+ 
+int cbIncr(CircularBuffer *cb, int p) {
+    return (p + 1)&amp;(2*cb-&gt;size-1); /* start and end pointers incrementation is done modulo 2*size */
+}
+ 
+void cbWrite(CircularBuffer *cb, ElemType *elem) {
+    cb-&gt;elems[cb-&gt;end&amp;(cb-&gt;size-1)] = *elem;
+    if (cbIsFull(cb)) /* full, overwrite moves start pointer */
+        cb-&gt;start = cbIncr(cb, cb-&gt;start);
+    cb-&gt;end = cbIncr(cb, cb-&gt;end);
+}
+ 
+void cbRead(CircularBuffer *cb, ElemType *elem) {
+    *elem = cb-&gt;elems[cb-&gt;start&amp;(cb-&gt;size-1)];
+    cb-&gt;start = cbIncr(cb, cb-&gt;start);
+}
+</pre>
+<h4>Read / Write Counts</h4>
+<p>Another solution is to keep counts of the number of items written to and read from the circular buffer. Both counts are stored in signed integer variables with numerical limits larger than the number of items that can be stored and are allowed to wrap freely.</p>
+<p>The unsigned difference (write_count - read_count) always yields the number of items placed in the buffer and not yet retrieved. This can indicate that the buffer is empty, partially full, completely full (without waste of a storage location) or in a state of overrun.</p>
+<p>The advantage is:</p>
+<ul>
+<li>The source and sink of data can implement independent policies for dealing with a full buffer and overrun while adhering to the rule that only the source of data modifies the write count and only the sink of data modifies the read count. This can result in elegant and robust circular buffer implementations even in multi-threaded environments.</li>
+</ul>
+<p>The disadvantage is:</p>
+<ul>
+<li>You need two additional variables.</li>
+</ul>
+<h4>Absolute indices</h4>
+<p>It is possible to optimize the previous solution by using indices instead of pointers: indices can store read/write counts instead of the offset from start of the buffer, the separate variables in the above solution are removed and relative indices are obtained on the fly by division modulo the buffer's length.</p>
+<p>The advantage is:</p>
+<ul>
+<li>No extra variables are needed.</li>
+</ul>
+<p>The disadvantages are:</p>
+<ul>
+<li>Every access needs an additional <i>modulo</i> operation.</li>
+<li>If counter wrap is possible, complex logic can be needed if the buffer's length is not a divisor of the counter's capacity.</li>
+</ul>
+<p>On binary computers, both of these disadvantages disappear if the buffer's length is a power of two—at the cost of a constraint on possible buffers lengths.</p>
+<h4>Record last operation</h4>
+<p>Another solution is to keep a flag indicating whether the most recent operation was a read or a write. If the two pointers are equal, then the flag will show whether the buffer is full or empty: if the most recent operation was a write, the buffer must be full, and conversely if it was a read, it must be empty.</p>
+<p>The advantages are:</p>
+<ul>
+<li>Only a single bit needs to be stored (which may be particularly useful if the algorithm is implemented in hardware)</li>
+<li>The test for full/empty is simple</li>
+</ul>
+<p>The disadvantage is:</p>
+<ul>
+<li>You need an extra variable</li>
+<li>Read and write operations must share the flag, so it will probably require synchronization in multi-threaded situation.</li>
+</ul>
+<h3>Multiple Read Pointers</h3>
+<p>A little bit more complex are multiple read pointers on the same circular buffer. This is useful if you have <i>n</i> threads, which are reading from the same buffer, but <i>one</i> thread writing to the buffer.</p>
+<h3>Chunked Buffer</h3>
+<p>Much more complex are different chunks of data in the same circular buffer. The writer is not only writing elements to the buffer, it also assigns these elements to chunks.</p>
+<p>The reader should not only be able to read from the buffer, it should also get informed about the chunk borders.</p>
+<p>Example: The writer is reading data from small files, writing them into the same circular buffer. The reader is reading the data, but needs to know when and which file is starting at a given position.</p>
+<h2>Variants</h2>
+<p>Perhaps the most common version of the circular buffer uses 8-bit bytes as elements.</p>
+<p>Some implementations of the circular buffer use fixed-length elements that are bigger than 8-bit bytes—16-bit integers for audio buffers, 53-byte ATM cells for telecom buffers, etc. Each item is contiguous and has the correct data alignment, so software reading and writing these values can be faster than software that handles non-contiguous and non-aligned values.</p>
+<p>Ping-pong buffering can be considered a very specialized circular buffer with exactly two large fixed-length elements.</p>
+<p>The Bip Buffer is very similar to a circular buffer, except it always returns contiguous blocks (which can be variable length).</p>
+<h2>External links</h2>
+<ol>
+<li><b>^</b> Simon Cooke. "The Bip Buffer - The Circular Buffer with a Twist". 2003.</li>
+</ol>
+<ul>
+<li>CircularBuffer at the Portland Pattern Repository</li>
+<li>Boost: Templated Circular Buffer Container</li>
+<li>http://www.dspguide.com/ch28/2.htm</li>
+</ul>
+<ul>
+<li>v</li>
+<li>t</li>
+<li>e</li>
+</ul>
+<ul>
+<li>Collection</li>
+<li>Container</li>
+</ul>
+<ul>
+<li>Associative array</li>
+<li>Double-ended priority queue</li>
+<li>Double-ended queue</li>
+<li>List</li>
+<li>Map</li>
+<li>Multimap</li>
+<li>Priority queue</li>
+<li>Queue</li>
+<li>Set
+<ul>
+<li>multiset</li>
+</ul>
+</li>
+<li>Disjoint Sets</li>
+<li>Stack</li>
+</ul>
+<ul>
+<li>multiset</li>
+</ul>
+<ul>
+<li>Bit array</li>
+<li><strong class="selflink">Circular buffer</strong></li>
+<li>Dynamic array</li>
+<li>Hash table</li>
+<li>Hashed array tree</li>
+<li>Sparse array</li>
+</ul>
+<ul>
+<li>Association list</li>
+<li>Linked list</li>
+<li>Skip list</li>
+<li>Unrolled linked list</li>
+<li>XOR linked list</li>
+</ul>
+<ul>
+<li>B-tree</li>
+<li>Binary search tree
+<ul>
+<li>AA</li>
+<li>AVL</li>
+<li>red-black</li>
+<li>self-balancing</li>
+<li>splay</li>
+</ul>
+</li>
+<li>Heap
+<ul>
+<li>binary</li>
+<li>binomial</li>
+<li>Fibonacci</li>
+</ul>
+</li>
+<li>R-tree
+<ul>
+<li>R*</li>
+<li>R+</li>
+<li>Hilbert</li>
+</ul>
+</li>
+<li>Trie
+<ul>
+<li>Hash tree</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li>AA</li>
+<li>AVL</li>
+<li>red-black</li>
+<li>self-balancing</li>
+<li>splay</li>
+</ul>
+<ul>
+<li>binary</li>
+<li>binomial</li>
+<li>Fibonacci</li>
+</ul>
+<ul>
+<li>R*</li>
+<li>R+</li>
+<li>Hilbert</li>
+</ul>
+<ul>
+<li>Hash tree</li>
+</ul>
+<ul>
+<li>Binary decision diagram</li>
+<li>Directed acyclic graph</li>
+<li>Directed acyclic word graph</li>
+</ul>
+<ul>
+<li>List of data structures</li>
+</ul>
+</body>
+</html>

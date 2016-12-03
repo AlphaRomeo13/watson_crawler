@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>String-Resources--Android-Developers.html</title></head>
+<body>
+<h1>String Resources</h1>
+<p>A string resource provides text strings for your application
+with optional text styling and formatting. There are three types of resources that can provide
+your application with strings:</p>
+<p>All strings are capable of applying some styling markup and formatting arguments. For
+information about styling and formatting strings, see the section about Formatting and Styling.</p>
+<h2>String</h2>
+<p>A single string that can be referenced from the application or from other resource files (such
+as an XML layout).</p>
+<p><strong>Note:</strong> A string is a simple resource that is referenced
+using the value provided in the <code>name</code> attribute (not the name of the XML file). So, you can
+combine string resources with other simple resources in the one XML file,
+under one <code>&lt;resources&gt;</code> element.</p>
+<p>WHATSON? 0d901f30-fdb7-443f-9883-39a3a5042c60</p>
+<pre>
+&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;resources&gt;
+    &lt;string
+        name="<em>string_name</em>"
+        &gt;<em>text_string</em>&lt;/string&gt;
+&lt;/resources&gt;
+</pre>
+<p>No attributes.</p>
+<p>attributes:</p>
+<p>WHATSON? 5f462340-a834-4697-bcc5-ec671496baa3</p>
+<pre>
+&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;resources&gt;
+    &lt;string name="hello"&gt;Hello!&lt;/string&gt;
+&lt;/resources&gt;
+</pre>
+<p>This layout XML applies a string to a View:</p>
+<p>WHATSON? b4ad8331-6555-4e54-bad5-2fabafa3f04e</p>
+<pre>
+&lt;TextView
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    <strong>android:text="@string/hello"</strong> /&gt;
+</pre>
+<p>This application code retrieves a string:</p>
+<p>WHATSON? ee898889-40e3-4c04-aece-fdc8763fef5a</p>
+<pre>
+String string = <code>getString</code>(R.string.hello);
+</pre>
+<p>You can use either <code>getString(int)</code> or
+<code>getText(int)</code> to retrieve a string. <code>getText(int)</code> will retain any rich text styling applied to the string.</p>
+<h2>String Array</h2>
+<p>An array of strings that can be referenced from the application.</p>
+<p><strong>Note:</strong> A string array is a simple resource that is referenced
+using the value provided in the <code>name</code> attribute (not the name of the XML file). As
+such, you can combine string array resources with other simple resources in the one XML file,
+under one <code>&lt;resources&gt;</code> element.</p>
+<p>WHATSON? fa02268c-28d9-4a72-baee-0a5565b0a867</p>
+<pre>
+&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;resources&gt;
+    &lt;string-array
+        name="<em>string_array_name</em>"&gt;
+        &lt;item
+            &gt;<em>text_string</em>&lt;/item&gt;
+    &lt;/string-array&gt;
+&lt;/resources&gt;
+</pre>
+<p>No attributes.</p>
+<p>attributes:</p>
+<p>No attributes.</p>
+<p>WHATSON? fbe295c0-36c7-42f0-8fad-a968819b5451</p>
+<pre>
+&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;resources&gt;
+    &lt;string-array name="planets_array"&gt;
+        &lt;item&gt;Mercury&lt;/item&gt;
+        &lt;item&gt;Venus&lt;/item&gt;
+        &lt;item&gt;Earth&lt;/item&gt;
+        &lt;item&gt;Mars&lt;/item&gt;
+    &lt;/string-array&gt;
+&lt;/resources&gt;
+</pre>
+<p>This application code retrieves a string array:</p>
+<p>WHATSON? a472e61d-1c6b-4828-9d95-08d86e49a625</p>
+<pre>
+Resources res = <code>getResources()</code>;
+String[] planets = res.<code>getStringArray</code>(R.array.planets_array);
+</pre>
+<h2>Quantity Strings (Plurals)</h2>
+<p>Different languages have different rules for grammatical agreement with quantity. In English,
+for example, the quantity 1 is a special case. We write "1 book", but for any other quantity we'd
+write "<i>n</i> books". This distinction between singular and plural is very common, but other
+languages make finer distinctions. The full set supported by Android is <code>zero</code>,
+<code>one</code>, <code>two</code>, <code>few</code>, <code>many</code>, and <code>other</code>.
+
+</p>
+<p>The rules for deciding which case to use for a given language and quantity can be very complex,
+so Android provides you with methods such as
+<code>getQuantityString()</code> to select
+the appropriate resource for you.
+
+</p>
+<p>Although historically called "quantity strings" (and still called that in API), quantity
+strings should <i>only</i> be used for plurals. It would be a mistake to use quantity strings to
+implement something like Gmail's "Inbox" versus "Inbox (12)" when there are unread messages, for
+example. It might seem convenient to use quantity strings instead of an <code>if</code> statement,
+but it's important to note that some languages (such as Chinese) don't make these grammatical
+distinctions at all, so you'll always get the <code>other</code> string.
+
+</p>
+<p>The selection of which string to use is made solely based on grammatical <i>necessity</i>.
+In English, a string for <code>zero</code> will be ignored even if the quantity is 0, because 0
+isn't grammatically different from 2, or any other number except 1 ("zero books", "one book",
+"two books", and so on).
+
+</p>
+<p>Don't be misled either by the fact that, say, <code>two</code> sounds like it could only apply to
+the quantity 2: a language may require that 2, 12, 102 (and so on) are all treated like one
+another but differently to other quantities. Rely on your translator to know what distinctions
+their language actually insists upon.
+
+</p>
+<p>It's often possible to avoid quantity strings by using quantity-neutral formulations such as
+"Books: 1". This will make your life and your translators' lives easier, if it's a style that's
+in keeping with your application.
+
+</p>
+<p><strong>Note:</strong> A plurals collection is a simple resource that is
+referenced using the value provided in the <code>name</code> attribute (not the name of the XML
+file). As such, you can combine plurals resources with other simple resources in the one
+XML file, under one <code>&lt;resources&gt;</code> element.</p>
+<p>WHATSON? 5d3ff174-4640-44b5-844f-568638c738c1</p>
+<pre>
+&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;resources&gt;
+    &lt;plurals
+        name="<em>plural_name</em>"&gt;
+        &lt;item
+            quantity=["zero" | "one" | "two" | "few" | "many" | "other"]
+            &gt;<em>text_string</em>&lt;/item&gt;
+    &lt;/plurals&gt;
+&lt;/resources&gt;
+</pre>
+<p>No attributes.</p>
+<p>attributes:</p>
+<p>attributes:</p>
+<p>WHATSON? 6d2e848c-04e3-4f6e-89d9-e96af4948d77</p>
+<pre>
+&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;resources&gt;
+    &lt;plurals name="numberOfSongsAvailable"&gt;
+        &lt;item quantity="one"&gt;One song found.&lt;/item&gt;
+        &lt;item quantity="other"&gt;%d songs found.&lt;/item&gt;
+    &lt;/plurals&gt;
+&lt;/resources&gt;
+</pre>
+<p>XML file saved at <code>res/values-pl/strings.xml</code>:</p>
+<p>WHATSON? c6e8aaec-0783-4c02-b3b9-f6d35635e45e</p>
+<pre>
+&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;resources&gt;
+    &lt;plurals name="numberOfSongsAvailable"&gt;
+        &lt;item quantity="one"&gt;Znaleziono jedną piosenkę.&lt;/item&gt;
+        &lt;item quantity="few"&gt;Znaleziono %d piosenki.&lt;/item&gt;
+        &lt;item quantity="other"&gt;Znaleziono %d piosenek.&lt;/item&gt;
+    &lt;/plurals&gt;
+&lt;/resources&gt;
+</pre>
+<p>Java code:</p>
+<p>WHATSON? 47f1abd7-ddc2-4dec-a8de-38e434f7312b</p>
+<pre>
+int count = getNumberOfsongsAvailable();
+Resources res = <code>getResources()</code>;
+String songsFound = res.getQuantityString(R.plurals.numberOfSongsAvailable, count, count);
+</pre>
+<p>When using the <code>getQuantityString()</code> method, you need to pass the <code>count</code> twice if your string includes
+string formatting with a number. For example, for the string
+<code>%d songs found</code>, the first <code>count</code> parameter selects the appropriate plural string and
+the second <code>count</code> parameter is inserted into the <code>%d</code> placeholder. If your plural
+strings do not include string formatting, you don't need to pass the third parameter to <code>getQuantityString</code>.</p>
+<h2>Formatting and Styling</h2>
+<p>Here are a few important things you should know about how to properly
+format and style your string resources.</p>
+<h3>Escaping apostrophes and quotes</h3>
+<p>If you have an apostrophe or a quote in your string, you must either escape it or enclose the
+whole string in the other type of enclosing quotes. For example, here are some stings that
+do and don't work:</p>
+<p>WHATSON? 02661b91-40f1-4ad5-bd93-f2f79f83f322</p>
+<pre>
+&lt;string name="good_example"&gt;"This'll work"&lt;/string&gt;
+&lt;string name="good_example_2"&gt;This\'ll also work&lt;/string&gt;
+&lt;string name="bad_example"&gt;This doesn't work&lt;/string&gt;
+&lt;string name="bad_example_2"&gt;XML encodings don&amp;apos;t work&lt;/string&gt;
+</pre>
+<h3>Formatting strings</h3>
+<p>If you need to format your strings using <code>String.format(String, Object...)</code>,
+then you can do so by putting
+your format arguments in the string resource. For example, with the following resource:</p>
+<p>WHATSON? 65b60a02-0773-43a0-bc90-5907b6bf2002</p>
+<pre>
+&lt;string name="welcome_messages"&gt;Hello, %1$s! You have %2$d new messages.&lt;/string&gt;
+</pre>
+<p>In this example, the format string has two arguments: <code>%1$s</code> is a string and <code>%2$d</code>
+is a decimal number. You can format the string with arguments from your application like this:</p>
+<p>WHATSON? 9f0e0d0f-5564-47e4-a34d-9c6d01746710</p>
+<pre>
+Resources res = <code>getResources()</code>;
+String text = String.format(res.getString(R.string.welcome_messages), username, mailCount);
+</pre>
+<h3>Styling with HTML markup</h3>
+<p>You can add styling to your strings with HTML markup. For example:</p>
+<p>WHATSON? f43bdf05-2d28-4673-a528-f4ee6b4e2c33</p>
+<pre>
+&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;resources&gt;
+    &lt;string name="welcome"&gt;Welcome to &lt;b&gt;Android&lt;/b&gt;!&lt;/string&gt;
+&lt;/resources&gt;
+</pre>
+<p>Supported HTML elements include:</p>
+<ul>
+  <li><code>&lt;b&gt;</code> for <b>bold</b> text.</li>
+  <li><code>&lt;i&gt;</code> for <i>italic</i> text.</li>
+  <li><code>&lt;u&gt;</code> for <u>underline</u> text.</li>
+</ul>
+<p>Sometimes you may want to create a styled text resource that is also used as a format
+string. Normally, this won't work because the <code>String.format(String, Object...)</code>
+method will strip all the style
+information from the string. The work-around to this is to write the HTML tags with escaped
+entities, which are then recovered with <code>fromHtml(String)</code>,
+after the formatting takes place. For example:</p>
+<ol>
+  <li>Store your styled text resource as an HTML-escaped string:
+<pre>
+&lt;resources&gt;
+  &lt;string name="welcome_messages"&gt;Hello, %1$s! You have &amp;lt;b&gt;%2$d new messages&amp;lt;/b&gt;.&lt;/string&gt;
+&lt;/resources&gt;
+</pre>
+<p>In this formatted string, a <code>&lt;b&gt;</code> element is added. Notice that the opening bracket is
+HTML-escaped, using the <code>&amp;lt;</code> notation.</p>
+  </li>
+  <li>Then format the string as usual, but also call <code>fromHtml(String)</code> to
+convert the HTML text into styled text:
+<pre>
+Resources res = <code>getResources()</code>;
+String text = String.format(res.getString(R.string.welcome_messages), username, mailCount);
+CharSequence styledText = Html.fromHtml(text);
+</pre>
+  </li>
+</ol>
+<p>WHATSON? 5ac86e03-1323-4809-92be-e81644d5d03a</p>
+<pre>
+&lt;resources&gt;
+  &lt;string name="welcome_messages"&gt;Hello, %1$s! You have &amp;lt;b&gt;%2$d new messages&amp;lt;/b&gt;.&lt;/string&gt;
+&lt;/resources&gt;
+</pre>
+<p>In this formatted string, a <code>&lt;b&gt;</code> element is added. Notice that the opening bracket is
+HTML-escaped, using the <code>&amp;lt;</code> notation.</p>
+<p>WHATSON? 066abd1b-1841-4b87-be7e-d20b37d1b172</p>
+<pre>
+Resources res = <code>getResources()</code>;
+String text = String.format(res.getString(R.string.welcome_messages), username, mailCount);
+CharSequence styledText = Html.fromHtml(text);
+</pre>
+<p>Because the <code>fromHtml(String)</code> method will format all HTML entities, be sure to
+escape any possible HTML characters in the strings you use with the formatted text, using
+<code>htmlEncode(String)</code>. For instance, if you'll be passing a string argument to
+<code>String.format()</code> that may contain characters such as
+"&lt;" or "&amp;", then they must be escaped before formatting, so that when the formatted string
+is passed through <code>fromHtml(String)</code>, the characters come out the way they were
+originally written. For example:</p>
+<p>WHATSON? 22336a6c-3e6f-45f7-84e1-3f5012127d82</p>
+<pre>
+String escapedUsername = TextUtil.<code>htmlEncode</code>(username);
+
+Resources res = <code>getResources()</code>;
+String text = String.format(res.getString(R.string.welcome_messages), escapedUsername, mailCount);
+CharSequence styledText = Html.fromHtml(text);
+</pre>
+<h2>Styling with Spannables</h2>
+<p>
+A <code>Spannable</code> is a text object that you can style with
+typeface properties such as color and font weight. You use
+<code>SpannableStringBuilder</code> to build
+your text and then apply styles defined in the <code>android.text.style</code>
+package to the text.
+</p>
+<p>You can use the following helper methods to set up much of the work
+of creating spannable text:</p>
+<p>WHATSON? e54b3bcf-8a5c-4d7b-8ded-9eef326b6553</p>
+<pre>
+/**
+ * Returns a CharSequence that concatenates the specified array of CharSequence
+ * objects and then applies a list of zero or more tags to the entire range.
+ *
+ * @param content an array of character sequences to apply a style to
+ * @param tags the styled span objects to apply to the content
+ *        such as android.text.style.StyleSpan
+ *
+ */
+private static CharSequence apply(CharSequence[] content, Object... tags) {
+    SpannableStringBuilder text = new SpannableStringBuilder();
+    openTags(text, tags);
+    for (CharSequence item : content) {
+        text.append(item);
+    }
+    closeTags(text, tags);
+    return text;
+}
+
+/**
+ * Iterates over an array of tags and applies them to the beginning of the specified
+ * Spannable object so that future text appended to the text will have the styling
+ * applied to it. Do not call this method directly.
+ */
+private static void openTags(Spannable text, Object[] tags) {
+    for (Object tag : tags) {
+        text.setSpan(tag, 0, 0, Spannable.SPAN_MARK_MARK);
+    }
+}
+
+/**
+ * "Closes" the specified tags on a Spannable by updating the spans to be
+ * endpoint-exclusive so that future text appended to the end will not take
+ * on the same styling. Do not call this method directly.
+ */
+private static void closeTags(Spannable text, Object[] tags) {
+    int len = text.length();
+    for (Object tag : tags) {
+        if (len &gt; 0) {
+            text.setSpan(tag, 0, len, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        } else {
+            text.removeSpan(tag);
+        }
+    }
+}
+</pre>
+<p>
+The following <code>bold</code>, <code>italic</code>, and <code>color</code>
+methods show you how to call the helper methods to apply
+styles defined in the <code>android.text.style</code> package. You
+can create similar methods to do other types of text styling.
+</p>
+<p>WHATSON? bde9a439-385d-4f3e-9892-6c788d69845b</p>
+<pre>
+/**
+ * Returns a CharSequence that applies boldface to the concatenation
+ * of the specified CharSequence objects.
+ */
+public static CharSequence bold(CharSequence... content) {
+    return apply(content, new StyleSpan(Typeface.BOLD));
+}
+
+/**
+ * Returns a CharSequence that applies italics to the concatenation
+ * of the specified CharSequence objects.
+ */
+public static CharSequence italic(CharSequence... content) {
+    return apply(content, new StyleSpan(Typeface.ITALIC));
+}
+
+/**
+ * Returns a CharSequence that applies a foreground color to the
+ * concatenation of the specified CharSequence objects.
+ */
+public static CharSequence color(int color, CharSequence... content) {
+    return apply(content, new ForegroundColorSpan(color));
+}
+</pre>
+<p>
+Here's an example of how to chain these methods to create a character sequence
+with different types of styling applied to individual words:
+</p>
+<p>WHATSON? c22ea712-e876-4b2b-8a21-d87b095e9f20</p>
+<pre>
+// Create an italic "hello, " a red "world",
+// and bold the entire sequence.
+CharSequence text = bold(italic(res.getString(R.string.hello)),
+    color(Color.RED, res.getString(R.string.world)));
+</pre>
+<h1>String Resources</h1>
+<p>A string resource provides text strings for your application
+with optional text styling and formatting. There are three types of resources that can provide
+your application with strings:</p>
+<p>All strings are capable of applying some styling markup and formatting arguments. For
+information about styling and formatting strings, see the section about Formatting and Styling.</p>
+<h2>String</h2>
+<p>A single string that can be referenced from the application or from other resource files (such
+as an XML layout).</p>
+<p><strong>Note:</strong> A string is a simple resource that is referenced
+using the value provided in the <code>name</code> attribute (not the name of the XML file). So, you can
+combine string resources with other simple resources in the one XML file,
+under one <code>&lt;resources&gt;</code> element.</p>
+<p>WHATSON? 8c3e3aed-9b69-423b-9108-288595bc5371</p>
+<pre>
+&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;resources&gt;
+    &lt;string
+        name="<em>string_name</em>"
+        &gt;<em>text_string</em>&lt;/string&gt;
+&lt;/resources&gt;
+</pre>
+<p>No attributes.</p>
+<p>attributes:</p>
+<p>WHATSON? 4aeffd92-2503-4743-a6a9-301a9d53065e</p>
+<pre>
+&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;resources&gt;
+    &lt;string name="hello"&gt;Hello!&lt;/string&gt;
+&lt;/resources&gt;
+</pre>
+<p>This layout XML applies a string to a View:</p>
+<p>WHATSON? 9a12a404-0316-4c78-ae05-9c6d01c3aeb4</p>
+<pre>
+&lt;TextView
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    <strong>android:text="@string/hello"</strong> /&gt;
+</pre>
+<p>This application code retrieves a string:</p>
+<p>WHATSON? 2807013d-f699-4d11-bc74-ced5de20bf10</p>
+<pre>
+String string = <code>getString</code>(R.string.hello);
+</pre>
+<p>You can use either <code>getString(int)</code> or
+<code>getText(int)</code> to retrieve a string. <code>getText(int)</code> will retain any rich text styling applied to the string.</p>
+<h2>String Array</h2>
+<p>An array of strings that can be referenced from the application.</p>
+<p><strong>Note:</strong> A string array is a simple resource that is referenced
+using the value provided in the <code>name</code> attribute (not the name of the XML file). As
+such, you can combine string array resources with other simple resources in the one XML file,
+under one <code>&lt;resources&gt;</code> element.</p>
+<p>WHATSON? 58aacce3-9444-41fe-9bb4-4b9a5bd87c7c</p>
+<pre>
+&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;resources&gt;
+    &lt;string-array
+        name="<em>string_array_name</em>"&gt;
+        &lt;item
+            &gt;<em>text_string</em>&lt;/item&gt;
+    &lt;/string-array&gt;
+&lt;/resources&gt;
+</pre>
+<p>No attributes.</p>
+<p>attributes:</p>
+<p>No attributes.</p>
+<p>WHATSON? 9d40edde-12b4-41a4-bab6-82d96685ebea</p>
+<pre>
+&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;resources&gt;
+    &lt;string-array name="planets_array"&gt;
+        &lt;item&gt;Mercury&lt;/item&gt;
+        &lt;item&gt;Venus&lt;/item&gt;
+        &lt;item&gt;Earth&lt;/item&gt;
+        &lt;item&gt;Mars&lt;/item&gt;
+    &lt;/string-array&gt;
+&lt;/resources&gt;
+</pre>
+<p>This application code retrieves a string array:</p>
+<p>WHATSON? e015a930-af2e-4bb8-9975-1e5775ce67af</p>
+<pre>
+Resources res = <code>getResources()</code>;
+String[] planets = res.<code>getStringArray</code>(R.array.planets_array);
+</pre>
+<h2>Quantity Strings (Plurals)</h2>
+<p>Different languages have different rules for grammatical agreement with quantity. In English,
+for example, the quantity 1 is a special case. We write "1 book", but for any other quantity we'd
+write "<i>n</i> books". This distinction between singular and plural is very common, but other
+languages make finer distinctions. The full set supported by Android is <code>zero</code>,
+<code>one</code>, <code>two</code>, <code>few</code>, <code>many</code>, and <code>other</code>.
+
+</p>
+<p>The rules for deciding which case to use for a given language and quantity can be very complex,
+so Android provides you with methods such as
+<code>getQuantityString()</code> to select
+the appropriate resource for you.
+
+</p>
+<p>Although historically called "quantity strings" (and still called that in API), quantity
+strings should <i>only</i> be used for plurals. It would be a mistake to use quantity strings to
+implement something like Gmail's "Inbox" versus "Inbox (12)" when there are unread messages, for
+example. It might seem convenient to use quantity strings instead of an <code>if</code> statement,
+but it's important to note that some languages (such as Chinese) don't make these grammatical
+distinctions at all, so you'll always get the <code>other</code> string.
+
+</p>
+<p>The selection of which string to use is made solely based on grammatical <i>necessity</i>.
+In English, a string for <code>zero</code> will be ignored even if the quantity is 0, because 0
+isn't grammatically different from 2, or any other number except 1 ("zero books", "one book",
+"two books", and so on).
+
+</p>
+<p>Don't be misled either by the fact that, say, <code>two</code> sounds like it could only apply to
+the quantity 2: a language may require that 2, 12, 102 (and so on) are all treated like one
+another but differently to other quantities. Rely on your translator to know what distinctions
+their language actually insists upon.
+
+</p>
+<p>It's often possible to avoid quantity strings by using quantity-neutral formulations such as
+"Books: 1". This will make your life and your translators' lives easier, if it's a style that's
+in keeping with your application.
+
+</p>
+<p><strong>Note:</strong> A plurals collection is a simple resource that is
+referenced using the value provided in the <code>name</code> attribute (not the name of the XML
+file). As such, you can combine plurals resources with other simple resources in the one
+XML file, under one <code>&lt;resources&gt;</code> element.</p>
+<p>WHATSON? c394f16a-5418-4578-8d54-dea0dbbdb525</p>
+<pre>
+&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;resources&gt;
+    &lt;plurals
+        name="<em>plural_name</em>"&gt;
+        &lt;item
+            quantity=["zero" | "one" | "two" | "few" | "many" | "other"]
+            &gt;<em>text_string</em>&lt;/item&gt;
+    &lt;/plurals&gt;
+&lt;/resources&gt;
+</pre>
+<p>No attributes.</p>
+<p>attributes:</p>
+<p>attributes:</p>
+<p>WHATSON? c5bc2574-0cf7-45b5-949d-8669b2f2a98f</p>
+<pre>
+&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;resources&gt;
+    &lt;plurals name="numberOfSongsAvailable"&gt;
+        &lt;item quantity="one"&gt;One song found.&lt;/item&gt;
+        &lt;item quantity="other"&gt;%d songs found.&lt;/item&gt;
+    &lt;/plurals&gt;
+&lt;/resources&gt;
+</pre>
+<p>XML file saved at <code>res/values-pl/strings.xml</code>:</p>
+<p>WHATSON? 6d7fee3a-7590-40fc-8a43-bc38ff0f1421</p>
+<pre>
+&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;resources&gt;
+    &lt;plurals name="numberOfSongsAvailable"&gt;
+        &lt;item quantity="one"&gt;Znaleziono jedną piosenkę.&lt;/item&gt;
+        &lt;item quantity="few"&gt;Znaleziono %d piosenki.&lt;/item&gt;
+        &lt;item quantity="other"&gt;Znaleziono %d piosenek.&lt;/item&gt;
+    &lt;/plurals&gt;
+&lt;/resources&gt;
+</pre>
+<p>Java code:</p>
+<p>WHATSON? 501696ee-5234-4919-8032-47ffdcbc31f8</p>
+<pre>
+int count = getNumberOfsongsAvailable();
+Resources res = <code>getResources()</code>;
+String songsFound = res.getQuantityString(R.plurals.numberOfSongsAvailable, count, count);
+</pre>
+<p>When using the <code>getQuantityString()</code> method, you need to pass the <code>count</code> twice if your string includes
+string formatting with a number. For example, for the string
+<code>%d songs found</code>, the first <code>count</code> parameter selects the appropriate plural string and
+the second <code>count</code> parameter is inserted into the <code>%d</code> placeholder. If your plural
+strings do not include string formatting, you don't need to pass the third parameter to <code>getQuantityString</code>.</p>
+<h2>Formatting and Styling</h2>
+<p>Here are a few important things you should know about how to properly
+format and style your string resources.</p>
+<h3>Escaping apostrophes and quotes</h3>
+<p>If you have an apostrophe or a quote in your string, you must either escape it or enclose the
+whole string in the other type of enclosing quotes. For example, here are some stings that
+do and don't work:</p>
+<p>WHATSON? cb95e5f1-fe33-43b1-96d1-c9fe82fc200a</p>
+<pre>
+&lt;string name="good_example"&gt;"This'll work"&lt;/string&gt;
+&lt;string name="good_example_2"&gt;This\'ll also work&lt;/string&gt;
+&lt;string name="bad_example"&gt;This doesn't work&lt;/string&gt;
+&lt;string name="bad_example_2"&gt;XML encodings don&amp;apos;t work&lt;/string&gt;
+</pre>
+<h3>Formatting strings</h3>
+<p>If you need to format your strings using <code>String.format(String, Object...)</code>,
+then you can do so by putting
+your format arguments in the string resource. For example, with the following resource:</p>
+<p>WHATSON? 700b14b8-f9db-4375-acd0-b0b840e43bd8</p>
+<pre>
+&lt;string name="welcome_messages"&gt;Hello, %1$s! You have %2$d new messages.&lt;/string&gt;
+</pre>
+<p>In this example, the format string has two arguments: <code>%1$s</code> is a string and <code>%2$d</code>
+is a decimal number. You can format the string with arguments from your application like this:</p>
+<p>WHATSON? 4b08a98d-e439-47cf-8fb9-1c3930fff06f</p>
+<pre>
+Resources res = <code>getResources()</code>;
+String text = String.format(res.getString(R.string.welcome_messages), username, mailCount);
+</pre>
+<h3>Styling with HTML markup</h3>
+<p>You can add styling to your strings with HTML markup. For example:</p>
+<p>WHATSON? 5b8c8bb2-66a8-4ed3-ba99-e47d960ae8b0</p>
+<pre>
+&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;resources&gt;
+    &lt;string name="welcome"&gt;Welcome to &lt;b&gt;Android&lt;/b&gt;!&lt;/string&gt;
+&lt;/resources&gt;
+</pre>
+<p>Supported HTML elements include:</p>
+<ul>
+  <li><code>&lt;b&gt;</code> for <b>bold</b> text.</li>
+  <li><code>&lt;i&gt;</code> for <i>italic</i> text.</li>
+  <li><code>&lt;u&gt;</code> for <u>underline</u> text.</li>
+</ul>
+<p>Sometimes you may want to create a styled text resource that is also used as a format
+string. Normally, this won't work because the <code>String.format(String, Object...)</code>
+method will strip all the style
+information from the string. The work-around to this is to write the HTML tags with escaped
+entities, which are then recovered with <code>fromHtml(String)</code>,
+after the formatting takes place. For example:</p>
+<ol>
+  <li>Store your styled text resource as an HTML-escaped string:
+<pre>
+&lt;resources&gt;
+  &lt;string name="welcome_messages"&gt;Hello, %1$s! You have &amp;lt;b&gt;%2$d new messages&amp;lt;/b&gt;.&lt;/string&gt;
+&lt;/resources&gt;
+</pre>
+<p>In this formatted string, a <code>&lt;b&gt;</code> element is added. Notice that the opening bracket is
+HTML-escaped, using the <code>&amp;lt;</code> notation.</p>
+  </li>
+  <li>Then format the string as usual, but also call <code>fromHtml(String)</code> to
+convert the HTML text into styled text:
+<pre>
+Resources res = <code>getResources()</code>;
+String text = String.format(res.getString(R.string.welcome_messages), username, mailCount);
+CharSequence styledText = Html.fromHtml(text);
+</pre>
+  </li>
+</ol>
+<p>WHATSON? 1de99015-5249-45ff-b3fe-acaf10ac620d</p>
+<pre>
+&lt;resources&gt;
+  &lt;string name="welcome_messages"&gt;Hello, %1$s! You have &amp;lt;b&gt;%2$d new messages&amp;lt;/b&gt;.&lt;/string&gt;
+&lt;/resources&gt;
+</pre>
+<p>In this formatted string, a <code>&lt;b&gt;</code> element is added. Notice that the opening bracket is
+HTML-escaped, using the <code>&amp;lt;</code> notation.</p>
+<p>WHATSON? 228253ec-de4c-48ad-8137-9804dd6ebad8</p>
+<pre>
+Resources res = <code>getResources()</code>;
+String text = String.format(res.getString(R.string.welcome_messages), username, mailCount);
+CharSequence styledText = Html.fromHtml(text);
+</pre>
+<p>Because the <code>fromHtml(String)</code> method will format all HTML entities, be sure to
+escape any possible HTML characters in the strings you use with the formatted text, using
+<code>htmlEncode(String)</code>. For instance, if you'll be passing a string argument to
+<code>String.format()</code> that may contain characters such as
+"&lt;" or "&amp;", then they must be escaped before formatting, so that when the formatted string
+is passed through <code>fromHtml(String)</code>, the characters come out the way they were
+originally written. For example:</p>
+<p>WHATSON? 6c8e49df-3089-4bb5-992c-76a93009e3f6</p>
+<pre>
+String escapedUsername = TextUtil.<code>htmlEncode</code>(username);
+
+Resources res = <code>getResources()</code>;
+String text = String.format(res.getString(R.string.welcome_messages), escapedUsername, mailCount);
+CharSequence styledText = Html.fromHtml(text);
+</pre>
+<h2>Styling with Spannables</h2>
+<p>
+A <code>Spannable</code> is a text object that you can style with
+typeface properties such as color and font weight. You use
+<code>SpannableStringBuilder</code> to build
+your text and then apply styles defined in the <code>android.text.style</code>
+package to the text.
+</p>
+<p>You can use the following helper methods to set up much of the work
+of creating spannable text:</p>
+<p>WHATSON? 9b4e2f67-da6f-4356-b968-a8deb75ce017</p>
+<pre>
+/**
+ * Returns a CharSequence that concatenates the specified array of CharSequence
+ * objects and then applies a list of zero or more tags to the entire range.
+ *
+ * @param content an array of character sequences to apply a style to
+ * @param tags the styled span objects to apply to the content
+ *        such as android.text.style.StyleSpan
+ *
+ */
+private static CharSequence apply(CharSequence[] content, Object... tags) {
+    SpannableStringBuilder text = new SpannableStringBuilder();
+    openTags(text, tags);
+    for (CharSequence item : content) {
+        text.append(item);
+    }
+    closeTags(text, tags);
+    return text;
+}
+
+/**
+ * Iterates over an array of tags and applies them to the beginning of the specified
+ * Spannable object so that future text appended to the text will have the styling
+ * applied to it. Do not call this method directly.
+ */
+private static void openTags(Spannable text, Object[] tags) {
+    for (Object tag : tags) {
+        text.setSpan(tag, 0, 0, Spannable.SPAN_MARK_MARK);
+    }
+}
+
+/**
+ * "Closes" the specified tags on a Spannable by updating the spans to be
+ * endpoint-exclusive so that future text appended to the end will not take
+ * on the same styling. Do not call this method directly.
+ */
+private static void closeTags(Spannable text, Object[] tags) {
+    int len = text.length();
+    for (Object tag : tags) {
+        if (len &gt; 0) {
+            text.setSpan(tag, 0, len, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        } else {
+            text.removeSpan(tag);
+        }
+    }
+}
+</pre>
+<p>
+The following <code>bold</code>, <code>italic</code>, and <code>color</code>
+methods show you how to call the helper methods to apply
+styles defined in the <code>android.text.style</code> package. You
+can create similar methods to do other types of text styling.
+</p>
+<p>WHATSON? 213b7fc0-6cef-4f9c-af96-7b8c5922a702</p>
+<pre>
+/**
+ * Returns a CharSequence that applies boldface to the concatenation
+ * of the specified CharSequence objects.
+ */
+public static CharSequence bold(CharSequence... content) {
+    return apply(content, new StyleSpan(Typeface.BOLD));
+}
+
+/**
+ * Returns a CharSequence that applies italics to the concatenation
+ * of the specified CharSequence objects.
+ */
+public static CharSequence italic(CharSequence... content) {
+    return apply(content, new StyleSpan(Typeface.ITALIC));
+}
+
+/**
+ * Returns a CharSequence that applies a foreground color to the
+ * concatenation of the specified CharSequence objects.
+ */
+public static CharSequence color(int color, CharSequence... content) {
+    return apply(content, new ForegroundColorSpan(color));
+}
+</pre>
+<p>
+Here's an example of how to chain these methods to create a character sequence
+with different types of styling applied to individual words:
+</p>
+<p>WHATSON? 40a24653-1eda-4e3d-a0cc-07967c74c661</p>
+<pre>
+// Create an italic "hello, " a red "world",
+// and bold the entire sequence.
+CharSequence text = bold(italic(res.getString(R.string.hello)),
+    color(Color.RED, res.getString(R.string.world)));
+</pre>
+</body>
+</html>

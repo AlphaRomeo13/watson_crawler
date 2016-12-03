@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Monad-functional-programming---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Monad (functional programming)</h1>
+<p>In functional programming, a <b>monad</b> is a structure that represents computations defined as sequences of steps: a type with a monad structure defines what it means to chain operations, or nest functions of that type together. This allows the programmer to build pipelines that process data in steps, in which each action is decorated with additional processing rules provided by the monad. As such, monads have been described as "programmable semicolons"; a semicolon is the operator used to chain together individual statements in many imperative programming languages, thus the expression implies that extra code will be executed between the statements in the pipeline. Monads have also been explained with a physical metaphor as assembly lines, where a conveyor belt transports data between functional units that transform it one step at a time. They can also be seen as a functional design pattern to build generic types.</p>
+<p>Purely functional programs can use monads to structure procedures that include sequenced operations like those found in structured programming. Many common programming concepts can be described in terms of a monad structure, including side effects such as input/output, variable assignment, exception handling, parsing, nondeterminism, concurrency, and continuations. This allows these concepts to be defined in a purely functional manner, without major extensions to the language's semantics. Languages like Haskell provide monads in the standard core, allowing programmers to reuse large parts of their formal definition and apply in many different libraries the same interfaces for combining functions.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Description</li>
+<li>2 History</li>
+<li>3 Motivating examples
+<ul>
+<li>3.1 The Maybe monad</li>
+<li>3.2 The Writer monad</li>
+<li>3.3 The I/O monad</li>
+</ul>
+</li>
+<li>4 Formal definition
+<ul>
+<li>4.1 Monad laws</li>
+<li>4.2 fmap and join</li>
+<li>4.3 Additive monads </li>
+</ul>
+</li>
+<li>5 Syntactic sugar: do-notation </li>
+<li>6 Generic monadic functions</li>
+<li>7 Other examples
+<ul>
+<li>7.1 Identity monad</li>
+<li>7.2 Collections</li>
+<li>7.3 State monads</li>
+<li>7.4 Environment monad</li>
+<li>7.5 Writer monad</li>
+<li>7.6 Continuation monad</li>
+<li>7.7 Others</li>
+</ul>
+</li>
+<li>8 Free monads</li>
+<li>9 Comonads
+<ul>
+<li>9.1 Identity comonad</li>
+<li>9.2 Product comonad</li>
+<li>9.3 Function comonad</li>
+<li>9.4 Costate comonad</li>
+</ul>
+</li>
+<li>10 See also</li>
+<li>11 Notes</li>
+<li>12 References</li>
+<li>13 External links
+<ul>
+<li>13.1 Haskell monad tutorials
+<ul>
+<li>13.1.1 Older tutorials</li>
+<li>13.1.2 Other documentation</li>
+</ul>
+</li>
+<li>13.2 Scala monad tutorials</li>
+<li>13.3 Monads in other languages</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li>3.1 The Maybe monad</li>
+<li>3.2 The Writer monad</li>
+<li>3.3 The I/O monad</li>
+</ul>
+<ul>
+<li>4.1 Monad laws</li>
+<li>4.2 fmap and join</li>
+<li>4.3 Additive monads </li>
+</ul>
+<ul>
+<li>7.1 Identity monad</li>
+<li>7.2 Collections</li>
+<li>7.3 State monads</li>
+<li>7.4 Environment monad</li>
+<li>7.5 Writer monad</li>
+<li>7.6 Continuation monad</li>
+<li>7.7 Others</li>
+</ul>
+<ul>
+<li>9.1 Identity comonad</li>
+<li>9.2 Product comonad</li>
+<li>9.3 Function comonad</li>
+<li>9.4 Costate comonad</li>
+</ul>
+<ul>
+<li>13.1 Haskell monad tutorials
+<ul>
+<li>13.1.1 Older tutorials</li>
+<li>13.1.2 Other documentation</li>
+</ul>
+</li>
+<li>13.2 Scala monad tutorials</li>
+<li>13.3 Monads in other languages</li>
+</ul>
+<ul>
+<li>13.1.1 Older tutorials</li>
+<li>13.1.2 Other documentation</li>
+</ul>
+<p></p>
+<h2>Description</h2>
+<p>Formally, a monad consists of a type constructor <i>M</i> and two operations, <i>bind</i> and <i>return</i> (where <i>return</i> is often also called <i>unit</i>):</p>
+<ul>
+<li>The <i>return</i> operation takes a value from a plain type and puts it into a monadic container using the constructor, creating a <i>monadic value</i>.</li>
+<li>The <i>bind</i> operation performs the reverse process, extracting the original value from the container and passing it to the associated next function in the pipeline, possibly with additional checks and transformations.</li>
+</ul>
+<p>The operations must fulfill several properties to allow the correct composition of <i>monadic</i> functions (i.e. functions that use values from the monad as their arguments or return value). Because a monad can insert additional operations around a program's domain logic, monads can be considered a sort of aspect-oriented programming. The domain logic can be defined by the application programmer in the pipeline, while required aside bookkeeping operations can be handled by a pre-defined monad built in advance.</p>
+<p>The name and concept comes from the eponymous concept (monad) in category theory, where monads are one particular kind of functor, a mapping between categories; although the term <i>monad</i> in functional programming contexts is usually used with a meaning corresponding to that of the term <i>strong monad</i> in category theory.</p>
+<h2>History</h2>
+<p>The concept of monad programming appeared in the 1980s in the programming language Opal even though it was called "commands" and never formally specified.</p>
+<p>Eugenio Moggi first described the general use of monads to structure programs in 1991. Several people built on his work, including programming language researchers Philip Wadler and Simon Peyton Jones (both of whom were involved in the specification of Haskell). Early versions of Haskell used a problematic "lazy list" model for I/O, and Haskell 1.3 introduced monads as a more flexible way to combine I/O with lazy evaluation.</p>
+<p>In addition to I/O, programming language researchers and Haskell library designers have successfully applied monads to topics including parsers and programming language interpreters. The concept of monads along with the Haskell do-notation for them has also been generalized to form applicative functors and arrows.</p>
+<p>For a long time, Haskell and its derivatives have been the only major users of monads in programming. There also exist formulations in Scheme, Perl, Python, Racket, Clojure and Scala, and monads have been an option in the design of a new ML standard. Recently F# has included a feature called computation expressions or <i>workflows</i>, which are an attempt to introduce monadic constructs within a syntax more palatable to those programmers whose only prior experience has been with imperative languages.</p>
+<h2>Motivating examples</h2>
+<p>The Haskell programming language is a functional language that makes heavy use of monads, and includes syntactic sugar to make monadic composition more convenient. All of the code samples in this article are written in Haskell unless noted otherwise.</p>
+<p>We demonstrate two common examples given when introducing monads: the <i>Maybe</i> monad and the <i>I/O</i> monad. Monads are of course not restricted to the Haskell language, though: the second set of examples shows the <i>Writer</i> monad in JavaScript.</p>
+<h3>The Maybe monad</h3>
+<p>Consider the option type <i>Maybe a</i>, representing a value that is either a single value of type <i>a</i>, or no value at all. To distinguish these, we have two algebraic data type constructors: <code>Just t</code>, containing the value <code>t</code>, or <code>Nothing</code>, containing no value.</p>
+<p>WHATSON? 5f743b1d-ffb4-41b6-a438-d9cde568cd45</p>
+<pre>
+data Maybe t = Just t | Nothing
+</pre>
+<p>We would like to be able to use this type as a simple sort of checked exception: at any point in a computation, the computation may fail, which causes the rest of the computation to be skipped and the final result to be <code>Nothing</code>. If all steps of the calculation succeed, the final result is <code>Just x</code> for some value <code>x</code>.</p>
+<p>In the following example, <code>add</code> is a function that takes two arguments of type <i>Maybe Int</i>, and returns a result of the same type. If both <code>mx</code> and <code>my</code> have <code>Just</code> values, we want to return <code>Just</code> their sum; but if either <code>mx</code> or <code>my</code> is <code>Nothing</code>, we want to return <code>Nothing</code>. If we naively attempt to write functions with this kind of behavior, we'll end up with a nested series of "if <code>Nothing</code> then <code>Nothing</code> else do something with the <code>x</code> in <code>Just x</code>" cases that will quickly become unwieldy:</p>
+<p>WHATSON? 17a93efc-e8e3-4968-bdc9-51f37ced977c</p>
+<pre>
+add :: Maybe Int -&gt; Maybe Int -&gt; Maybe Int
+add mx my =
+  case mx of
+    Nothing -&gt; Nothing
+    Just x  -&gt; case my of
+                 Nothing -&gt; Nothing
+                 Just y  -&gt; Just (x + y)
+</pre>
+<p>To alleviate this, we can define operations for chaining these computations together. The <i>bind</i> binary operator (<code>&gt;&gt;=</code>) chains the results of one computation that could fail, into a function that chooses another computation that could fail. If the first argument is <code>Nothing</code>, the second argument (the function) is ignored and the entire operation simply fails. If the first argument is <code>Just x</code>, we pass <code>x</code> to the function to get a new <i>Maybe</i> value, which may or may not result in a <code>Just</code> value.</p>
+<p>WHATSON? f6b17a5f-8ef6-4f80-9649-5f672528139b</p>
+<pre>
+(&gt;&gt;=) :: Maybe a -&gt; (a -&gt; Maybe b) -&gt; Maybe b
+Nothing  &gt;&gt;= _  =  Nothing    -- A failed computation returns Nothing
+(Just x) &gt;&gt;= f  =  f x        -- Applies function f to value x
+</pre>
+<p>We already have a value constructor that returns a value without affecting the computation's additional state: <code>Just</code>.</p>
+<p>WHATSON? 7899d737-accc-4120-9d43-5df79fd10d52</p>
+<pre>
+return :: a -&gt; Maybe a
+return x = Just x       -- Wraps value x, returning a value of type (Maybe a)
+</pre>
+<p>We can then write the example as:</p>
+<p>WHATSON? 70f6b1c8-d2bd-4b32-9309-c8982c243545</p>
+<pre>
+add :: Maybe Int -&gt; Maybe Int -&gt; Maybe Int
+add mx my =             -- Adds two values of type (Maybe Int), where each input value can be Nothing
+  mx &gt;&gt;= (\x -&gt;         -- Extracts value x if mx is not Nothing
+    my &gt;&gt;= (\y -&gt;       -- Extracts value y if my is not Nothing
+      return (x + y)))  -- Wraps value (x+y), returning the sum as a value of type (Maybe Int)
+</pre>
+<p>Using some additional syntactic sugar known as do-notation, the example can be written as:</p>
+<p>WHATSON? bfe2e5b8-6f81-4d45-9f14-c20cdb72690a</p>
+<pre>
+add :: Maybe Int -&gt; Maybe Int -&gt; Maybe Int
+add mx my = do
+  x &lt;- mx
+  y &lt;- my
+  return (x + y)
+</pre>
+<p>Since this type of operation is quite common, there is a standard function in Haskell (<code>liftM2</code>) to take two monadic values (here: two Maybes) and combine their contents (two numbers) using another function (addition), making it possible to write the previous example as</p>
+<p>WHATSON? 3cfd5dd5-131b-4163-b684-be4bfb2ca397</p>
+<pre>
+add :: Maybe Int -&gt; Maybe Int -&gt; Maybe Int
+add = liftM2 (+)
+</pre>
+<p>(Writing out the definition of liftM2 yields the code presented above in do-notation.)</p>
+<h3>The Writer monad</h3>
+<p>The Writer monad allows a process to carry additional information "on the side", along with the computed value. This can be useful to log error or debugging information which is not the primary result.</p>
+<p>The following example implements a Writer monad in Javascript:</p>
+<p>First, a Writer monad is declared. Function <i>unit</i> creates a new value type from a basic type, with an empty log string attached to it; and <i>bind</i> applies a function to an old value, and returns the new result value with an expanded log. The array brackets work here as the monad's type constructor, creating a value of the monadic type for the Writer monad from simpler components (the value in position 0 of the array, and the log string in position 1).</p>
+<p>WHATSON? 27185e95-276e-4e72-bd7e-e04375b5b95b</p>
+<pre>
+var unit = function(value) { return [value, ''] };
+</pre>
+<p>WHATSON? 5efd00f4-6bb4-40d3-bef7-5db4a2834441</p>
+<pre>
+var bind = function(monadicValue, transformWithLog) {
+    var value  = monadicValue[0],
+        log = monadicValue[1],
+        result = transformWithLog(value);
+    return [ result[0], log + result[1] ];
+};
+</pre>
+<p><i>pipeline</i> is an auxiliary function that concatenates a sequence of <i>bind</i>s applied to an array of functions.</p>
+<p>WHATSON? 90e52566-f698-4039-a665-1f21c4734ca3</p>
+<pre>
+var pipeline = function(monadicValue, functions) {
+    for (var key in functions) {
+        monadicValue = bind(monadicValue, functions[key]);
+    }
+    return monadicValue;
+};
+</pre>
+<p>Examples of functions that return values of the type expected by the above Writer monad:</p>
+<p>WHATSON? 69d6fa80-4fcd-4fb6-b091-f59eb16f4e2c</p>
+<pre>
+var squared = function(x) {
+    return [x * x, 'was squared.'];
+};
+ 
+var halved = function(x) {
+    return [x / 2, 'was halved.'];
+};
+</pre>
+<p>Finally, an example of using the monad to build a pipeline of mathematical functions with debug information on the side (that is, a string of debug information is concatenated, and returned with the result, as well):</p>
+<p>WHATSON? 29680e06-a08a-4e54-8134-e9aecca02425</p>
+<pre>
+pipeline(unit(4), [squared, halved]); // [8, "was squared.was halved."]
+</pre>
+<h3>The I/O monad</h3>
+<p>In a purely functional language, such as Haskell, functions cannot have any externally visible side effects as part of the function semantics. Although a function cannot directly cause a side effect, it can construct a value <i>describing</i> a desired side effect, that the caller should apply at a convenient time. In the Haskell notation, a value of type <i>IO a</i> represents an action that, when performed, produces a value of type <i>a</i>.</p>
+<p>We can think of a value of type <code>IO</code> as an <i>action</i> that takes as its argument the current state of the world, and will return a new world where the state has been changed according to the function's return value. For example, the functions <code>doesFileExist</code> and <code>removeFile</code> in the standard Haskell library have the following types</p>
+<p>WHATSON? 1dc5d1c4-77bb-4b71-809d-3ca67c46b5a0</p>
+<pre>
+doesFileExist :: FilePath -&gt; IO Bool
+removeFile :: FilePath -&gt; IO ()
+</pre>
+<p>So, one can think of <code>removeFile</code> as a function that, given a <code>FilePath</code>, returns an <code>IO</code> <i>action</i>; this action will ensure that the world, in this case the underlying file system, won't have a file named by that <code>FilePath</code> when it gets <i>executed</i>. Here, the <code>IO</code> internal value is of type <code>()</code> which means that the caller does not care about any other outcomes. On the other hand, in <code>doesFileExist</code>, the function returns an <code>IO</code> <i>action</i> which wraps a boolean value, <code>True</code> or <code>False</code>; this conceptually represents a new state of the world where the caller knows for certain whether that <code>FilePath</code> is present in the file system or not at the time of the <i>action</i> is performed. The state of the world managed in this way can be passed from action to action, thus defining a series of actions which will be applied in order as steps of state changes. This process is similar to how a temporal logic represents the passage of time using only declarative propositions. The following example clarifies in detail how this chaining of actions occurs in a program, again using Haskell.</p>
+<p>We would like to be able to describe all of the basic types of I/O operations, e.g. write text to standard output, read text from standard input, read and write files, send data over networks, etc. In addition, we need to be able to compose these primitives to form larger programs. For example, we would like to be able to write:</p>
+<p>WHATSON? ae48ee73-80d6-4a7f-99de-1ee06625f3bf</p>
+<pre>
+main :: IO ()
+main = do
+  putStrLn "What is your name?"
+  name &lt;- getLine
+  putStrLn ("Nice to meet you, " ++ name ++ "!")
+</pre>
+<p>How can we formalize this intuitive notation? To do this, we need to be able to perform some basic operations with I/O actions:</p>
+<ul>
+<li>We should be able to sequence two I/O operations together. In Haskell, this is written as an infix operator <code>&gt;&gt;</code>, so that <code>putStrLn "abc" &gt;&gt; putStrLn "def"</code> is an I/O action that prints two lines of text to the console. The type of <code>&gt;&gt;</code> is <i>IO a → IO b → IO b</i>, meaning that the operator takes two I/O operations and returns a third that sequences the two together and returns the value of the second.</li>
+<li>We should have an I/O action which does <i>nothing</i>. That is, it returns a value but has no side effects. In Haskell, this action constructor is called <code>return</code>; it has type <i>a → IO a</i>.</li>
+<li>More subtly, we should be able to determine our next action based on the results of previous actions. To do this, Haskell has an operator <code>&gt;&gt;=</code> (pronounced <i>bind</i>) with type <i>IO a → (a → IO b) → IO b</i>. That is, the operand on the left is an I/O action that returns a value of type <code>a</code>; the operand on the right is a function that can pick an I/O action based on the value produced by the action on the left. The resulting combined action, when performed, performs the first action, then evaluates the function with the first action's return value, then performs the second action, and finally returns the second action's value.</li>
+</ul>
+<p>It is not necessarily obvious that the three preceding operations, along with a suitable primitive set of I/O operations, allow us to define <i>any program action whatsoever</i>, including data transformations (using lambda expressions), if/then control flow, and looping control flows (using recursion). We can write the above example as one long expression:</p>
+<p>WHATSON? 5ad06536-02df-496b-9227-25e234d761fa</p>
+<pre>
+main =
+  putStrLn "What is your name?" &gt;&gt; 
+  getLine &gt;&gt;= \name -&gt;
+  putStrLn ("Nice to meet you, " ++ name ++ "!")
+</pre>
+<p>The pipeline structure of the <i>bind</i> operator ensures that the <i>getLine</i> and <i>putStrLn</i> operations get evaluated only once and in the given order, so that the side-effects of extracting text from the input stream and writing to the output stream are correctly handled in the functional pipeline. This remains true even if the language performs out-of-order or lazy evaluation of functions.</p>
+<p>Clearly, there is some common structure between the I/O definitions and the Maybe definitions, even though they are different in many ways. Monads are an abstraction upon the structures described above, and many similar structures, that finds and exploits the commonalities. The general monad concept includes any situation where the programmer wants to carry out a purely functional computation while a related computation is carried out on the side.</p>
+<h2>Formal definition</h2>
+<p>A monad is a construction that, given an underlying type system, embeds a corresponding type system (called the <i>monadic type system</i>) into it (that is, each monadic type acts as the underlying type). This monadic type system preserves all significant aspects of the underlying type system, while adding features particular to the monad.</p>
+<p>The usual formulation of a monad for programming is known as a Kleisli triple, and has the following components:</p>
+<ol>
+<li>A <i>type constructor</i> that defines, for every underlying type, how to obtain a corresponding monadic type. In Haskell's notation, the name of the monad represents the type constructor. If <i>M</i> is the name of the monad and <i>t</i> is a data type, then <i>M t</i> is the corresponding type in the monad.</li>
+<li>A <i>unit function</i> that maps a value in an underlying type to a value in the corresponding monadic type. The unit function has the polymorphic type <i>t→M t</i>. The result is normally the "simplest" value in the corresponding type that completely preserves the original value (simplicity being understood appropriately to the monad). In Haskell, this function is called <code>return</code> due to the way it is used in the do-notation described later.</li>
+<li>A <i>binding operation</i> of polymorphic type <i>(M t)→(t→M u)→(M u)</i>, which Haskell represents by the infix operator <code>&gt;&gt;=</code>. Its first argument is a value in a monadic type, its second argument is a function that maps from the underlying type of the first argument to another monadic type, and its result is in that other monadic type. Typically, the binding operation can be understood as having four stages:
+<ol>
+<li>The monad-related structure on the first argument is "pierced" to expose any number of values in the underlying type t.</li>
+<li>The given function is applied to all of those values to obtain values of type (M u).</li>
+<li>The monad-related structure on those values is also pierced, exposing values of type u.</li>
+<li>Finally, the monad-related structure is reassembled over all of the results, giving a single value of type (M u).</li>
+</ol>
+</li>
+</ol>
+<ol>
+<li>The monad-related structure on the first argument is "pierced" to expose any number of values in the underlying type t.</li>
+<li>The given function is applied to all of those values to obtain values of type (M u).</li>
+<li>The monad-related structure on those values is also pierced, exposing values of type u.</li>
+<li>Finally, the monad-related structure is reassembled over all of the results, giving a single value of type (M u).</li>
+</ol>
+<p>Given a type constructor <i>M</i>, in most contexts, a value of type <i>M a</i> can be thought of as an action that returns a value of type <i>a</i>. The <i>return</i> operation takes a value from a plain type <i>a</i> and puts it into a monadic container of type <i>M a</i>; the <i>bind</i> operation chains a monadic value of type <i>M a</i> with a function of type <i>a → M b</i> to create a monadic value of type <i>M b</i>.</p>
+<h3>Monad laws</h3>
+<p>For a monad to behave correctly, the definitions must obey a few axioms, together called the monad laws. The ≡ symbol indicates equivalence between two Haskell expressions in the following text.</p>
+<ul>
+<li><i>return</i> acts approximately as a neutral element of <tt>&gt;&gt;=</tt>, in that:
+<ul>
+<li>(return x) &gt;&gt;= f   ≡   f x</li>
+<li>m &gt;&gt;= return   ≡   m</li>
+</ul>
+</li>
+<li>Binding two functions in succession is the same as binding one function that can be determined from them:
+<ul>
+<li>(m &gt;&gt;= f) &gt;&gt;= g   ≡   m &gt;&gt;= ( \x -&gt; (f x &gt;&gt;= g) )</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li>(return x) &gt;&gt;= f   ≡   f x</li>
+<li>m &gt;&gt;= return   ≡   m</li>
+</ul>
+<ul>
+<li>(m &gt;&gt;= f) &gt;&gt;= g   ≡   m &gt;&gt;= ( \x -&gt; (f x &gt;&gt;= g) )</li>
+</ul>
+<p>The axioms can also be expressed using expressions in do-block style:</p>
+<ul>
+<li>do { f x }   ≡   do { v &lt;- return x; f v }</li>
+<li>do { m }   ≡   do { v &lt;- m; return v }</li>
+<li>do { x &lt;- m; y &lt;- f x; g y }   ≡   do { y &lt;- do { x &lt;- m; f x }; g y }</li>
+</ul>
+<p>or using the monadic composition operator, (f &gt;=&gt; g) x = (f x) &gt;&gt;= g:</p>
+<ul>
+<li>return &gt;=&gt; g   ≡   g</li>
+<li>f &gt;=&gt; return   ≡   f</li>
+<li>(f &gt;=&gt; g) &gt;=&gt; h   ≡   f &gt;=&gt; (g &gt;=&gt; h)</li>
+</ul>
+<h3>fmap and join</h3>
+<p>Although Haskell defines monads in terms of the <i>return</i> and <i>bind</i> functions, it is also possible to define a monad in terms of <i>return</i> and two other operations, <i>join</i> and <i>fmap</i>. This formulation fits more closely with the original definition of monads in category theory. The <i>fmap</i> operation, with type (<i>t</i>→<i>u</i>) → M <i>t</i>→M <i>u</i>, takes a function between two types and produces a function that does the "same thing" to values in the monad. The <i>join</i> operation, with type M (M <i>t</i>)→M <i>t</i>, "flattens" two layers of monadic information into one.</p>
+<p>The two formulations are related as follows:</p>
+<p>WHATSON? 3531692b-65e4-405d-9fd0-c6925e9724a3</p>
+<pre>
+fmap f m = m &gt;&gt;= (return . f)
+join n = n &gt;&gt;= id
+ 
+m &gt;&gt;= g   ≡   join (fmap g m)
+</pre>
+<p>Here, m has the type M <i>t</i>, n has the type M (M <i>r</i>), f has the type <i>t</i> → <i>u</i>, and g has the type t → M <i>v</i>, where <i>t</i>, <i>r</i>, <i>u</i> and <i>v</i> are underlying types.</p>
+<p>The fmap function is defined for any functor in the category of types and functions, not just for monads. It is expected to satisfy the functor laws:</p>
+<p>WHATSON? bf9e0a5a-4a88-49d5-979f-84e5d70bafd4</p>
+<pre>
+fmap id   ≡   id
+fmap (f . g)   ≡   (fmap f) . (fmap g)
+</pre>
+<p>The <i>return</i> function characterizes pointed functors in the same category, by accounting for the ability to "lift" values into the functor. It should satisfy the following law:</p>
+<p>WHATSON? 09b816b4-993b-4787-89cc-cff43c085a64</p>
+<pre>
+return . f ≡ fmap f . return
+</pre>
+<p>In addition, the <i>join</i> function characterizes monads:</p>
+<p>WHATSON? 360c42f6-94a4-4e6b-87f3-593fefc5af53</p>
+<pre>
+join . fmap join     ≡ join . join
+join . fmap return   ≡ join . return = id
+join . fmap (fmap f) ≡ fmap f . join
+</pre>
+<h3>Additive monads </h3>
+<p>An <b>additive monad</b> is a monad endowed with a monadic zero <i>mzero</i> and a binary operator <i>mplus</i> satisfying the monoid laws, with the monadic zero as unit. The operator <i>mplus</i> has type <i>M t</i> → <i>M t</i> → <i>M t</i> (where <i>M</i> is the monad constructor and <i>t</i> is the underlying data type), satisfies the associative law and has the zero as both left and right identity. That is:</p>
+<p>WHATSON? cc26fda7-2691-4efb-bffa-46d9ccca7096</p>
+<pre>
+(a `mplus` b) `mplus` c   =   a `mplus` (b `mplus c`)
+m `mplus` mzero           ≡   mzero `mplus` m           ≡    m
+</pre>
+<p>Thus, an additive monad is also a monoid. For &gt;&gt;=, on the other hand, mzero acts as a null-element. Just as multiplying a number by 0 results in 0, binding <i>mzero</i> with any function produces the zero for the result type:</p>
+<p>WHATSON? 60415afe-d762-427a-8f68-af07121cb1f5</p>
+<pre>
+mzero &gt;&gt;= f               ≡   mzero
+</pre>
+<p>Similarly, binding any <i>m</i> with a function that always returns a zero results in a zero</p>
+<p>WHATSON? 322bc8a3-d194-42d2-bf8d-8de20153ffb5</p>
+<pre>
+m &gt;&gt;= (\x -&gt; mzero)       ≡   mzero
+</pre>
+<p>Intuitively, the zero represents a value in the monad that has only monad-related structure and no values from the underlying type. In the Maybe monad, "Nothing" is a zero. In the List monad, "[]" (the empty list) is a zero.</p>
+<h2>Syntactic sugar: <code>do</code>-notation </h2>
+<p>Although there are times when it makes sense to use the <i>bind</i> operator <code>&gt;&gt;=</code> directly in a program, it is more typical to use a format called <i>do-notation</i> (<i>perform-notation</i> in OCaml, <i>computation expressions</i> in F#), that mimics the appearance of imperative languages. The compiler translates do-notation to expressions involving <code>&gt;&gt;=</code>. For example, the following code:</p>
+<p>WHATSON? ca625a3e-5000-4c7a-bb87-11c43cff1e7f</p>
+<pre>
+a = do x &lt;- [3..4]
+       [1..2]
+       return (x, 42)
+</pre>
+<p>is transformed during compilation into:</p>
+<p>WHATSON? 3f552f77-327b-4f43-a168-bd3f5014c072</p>
+<pre>
+a = [3..4] &gt;&gt;= (\x -&gt; [1..2] &gt;&gt;= (\_ -&gt; return (x, 42)))
+</pre>
+<p>It is helpful to see the implementation of the list monad, and to know that concatMap maps a function over a list and concatenates (flattens) the resulting lists:</p>
+<p>WHATSON? fcc59236-7307-4b0f-9aef-0dd079d11613</p>
+<pre>
+instance Monad [] where
+  m &gt;&gt;= f  = concat (map f m)
+  return x = [x]
+  fail s   = []
+</pre>
+<p>Therefore, the following transformations hold and all the following expressions are equivalent:</p>
+<p>WHATSON? 29a11b2e-a541-417b-997c-e6c185ad7a0d</p>
+<pre>
+a = [3..4] &gt;&gt;= (\x -&gt; [1..2] &gt;&gt;= (\_ -&gt; return (x, 42)))
+a = [3..4] &gt;&gt;= (\x -&gt; concatMap (\_ -&gt; return (x, 42)) [1..2] )
+a = [3..4] &gt;&gt;= (\x -&gt; [(x,42),(x,42)] )
+a = concatMap (\x -&gt; [(x,42),(x,42)] ) [3..4]
+a = [(3,42),(3,42),(4,42),(4,42)]
+</pre>
+<p>Notice that the list <tt>[1..2]</tt> is not used. The lack of a left-pointing arrow, translated into a binding to a function that ignores its argument, indicates that only the monadic structure is of interest, not the values inside it, e.g. for a state monad this might be used for changing the state without producing any more result values. The do-block notation can be used with any monad as it is simply syntactic sugar for <code>&gt;&gt;=</code>.</p>
+<p>The following definitions for safe division for values in the Maybe monad are also equivalent:</p>
+<p>WHATSON? 84732e51-1e3b-4644-b8e5-9f525b0fba98</p>
+<pre>
+x // y = do
+  a &lt;- x  -- Extract the values "inside" x and y, if there are any.
+  b &lt;- y
+  if b == 0 then Nothing else Just (a / b)
+ 
+x // y = x &gt;&gt;= (\a -&gt; y &gt;&gt;= (\b -&gt; if b == 0 then Nothing else Just (a / b)))
+</pre>
+<p>A similar example in F# using a computation expression:</p>
+<p>WHATSON? 7ec65f56-136b-4a27-b9fe-01dbc5b83d62</p>
+<pre>
+let readNum () =
+  let s = Console.ReadLine()
+  let succ,v = Int32.TryParse(s)
+  if (succ) then Some(v) else None
+ 
+let secure_div = 
+  maybe { 
+    let! x = readNum()
+    let! y = readNum()
+    if (y = 0) 
+    then None
+    else return (x / y)
+  }
+</pre>
+<p>The syntactic sugar of the maybe block would get translated internally to the following expression:</p>
+<p>WHATSON? 71e88da2-7bdc-46b3-ad37-6f79ae19547e</p>
+<pre>
+maybe.Delay(fun () -&gt;
+  maybe.Bind(readNum(), fun x -&gt;
+    maybe.Bind(readNum(), fun y -&gt;
+      if (y=0) then None else maybe.Return( x/y ))))
+</pre>
+<h2>Generic monadic functions</h2>
+<p>Given values produced by safe division, we might want to carry on doing calculations without having to check manually if they are <tt>Nothing</tt> (i.e. resulted from an attempted division by zero). We can do this using a "lifting" function, which we can define not only for <tt>Maybe</tt> but for arbitrary monads. In Haskell this is called <tt>liftM2</tt>:</p>
+<p>WHATSON? 084efd62-470c-46e8-98c9-a0ad15858621</p>
+<pre>
+liftM2 :: Monad m =&gt; (a -&gt; b -&gt; c) -&gt; m a -&gt; m b -&gt; m c
+liftM2 op mx my = do
+    x &lt;- mx
+    y &lt;- my
+    return (op x y)
+</pre>
+<p>Recall that arrows in a type associate to the right, so <tt>liftM2</tt> is a function that takes a binary function as an argument and returns another binary function. The type signature says: If <tt>m</tt> is a monad, we can "lift" any binary function into it. For example:</p>
+<p>WHATSON? 35d0d250-730d-4d64-942b-c1ba60fae45b</p>
+<pre>
+(.*.) :: (Monad m, Num a) =&gt; m a -&gt; m a -&gt; m a
+x .*. y = liftM2 (*) x y
+</pre>
+<p>defines an operator <tt>(.*.)</tt> which multiplies two numbers, unless one of them is <tt>Nothing</tt> (in which case it again returns <tt>Nothing</tt>). The advantage here is that we need not dive into the details of the implementation of the monad; if we need to do the same kind of thing with another function, or in another monad, using <tt>liftM2</tt> makes it immediately clear what is meant (see Code reuse).</p>
+<p>Mathematically, the liftM2 operator is defined by:</p>
+<h2>Other examples</h2>
+<h3>Identity monad</h3>
+<p>The simplest monad is the identity monad, which attaches no information to values.</p>
+<p>WHATSON? 7ab68294-7c97-4351-8b84-87b5d682a7e9</p>
+<pre>
+Id t = t
+return x = x
+x &gt;&gt;= f = f x
+</pre>
+<p>A do-block in this monad performs variable substitution; <tt>do {x &lt;- 2; return 3*x}</tt> results in 6.</p>
+<p>From the category theory point of view, the identity monad is derived from the adjunction between identity functors.</p>
+<h3>Collections</h3>
+<p>Some familiar collection types, including lists, sets, and multisets, are monads. The definition for lists is given here.</p>
+<p>WHATSON? 4348d3bc-ec35-4f3e-a707-e4f4c5d468a1</p>
+<pre>
+-- "return" constructs a one-item list.
+return x = [x]
+-- "bind" concatenates the lists obtained by applying f to each item in list xs.
+xs &gt;&gt;= f = concat (map f xs)
+-- The zero object is an empty list.
+mzero = []
+</pre>
+<p>List comprehensions are a special application of the list monad. For example, the list comprehension <tt>[ 2*x | x &lt;- [1..n], isOkay x]</tt> corresponds to the computation in the list monad <tt>do {x &lt;- [1..n]; if isOkay x then return (2*x) else mzero;}</tt>.</p>
+<p>The notation of list comprehensions is similar to the set-builder notation, but sets can't be made into a monad, since there's a restriction on the type of computation to be comparable for equality, whereas a monad does not put any constraints on the types of computations. Actually, the Set is a <b>restricted monad</b>. The monads for collections naturally represent nondeterministic computation. The list (or other collection) represents all the possible results from different nondeterministic paths of computation at that given time. For example, when one executes <tt>x &lt;- [1,2,3,4,5]</tt>, one is saying that the variable <tt>x</tt> can non-deterministically take on any of the values of that list. If one were to return <tt>x</tt>, it would evaluate to a list of the results from each path of computation. Notice that the bind operator above follows this theme by performing <tt>f</tt> on each of the current possible results, and then it concatenates the result lists together.</p>
+<p>Statements like <tt>if condition x y then return () else mzero</tt> are also often seen; if the condition is true, the non-deterministic choice is being performed from one dummy path of computation, which returns a value we are not assigning to anything; however, if the condition is false, then the <tt>mzero = []</tt> monad value non-deterministically chooses from 0 values, effectively terminating that path of computation. Other paths of computations might still succeed. This effectively serves as a "guard" to enforce that only paths of computation that satisfy certain conditions can continue. So collection monads are very useful for solving logic puzzles, Sudoku, and similar problems.</p>
+<p>In a language with lazy evaluation, like Haskell, a list is evaluated only to the degree that its elements are requested: for example, if one asks for the first element of a list, only the first element will be computed. With respect to usage of the list monad for non-deterministic computation that means that we can non-deterministically generate a lazy list of all results of the computation and ask for the first of them, and only as much work will be performed as is needed to get that first result. The process roughly corresponds to backtracking: a path of computation is chosen, and then if it fails at some point (if it evaluates <tt>mzero</tt>), then it backtracks to the last branching point, and follows the next path, and so on. If the second element is then requested, it again does just enough work to get the second solution, and so on. So the list monad is a simple way to implement a backtracking algorithm in a lazy language.</p>
+<p>From the category theory point of view, collection monads are derived from adjunctions between a free functor and an underlying functor between the category of sets and a category of monoids. Taking different types of monoids, we obtain different types of collections, as in the table below:</p>
+<h3>State monads</h3>
+<p>A state monad allows a programmer to attach state information of any type to a calculation. Given any value type, the corresponding type in the state monad is a function which accepts a state, then outputs a new state (of type <tt>s</tt>) along with a return value (of type <tt>t</tt>).</p>
+<p>WHATSON? b9221b0a-acc0-4f81-aaa1-440d20df024d</p>
+<pre>
+type State s t = s -&gt; (t, s)
+</pre>
+<p>Note that this monad, unlike those already seen, takes a type parameter, the type of the state information. The monad operations are defined as follows:</p>
+<p>WHATSON? 553d02af-34ac-45bd-b589-d2127641303b</p>
+<pre>
+-- "return" produces the given value without changing the state.
+return x = \s -&gt; (x, s)
+-- "bind" modifies m so that it applies f to its result.
+m &gt;&gt;= f = \r -&gt; let (x, s) = m r in (f x) s
+</pre>
+<p>Useful state operations include:</p>
+<p>WHATSON? ccdd71c7-8386-490e-806b-07c4665eae05</p>
+<pre>
+get = \s -&gt; (s, s) -- Examine the state at this point in the computation.
+put s = \_ -&gt; ((), s) -- Replace the state.
+modify f = \s -&gt; ((), f s) -- Update the state
+</pre>
+<p>Another operation applies a state monad to a given initial state:</p>
+<p>WHATSON? 86541f0f-c4ee-4f8f-a325-0a951290a65a</p>
+<pre>
+runState :: State s a -&gt; s -&gt; (a, s)
+runState t s = t s
+</pre>
+<p>do-blocks in a state monad are sequences of operations that can examine and update the state data.</p>
+<p>Informally, a state monad of state type <i>S</i> maps the type of return values <i>T</i> into functions of type <img class="mwe-math-fallback-image-inline tex" alt="S \rarr T \times S" src="//upload.wikimedia.org/math/2/0/0/200d0ac3c0f7a8e786fc3f2595e94fb1.png">, where <i>S</i> is the underlying state. The <i>return</i> function is simply:</p>
+<p>The <i>bind</i> function is:</p>
+<p>From the category theory point of view, a state monad is derived from the adjunction between the product functor and the exponential functor, which exists in any cartesian closed category by definition.</p>
+<h3>Environment monad</h3>
+<p>The environment monad (also called the <i>reader monad</i> and the <i>function monad</i>) allows a computation to depend on values from a shared environment. The monad type constructor maps a type <i>T</i> to functions of type <i>E</i> → <i>T</i>, where E is the type of the shared environment. The monad functions are:</p>
+<p>The following monadic operations are useful:</p>
+<p>The <i>ask</i> operation is used to retrieve the current context, while <i>local</i> executes a computation in a modified subcontext. As in the state monad, computations in the environment monad may be invoked by simply providing an environment value and applying it to an instance of the monad.</p>
+<h3>Writer monad</h3>
+<p>The writer monad allows a program to compute various kinds of auxiliary output which can be "composed" or "accumulated" step-by-step, in addition to the main result of a computation. It is often used for logging or profiling. Given the underlying type <i>T</i>, a value in the writer monad has type <i>W</i> × <i>T</i>, where <i>W</i> is a type endowed with an operation satisfying the monoid laws. The monad functions are simply:</p>
+<p>where ε and * are the identity element of the monoid W and its associative operation, respectively.</p>
+<p>The <i>tell</i> monadic operation is defined by:</p>
+<p>where 1 and () denote the unit type and its trivial element. It is used in combination with <i>bind</i> to update the auxiliary value without affecting the main computation.</p>
+<h3>Continuation monad</h3>
+<p>A continuation monad with return type <img class="mwe-math-fallback-image-inline tex" alt="R" src="//upload.wikimedia.org/math/e/1/e/e1e1d3d40573127e9ee0480caf1283d6.png"> maps type <img class="mwe-math-fallback-image-inline tex" alt="T" src="//upload.wikimedia.org/math/b/9/e/b9ece18c950afbfa6b0fdbfa4ff731d3.png"> into functions of type <img class="mwe-math-fallback-image-inline tex" alt="\left( T \rarr R \right) \rarr R" src="//upload.wikimedia.org/math/f/1/f/f1f8f3648559de057ec4ad323165bdb1.png">. It is used to model continuation-passing style. The return and bind functions are as follows:</p>
+<p>The call-with-current-continuation function is defined as follows:</p>
+<h3>Others</h3>
+<p>Other concepts that researchers have expressed as monads include:</p>
+<ul>
+<li>Iteratee</li>
+<li>Exception handling</li>
+<li>Graphical user interfaces</li>
+<li>Interprocess communication</li>
+<li>Parsers</li>
+<li>Interpreters</li>
+<li>Strict evaluation</li>
+<li>Interfaces to code written in other languages</li>
+</ul>
+<h2>Free monads</h2>
+<p>Free monads are similar to free monoids, in that they, intuitively speaking, are generic structures that fulfill the monad (monoid) laws without depending on the type in question.</p>
+<p>For any type t, the free monoid of <code>t</code> is <code>[t]</code>, with <code>++</code> as the associative binary operation and <code>[]</code> as the unit element. In Haskell, we can write this as:</p>
+<p>WHATSON? cb229e0e-b8cb-445d-bafa-e408dfdfdf7a</p>
+<pre>
+instance Functor [] where
+   fmap _ [] = []
+   fmap fun (x:xs) = fun x : fmap fun xs
+ 
+instance Monoid [t] where
+   mappend xs ys = xs ++ ys
+   mempty = []
+</pre>
+<p>Whereas in a concrete monoid, one could add the values <code>t1,t2,...,tn</code> with its binary operation; in <code>[]</code>, they are simply concatenated into <code>[t1,t2,...,tn]</code>, signifying that they "belong together". What that "belonging together" means, however, is left unspecified.</p>
+<p>The free monad is based on the same idea. If we take <code>List t = Nil | Cons t (List t)</code> and insert a Functor into it, we get the free monad:</p>
+<p>WHATSON? b515bba7-cb14-411f-b65e-f72288432e6e</p>
+<pre>
+data Free f t = Return a | Bind (f (Free f t))
+ 
+instance Functor f =&gt; Functor (Free f) where
+   fmap fun (Return x) = Return (fun x)
+   fmap fun (Bind x) = Bind (fmap (fmap fun) x)
+ 
+instance Functor f =&gt; Monad (Free f) where
+   return x = Return x
+   x &gt;&gt;= fun = Bind (fmap (&gt;&gt;= fun) x)
+</pre>
+<p>Unlike <code>List</code>, which stores a list of values, <code>Free</code> stores a list of functors, wrapped around an initial value. Accordingly, the <code>Functor</code> and <code>Monad</code> instances of <code>Free</code> do nothing other than handing a given function down that list with <code>fmap</code>.</p>
+<h2>Comonads</h2>
+<p>Comonads are the categorical dual of monads. They are defined by a type constructor W <i>T</i> and two operations: <i>extract</i> with type W <i>T</i> → <i>T</i> for any <i>T</i>, and <i>extend</i> with type (W <i>T</i> → <i>T'</i> ) → W <i>T</i> → W <i>T'</i> . The operations <i>extend</i> and <i>extract</i> are expected to satisfy these laws:</p>
+<p>Alternatively, comonads may be defined in terms of operations <i>fmap</i>, <i>extract</i> and <i>duplicate</i>. The <i>fmap</i> and <i>extract</i> operations define W as a copointed functor. The <i>duplicate</i> operation characterizes comonads: it has type W <i>T</i> → W (W <i>T</i>) and satisfies the following laws:</p>
+<p>The two formulations are related as follows:</p>
+<p>Whereas monads could be said to represent side-effects, a comonad <i>W</i> represents a kind of <i>context</i>. The <i>extract</i> functions extracts a value from its context, while the <i>extend</i> function may be used to compose a pipeline of "context-dependent functions" of type W <i>A</i> → <i>B</i>.</p>
+<h3>Identity comonad</h3>
+<p>The identity comonad is the simplest comonad: it maps type <i>T</i> to itself. The <i>extract</i> operator is the identity and the <i>extend</i> operator is function application.</p>
+<h3>Product comonad</h3>
+<p>The product comonad maps type <img class="mwe-math-fallback-image-inline tex" alt="T" src="//upload.wikimedia.org/math/b/9/e/b9ece18c950afbfa6b0fdbfa4ff731d3.png"> into tuples of type <img class="mwe-math-fallback-image-inline tex" alt="C \times T" src="//upload.wikimedia.org/math/d/a/2/da2ae3964dc07295a6eb64b457173934.png">, where <img class="mwe-math-fallback-image-inline tex" alt="C" src="//upload.wikimedia.org/math/0/d/6/0d61f8370cad1d412f80b84d143e1257.png"> is the context type of the comonad. The comonad operations are:</p>
+<h3>Function comonad</h3>
+<p>The function comonad maps type <img class="mwe-math-fallback-image-inline tex" alt="T" src="//upload.wikimedia.org/math/b/9/e/b9ece18c950afbfa6b0fdbfa4ff731d3.png"> into functions of type <img class="mwe-math-fallback-image-inline tex" alt="M \rarr T" src="//upload.wikimedia.org/math/2/2/2/222a33db17919e6720318fb57c4f9fcd.png">, where <img class="mwe-math-fallback-image-inline tex" alt="M" src="//upload.wikimedia.org/math/6/9/6/69691c7bdcc3ce6d5d8a1361f22d04ac.png"> is a type endowed with a monoid structure. The comonad operations are:</p>
+<p>where ε is the identity element of <img class="mwe-math-fallback-image-inline tex" alt="M" src="//upload.wikimedia.org/math/6/9/6/69691c7bdcc3ce6d5d8a1361f22d04ac.png"> and * is its associative operation.</p>
+<h3>Costate comonad</h3>
+<p>The costate comonad maps a type <img class="mwe-math-fallback-image-inline tex" alt="T" src="//upload.wikimedia.org/math/b/9/e/b9ece18c950afbfa6b0fdbfa4ff731d3.png"> into type <img class="mwe-math-fallback-image-inline tex" alt="(S \rarr T) \times S" src="//upload.wikimedia.org/math/0/c/8/0c83942968bc3618ce0b49846add20d9.png">, where S is the base type of the store. The comonad operations are:</p>
+<h2>See also</h2>
+<ul>
+<li>Arrows in functional programming — whereas monads generalize the results of a computation to effects, arrows further generalize the inputs similarly.</li>
+<li>Aspect-oriented programming, a paradigm to increase modularity by isolating secondary or supporting functionality.</li>
+<li>Effect system, an alternative way of describing side effects as types.</li>
+<li>Inversion of control — the abstract principle of calling specific functions from a reusable software entity.</li>
+<li>Monad transformers — which allow monads to be composed in a modular and convenient way.</li>
+<li>Uniqueness types - an alternative way of dealing with side-effects in functional languages</li>
+</ul>
+<h2>Notes</h2>
+<ol>
+<li><b>^</b> Technically, the monad is not required to preserve the underlying type. For example, the trivial monad in which there is only one polymorphic value which is produced by all operations satisfies all of the axioms for a monad. Conversely, the monad is not required to add any additional structure; the identity monad, which simply preserves the original type unchanged, also satisfies the monad axioms and is useful as a recursive base for monad transformers.</li>
+</ol>
+</body>
+</html>

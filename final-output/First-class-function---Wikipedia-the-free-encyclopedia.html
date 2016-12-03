@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>First-class-function---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>First-class function</h1>
+<p>In computer science, a programming language is said to have <b>first-class functions</b> if it treats functions as first-class citizens. Specifically, this means the language supports passing functions as arguments to other functions, returning them as the values from other functions, and assigning them to variables or storing them in data structures. Some programming language theorists require support for anonymous functions as well. In languages with first-class functions, the names of functions do not have any special status; they are treated like ordinary variables with a function type. The term was coined by Christopher Strachey in the context of “functions as first-class citizens” in the mid-1960s.</p>
+<p>First-class functions are a necessity for the functional programming style, in which the use of higher-order functions is a standard practice. A simple example of a higher-ordered function is the <i>map</i> function, which takes, as its arguments, a function and a list, and returns the list formed by applying the function to each member of the list. For a language to support <i>map</i>, it must support passing a function as an argument.</p>
+<p>There are certain implementation difficulties in passing functions as arguments and returning them as results, especially in the presence of non-local variables introduced in nested and anonymous functions. Historically, these were termed the funarg problems, the name coming from "function argument". In early imperative languages these problems were avoided by either not supporting functions as result types (e.g. ALGOL 60, Pascal) or omitting nested functions and thus non-local variables (e.g. C). The early functional language Lisp took the approach of dynamic scoping, where non-local variables refer to the closest definition of that variable at the point where the function is executed, instead of where it was defined. Proper support for lexically scoped first-class functions was introduced in Scheme and requires handling references to functions as closures instead of bare function pointers, which in turn makes garbage collection a necessity.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Concepts
+<ul>
+<li>1.1 Higher-order functions: passing functions as arguments</li>
+<li>1.2 Anonymous and nested functions</li>
+<li>1.3 Non-local variables and closures</li>
+<li>1.4 Higher-order functions: returning functions as results</li>
+<li>1.5 Assigning functions to variables</li>
+<li>1.6 Equality of functions</li>
+</ul>
+</li>
+<li>2 Case study: function composition
+<ul>
+<li>2.1 Java</li>
+</ul>
+</li>
+<li>3 Type theory</li>
+<li>4 Language support</li>
+<li>5 See also</li>
+<li>6 Notes</li>
+<li>7 References</li>
+<li>8 External links</li>
+</ul>
+<ul>
+<li>1.1 Higher-order functions: passing functions as arguments</li>
+<li>1.2 Anonymous and nested functions</li>
+<li>1.3 Non-local variables and closures</li>
+<li>1.4 Higher-order functions: returning functions as results</li>
+<li>1.5 Assigning functions to variables</li>
+<li>1.6 Equality of functions</li>
+</ul>
+<ul>
+<li>2.1 Java</li>
+</ul>
+<p></p>
+<h2>Concepts</h2>
+<p>In this section we compare how particular programming idioms are handled in a functional language with first-class functions (Haskell) compared to an imperative language where functions are second-class citizens (C).</p>
+<h3>Higher-order functions: passing functions as arguments</h3>
+<p>In languages where functions are first-class citizens, functions can be passed as arguments to other functions in the same way as other values (a function taking another function as argument is called a higher-order function). In the language Haskell:</p>
+<p>WHATSON? a40f125b-b6c1-4885-a524-e6b09cc3f6c8</p>
+<pre>
+map :: (a -&gt; b) -&gt; [a] -&gt; [b]
+map f []     = []
+map f (x:xs) = f x : map f xs
+</pre>
+<p>Languages where functions are not first-class often still allow one to write higher-order functions through the use of features such as function pointers or delegates. In the language C:</p>
+<p>WHATSON? 353f1e01-ba4e-4e60-9fed-e3e94e5b6d01</p>
+<pre>
+void map(int (*f)(int), int x[], size_t n) {
+    for (int i = 0; i &lt; n; i++)
+        x[i] = f(x[i]);
+}
+</pre>
+<p>When comparing the two samples, one should note that there are a number of differences between the two approaches that are <i>not</i> directly related to the support of first-class functions. The Haskell sample operates on lists, while the C sample operates on arrays. Both are the most natural compound data structures in the respective languages and making the C sample operate on linked lists would have made it unnecessarily complex. This also accounts for the fact that the C function needs an additional parameter (giving the size of the array.) The C function updates the array in-place, returning no value, whereas in Haskell data structures are persistent (a new list is returned while the old is left intact.) The Haskell sample uses recursion to traverse the list, while the C sample uses iteration. Again, this is the most natural way to express this function in both languages, but the Haskell sample could easily have been expressed in terms of a fold and the C sample in terms of recursion. Finally, the Haskell function has a polymorphic type, as this is not supported by C we have fixed all type variables to the type constant <code>int</code>.</p>
+<h3>Anonymous and nested functions</h3>
+<p>In languages supporting anonymous functions, we can pass such a function as an argument to a higher-order function:</p>
+<p>WHATSON? 4e244687-3a2a-44fa-bdac-b16975070fed</p>
+<pre>
+main = map (\x -&gt; 3 * x + 1) [1, 2, 3, 4, 5]
+</pre>
+<p>In a language which does not support anonymous functions, we have to bind it to a name instead:</p>
+<p>WHATSON? f92e0f02-e074-40ce-917f-b931f03a035b</p>
+<pre>
+int f(int x) {
+    return 3 * x + 1;
+}
+ 
+int main() {
+    int list[] = {1, 2, 3, 4, 5};
+    map(f, list, 5);
+}
+</pre>
+<h3>Non-local variables and closures</h3>
+<p>Once we have anonymous or nested functions, it becomes natural for them to refer to variables outside of their body (called <i>non-local variables</i>):</p>
+<p>WHATSON? 98f1415c-c47e-4c5b-b779-e819a08da821</p>
+<pre>
+main = let a = 3
+           b = 1
+        in map (\x -&gt; a * x + b) [1, 2, 3, 4, 5]
+</pre>
+<p>If functions are represented with bare function pointers, it is no longer obvious how we should pass the value outside of the function body to it. We instead have to manually build a closure and one can at this point no longer speak of "first-class" functions.</p>
+<p>WHATSON? cc80e7cc-8d22-41a2-8e77-730e29f6e90d</p>
+<pre>
+typedef struct {
+    int (*f)(int, int, int);
+    int *a;
+    int *b;
+} closure_t;
+ 
+void map(closure_t *closure, int x[], size_t n) {
+    for (int i = 0; i &lt; n; ++i)
+        x[i] = (*closure-&gt;f)(*closure-&gt;a, *closure-&gt;b, x[i]);
+}
+ 
+int f(int a, int b, int x) {
+    return a * x + b;
+}
+ 
+void main() {
+    int l[] = {1, 2, 3, 4, 5};
+    int a = 3;
+    int b = 1;
+    closure_t closure = {f, &amp;a, &amp;b};
+    map(&amp;closure, l, 5);
+}
+</pre>
+<p>Also note that the <code>map</code> is now specialized to functions referring to two <code>int</code>s outside of their environment. This can be set up more generally, but requires more boilerplate code. If <code>f</code> would have been a nested function we would still have run into the same problem and this is the reason they are not supported in C.</p>
+<h3>Higher-order functions: returning functions as results</h3>
+<p>When returning a function, we are in fact returning its closure. In the C example any local variables captured by the closure will go out of scope once we return from the function that builds the closure. Forcing the closure at a later point will result in undefined behaviour, possibly corrupting the stack. This is known as the upwards funarg problem.</p>
+<h3>Assigning functions to variables</h3>
+<p>Assigning functions to variables and storing them inside (global) datastructures potentially suffers from the same difficulties as returning functions.</p>
+<p>WHATSON? 4b0ffc23-441e-4a61-a1c1-229bd5232428</p>
+<pre>
+f :: [[Integer] -&gt; [Integer]]
+f = let a = 3
+        b = 1
+     in [map (\x -&gt; a * x + b), map (\x -&gt; b * x + a)]
+</pre>
+<h3>Equality of functions</h3>
+<p>As one can test most literals and values for equality, it is natural to ask whether a programming language can support testing functions for equality. On further inspection, this question appears more difficult and one has to distinguish between several types of function equality:</p>
+<h2>Case study: function composition</h2>
+<h3>Java</h3>
+<p>Java, and other object-oriented programming languages, can support higher-order functions by wrapping them in an anonymous inner class with an appropriate interface or superclass:</p>
+<p>WHATSON? 4ef5e05e-796d-4e27-a273-786b5cf9bac1</p>
+<pre>
+interface Func&lt;A, B&gt; {
+	B apply(A x);
+}
+ 
+static &lt;A, B, C&gt; Func&lt;A, C&gt; compose(final Func&lt;A, B&gt; f, final Func&lt;B, C&gt; g) {
+	return new Func&lt;A, C&gt;() { 
+		public C apply(A x) {
+			return g.apply(f.apply(x));
+		}
+	};
+}
+</pre>
+<p>Nested functions are not properly supported and the following example is valid only because <code>a</code> and <code>b</code> have been declared <code>final</code>:</p>
+<p>Requiring the free nonlocal variables to be read-only allows the compiler to copy their value into a hidden field of the anonymous inner class. Because they cannot refer to arbitrary variables, anonymous inner classes are not considered to be closures.</p>
+<h2>Type theory</h2>
+<p>In type theory, the type of functions accepting values of type <i>A</i> and returning values of type <i>B</i> may be written as <i>A</i> → <i>B</i> or <i>B</i>. In the Curry-Howard correspondence, function types are related to logical implication; lambda abstraction corresponds to discharging hypothetical assumptions and function application corresponds to the modus ponens inference rule. Besides the usual case of programming functions, type theory also uses first-class functions to model associative arrays and similar data structures.</p>
+<p>In category-theoretical accounts of programming, the availability of first-class functions corresponds to the closed category assumption. For instance, the simply typed lambda calculus corresponds to the internal language of cartesian closed categories.</p>
+<h2>Language support</h2>
+<p>Functional programming languages, such as Scheme, ML, Haskell, F#, and Scala, all have first-class functions. When Lisp, one of the earliest functional languages, was designed, not all aspects of first-class functions were then properly understood, resulting in functions being dynamically scoped. The later Common Lisp dialect does have lexically scoped first-class functions.</p>
+<p>Many scripting languages, including Perl, Python, PHP, Lua, Tcl/Tk, JavaScript and Io, have first-class functions.</p>
+<p>For imperative languages, a distinction has to be made between Algol and its descendants such as Pascal, the traditional C family, and the modern garbage-collected variants. The Algol family has allowed nested functions and higher-order taking function as arguments, but not higher-order functions that return functions as results (except Algol 68, which allows this). The reason for this was that it was not known how to deal with non-local variables if a nested-function was returned as a result (and Algol 68 produces runtime errors in such cases).</p>
+<p>The C family allowed both passing functions as arguments and returning them as results, but avoided any problems by not supporting nested functions. (The gcc compiler allows them as an extension.) As the usefulness of returning functions primarily lies in the ability to return nested functions that have captured non-local variables, instead of top-level functions, these languages are generally not considered to have first-class functions.</p>
+<p>Modern imperative languages often support garbage-collection making the implementation of first-class functions feasible. First-class function have often only been supported in later revisions of the language, including C# 2.0 and Apple's Blocks extension to C, C++ and Objective-C. C++11 has added support for anonymous functions and closures to the language, but because of the non-garbage collected nature of the language, special care has to be taken for non-local variables in functions to be returned as results (see below).</p>
+<p>Explicit partial application possible with <code>std::bind</code>.</p>
+<h2>See also</h2>
+<ul>
+<li>Defunctionalization</li>
+<li>eval</li>
+<li>First-class message</li>
+<li>Kappa calculus – a formalism which excludes first-class functions</li>
+<li>Man or boy test</li>
+<li>Partial application</li>
+</ul>
+<h2>Notes</h2>
+<ol>
+<li><b>^</b> Abelson, Harold; Sussman, Gerald Jay (1984). <i>Structure and Interpretation of Computer Programs</i>. MIT Press. Section 1.3 Formulating Abstractions with Higher-Order Procedures. ISBN 0-262-01077-1. </li>
+<li><b>^</b> Programming language pragmatics, by Michael Lee Scott, section 11.2 "Functional Programming".</li>
+<li><b>^</b> Roberto Ierusalimschy; Luiz Henrique de Figueiredo; Waldemar Celes. "The Implementation of Lua 5.0". </li>
+<li>^   Rod Burstall, "Christopher Strachey—Understanding Programming Languages", <i>Higher-Order and Symbolic Computation</i> <b>13</b>:52 (2000)</li>
+<li><b>^</b> Joel Moses. "The Function of FUNCTION in LISP, or Why the FUNARG Problem Should be Called the Environment Problem". MIT AI Memo 199, 1970.</li>
+<li><b>^</b> "If you try to call the nested function through its address after the containing function has exited, all hell will break loose." (GNU Compiler Collection: Nested Functions)</li>
+<li><b>^</b> Andrew W. Appel (1995). "Intensional Equality ;=) for Continuations".</li>
+<li><b>^</b> Tanenbaum, A.S. (1977). "A comparison of PASCAL and Algol 68". <i>The Computer Journal</i> <b>21</b> (4): 319. doi:10.1093/comjnl/21.4.316. </li>
+<li>^   Doc No. 1968: V Samko; J Willcock, J Järvi, D Gregor, A Lumsdaine (February 26, 2006) <i>Lambda expressions and closures for C++</i></li>
+<li><b>^</b> http://developer.apple.com/mac/library/documentation/Cocoa/Conceptual/Blocks/Articles/00_Introduction.html</li>
+<li><b>^</b> http://srfi.schemers.org/srfi-26/srfi-26.html</li>
+<li><b>^</b> http://ejohn.org/blog/partial-functions-in-javascript/</li>
+<li><b>^</b> http://perlgeek.de/blog-en/perl-5-to-6/28-currying.html</li>
+<li><b>^</b> https://docs.python.org/whatsnew/2.5.html#pep-309-partial-function-application</li>
+<li><b>^</b> http://www.mathworks.co.uk/help/matlab/matlab_prog/anonymous-functions.html</li>
+<li><b>^</b> http://stackoverflow.com/questions/9154271/partial-function-evaluation-in-matlab</li>
+</ol>
+</body>
+</html>

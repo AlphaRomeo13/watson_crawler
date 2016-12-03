@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Method-References-The-Java-Tutorials---------------------Learning-the-Java-Language--Classes-and-Objects.html</title></head>
+<body>
+<h1>Method References</h1>
+<p>You use
+lambda expressions to create anonymous methods. Sometimes, however, a lambda expression does nothing but call an existing method. In those cases, it's often clearer to refer to the existing method by name. Method references enable you to do this; they are compact, easy-to-read lambda expressions for methods that already have a name.</p>
+<p>Consider again the
+<code>Person</code> class discussed in the section
+Lambda Expressions:</p>
+<p>WHATSON? 3ea9cf59-402a-4b9f-8a99-b9429e94989a</p>
+<pre>public class Person {
+
+    public enum Sex {
+        MALE, FEMALE
+    }
+
+    String name;
+    LocalDate birthday;
+    Sex gender;
+    String emailAddress;
+
+    public int getAge() {
+        // ...
+    }
+    
+    public Calendar getBirthday() {
+        return birthday;
+    }    
+
+    public static int compareByAge(Person a, Person b) {
+        return a.birthday.compareTo(b.birthday);
+    }}</pre>
+<p>Suppose that the members of your social networking application are contained in an array, and you want to sort the array by age. You could use the following code (find the code excerpts described in this section in the example
+<code>MethodReferencesTest</code>):</p>
+<p>WHATSON? 00383c30-4cb8-4fbb-9094-ee9dd8309a45</p>
+<pre>Person[] rosterAsArray = roster.toArray(new Person[roster.size()]);
+
+class PersonAgeComparator implements Comparator&lt;Person&gt; {
+    public int compare(Person a, Person b) {
+        return a.getBirthday().compareTo(b.getBirthday());
+    }
+}
+        
+Arrays.sort(rosterAsArray, new PersonAgeComparator());</pre>
+<p>The method signature of this invocation of <code>sort</code> is the following:</p>
+<p>WHATSON? 695bde9c-5f9c-4649-8d60-bd9d555a1e0a</p>
+<pre>static &lt;T&gt; void sort(T[] a, Comparator&lt;? super T&gt; c)</pre>
+<p>Notice that the interface <code>Comparator</code> is a functional interface. Therefore, you could use a lambda expression instead of defining and then creating a new instance of a class that implements <code>Comparator</code>:</p>
+<p>WHATSON? 2e84b907-390c-4cf4-bed3-f0f05f7b17c3</p>
+<pre>Arrays.sort(rosterAsArray,
+    (Person a, Person b) -&gt; {
+        return a.getBirthday().compareTo(b.getBirthday());
+    }
+);</pre>
+<p>However, this method to compare the birth dates of two <code>Person</code> instances already exists as <code>Person.compareByAge</code>. You can invoke this method instead in the body of the lambda expression:</p>
+<p>WHATSON? de15bf2f-e4d8-440f-b9fb-a15ee505bcd3</p>
+<pre>Arrays.sort(rosterAsArray,
+    (a, b) -&gt; Person.compareByAge(a, b)
+);</pre>
+<p>Because this lambda expression invokes an existing method, you can use a method reference instead of a lambda expression:</p>
+<p>WHATSON? 0d433528-4782-47bc-9314-59486eb2cfe5</p>
+<pre>Arrays.sort(rosterAsArray, Person::compareByAge);</pre>
+<p>The method reference <code>Person::compareByAge</code> is semantically the same as the lambda expression <code>(a, b) -&gt; Person.compareByAge(a, b)</code>. Each has the following characteristics:</p>
+<ul>
+  <li>Its formal parameter list is copied from <code>Comparator&lt;Person&gt;.compare</code>, which is <code>(Person, Person)</code>.</li>
+  <li>Its body calls the method <code>Person.compareByAge</code>.</li>
+</ul>
+<h2>Kinds of Method References</h2>
+<p>There are four kinds of method references:</p>
+<h3>Reference to a Static Method</h3>
+<p>The method reference <code>Person::compareByAge</code> is a reference to a static method.</p>
+<h3>Reference to an Instance Method of a Particular Object</h3>
+<p>The following is an example of a reference to an instance method of a particular object:</p>
+<p>WHATSON? 48cd7a4a-4384-4f87-b931-a42d302a1944</p>
+<pre>class ComparisonProvider {
+    public int compareByName(Person a, Person b) {
+        return a.getName().compareTo(b.getName());
+    }
+        
+    public int compareByAge(Person a, Person b) {
+        return a.getBirthday().compareTo(b.getBirthday());
+    }
+}
+ComparisonProvider myComparisonProvider = new ComparisonProvider();
+Arrays.sort(rosterAsArray, <strong>myComparisonProvider::compareByName</strong>);</pre>
+<p>The method reference <code>myComparisonProvider::compareByName</code> invokes the method <code>compareByName</code> that is part of the object <code>myComparisonProvider</code>. The JRE infers the method type arguments, which in this case are <code>(Person, Person)</code>.</p>
+<h3>Reference to an Instance Method of an Arbitrary Object of a Particular Type</h3>
+<p>The following is an example of a reference to an instance method of an arbitrary object of a particular type:</p>
+<p>WHATSON? 86f60cc0-369e-445f-a5a0-5442c4a6eee0</p>
+<pre>String[] stringArray = { "Barbara", "James", "Mary", "John",
+    "Patricia", "Robert", "Michael", "Linda" };
+Arrays.sort(stringArray, String::compareToIgnoreCase);</pre>
+<p>The equivalent lambda expression for the method reference <code>String::compareToIgnoreCase</code> would have the formal parameter list <code>(String a, String b)</code>, where <code>a</code> and <code>b</code> are arbitrary names used to better describe this example. The method reference would invoke the method <code>a.compareToIgnoreCase(b)</code>.</p>
+<h3>Reference to a Constructor</h3>
+<p>You can reference a constructor in the same way as a static method by using the name <code>new</code>. The following method copies elements from one collection to another:</p>
+<p>WHATSON? 4e758db1-c81d-4ba3-bee6-0d89f3e462f7</p>
+<pre>public static &lt;T, SOURCE extends Collection&lt;T&gt;, DEST extends Collection&lt;T&gt;&gt;
+    DEST transferElements(
+        SOURCE sourceCollection,
+        Supplier&lt;DEST&gt; collectionFactory) {
+        
+        DEST result = collectionFactory.get();
+        for (T t : sourceCollection) {
+            result.add(t);
+        }
+        return result;
+}</pre>
+<p>The functional interface <code>Supplier</code> contains one method <code>get</code> that takes no arguments and returns an object. Consequently, you can invoke the method <code>transferElements</code> with a lambda expression as follows:</p>
+<p>WHATSON? ad1a6fcd-ac87-4aae-b1d4-82ad0b4d27e5</p>
+<pre>Set&lt;Person&gt; rosterSetLambda =
+    transferElements(roster, () -&gt; { return new HashSet&lt;&gt;(); });</pre>
+<p>You can use a constructor reference in place of the lambda expression as follows:</p>
+<p>WHATSON? 6a7224f5-a79c-40e5-b4ea-2b1eeab6402d</p>
+<pre>Set&lt;Person&gt; rosterSet = transferElements(roster, HashSet::new);</pre>
+<p>The Java compiler infers that you want to create a <code>HashSet</code> collection that contains elements of type <code>Person</code>. Alternatively, you can specify this as follows:</p>
+<p>WHATSON? 2ddb933b-201e-4904-bc7b-38cecc6b1a2e</p>
+<pre>Set&lt;Person&gt; rosterSet = transferElements(roster, HashSet&lt;Person&gt;::new);</pre>
+</body>
+</html>

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Invariant-computer-science---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Invariant (computer science)</h1>
+<p>In computer science, an <b>invariant</b> is a condition that can be relied upon to be true during execution of a program, or during some portion of it. It is a logical assertion that is held to always be true during a certain phase of execution. For example, a loop invariant is a condition that is true at the beginning and end of every execution of a loop.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Use</li>
+<li>2 Example</li>
+<li>3 Automatic invariant detection in imperative programs</li>
+<li>4 See also</li>
+<li>5 References</li>
+<li>6 External links</li>
+</ul>
+<p></p>
+<h2>Use</h2>
+<p>Invariants are especially useful when reasoning about whether a computer program is correct. The theory of optimizing compilers, the methodology of design by contract, and formal methods for determining program correctness, all rely heavily on "<b>invariant</b>"s in computer programs.</p>
+<p>Programmers often use assertions in their code to make invariants explicit. Some object oriented programming languages have a special syntax for specifying class invariants.</p>
+<h2>Example</h2>
+<p>The MU puzzle is a good example of a logical problem where determining an invariant is useful. The puzzle asks one to start with the word MI and transform it into the word MU using in each step one of the following transformation rules:</p>
+<ol>
+<li>If a string ends with an I, a U may be appended (<i>x</i>I → <i>x</i>IU)</li>
+<li>The string after the M may be completely duplicated (M<i>x</i> → M<i>xx</i>)</li>
+<li>Any three consecutive I's (III) may be replaced with a single U (<i>x</i>III<i>y</i> → <i>x</i>U<i>y</i>)</li>
+<li>Any two consecutive U's may be removed (<i>x</i>UU<i>y</i> → <i>xy</i>)</li>
+</ol>
+<p>An example derivation (superscripts indicating the applied rules) is</p>
+<p>Is it possible to convert MI into MU using these four transformation rules only?</p>
+<p>One could spend many hours applying these transformation rules to strings. However, it might be quicker to find a predicate that's invariant to all rules, and makes getting to <i>MU</i> impossible. Logically looking at the puzzle, the only way to get rid of any I's is to have three consecutive I's in the string. This makes the following invariant interesting to consider:</p>
+<p>This is an invariant to the problem if for each of the transformation rules the following holds: if the invariant held before applying the rule, it will also hold after applying it. If we look at the net effect of applying the rules on the number of I's and U's we can see this actually is the case for all rules:</p>
+<p>The table above shows clearly that the invariant holds for each of the possible transformation rules, which basically means that whichever rule we pick, at whatever state, if the number of I's was not a multiple of three before applying the rule, it won't be afterwards either.</p>
+<p>Given that there is a single I in the starting string MI, and one is not a multiple of three, it's impossible to go from MI to MU as zero is a multiple of three.</p>
+<h2>Automatic invariant detection in imperative programs</h2>
+<p>Abstract interpretation tools can compute simple invariants of given imperative computer programs. The kind of properties that can be found depend on the abstract domains used. Typical example properties are single integer variable ranges like <code>0&lt;=x&lt;1024</code>, relations between several variables like <code>0&lt;=i-j&lt;2*n-1</code>, and modulus information like <code>y%4==0</code>. Academic research prototypes also consider simple properties of pointer structures.</p>
+<p>Any more sophisticated invariants still have to be provided manually. In particular, when verifying an imperative program using the Hoare calculus, a loop invariant has to be provided manually for each loop in the program, which is one of the reasons for that task being extremely tedious.</p>
+<p>In the above example, no tool will be able to detect from rules 1-4 that a derivation "MI →...→ MU" is impossible. However, once the abstraction from the string to the number of its "I"s has been made by hand, leading e.g. to the following C program, an abstract interpretation tool will be able to detect that <code>ICount%3</code> can't be 0 and hence the "while"-loop will never terminate.</p>
+<p>WHATSON? 63a3d286-3df3-497a-94a8-15b78568aa92</p>
+<pre>
+void MUPuzzle(void) {
+    volatile int RandomRule;
+    int ICount=1, UCount=0;
+    while (ICount%3!=0)                            // non-terminating loop
+        switch(RandomRule) {
+        case 1:                UCount+=1;   break;
+        case 2:   ICount*=2;   UCount*=2;   break;
+        case 3:   ICount-=3;   UCount+=1;   break;
+        case 4:                UCount-=2;   break;
+        }                                          // computed invariant: ICount%3==1||ICount%3==2
+}
+</pre>
+<h2>See also</h2>
+<ul>
+<li>Hoare logic</li>
+<li>Loop invariant</li>
+<li>Class invariant</li>
+<li>Const correctness</li>
+<li>Assertion (software development)</li>
+</ul>
+</body>
+</html>

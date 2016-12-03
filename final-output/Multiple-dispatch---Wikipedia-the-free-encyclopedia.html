@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Multiple-dispatch---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Multiple dispatch</h1>
+<ul>
+<li>Ad hoc polymorphism</li>
+<li>Function overloading</li>
+<li>Operator overloading</li>
+<li>Parametric polymorphism</li>
+<li>Double dispatch</li>
+<li><strong class="selflink">Multiple dispatch</strong></li>
+<li>Single &amp; dynamic dispatch</li>
+<li>Subtyping</li>
+<li>Virtual function</li>
+</ul>
+<ul>
+<li>v</li>
+<li>t</li>
+<li>e</li>
+</ul>
+<p><b>Multiple dispatch</b> or <b>multimethods</b> is the feature of some object-oriented programming languages in which a function or method can be dynamically dispatched based on the run time (dynamic) type of more than one of its arguments. This is an extension of single-dispatch polymorphism where a method call is dynamically dispatched based on the actual derived type of the object on which the method has been called. Multiple dispatch generalizes the dynamic dispatching to work with a combination of two or more objects.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Understanding dispatch
+<ul>
+<li>1.1 Data types</li>
+<li>1.2 Use in practice</li>
+<li>1.3 Theory</li>
+</ul>
+</li>
+<li>2 Examples
+<ul>
+<li>2.1 Multiple dispatch examples
+<ul>
+<li>2.1.1 Common Lisp</li>
+<li>2.1.2 Python</li>
+</ul>
+</li>
+<li>2.2 Examples of emulating multiple dispatch
+<ul>
+<li>2.2.1 Java</li>
+<li>2.2.2 C</li>
+<li>2.2.3 C++</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>3 Support in programming languages</li>
+<li>4 See also</li>
+<li>5 References</li>
+<li>6 External links</li>
+</ul>
+<ul>
+<li>1.1 Data types</li>
+<li>1.2 Use in practice</li>
+<li>1.3 Theory</li>
+</ul>
+<ul>
+<li>2.1 Multiple dispatch examples
+<ul>
+<li>2.1.1 Common Lisp</li>
+<li>2.1.2 Python</li>
+</ul>
+</li>
+<li>2.2 Examples of emulating multiple dispatch
+<ul>
+<li>2.2.1 Java</li>
+<li>2.2.2 C</li>
+<li>2.2.3 C++</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li>2.1.1 Common Lisp</li>
+<li>2.1.2 Python</li>
+</ul>
+<ul>
+<li>2.2.1 Java</li>
+<li>2.2.2 C</li>
+<li>2.2.3 C++</li>
+</ul>
+<p></p>
+<h2>Understanding dispatch</h2>
+<p>Developers of computer software typically organize source code into named blocks variously called subroutines, procedures, subprograms, functions, or methods. The code in the function is executed by <i>calling</i> it – executing a piece of code that references its <i>name</i>. This transfers control temporarily to the called function; when the function's execution has completed, control is typically transferred back to the instruction in the <i>caller</i> that follows the reference.</p>
+<p>Function names are usually selected so as to be descriptive of the function's purpose. It is sometimes desirable to give several functions the same name, often because they perform conceptually similar tasks, but operate on different types of input data. In such cases, the name reference at the function call site is not sufficient for identifying the block of code to be executed. Instead, the number and type of the arguments to the function call are also used to select among several function implementations.</p>
+<p>In "conventional", i.e. single-dispatch object-oriented programming languages, when invoking a method ("sending a message" in Smalltalk, "calling a member function" in C++), one of its arguments is treated specially and used to determine which of the (potentially many) methods of that name is to be applied. In many languages, the "special" argument is indicated syntactically; for example, a number of programming languages put the special argument before a dot in making a method call: <code>special.method(other, arguments, here)</code>, so that <code>lion.sound()</code> would produce a roar, whereas <code>sparrow.sound()</code> would produce a cheep.</p>
+<p>By contrast, in languages with multiple dispatch, the selected method is simply the one whose arguments match the number and type of the function call. There is no "special" argument that "owns" the function/method carried out in a particular call.</p>
+<p>The Common Lisp Object System (CLOS) is an early and well-known example of multiple dispatch.</p>
+<h3>Data types</h3>
+<p>When working with languages that can discriminate data types at compile-time, selecting among the alternatives can occur at compile-time. The act of creating such alternative functions for compile-time selection is usually referred to as overloading a function.</p>
+<p>In programming languages that defer data type identification until run-time (i.e., late binding), the selection among alternative functions must occur at run-time, based on the dynamically determined types of function arguments. Functions whose alternative implementations are selected in this manner are referred to most generally as <i>multimethods</i>.</p>
+<p>There is some run-time cost associated with dynamically dispatching function calls. In some languages, the distinction between overloading and multimethods can be blurred, with the compiler determining whether compile-time selection can be applied to a given function call, or whether slower run-time dispatch is needed.</p>
+<h3>Use in practice</h3>
+<p>In order to estimate how often multiple dispatch is used in practice, Muschevici et al. studied programs that utilize dynamic dispatch. They analyzed nine applications, mostly compilers, written in six different languages: CLOS, Dylan, Cecil, MultiJava, Diesel, and Nice. Their results show that 13%-32% of generic functions utilize the dynamic type of a single argument, while 2.7%-6.5% of them utilize the dynamic type of multiple arguments. The remaining 65%-93% of generic functions have a single concrete method (overrider), and therefore are not considered to use the dynamic types of their arguments. In addition, the study reports that 2%-20% of generic functions had two and 3%-6% had three concrete function implementations. The numbers decrease rapidly for functions with more concrete overriders.</p>
+<h3>Theory</h3>
+<p>The theory of multiple dispatching languages was first developed by Castagna et al. by defining a model for overloaded functions with late binding. It yielded the first formalization of the problem of covariance and contravariance of object oriented languages and a solution to the problem of binary methods.</p>
+<h2>Examples</h2>
+<p>Distinguishing multiple and single dispatch may be made clearer by an example. Imagine a game which has, among its (user-visible) objects, spaceships and asteroids. When two objects collide, the program may need to do different things according to what has just hit what.</p>
+<h3>Multiple dispatch examples</h3>
+<h4>Common Lisp</h4>
+<p>In a language with multiple dispatch, such as Common Lisp, it might look more like this:</p>
+<p>WHATSON? abf62c36-f537-4c56-b868-bb74c3cf6558</p>
+<pre>
+ (defmethod collide-with ((x asteroid) (y asteroid))
+   ;; deal with asteroid hitting asteroid
+   )
+ (defmethod collide-with ((x asteroid) (y spaceship))
+   ;; deal with asteroid hitting spaceship
+   )
+ (defmethod collide-with ((x spaceship) (y asteroid))
+   ;; deal with spaceship hitting asteroid
+   )
+ (defmethod collide-with ((x spaceship) (y spaceship))
+   ;; deal with spaceship hitting spaceship
+   )
+</pre>
+<p>and similarly for the other methods. Explicit testing and "dynamic casting" are not used.</p>
+<p>In the presence of multiple dispatch, the traditional idea of methods as being defined in classes and contained in objects becomes less appealing—each <i>collide-with</i> method there is attached to two different classes, not one. Hence, the special syntax for method invocation generally disappears, so that method invocation looks exactly like ordinary function invocation, and methods are grouped not in classes but in generic functions.</p>
+<h4>Python</h4>
+<p>In languages that do not support multiple dispatch at the language definition or syntactic level, it is often possible to add multiple dispatch using a library extension. For example, the module <i>multimethods.py</i> provides CLOS-style multimethods for Python without changing the underlying syntax or keywords of the language.</p>
+<p>WHATSON? 0cd99c53-49f7-48fb-bfea-0372a55923e6</p>
+<pre>
+from multimethods import Dispatch
+from game_objects import Asteroid, Spaceship
+from game_behaviors import ASFunc, SSFunc, SAFunc
+collide = Dispatch()
+collide.add_rule((Asteroid,  Spaceship), ASFunc)
+collide.add_rule((Spaceship, Spaceship), SSFunc)
+collide.add_rule((Spaceship,  Asteroid), SAFunc)
+def AAFunc(a, b):
+    """Behavior when asteroid hits asteroid"""
+    # ...define new behavior...
+collide.add_rule((Asteroid, Asteroid), AAFunc)
+</pre>
+<p>WHATSON? 533ac284-df94-44de-9d19-1dad1b09e373</p>
+<pre>
+# ...later...
+collide(thing1, thing2)
+</pre>
+<p>Functionally, this is very similar to the CLOS example, but the syntax is conventional Python.</p>
+<p>Using Python 2.4 decorators, Guido van Rossum produced a sample implementation of multimethods with a simplified syntax:</p>
+<p>WHATSON? a08eaf4f-6487-4196-a512-d8a8ec287167</p>
+<pre>
+@multimethod(Asteroid, Asteroid)
+def collide(a, b):
+    """Behavior when asteroid hits asteroid"""
+    # ...define new behavior...
+@multimethod(Asteroid, Spaceship)
+def collide(a, b):
+    """Behavior when asteroid hits spaceship"""
+    # ...define new behavior...
+# ... define other multimethod rules ...
+</pre>
+<p>and then it goes on to define the multimethod decorator.</p>
+<p>The PEAK-Rules package provides multiple dispatch with a syntax similar to the above example.</p>
+<h3>Examples of emulating multiple dispatch</h3>
+<h4>Java</h4>
+<p>In a language with only single dispatch, such as Java, the code would probably look something like this (although the visitor pattern can help to solve this problem):</p>
+<p>WHATSON? a924c09e-5ef8-4bea-b299-41a7d7d5a255</p>
+<pre>
+ /* Example using run time type comparison via Java's "instanceof" operator */
+ 
+ interface Collideable {
+     /* making this a class would not change the demonstration */
+     void collideWith(Collideable other);
+ }
+ 
+ class Asteroid implements Collideable {
+     public void collideWith(Collideable other) {
+         if (other instanceof Asteroid) {
+             // handle Asteroid-Asteroid collision
+         }
+         else if (other instanceof Spaceship) {
+             // handle Asteroid-Spaceship collision
+         }
+     }
+ }
+ 
+ class Spaceship implements Collideable {
+     public void collideWith(Collideable other) {
+         if (other instanceof Asteroid) {
+             // handle Spaceship-Asteroid collision
+         }
+         else if (other instanceof Spaceship) {
+             // handle Spaceship-Spaceship collision
+         }
+     }
+ }
+</pre>
+<h4>C</h4>
+<p>C does not have dynamic dispatch, so it must be implemented manually in some form. Often an enum is used to identify the subtype of an object. Dynamic dispatch can be done by looking up this value in a function pointer branch table. Here is a simple example in C:</p>
+<p>WHATSON? 8851e03d-460a-4a99-92fe-12e3e127f938</p>
+<pre>
+typedef void (*CollisionCase)();
+ 
+void collision_AA() { /* handle Asteroid-Asteroid collision*/   };
+void collision_AS() { /* handle Asteroid-Spaceship collision*/  };
+void collision_SA() { /* handle Spaceship-Asteroid collision*/  };
+void collision_SS() { /* handle Spaceship-Spaceship collision*/ };
+ 
+typedef enum {
+    asteroid = 0,
+    spaceship
+} Thing;
+ 
+enum {
+    num_thing_types = 2
+};
+ 
+CollisionCase collisionCases[num_thing_types][num_thing_types] = {
+    {&amp;collision_AA, &amp;collision_AS},
+    {&amp;collision_SA, &amp;collision_SS}
+};
+ 
+void collide(Thing a, Thing b) {
+    (*collisionCases[a][b])();
+}
+ 
+int main() {
+    collide(spaceship, asteroid);
+}
+</pre>
+<h4>C++</h4>
+<p>While adding them to C++ is being considered, currently C++ only supports single dispatch natively. The methods of working around this limitation are analogous; either use the visitor pattern or dynamic cast:</p>
+<p>WHATSON? 7ec654a3-1c7f-4c69-9cc1-d3550090884e</p>
+<pre>
+ // Example using run time type comparison via dynamic_cast
+ 
+ struct Thing {
+     virtual void collideWith(Thing&amp; other) = 0;
+ };
+ 
+ struct Asteroid : Thing {
+     void collideWith(Thing&amp; other) {
+         // dynamic_cast to a pointer type returns NULL if the cast fails
+         // (dynamic_cast to a reference type would throw an exception on failure)
+         if (Asteroid* asteroid = dynamic_cast&lt;Asteroid*&gt;(&amp;other)) {
+             // handle Asteroid-Asteroid collision
+         } else if (Spaceship* spaceship = dynamic_cast&lt;Spaceship*&gt;(&amp;other)) {
+             // handle Asteroid-Spaceship collision
+         } else {
+             // default collision handling here
+         }
+     }
+ };
+ 
+ struct Spaceship : Thing {
+     void collideWith(Thing&amp; other) {
+         if (Asteroid* asteroid = dynamic_cast&lt;Asteroid*&gt;(&amp;other)) {
+             // handle Spaceship-Asteroid collision
+         } else if (Spaceship* spaceship = dynamic_cast&lt;Spaceship*&gt;(&amp;other)) {
+             // handle Spaceship-Spaceship collision
+         } else {
+             // default collision handling here
+         }
+     }
+ };
+</pre>
+<p>or pointer-to-method lookup table:</p>
+<p>WHATSON? f1808c0a-60f6-4315-b42f-3a3a55a1a336</p>
+<pre>
+#include &lt;typeinfo&gt;
+#include &lt;unordered_map&gt;
+ 
+typedef unsigned uint4;
+typedef unsigned long long uint8;
+ 
+class Thing {
+  protected:
+    Thing(const uint4 cid) : tid(cid) {}
+    const uint4 tid; // type id
+ 
+    typedef void (Thing::*CollisionHandler)(Thing&amp; other);
+    typedef std::unordered_map&lt;uint8, CollisionHandler&gt; CollisionHandlerMap;
+ 
+    static void addHandler(const uint4 id1, const uint4 id2, const CollisionHandler handler) {
+        collisionCases.insert(CollisionHandlerMap::value_type(key(id1, id2), handler));
+    }
+    static uint8 key(const uint4 id1, const uint4 id2) {
+        return uint8(id1) &lt;&lt; 32 | id2;
+    }
+ 
+    static CollisionHandlerMap collisionCases;
+ 
+  public:
+    void collideWith(Thing&amp; other) {
+        CollisionHandlerMap::const_iterator handler = collisionCases.find(key(tid, other.tid));
+        if (handler != collisionCases.end()) {
+            (this-&gt;*handler-&gt;second)(other); // pointer-to-method call
+        } else {
+            // default collision handling
+        }
+    }
+};
+ 
+class Asteroid: public Thing {
+    void asteroid_collision(Thing&amp; other)   { /*handle Asteroid-Asteroid collision*/ }
+    void spaceship_collision(Thing&amp; other)  { /*handle Asteroid-Spaceship collision*/}
+ 
+  public:
+    Asteroid(): Thing(cid) {}
+    static void initCases();
+    static const uint4 cid;
+};
+ 
+class Spaceship: public Thing {
+    void asteroid_collision(Thing&amp; other)   { /*handle Spaceship-Asteroid collision*/}
+    void spaceship_collision(Thing&amp; other)  { /*handle Spaceship-Spaceship collision*/}
+ 
+  public:
+    Spaceship(): Thing(cid) {}
+    static void initCases();
+    static const uint4 cid; // class id
+};
+ 
+Thing::CollisionHandlerMap Thing::collisionCases;
+const uint4 Asteroid::cid  = typeid(Asteroid).hash_code();
+const uint4 Spaceship::cid = typeid(Spaceship).hash_code();
+ 
+void Asteroid::initCases() {
+    addHandler(cid, cid, (CollisionHandler) &amp;Asteroid::asteroid_collision);
+    addHandler(cid, Spaceship::cid, (CollisionHandler) &amp;Asteroid::spaceship_collision);
+}
+ 
+void Spaceship::initCases() {
+    addHandler(cid, Asteroid::cid, (CollisionHandler) &amp;Spaceship::asteroid_collision);
+    addHandler(cid, cid, (CollisionHandler) &amp;Spaceship::spaceship_collision);
+}
+ 
+int main() {
+    Asteroid::initCases();
+    Spaceship::initCases();
+ 
+    Asteroid  a1, a2;
+    Spaceship s1, s2;
+ 
+    a1.collideWith(a2);
+    a1.collideWith(s1);
+ 
+    s1.collideWith(s2);
+    s1.collideWith(a1);
+}
+</pre>
+<p>The <i>yomm11</i> library automates this approach.</p>
+<p>Stroustrup mentions in <i>The Design and Evolution of C++</i> that he liked the concept of Multi-methods and considered implementing it in C++ but claims to have been unable to find an efficient sample implementation (comparable to virtual functions) and resolve some possible type ambiguity problems. He goes on to state that although the feature would still be nice to have, that it can be approximately implemented using double dispatch or a type based lookup table as outlined in the C/C++ example above so is a low priority feature for future language revisions.</p>
+<h2>Support in programming languages</h2>
+<p>Programming languages that support general multimethods:</p>
+<ul>
+<li>Common Lisp (via the Common Lisp Object System)</li>
+<li>Haskell via Multi-parameter type classes</li>
+<li>Scala, also via multi-parameter type classes</li>
+<li>Dylan</li>
+<li>Nice</li>
+<li>Cecil</li>
+<li>R</li>
+<li>Julia</li>
+<li>Groovy</li>
+<li>Lasso</li>
+<li>Perl 6</li>
+<li>Seed7</li>
+<li>Clojure</li>
+<li>C# 4.0</li>
+<li>Fortress</li>
+<li>TADS</li>
+<li>Xtend</li>
+</ul>
+<p>Multimethods in other programming languages via extensions:</p>
+<ul>
+<li>Scheme (via e.g. TinyCLOS)</li>
+<li>Python (via PEAK-Rules, RuleDispatch, gnosis.magic.multimethods, or PyMultimethods)</li>
+<li>Perl (via the module Class::Multimethods)</li>
+<li>Java (using the extension MultiJava)</li>
+<li>Ruby (via the library The Multiple Dispatch Library and Multimethod Package and Vlx-Multimethods Package)</li>
+<li>.NET (via the library MultiMethods.NET)</li>
+<li>C# (via the library multimethod-sharp)</li>
+<li>C++ (via the library yomm11)</li>
+<li>Factor (via the standard multi-methods vocabulary)</li>
+</ul>
+<p>Also, multi-parameter type classes in Haskell and Scala can be used to emulate multiple dispatch.</p>
+<h2>See also</h2>
+<ul>
+<li>Predicate dispatch</li>
+</ul>
+</body>
+</html>

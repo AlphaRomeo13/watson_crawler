@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Closure-computer-programming---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Closure (computer programming)</h1>
+<p>In programming languages, a <b>closure</b> (also <b>lexical closure</b> or <b>function closure</b>) is a function or reference to a function together with a <i>referencing environment</i>—a table storing a reference to each of the non-local variables (also called free variables or upvalues) of that function. A closure—unlike a plain function pointer—enables a function to access those non-local variables even when invoked outside its immediate lexical scope.</p>
+<p>The following program fragment defines a (higher-order) function <code>startAt</code> with a local variable <code>x</code> and a nested function <code>incrementBy</code>. This nested function <code>incrementBy</code> has access to <code>x</code>, because <code>x</code> is in its lexical scope, even though it is not local to <code>incrementBy</code>. The function <code>startAt</code> returns a closure containing a reference to the function <code>incrementBy</code>, which adds the <code>y</code> value to the <code>x</code> value, and a reference to the variable <code>x</code>, so <code>incrementBy</code> will know where to find it once invoked:</p>
+<p>WHATSON? e329acb9-04db-4644-b487-fc48b042382b</p>
+<pre>
+<b>function</b> startAt(x)
+   <b>function</b> incrementBy(y)
+       <b>return</b> x + y
+   <b>return</b> incrementBy
+
+<b>variable</b> closure<sub>1</sub> = startAt(1)
+<b>variable</b> closure<sub>2</sub> = startAt(5)
+</pre>
+<p>Invoking the variable <code>closure<sub>1</sub></code> (which is of function type) with <code>closure<sub>1</sub>(3)</code> will return <code>4</code>, while invoking <code>closure<sub>2</sub>(3)</code> will return <code>8</code>. While <code>closure<sub>1</sub></code> and <code>closure<sub>2</sub></code> are both references to the function <code>incrementBy</code>, the associated environment will bind the identifier <code>x</code> to two distinct variables in the two invocations, leading to different results.</p>
+<p>The concept of closures was developed in the 1960s for the mechanical evaluation of expressions in the λ-calculus and was first fully implemented in 1975 as a language feature in the Scheme programming language to support lexically scoped first-class functions. The use of closures is associated with functional programming languages such as Lisp and ML. Traditional imperative languages such as Algol, C and Pascal do not support returning nested functions as results from higher-order functions thus avoiding the need to use closures. Many modern garbage-collected imperative languages do represent references to functions as closures.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 History and etymology</li>
+<li>2 Applications
+<ul>
+<li>2.1 First-class functions</li>
+<li>2.2 State representation</li>
+<li>2.3 Other uses</li>
+</ul>
+</li>
+<li>3 Implementation and theory</li>
+<li>4 Differences in semantics
+<ul>
+<li>4.1 Lexical environment</li>
+<li>4.2 Closure leaving</li>
+</ul>
+</li>
+<li>5 Closure-like constructs
+<ul>
+<li>5.1 Callbacks (C)</li>
+<li>5.2 Local classes and Lambda functions (Java)</li>
+<li>5.3 Blocks (C, C++, Objective-C 2.0)</li>
+<li>5.4 Delegates (C#, D)</li>
+<li>5.5 Function objects (C++)</li>
+<li>5.6 Inline agents (Eiffel)</li>
+</ul>
+</li>
+<li>6 See also</li>
+<li>7 References</li>
+<li>8 External links</li>
+</ul>
+<ul>
+<li>2.1 First-class functions</li>
+<li>2.2 State representation</li>
+<li>2.3 Other uses</li>
+</ul>
+<ul>
+<li>4.1 Lexical environment</li>
+<li>4.2 Closure leaving</li>
+</ul>
+<ul>
+<li>5.1 Callbacks (C)</li>
+<li>5.2 Local classes and Lambda functions (Java)</li>
+<li>5.3 Blocks (C, C++, Objective-C 2.0)</li>
+<li>5.4 Delegates (C#, D)</li>
+<li>5.5 Function objects (C++)</li>
+<li>5.6 Inline agents (Eiffel)</li>
+</ul>
+<p></p>
+<h2>History and etymology</h2>
+<p>Peter J. Landin defined the term <i>closure</i> in 1964 as having an <i>environment part</i> and a <i>control part</i> as used by his SECD machine for evaluating expressions. Joel Moses credits Landin with introducing the term <i>closure</i> to refer to a lambda expression whose open bindings (free variables) have been closed by (or bound in) the lexical environment, resulting in a <i>closed expression</i>, or closure. This usage was subsequently adopted by Sussman and Steele when they defined Scheme in 1975, and became widespread.</p>
+<p>The term <i>closure</i> is often mistakenly used to mean anonymous function. This is probably because many programmers learn about both concepts at the same time, in the form of small helper functions that are anonymous closures. An anonymous function is a function literal without a name, while a closure is an instance of a function, a value, whose non-local variables have been bound either to values or to storage locations (depending on the language; see the lexical environment section below).</p>
+<h2>Applications</h2>
+<p>Closures are used to implement continuation-passing style, and in this manner, hide state. Constructs such as objects and control structures can thus be implemented with closures. In some languages, a closure may occur when a function is defined within another function, and the inner function refers to local variables of the outer function. At run-time, when the outer function executes, a closure is formed, consisting of the inner function’s code and references (the upvalues) to any variables of the outer function required by the closure.</p>
+<h3>First-class functions</h3>
+<p>Closures typically appear in languages in which functions are first-class values—in other words, such languages enable functions to be passed as arguments, returned from function calls, bound to variable names, etc., just like simpler types such as strings and integers. For example, consider the following Scheme function:</p>
+<p>WHATSON? dac6327f-7dc0-47fc-8faf-e234ce8882e2</p>
+<pre>
+; Return a list of all books with at least THRESHOLD copies sold.
+(define (best-selling-books threshold)
+  (filter
+    (lambda (book)
+      (&gt;= (book-sales book) threshold))
+    book-list))
+</pre>
+<p>In this example, the lambda expression <code>(lambda (book) (&gt;= (book-sales book) threshold))</code> appears within the function <code>best-selling-books</code>. When the lambda expression is evaluated, Scheme creates a closure consisting of the code for the lambda expression and a reference to the <code>threshold</code> variable, which is a free variable inside the lambda expression.</p>
+<p>The closure is then passed to the <code>filter</code> function, which calls it repeatedly to determine which books are to be added to the result list and which are to be discarded. Because the closure itself has a reference to <code>threshold</code>, it can use that variable each time <code>filter</code> calls it. The function <code>filter</code> itself might be defined in a completely separate file.</p>
+<p>Here is the same example rewritten in JavaScript, another popular language with support for closures:</p>
+<p>WHATSON? c42958d7-ec16-46d4-8df7-973d9c916739</p>
+<pre>
+// Return a list of all books with at least 'threshold' copies sold.
+function bestSellingBooks(threshold) {
+  return bookList.filter(
+      function (book) { return book.sales &gt;= threshold; }
+    );
+}
+</pre>
+<p>The <code>function</code> keyword is used here instead of <code>lambda</code>, and an <code>Array.filter</code> method instead of a global <code>filter</code> function, but otherwise the structure and the effect of the code are the same.</p>
+<p>A function may create a closure and return it, as in the following example:</p>
+<p>WHATSON? 0fcc0667-d313-444d-946e-5f5d4c06b83c</p>
+<pre>
+// Return a function that approximates the derivative of f
+// using an interval of dx, which should be appropriately small.
+function derivative(f, dx) {
+  return function (x) {
+    return (f(x + dx) - f(x)) / dx;
+  };
+}
+</pre>
+<p>Because the closure in this case outlives the scope of the function that creates it, the variables <code>f</code> and <code>dx</code> live on after the function <code>derivative</code> returns. In languages without closures, the lifetime of a local variable coincides with the execution of the scope where that variable is declared. In languages with closures, variables must continue to exist as long as any existing closures have references to them. This is most commonly implemented using some form of garbage collection.</p>
+<h3>State representation</h3>
+<p>A closure can be used to associate a function with a set of "private" variables, which persist over several invocations of the function. The scope of the variable encompasses only the closed-over function, so it cannot be accessed from other program code.</p>
+<p>In stateful languages, closures can thus be used to implement paradigms for state representation and information hiding, since the closure's upvalues (its closed-over variables) are of indefinite extent, so a value established in one invocation remains available in the next. Closures used in this way no longer have referential transparency, and are thus no longer pure functions; nevertheless, they are commonly used in impure functional languages such as Scheme.</p>
+<h3>Other uses</h3>
+<p>Closures have many uses:</p>
+<ul>
+<li>Because closures delay evaluation—i.e., they do not "do" anything until they are called—they can be used to define control structures. For example, all of Smalltalk's standard control structures, including branches (if/then/else) and loops (while and for), are defined using objects whose methods accept closures. Users can easily define their own control structures also.</li>
+<li>In languages which implement assignment, multiple functions can be produced that close over the same environment, enabling them to communicate privately by altering that environment. In Scheme:</li>
+</ul>
+<p>WHATSON? aeb4f67b-123d-4f15-a33f-2d89b62de86c</p>
+<pre>
+(define foo #f)
+(define bar #f)
+ 
+(let ((secret-message "none"))
+  (set! foo (lambda (msg) (set! secret-message msg)))
+  (set! bar (lambda () secret-message)))
+ 
+(display (bar)) ; prints "none"
+(newline)
+(foo "meet me by the docks at midnight")
+(display (bar)) ; prints "meet me by the docks at midnight"
+</pre>
+<ul>
+<li>Closures can be used to implement object systems.</li>
+</ul>
+<p>Note: Some speakers call any data structure that binds a lexical environment a closure, but the term usually refers specifically to functions.</p>
+<h2>Implementation and theory</h2>
+<p>Closures are typically implemented with a special data structure that contains a pointer to the function code, plus a representation of the function's lexical environment (i.e., the set of available variables) at the time when the closure was created. The referencing environment binds the nonlocal names to the corresponding variables in scope at the time the closure is created, additionally extending their lifetime to at least as long as the lifetime of the closure itself. When the closure is <i>entered</i> at a later time, possibly from a different scope, the function is executed with its non-local variables referring to the ones captured by the closure.</p>
+<p>A language implementation cannot easily support full closures if its run-time memory model allocates all local variables on a linear stack. In such languages, a function's local variables are deallocated when the function returns. However, a closure requires that the free variables it references survive the enclosing function's execution. Therefore, those variables must be allocated so that they persist until no longer needed. This explains why, typically, languages that natively support closures also use garbage collection. The alternative is for the language to accept that certain use cases will lead to undefined behaviour, as in lambda expressions in C++11. The funarg problem (or "functional argument" problem) describes the difficulty of implementing functions as first class objects in a stack-based programming language such as C or C++. Similarly in D version 1, it is assumed that the programmer knows what to do with delegates and local variables, as their references will be invalid after return from its definition scope (local variables are on the stack) - this still permits many useful functional patterns, but for complex cases needs explicit heap allocation for variables. D version 2 solved this by detecting which variables must be stored on the heap, and performs automatic allocation. Because D uses garbage collection, in both versions, there is no need to track usage of variables as they are passed.</p>
+<p>In strict functional languages with immutable data (<i>e.g.</i> Erlang), it is very easy to implement automatic memory management (garbage collection), as there are no possible cycles in variables' references. For example in Erlang, all arguments and variables are allocated on the heap, but references to them are additionally stored on the stack. After a function returns, references are still valid. Heap cleaning is done by incremental garbage collector.</p>
+<p>In ML, local variables are lexically scoped, and hence define a stack-like model, but since they are bound to values and not to objects, an implementation is free to copy these values into the closure's data structure in a way that is invisible to the programmer.</p>
+<p>Scheme, which has an ALGOL-like lexical scope system with dynamic variables and garbage collection, lacks a stack programming model and does not suffer from the limitations of stack-based languages. Closures are expressed naturally in Scheme. The lambda form encloses the code, and the free variables of its environment persist within the program as long as they can possibly be accessed, and so they can be used as freely as any other Scheme expression.</p>
+<p>Closures are closely related to Actors in the Actor model of concurrent computation where the values in the function's lexical environment are called <i>acquaintances</i>. An important issue for closures in concurrent programming languages is whether the variables in a closure can be updated and, if so, how these updates can be synchronized. Actors provide one solution.</p>
+<p>Closures are closely related to function objects; the transformation from the former to the latter is known as defunctionalization or lambda lifting.</p>
+<h2>Differences in semantics</h2>
+<h3>Lexical environment</h3>
+<p>As different languages do not always have a common definition of the lexical environment, their definitions of closure may vary also. The commonly held minimalist definition of the lexical environment defines it as a set of all bindings of variables in the scope, and that is also what closures in any language have to capture. However the meaning of a variable binding also differs. In imperative languages, variables bind to relative locations in memory that can store values. Although the relative location of a binding does not change at runtime, the value in the bound location can. In such languages, since closure captures the binding, any operation on the variable, whether done from the closure or not, are performed on the same relative memory location. This is often called capturing the variable "by reference". Here is an example illustrating the concept in ECMAScript, which is one such language:</p>
+<p>WHATSON? 8ff626e0-b12e-41a8-bea5-f700e83e0e90</p>
+<pre>
+// ECMAScript
+var f, g;
+function foo() {
+  var x;
+  f = function() { return ++x; };
+  g = function() { return --x; };
+  x = 1;
+  alert('inside foo, call to f(): ' + f()); // "2"
+}
+foo();
+alert('call to g(): ' + g()); // "1"
+alert('call to f(): ' + f()); // "2"
+</pre>
+<p>Note how function <code>foo</code> and the closures referred to by variables <code>f</code> and <code>g</code> all use the same relative memory location signified by local variable <code>x</code>.</p>
+<p>On the other hand, many functional languages, such as ML, bind variables directly to values. In this case, since there is no way to change the value of the variable once it is bound, there is no need to share the state between closures—they just use the same values. This is often called capturing the variable "by value". Java's local and anonymous classes also fall into this category—they require captured local variables to be <code>final</code>, which also means there is no need to share state.</p>
+<p>Some languages enable you to choose between capturing the value of a variable or its location. For example, in C++11 and PHP, captured variables are either declared with <code>&amp;</code>, which means captured by reference, or without, which means captured by value.</p>
+<p>Yet another subset, lazy functional languages such as Haskell, bind variables to results of future computations rather than values. Consider this example in Haskell:</p>
+<p>WHATSON? d279bc1e-9da8-4fa6-8780-15171056a877</p>
+<pre>
+-- Haskell
+foo :: Fractional a =&gt; a -&gt; a -&gt; (a -&gt; a)
+foo x y = (\z -&gt; z + r)
+          where r = x / y
+ 
+f :: Fractional a =&gt; a -&gt; a
+f = foo 1 0
+ 
+main = print (f 123)
+</pre>
+<p>The binding of <code>r</code> captured by the closure defined within function <code>foo</code> is to the computation <code>(x / y)</code> - which in this case results in division by zero. However, since it is the computation that is captured, and not the value, the error only manifests itself when the closure is invoked, and actually attempts to use the captured binding.</p>
+<h3>Closure leaving</h3>
+<p>Yet more differences manifest themselves in the behavior of other lexically scoped constructs, such as <code>return</code>, <code>break</code> and <code>continue</code> statements. Such constructs can, in general, be considered in terms of invoking an escape continuation established by an enclosing control statement (in case of <code>break</code> and <code>continue</code>, such interpretation requires looping constructs to be considered in terms of recursive function calls). In some languages, such as ECMAScript, <code>return</code> refers to the continuation established by the closure lexically innermost with respect to the statement—thus, a <code>return</code> within a closure transfers control to the code that called it. However in Smalltalk, the superficially similar operator <code>^</code> invokes the escape continuation established for the method invocation, ignoring the escape continuations of any intervening nested closures. The escape continuation of a particular closure can only be invoked in Smalltalk implicitly by reaching the end of the closure's code. The following examples in ECMAScript and Smalltalk highlight the difference:</p>
+<p>WHATSON? e1675063-1a47-4550-bb57-4b567caee182</p>
+<pre>
+"Smalltalk"
+foo
+  | xs |
+  xs := #(1 2 3 4).
+  xs do: [:x | ^x].
+  ^0
+bar
+  Transcript show: (self foo printString) "prints 1"
+</pre>
+<p>WHATSON? 20908c9a-5a40-4854-882f-1ee4ed8f6817</p>
+<pre>
+// ECMAScript
+function foo() {
+  var xs = [1, 2, 3, 4];
+  xs.forEach(function (x) { return x; });
+  return 0;
+}
+alert(foo()); // prints 0
+</pre>
+<p>The above code snippets will behave differently because the Smalltalk <code>^</code> operator and the JavaScript <code>return</code> operator are not analogous. In the ECMAScript example, <code>return x</code> will leave the inner closure to begin a new iteration of the <code>forEach</code> loop, whereas in the Smalltalk example, <code>^x</code> will abort the loop and return from the method <code>foo</code>.</p>
+<p>Common Lisp provides a construct that can express either of the above actions: Lisp <code>(return-from foo x)</code> behaves as Smalltalk <code>^x</code>, while Lisp <code>(return-from nil x)</code> behaves as JavaScript <code>return x</code>. Hence, Smalltalk makes it possible for a captured escape continuation to outlive the extent in which it can be successfully invoked. Consider:</p>
+<p>WHATSON? 2ae86588-8a51-4853-b28a-4ed7ab5720b7</p>
+<pre>
+"Smalltalk"
+foo
+    ^[ :x | ^x ]
+bar
+    | f |
+    f := self foo.
+    f value: 123 "error!"
+</pre>
+<p>When the closure returned by the method <code>foo</code> is invoked, it attempts to return a value from the invocation of <code>foo</code> that created the closure. Since that call has already returned and the Smalltalk method invocation model does not follow the spaghetti stack discipline to facilitate multiple returns, this operation results in an error.</p>
+<p>Some languages, such as Ruby, enable the programmer to choose the way <code>return</code> is captured. An example in Ruby:</p>
+<p>WHATSON? b2b3e2b2-55c6-42c9-851b-a96741a11f03</p>
+<pre>
+# Ruby
+ 
+# Closure using a Proc
+def foo
+  f = Proc.new { return "return from foo from inside proc" }
+  f.call # control leaves foo here
+  return "return from foo"
+end
+ 
+# Closure using a lambda
+def bar
+  f = lambda { return "return from lambda" }
+  f.call # control does not leave bar here
+  return "return from bar"
+end
+ 
+puts foo # prints "return from foo from inside proc"
+puts bar # prints "return from bar"
+</pre>
+<p>Both <code>Proc.new</code> and <code>lambda</code> in this example are ways to create a closure, but semantics of the closures thus created are different with respect to the <code>return</code> statement.</p>
+<p>In Scheme, definition and scope of the <code>return</code> control statement is explicit (and only arbitrarily named 'return' for the sake of the example). The following is a direct translation of the Ruby sample.</p>
+<p>WHATSON? ba084075-0bda-444f-8610-fbe97f94cd92</p>
+<pre>
+; Scheme
+(define call/cc call-with-current-continuation)
+ 
+(define (foo)
+  (call/cc
+   (lambda (return)
+     (define (f) (return "return from foo from inside proc"))
+     (f) ; control leaves foo here
+     (return "return from foo"))))
+ 
+(define (bar)
+  (call/cc
+   (lambda (return)
+     (define (f) (call/cc (lambda (return) (return "return from lambda"))))
+     (f) ; control does not leave bar here
+     (return "return from bar"))))
+ 
+(display (foo)) ; prints "return from foo from inside proc"
+(newline)
+(display (bar)) ; prints "return from bar"
+</pre>
+<h2>Closure-like constructs</h2>
+<p>Features of some languages simulate some features of closures. Language features include some object-oriented techniques, for example in Java, C++, Objective-C, C#, D.</p>
+<h3>Callbacks (C)</h3>
+<p>In C, libraries that support callbacks, a callback can sometimes be registered using two values: a function pointer and a separate <code>void*</code> pointer to arbitrary data of the user's choice. Each time the library executes the callback function, it passes in the data pointer. This enables the callback to maintain state and to refer to information captured at the time it was registered. The idiom is similar to closures in functionality, but not in syntax.</p>
+<h3>Local classes and Lambda functions (Java)</h3>
+<p>Java enables classes to be defined inside methods. These are called <i>local classes</i>. When such classes are not named, they are known as <i>anonymous classes</i> (or anonymous <i>inner</i> classes). A local class (either named or anonymous) may refer to names in lexically enclosing classes, or read-only variables (marked as <tt>final</tt>) in the lexically enclosing method.</p>
+<p>WHATSON? 49451880-5123-43bf-a870-79d8488b2de2</p>
+<pre>
+class CalculationWindow extends JFrame {
+  private volatile int result;
+  ...
+  public void calculateInSeparateThread(final URI uri) {
+    // The expression "new Runnable() { ... }" is an anonymous class implementing the 'Runnable' interface.
+    new Thread(
+      new Runnable() {
+        void run() {
+          // It can read final local variables:
+          calculate(uri);
+          // It can access private fields of the enclosing class:
+          result = result + 10;
+        }
+      }
+    ).start();
+  }
+}
+</pre>
+<p>The capturing of <tt>final</tt> variables enables you to capture variables by value. Even if the variable you want to capture is non-<tt>final</tt>, you can always copy it to a temporary <tt>final</tt> variable just before the class.</p>
+<p>Capturing of variables by reference can be emulated by using a <tt>final</tt> reference to a mutable container, for example, a single-element array. The local class will not be able to change the value of the container reference itself, but it will be able to change the contents of the container.</p>
+<p>With the advent of Java 8's lambda expressions, the closure causes the above code to be executed as:</p>
+<p>WHATSON? e45335f7-17a2-4777-b2c8-e960f4289a56</p>
+<pre>
+class CalculationWindow extends JFrame {
+private volatile int result;
+  ...
+  public void calculateInSeparateThread(final URI uri) {
+    // the code () -&gt; { /* code */ } is a closure
+    new Thread(() -&gt; {
+        calculate(uri);
+        result = result + 10;
+    }).start();
+  }
+}
+</pre>
+<p>Local classes are one of the types of inner class that are declared within the body of a method. Java also supports inner classes that are declared as <i>non-static members</i> of an enclosing class. They are normally referred to just as "inner classes". These are defined in the body of the enclosing class and have full access to instance variables of the enclosing class. Due to their binding to these instance variables, an inner class may only be instantiated with an explicit binding to an instance of the enclosing class using a special syntax.</p>
+<p>WHATSON? b40b41d2-92ac-4d48-8384-abb7bd88700b</p>
+<pre>
+public class EnclosingClass {
+  /* Define the inner class */
+  public class InnerClass {
+    public int incrementAndReturnCounter() {
+      return counter++;
+    }
+  }
+ 
+  private int counter;
+ 
+  {
+    counter = 0;
+  }
+ 
+  public int getCounter() {
+    return counter;
+  }
+ 
+  public static void main(String[] args) {
+    EnclosingClass enclosingClassInstance = new EnclosingClass();
+    /* Instantiate the inner class, with binding to the instance */
+    EnclosingClass.InnerClass innerClassInstance =
+      enclosingClassInstance.new InnerClass();
+ 
+    for(int i = enclosingClassInstance.getCounter(); (i =
+    innerClassInstance.incrementAndReturnCounter()) &lt; 10;) {
+      System.out.println(i);
+    }
+  }
+}
+</pre>
+<p>Upon execution, this will print the integers from 0 to 9. Beware to not confuse this type of class with the nested class, which is declared in the same way with an accompanied usage of the "static" modifier; those have not the desired effect but are instead just classes with no special binding defined in an enclosing class.</p>
+<p>There have been a number of proposals for adding more fully featured closures to Java.</p>
+<h3>Blocks (C, C++, Objective-C 2.0)</h3>
+<p>Apple introduced <b>Blocks</b>, a form of closure, as a nonstandard extension into C, C++, Objective-C 2.0 and in Mac OS X 10.6 "Snow Leopard" and iOS 4.0.</p>
+<p>Pointers to block and block literals are marked with <code>^</code>. Normal local variables are captured by value when the block is created, and are read-only inside the block. Variables to be captured by reference are marked with <code>__block</code>. Blocks that need to persist outside of the scope they are created in may need to be copied.</p>
+<p>WHATSON? c98d3f74-d750-439e-a3ec-c3025d5111aa</p>
+<pre>
+typedef int (^IntBlock)();
+ 
+IntBlock downCounter(int start) {
+	 __block int i = start;
+	 return [[ ^int() {
+		 return i--;
+	 } copy] autorelease];
+}
+ 
+IntBlock f = downCounter(5);
+NSLog(@"%d", f());
+NSLog(@"%d", f());
+NSLog(@"%d", f());
+</pre>
+<h3>Delegates (C#, D)</h3>
+<p>C# anonymous methods and lambda expressions support closure:</p>
+<p>WHATSON? 2a67edce-a138-4fc7-8c29-d2a11a006681</p>
+<pre>
+var data = new[] {1, 2, 3, 4};
+var multiplier = 2;
+var result = data.Select(x =&gt; x * multiplier);
+</pre>
+<p>Closures are implemented by delegates in D.</p>
+<p>WHATSON? 60a8422e-98f1-452f-a8d5-1909188350a3</p>
+<pre>
+auto test1() {
+    int a = 7;
+    return delegate() { return a + 3; }; // anonymous delegate construction
+}
+ 
+auto test2() {
+    int a = 20;
+    int foo() { return a + 5; } // inner function
+    return &amp;foo;  // other way to construct delegate
+}
+ 
+void bar() {
+    auto dg = test1();
+    dg();    // =10   // ok, test1.a is in a closure and still exists
+ 
+    dg = test2();
+    dg();    // =25   // ok, test2.a is in a closure and still exists
+}
+</pre>
+<p>D version 1, has limited closure support. For example, the above code will not work correctly, because the variable a is on the stack, and after returning from test(), it is no longer valid to use it (most probably calling foo via dg(), will return a 'random' integer). This can be solved by explicitly allocating the variable 'a' on heap, or using structs or class to store all needed closed variables and construct a delegate from a method implementing the same code. Closures can be passed to other functions, as long as they are only used while the referenced values are still valid (for example calling another function with a closure as a callback parameter), and are useful for writing generic data processing code, so this limitation, in practice, is often not an issue.</p>
+<p>This limitation was fixed in D version 2 - the variable 'a' will be automatically allocated on the heap because it is used in the inner function, and a delegate of that function can escape the current scope (via assignment to dg or return). Any other local variables (or arguments) that are not referenced by delegates or that are only referenced by delegates that don't escape the current scope, remain on the stack, which is simpler and faster than heap allocation. The same is true for inner's class methods that references a function's variables.</p>
+<h3>Function objects (C++)</h3>
+<p>C++ enables defining function objects by overloading <code>operator()</code>. These objects behave somewhat like functions in a functional programming language. They may be created at runtime and may contain state, but they do not implicitly capture local variables as closures do. As of the 2011 revision, the C++ language also supports closures, which are a type of function object constructed automatically from a special language construct called <i>lambda-expression</i>. A C++ closure may capture its context either by storing copies of the accessed variables as members of the closure object or by reference. In the latter case, if the closure object escapes the scope of a referenced object, invoking its <code>operator()</code> causes undefined behavior since C++ closures do not extend the lifetime of their context.</p>
+<p>WHATSON? bc0f85bb-5f11-486e-9036-70852a45ab2a</p>
+<pre>
+void foo(string myname) {
+    int y;
+    vector&lt;string&gt; n;
+    // ...
+    auto i = std::find_if(n.begin(), n.end(),
+               // this is the lambda expression:
+               [&amp;](const string&amp; s) { return s != myname &amp;&amp; s.size() &gt; y; }
+             );
+    // 'i' is now either 'n.end()' or points to the first string in 'n'
+    // which is not equal to 'myname' and whose length is greater than 'y'
+}
+</pre>
+<h3>Inline agents (Eiffel)</h3>
+<p>Eiffel includes <b>inline agents</b> defining closures. An inline agent is an object representing a routine, defined by giving the code of the routine in-line. For example, in</p>
+<p>WHATSON? be798504-4bed-43ef-906b-38692add8e42</p>
+<pre>
+ok_button.click_event.subscribe (
+	agent (x, y: INTEGER) do
+		map.country_at_coordinates (x, y).display
+	end
+)
+</pre>
+<p>the argument to <code>subscribe</code> is an agent, representing a procedure with two arguments; the procedure finds the country at the corresponding coordinates and displays it. The whole agent is "subscribed" to the event type <code>click_event</code> for a certain button, so that whenever an instance of the event type occurs on that button — because a user has clicked the button — the procedure will be executed with the mouse coordinates being passed as arguments for <code>x</code> and <code>y</code>.</p>
+<p>The main limitation of Eiffel agents, which distinguishes them from closures in other languages, is that they cannot reference local variables from the enclosing scope. This design decision helps in avoiding ambiguity when talking about a local variable value in a closure - should it be the latest value of the variable or the value captured when the agent is created? Only <code>Current</code> (a reference to current object, analogous to <code>this</code> in Java), its features, and arguments of the agent itself can be accessed from within the agent body. The values of the outer local variables can be passed by providing additional closed operands to the agent.</p>
+<h2>See also</h2>
+<ul>
+<li>Anonymous function</li>
+<li>Blocks (C language extension)</li>
+<li>Command pattern</li>
+<li>Continuation</li>
+<li>Currying</li>
+<li>Funarg problem</li>
+<li>Lambda calculus</li>
+<li>Lazy evaluation</li>
+<li>Partial application</li>
+<li>Spaghetti stack</li>
+<li>Syntactic closure</li>
+<li>Value-level programming</li>
+</ul>
+</body>
+</html>

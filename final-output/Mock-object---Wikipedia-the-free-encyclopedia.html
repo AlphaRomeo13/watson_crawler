@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Mock-object---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Mock object</h1>
+<p>In object-oriented programming, <b>mock objects</b> are simulated objects that mimic the behavior of real objects in controlled ways. A programmer typically creates a mock object to test the behavior of some other object, in much the same way that a car designer uses a crash test dummy to simulate the dynamic behavior of a human in vehicle impacts.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Reasons for use</li>
+<li>2 Technical details
+<ul>
+<li>2.1 Mocks, fakes and stubs</li>
+<li>2.2 Setting expectations</li>
+<li>2.3 Writing log strings</li>
+</ul>
+</li>
+<li>3 Use in test-driven development</li>
+<li>4 Limitations</li>
+<li>5 See also</li>
+<li>6 References</li>
+<li>7 External links</li>
+</ul>
+<ul>
+<li>2.1 Mocks, fakes and stubs</li>
+<li>2.2 Setting expectations</li>
+<li>2.3 Writing log strings</li>
+</ul>
+<p></p>
+<h2>Reasons for use</h2>
+<p>In a unit test, mock objects can simulate the behavior of complex, real objects and are therefore useful when a real object is impractical or impossible to incorporate into a unit test. If an actual object has any of the following characteristics, it may be useful to use a mock object in its place:</p>
+<ul>
+<li>the object supplies non-deterministic results (e.g., the current time or the current temperature);</li>
+<li>it has states that are difficult to create or reproduce (e.g., a network error);</li>
+<li>it is slow (e.g., a complete database, which would have to be initialized before the test);</li>
+<li>it does not yet exist or may change behavior;</li>
+<li>it would have to include information and methods exclusively for testing purposes (and not for its actual task).</li>
+</ul>
+<p>For example, an alarm clock program which causes a bell to ring at a certain time might get the current time from the outside world. To test this, the test must wait until the alarm time to know whether it has rung the bell correctly. If a mock object is used in place of the real object, it can be programmed to provide the bell-ringing time (whether it is actually that time or not) so that the alarm clock program can be tested in isolation.</p>
+<h2>Technical details</h2>
+<p>Mock objects have the same interface as the real objects they mimic, allowing a client object to remain unaware of whether it is using a real object or a mock object. Many available mock object frameworks allow the programmer to specify which, and in what order, methods will be invoked on a mock object and what parameters will be passed to them, as well as what values will be returned. Thus, the behavior of a complex object such as a network socket can be mimicked by a mock object, allowing the programmer to discover whether the object being tested responds appropriately to the wide variety of states such mock objects may be in.</p>
+<h3>Mocks, fakes and stubs</h3>
+<p>Some authors draw a distinction between <i>fake</i> and <i>mock</i> objects. Fakes are the simpler of the two, simply implementing the same interface as the object that they represent and returning pre-arranged responses. Thus a fake object merely provides a set of method stubs.</p>
+<p>Mock objects in this sense do a little more: their method implementations contain assertions of their own. This means that a true mock, in this sense, will examine the context of each call— perhaps checking the order in which its methods are called, perhaps performing tests on the data passed into the method calls as arguments.</p>
+<p>In the book "The Art of Unit Testing" mocks are described as a fake object that helps decide whether a test failed or passed by verifying whether an interaction with an object occurred. Everything else is defined as a stub. In that book, "Fakes" are anything that is not real. Based on their usage, they are either stubs or mocks.</p>
+<h3>Setting expectations</h3>
+<p>Consider an example where an authorization sub-system has been mocked. The mock object implements an <code>isUserAllowed(task : Task) : <b>boolean</b></code> method to match that in the real authorization class. Many advantages follow if it also exposes an <code>isAllowed : boolean</code> property, which is not present in the real class. This allows test code easily to set the expectation that a user will, or will not, be granted permission in the next call and therefore readily to test the behavior of the rest of the system in either case.</p>
+<p>Similarly, a mock-only setting could ensure that subsequent calls to the sub-system will cause it to throw an exception, or hang without responding, or return <code>null</code> etc. Thus it is possible to develop and test client behaviors for all realistic fault conditions in back-end sub-systems as well as for their expected responses. Without such a simple and flexible mock system, testing each of these situations may be too laborious for them to be given proper consideration.</p>
+<h3>Writing log strings</h3>
+<p>A mock database object's <code>save(person : Person)</code> method may not contain much (if any) implementation code. It might or might not check the existence and perhaps the validity of the Person object passed in for saving (see fake vs. mock discussion above), but beyond that there might be no other implementation.</p>
+<p>This is a missed opportunity. The mock method could add an entry to a public log string. The entry need be no more than "Person saved", or it may include some details from the person object instance, such as a name or ID. If the test code also checks the final contents of the log string after various series of operations involving the mock database then it is possible to verify that in each case exactly the expected number of database saves have been performed. This can find otherwise invisible performance-sapping bugs, for example, where a developer, nervous of losing data, has coded repeated calls to <code>save()</code> where just one would have sufficed.</p>
+<h2>Use in test-driven development</h2>
+<p>Programmers working with the test-driven development (TDD) method make use of mock objects when writing software. Mock objects meet the interface requirements of, and stand in for, more complex real ones; thus they allow programmers to write and unit-test functionality in one area without actually calling complex underlying or collaborating classes. Using mock objects allows developers to focus their tests on the behavior of the system under test (SUT) without worrying about its dependencies. For example, testing a complex algorithm based on multiple objects being in particular states can be clearly expressed using mock objects in place of real objects.</p>
+<p>Apart from complexity issues and the benefits gained from this separation of concerns, there are practical speed issues involved. Developing a realistic piece of software using TDD may easily involve several hundred unit tests. If many of these induce communication with databases, web services and other out-of-process or networked systems, then the suite of unit tests will quickly become too slow to be run regularly. This in turn leads to bad habits and a reluctance by the developer to maintain the basic tenets of TDD.</p>
+<p>When mock objects are replaced by real ones then the end-to-end functionality will need further testing. These will be integration tests rather than unit tests.</p>
+<h2>Limitations</h2>
+<p>The use of mock objects can closely couple the unit tests to the actual implementation of the code that is being tested. For example, many mock object frameworks allow the developer to check the order of and number of times that mock object methods were invoked by the real object being tested; subsequent refactoring of the code that is being tested could therefore cause the test to fail even though all mocked object methods still obey the contract of the previous implementation. This illustrates that unit tests should test a method's external behavior rather than its internal implementation. Over-use of mock objects as part of a suite of unit tests can result in a dramatic increase in the amount of maintenance that needs to be performed on the tests themselves during system evolution as refactoring takes place. The improper maintenance of such tests during evolution could allow bugs to be missed that would otherwise be caught by unit tests that use instances of real classes. Conversely, simply mocking one method might require far less configuration than setting up an entire real class and therefore reduce maintenance needs.</p>
+<p>Mock objects have to accurately model the behavior of the object they are mocking, which can be difficult to achieve if the object being mocked comes from another developer or project or if it has not even been written yet. If the behavior is not modeled correctly then the unit tests may register a pass even though a failure would occur at run time under the same conditions that the unit test is exercising, thus rendering the unit test inaccurate.</p>
+<h2>See also</h2>
+<ul>
+<li>Abstract method</li>
+<li>Dummy code</li>
+<li>Hamcrest</li>
+<li>Method stub</li>
+<li>Test double</li>
+</ul>
+</body>
+</html>

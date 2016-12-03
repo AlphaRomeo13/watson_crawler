@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Total-functional-programming---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Total functional programming</h1>
+<p><b>Total functional programming</b> (also known as <b>strong functional programming</b>, to be contrasted with ordinary, or <i>weak</i> functional programming) is a programming paradigm that restricts the range of programs to those that are provably terminating.</p>
+<p>Termination is guaranteed by the following restrictions:</p>
+<ol>
+<li>A restricted form of recursion, which operates only upon ‘reduced’ forms of its arguments, such as Walther recursion, substructural recursion, or "strongly normalizing" as proven by abstract interpretation of code.</li>
+<li>Every function must be a total (as opposed to partial) function. That is, it must have a definition for everything inside its domain.
+<ul>
+<li>There are several possible ways to extend commonly used partial functions such as division to be total: choosing an arbitrary result for inputs on which the function is normally undefined (such as <img class="mwe-math-fallback-image-inline tex" alt="\forall x \in \mathbb{N}. x \div 0 = 0" src="//upload.wikimedia.org/math/f/9/8/f98fc80dd8376996b176e08352f3133f.png"> for division); adding another argument to specify the result for those inputs; or excluding them by use of type system features such as refinement types.</li>
+</ul>
+</li>
+</ol>
+<ul>
+<li>There are several possible ways to extend commonly used partial functions such as division to be total: choosing an arbitrary result for inputs on which the function is normally undefined (such as <img class="mwe-math-fallback-image-inline tex" alt="\forall x \in \mathbb{N}. x \div 0 = 0" src="//upload.wikimedia.org/math/f/9/8/f98fc80dd8376996b176e08352f3133f.png"> for division); adding another argument to specify the result for those inputs; or excluding them by use of type system features such as refinement types.</li>
+</ul>
+<p>These restrictions mean that total functional programming is not Turing-complete. However, the set of algorithms that can be used is still huge. For example, any algorithm for which an asymptotic upper bound can be calculated (by a program that itself only uses Walther recursion) can be trivially transformed into a provably-terminating function by using the upper bound as an extra argument decremented on each iteration or recursion.</p>
+<p>For example, quicksort is not trivially shown to be substructural recursive, but it only recurs to a maximum depth of the length of the vector (in the worst-case O(n^2) case). A quicksort implementation on lists (which would be rejected by a substructural recursive checker) is:</p>
+<p>WHATSON? 94bd1077-c4a7-4704-ae48-9eab59d6bf03</p>
+<pre>
+<code>qsort []       = []
+qsort [a]      = [a]
+qsort (a:as)   = let
+                   (lesser, greater) = partition a as
+                 in qsort lesser ++ [a] ++ qsort greater
+</code>
+</pre>
+<p>To make it substructural recursive using the length of the vector as a limit, we could do:</p>
+<p>WHATSON? 6cf8a26b-0527-4025-b190-9a11d8bc1a27</p>
+<pre>
+<code>qsort x = qsortSub x x
+-- minimum case
+qsortSub []     as     = as -- shows termination
+-- standard qsort cases
+qsortSub (l:ls) []     = [] -- nonrecursive, so accepted
+qsortSub (l:ls) [a]    = [a] -- nonrecursive, so accepted
+qsortSub (l:ls) (a:as) = let
+                           (lesser, greater) = partition a as
+                            -- recursive, but recurs on ls, which is a substructure of
+                            -- its first input.
+                         in qsortSub ls lesser ++ [a] ++ qsortSub ls greater
+</code>
+</pre>
+<p>Some classes of algorithms that have no theoretical upper bound but have a practical upper bound (for example, some heuristic-based algorithms) can be programmed to "give up" after so many recursions, also ensuring termination.</p>
+<p>Another outcome of total functional programming is that both strict evaluation and lazy evaluation result in the same behaviour, in principle; however, one or the other may still be preferable (or even required) for performance reasons.</p>
+<p>In total functional programming, a distinction is made between data and codata—the former is finitary, while the latter is potentially infinite. Such potentially infinite data structures are used for applications such as I/O. Using codata entails the usage of such operations as corecursion. However, it is possible to do I/O in a total functional programming language (with dependent types) also without codata.</p>
+<p>Both Epigram and Charity could be considered total functional programming languages, even though they don't work in the way Turner specifies in his paper. So could programming directly in plain System F, in Martin-Löf type theory or the Calculus of Constructions.</p>
+</body>
+</html>

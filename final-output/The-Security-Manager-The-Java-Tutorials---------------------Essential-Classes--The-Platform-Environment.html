@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>The-Security-Manager-The-Java-Tutorials---------------------Essential-Classes--The-Platform-Environment.html</title></head>
+<body>
+<h1>The Security Manager</h1>
+<p>A <i>security manager</i> is an object that defines a security policy for an application. This policy specifies actions that are unsafe or sensitive. Any actions not allowed by the security policy cause a 
+<code>SecurityException</code> to be thrown. An application can also query its security manager to discover which actions are allowed.</p>
+<p>Typically, a web applet runs with a security manager provided by the browser or Java Web Start plugin. Other kinds of applications normally run without a security manager, unless the application itself defines one. If no security manager is present, the application has no security policy and acts without restrictions.</p>
+<p>This section explains how an application interacts with an existing security manager. For more detailed information, including information on how to design a security manager, refer to the 
+Security Guide.</p>
+<h2>Interacting with the Security Manager</h2>
+<p>The security manager is an object of type 
+<code>SecurityManager</code>; to obtain a reference to this object, invoke <code>System.getSecurityManager</code>.</p>
+<p>WHATSON? dc7091b1-e859-4fdb-83c7-155315d5bd41</p>
+<pre>
+SecurityManager appsm = System.getSecurityManager();
+</pre>
+<p>If there is no security manager, this method returns <code>null</code>.</p>
+<p>Once an application has a reference to the security manager object, it can request permission to do specific things. Many classes in the standard libraries do this. For example, <code>System.exit</code>, which terminates the Java virtual machine with an exit status, invokes <code>SecurityManager.checkExit</code> to ensure that the current thread has permission to shut down the application.</p>
+<p>The SecurityManager class defines many other methods used to verify other kinds of operations. For example, <code>SecurityManager.checkAccess</code> verifies thread accesses, and <code>SecurityManager.checkPropertyAccess</code> verifies access to the specified property. Each operation or group of operations has its own <code>check<em>XXX</em>()</code> method.</p>
+<p>In addition, the set of <code>check<em>XXX</em>()</code> methods represents the set of operations that are already subject to the protection of the security manager. Typically, an application does not have to directly invoke any <code>check<em>XXX</em>()</code> methods.</p>
+<h2>Recognizing a Security Violation</h2>
+<p>Many actions that are routine without a security manager can throw a <code>SecurityException</code> when run with a security manager. This is true even when invoking a method that isn't documented as throwing <code>SecurityException</code>. For example, consider the following code used to read a file:</p>
+<p>WHATSON? 0de0723b-a1d1-4aa4-890f-4883f896cb09</p>
+<pre>
+reader = new FileReader("xanadu.txt");
+</pre>
+<p>In the absence of a security manager, this statement executes without error, provided <code>xanadu.txt</code> exists and is readable. But suppose this statement is inserted in a web applet, which typically runs under a security manager that does not allow file input. The following error messages might result:</p>
+<p>WHATSON? 1df64e09-8703-42c6-a2be-7b6bc947ef40</p>
+<pre>
+<i>appletviewer fileApplet.html</i>
+Exception in thread "AWT-EventQueue-1" java.security.AccessControlException: access denied (java.io.FilePermission characteroutput.txt write)
+        at java.security.AccessControlContext.checkPermission(AccessControlContext.java:323)
+        at java.security.AccessController.checkPermission(AccessController.java:546)
+        at java.lang.SecurityManager.checkPermission(SecurityManager.java:532)
+        at java.lang.SecurityManager.checkWrite(SecurityManager.java:962)
+        at java.io.FileOutputStream.&lt;init&gt;(FileOutputStream.java:169)
+        at java.io.FileOutputStream.&lt;init&gt;(FileOutputStream.java:70)
+        at java.io.FileWriter.&lt;init&gt;(FileWriter.java:46)
+<i>...</i>
+</pre>
+<p>Note that the specific exception thrown in this case, 
+<code>java.security.AccessControlException</code>, is a subclass of <code>SecurityException</code>.</p>
+</body>
+</html>

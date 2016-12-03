@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>How-to-Create-Translucent-and-Shaped-Windows-The-Java-Tutorials---------------------Creating-a-GUI-With-JFCSwing--Using-Other-Swing-Features.html</title></head>
+<body>
+<h1>How to Create Translucent and Shaped Windows</h1>
+<p>As of the Java Platform, Standard Edition 6 (Java SE 6) Update 10 release, you can add translucent and shaped windows to your Swing applications. This page covers the following topics:</p>
+<ul>
+<li>Supported Capabilities</li>
+<li>Determining a Platform's Capabilities</li>
+<li>How to Implement Uniform Translucency</li>
+<li>How to Implement Per-Pixel Translucency</li>
+<li>How to Implement a Shaped Window</li>
+<li>Java SE Release 6 Update 10 API</li>
+<li>For More Information</li>
+</ul>
+<h2>Supported Capabilities</h2>
+<p>This functionality, which is part of the public AWT package in the JDK 7 release, takes three forms, as follows:</p>
+<ul>
+<li>You can create a window with <em>uniform</em> translucency, where each pixel has the same translucency (or alpha) value. The following screen capture shows a window with 45 percent translucency.
+<center><img src="../../figures/uiswing/misc/TranslucentWindow.png" width="331" height="225" align="bottom" alt="A translucent window"></center>
+<!-- ************************ -->
+
+<div class="note"><hr><strong>Try this:</strong> <p>Click the Launch button to run the TranslucentWindowDemo example using
+Java™ Web Start. This example requires JDK 7 or later. Alternatively, to compile and run the example yourself, consult the example index.</p>
+<img src="../../images/jws-launch-button.png" width="88" height="23" align="bottom" alt="Launches the TranslucentWindowDemo example">
+<hr></div>
+
+<!-- ************************ -->
+
+
+</li>
+<li>You can create a window with <em>per-pixel</em> translucency, where each pixel has its own alpha value. With this feature you can, for example, create a window that fades away to nothing by defining a gradient in the alpha values. The following screen capture shows a window with gradient translucency from the top (fully translucent) to the bottom (fully opaque).
+<center><img src="../../figures/uiswing/misc/GradientWindow.png" width="333" height="222" align="bottom" alt="A window with per-pixel translucency."></center>
+<!-- ************************ -->
+
+<div class="note"><hr><strong>Try this:</strong> <p>Click the Launch button to run the GradientTranslucentWindowDemo example using
+Java™ Web Start. This example requires JDK 7 or later. Alternatively, to compile and run the example yourself, consult the example index.</p>
+<img src="../../images/jws-launch-button.png" width="88" height="23" align="bottom" alt="Launches the GradientTranslucentWindowDemo example">
+<hr></div>
+
+<!-- ************************ -->
+
+
+</li>
+
+
+<li>You can create a window with any <code>Shape</code> object that you can define. Shaped windows can be opaque, or they can use uniform, or per-pixel, translucency. The following screen capture shows an oval-shaped window with 30 percent translucency.
+<center><img src="../../figures/uiswing/misc/ShapedWindow.png" width="339" height="229" align="bottom" alt="A oval-shaped window."></center>
+<!-- ************************ -->
+
+<div class="note"><hr><strong>Try this:</strong> <p>Click the Launch button to run the ShapedWindowDemo example using
+Java™ Web Start. This example requires JDK 7 or later. Alternatively, to compile and run the example yourself, consult the example index.</p>
+<img src="../../images/jws-launch-button.png" width="88" height="23" align="bottom" alt="Launches the ShapedWindowDemo example">
+<hr></div>
+
+<!-- ************************ -->
+
+
+</li>
+
+</ul>
+<p>Click the Launch button to run the TranslucentWindowDemo example using
+Java™ Web Start. This example requires JDK 7 or later. Alternatively, to compile and run the example yourself, consult the example index.</p>
+<p>Click the Launch button to run the GradientTranslucentWindowDemo example using
+Java™ Web Start. This example requires JDK 7 or later. Alternatively, to compile and run the example yourself, consult the example index.</p>
+<p>Click the Launch button to run the ShapedWindowDemo example using
+Java™ Web Start. This example requires JDK 7 or later. Alternatively, to compile and run the example yourself, consult the example index.</p>
+<h2>Determining a Platform's Capabilities</h2>
+<ul>
+<li><code>TRANSLUCENT</code> – The underlying platform supports windows with uniform translucency, where each pixel has the same alpha value.</li>
+<li><code>PERPIXEL_TRANSLUCENT</code> – The underlying platform supports windows with per-pixel translucency. This capability is required to implement windows that fade away.</li>
+<li><code>PERPIXEL_TRANSPARENT</code> – The underlying platform supports shaped windows.</li>
+</ul>
+<p>WHATSON? 1301a03a-ab59-427e-a213-282283b39855</p>
+<pre>
+import static java.awt.GraphicsDevice.WindowTranslucency.*;
+
+// Determine what the default GraphicsDevice can support.
+GraphicsEnvironment ge =
+    GraphicsEnvironment.getLocalGraphicsEnvironment();
+GraphicsDevice gd = ge.getDefaultScreenDevice();
+
+boolean isUniformTranslucencySupported =
+    gd.isWindowTranslucencySupported(TRANSLUCENT);
+boolean isPerPixelTranslucencySupported =
+    gd.isWindowTranslucencySupported(PERPIXEL_TRANSLUCENT);
+boolean isShapedWindowSupported =
+    gd.isWindowTranslucencySupported(PERPIXEL_TRANSPARENT);
+</pre>
+<h2>How to Implement Uniform Translucency</h2>
+<p>The
+<code><code>TranslucentWindowDemo.java</code></code> example creates a window that is 55 percent opaque (45 percent translucent). If the underlying platform does not support translucent windows, the example exits. The code relating to opacity is shown in bold.</p>
+<p>WHATSON? a51ccb03-a4ab-485e-a1e2-70391de21ad6</p>
+<pre>
+import java.awt.*;
+import javax.swing.*;
+import static java.awt.GraphicsDevice.WindowTranslucency.*;
+
+public class TranslucentWindowDemo extends JFrame {
+    public TranslucentWindowDemo() {
+        super("TranslucentWindow");
+        setLayout(new GridBagLayout());
+
+        setSize(300,200);
+        setLocationRelativeTo(null);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        //Add a sample button.
+        add(new JButton("I am a Button"));
+    }
+
+    public static void main(String[] args) {
+        // Determine if the GraphicsDevice supports translucency.
+        <b>GraphicsEnvironment ge = 
+            GraphicsEnvironment.getLocalGraphicsEnvironment();
+        GraphicsDevice gd = ge.getDefaultScreenDevice();</b>
+
+        //If translucent windows aren't supported, exit.
+        <b>if (!gd.isWindowTranslucencySupported(TRANSLUCENT)) {
+            System.err.println(
+                "Translucency is not supported");
+                System.exit(0);
+        }</b>
+        
+        JFrame.setDefaultLookAndFeelDecorated(true);
+
+        // Create the GUI on the event-dispatching thread
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                TranslucentWindowDemo tw = new TranslucentWindowDemo();
+
+                // Set the window to 55% opaque (45% translucent).
+                <b>tw.setOpacity(0.55f);</b>
+
+                // Display the window.
+                tw.setVisible(true);
+            }
+        });
+    }
+}
+</pre>
+<p>Note that the button is also affected by the uniform translucency. Setting the opacity affects the whole window, including any components that the window contains.</p>
+<h2>How to Implement Per-Pixel Translucency</h2>
+<p>Invoking 
+<code>setBackground(new Color(0,0,0,0))</code> on the window causes the software to use the alpha values to render per-pixel translucency. In fact, invoking <code>setBackground(new Color(0,0,0,alpha)</code>, where <code>alpha</code> is less than 255, installs per-pixel transparency. So, if you invoke <code>setBackground(new Color(0,0,0,128))</code> and do nothing else, the window is rendered with 50 percent translucency for each background pixel. However, if you are creating your own range of alpha values, you most likely will want an alpha value of 0.</p>
+<p>While not prohibited by the public API, you will generally want to enable per-pixel translucency on undecorated windows. In most cases, using per-pixel translucency on decorated windows does not make sense. Doing so can disable the decorations, or cause other platform-dependent side effects.</p>
+<p>To determine if a window is using per-pixel translucency, you can use the 
+<code>isOpaque</code> method.</p>
+<p>An example follows. First, here are the steps required to implement the example:</p>
+<ol>
+<li>Invoke <code>setBackground(new Color(0,0,0,0))</code> on the window.</li>
+<li>Create a <code>JPanel</code> instance that overrides the <code>paintComponent</code> method.</li>
+<li>In the <code>paintComponent</code> method, create a <code>GradientPaint</code> instance.</li>
+<li>In the example, the top of the rectangle has an alpha value of 0 (the most transparent) and the bottom has an alpha value of 255 (the most opaque). The <code>GradientPaint</code> class smoothly interpolates the alpha values from the top to the bottom of the rectangle.</li>
+<li>Set the <code>GradientPaint</code> instance as the panel's paint method.</li>
+</ol>
+<p>Here is the code for the
+<code><code>GradientTranslucentWindowDemo.java</code></code> example. If the underlying platform does not support per-pixel translucency, this example exits. The code specifically relating to creating the gradient window is shown in bold.</p>
+<p>WHATSON? e7aa62ac-ead3-4975-bd2d-cb1158a6f56a</p>
+<pre>
+import java.awt.*;
+import javax.swing.*;
+import static java.awt.GraphicsDevice.WindowTranslucency.*;
+
+public class GradientTranslucentWindowDemo extends JFrame {
+    public GradientTranslucentWindowDemo() {
+        super("GradientTranslucentWindow");
+
+        <b>setBackground(new Color(0,0,0,0));</b>
+        setSize(new Dimension(300,200));
+        setLocationRelativeTo(null);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        <b>JPanel panel = new JPanel() {</b>
+            <b>@Override
+            protected void paintComponent(Graphics g) {
+                if (g instanceof Graphics2D) {
+                    final int R = 240;
+                    final int G = 240;
+                    final int B = 240;
+
+                    Paint p =
+                        new GradientPaint(0.0f, 0.0f, new Color(R, G, B, 0),
+                            0.0f, getHeight(), new Color(R, G, B, 255), true);
+                    Graphics2D g2d = (Graphics2D)g;
+                    g2d.setPaint(p);
+                    g2d.fillRect(0, 0, getWidth(), getHeight());
+                }
+            }
+        };</b>
+        setContentPane(panel);
+        setLayout(new GridBagLayout());
+        add(new JButton("I am a Button"));
+    }
+
+    public static void main(String[] args) {
+        // Determine what the GraphicsDevice can support.
+        <b>GraphicsEnvironment ge = 
+            GraphicsEnvironment.getLocalGraphicsEnvironment();
+        GraphicsDevice gd = ge.getDefaultScreenDevice();</b>
+        boolean isPerPixelTranslucencySupported = 
+            gd.isWindowTranslucencySupported(PERPIXEL_TRANSLUCENT);
+
+        //If translucent windows aren't supported, exit.
+        <b>if (!isPerPixelTranslucencySupported) {
+            System.out.println(
+                "Per-pixel translucency is not supported");
+                System.exit(0);
+        }</b>
+
+        JFrame.setDefaultLookAndFeelDecorated(true);
+
+        // Create the GUI on the event-dispatching thread
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                GradientTranslucentWindowDemo gtw = new
+                    GradientTranslucentWindowDemo();
+
+                // Display the window.
+                gtw.setVisible(true);
+            }
+        });
+    }
+}
+</pre>
+<p>Note that the button is not affected by the per-pixel translucency. Setting the per-pixel translucency affects the background pixels only. If you want a window that has a uniformly translucent effect on the background pixels only, you can invoke <code>setBackground(new Color(0,0,0,alpha))</code> where <code>alpha</code> specifies your desired translucency.</p>
+<h2>How to Implement a Shaped Window</h2>
+<p>The best practice for setting the window's shape is to invoke <code>setShape</code> in the <code>componentResized</code> method of the component event listener. This practice will ensure that the shape is correctly calculated for the actual size of the window. The following example uses this approach.</p>
+<p>The
+<code><code>ShapedWindowDemo.java</code></code> example creates an oval-shaped window with 70 percent opacity. If the underlying platform does not support shaped windows, the example exits. If the underlying platform does not support translucency, the example uses a standard opaque window. You could modify this example to create a shaped window that also uses per-pixel translucency.</p>
+<p>The code relating to shaping the window is shown in bold.</p>
+<p>WHATSON? d00546a3-4c38-4c2d-907a-5d70d8d83d1d</p>
+<pre>
+import java.awt.*;
+import java.awt.event.*;
+import javax.swing.*;
+import java.awt.geom.Ellipse2D;
+import static java.awt.GraphicsDevice.WindowTranslucency.*;
+
+public class ShapedWindowDemo extends JFrame {
+    public ShapedWindowDemo() {
+        super("ShapedWindow");
+        setLayout(new GridBagLayout());
+
+        // It is best practice to set the window's shape in
+        // the componentResized method.  Then, if the window
+        // changes size, the shape will be correctly recalculated.
+        <b>addComponentListener(new ComponentAdapter() {</b>
+            // Give the window an elliptical shape.
+            // If the window is resized, the shape is recalculated here.
+            <b>@Override
+            public void componentResized(ComponentEvent e) {
+                setShape(new Ellipse2D.Double(0,0,getWidth(),getHeight()));
+            }
+        });</b>
+
+        <b>setUndecorated(true);</b>
+        setSize(300,200);
+        setLocationRelativeTo(null);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        add(new JButton("I am a Button"));
+    }
+
+    public static void main(String[] args) {
+        // Determine what the GraphicsDevice can support.
+        <b>GraphicsEnvironment ge = 
+            GraphicsEnvironment.getLocalGraphicsEnvironment();
+        GraphicsDevice gd = ge.getDefaultScreenDevice();</b>
+        final boolean isTranslucencySupported = 
+            gd.isWindowTranslucencySupported(TRANSLUCENT);
+
+        //If shaped windows aren't supported, exit.
+        <b>if (!gd.isWindowTranslucencySupported(PERPIXEL_TRANSPARENT)) {
+            System.err.println("Shaped windows are not supported");
+            System.exit(0);
+        }</b>
+
+        //If translucent windows aren't supported, 
+        //create an opaque window.
+        if (!isTranslucencySupported) {
+            System.out.println(
+                "Translucency is not supported, creating an opaque window");
+        }
+
+        // Create the GUI on the event-dispatching thread
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                ShapedWindowDemo sw = new ShapedWindowDemo();
+
+                // Set the window to 70% translucency, if supported.
+                if (isTranslucencySupported) {
+                    sw.setOpacity(0.7f);
+                }
+
+                // Display the window.
+                sw.setVisible(true);
+            }
+        });
+    }
+}
+</pre>
+<h2>Java SE 6 Update 10 API</h2>
+<h2>For More Information</h2>
+<ul>
+<li>The 
+How to Create Translucent and Shaped Windows article describes the Java SE 6 Update 10 API.</li>
+<li>The 
+Translucent and Shaped Swing Windows article describes the Java SE 6 Update 10 API.</li>
+<li>Romain Guy's 
+Curious Creature blog entry shows a demo with an application of a translucent shaped window.</li>
+</ul>
+</body>
+</html>

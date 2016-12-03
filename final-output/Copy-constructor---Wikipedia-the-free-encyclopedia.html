@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Copy-constructor---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Copy constructor</h1>
+<p>A <b>copy constructor</b> is a special constructor in the C++ programming language for creating a new object as a copy of an existing object. The first argument of such a constructor is a reference to an object of the same type as is being constructed (const or non-const), which might be followed by parameters of any type (all having default values).</p>
+<p>Normally the compiler automatically creates a copy constructor for each class (known as an <b>implicit</b> copy constructor) but for special cases the programmer creates the copy constructor, known as a <b>user-defined</b> copy constructor. In such cases, the compiler does not create one. Hence, there is always one copy constructor that is either defined by the user or by the system.</p>
+<p>A user-defined copy constructor is generally needed when an object owns pointers or non-shareable references, such as to a file, in which case a destructor and an assignment operator should also be written (see Rule of three).</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Definition</li>
+<li>2 Operation
+<ul>
+<li>2.1 Explicit assignment in an expression</li>
+<li>2.2 Initialization</li>
+</ul>
+</li>
+<li>3 Examples
+<ul>
+<li>3.1 Implicit copy constructor</li>
+<li>3.2 User-defined copy constructor</li>
+<li>3.3 Copy constructors and templates</li>
+</ul>
+</li>
+<li>4 Bitwise Copy Constructor</li>
+<li>5 Logical Copy Constructor</li>
+<li>6 Explicit copy constructor</li>
+<li>7 See also</li>
+<li>8 Notes</li>
+<li>9 External links</li>
+</ul>
+<ul>
+<li>2.1 Explicit assignment in an expression</li>
+<li>2.2 Initialization</li>
+</ul>
+<ul>
+<li>3.1 Implicit copy constructor</li>
+<li>3.2 User-defined copy constructor</li>
+<li>3.3 Copy constructors and templates</li>
+</ul>
+<p></p>
+<h2>Definition</h2>
+<p>Copying of objects is achieved by the use of a copy constructor and an assignment operator. A copy constructor has as its first parameter a (possibly const or volatile) reference to its own class type. It can have more arguments, but the rest must have default values associated with them. The following would be valid copy constructors for class <code>X</code>:</p>
+<p>WHATSON? a1f650d6-f2c3-4012-b841-c8e67a7a3b68</p>
+<pre>
+X(const X&amp; copy_from_me);
+X(X&amp; copy_from_me);
+X(volatile X&amp; copy_from_me);
+X(const volatile X&amp; copy_from_me);
+X(X&amp; copy_from_me, int = 0);
+X(const X&amp; copy_from_me, double = 1.0, int = 42);
+...
+</pre>
+<p>The first one should be used unless there is a good reason to use one of the others. One of the differences between the first and the second is that temporaries can be copied with the first. For example:</p>
+<p>WHATSON? fb08e266-c7fd-41e5-bb6d-631e67dbe5a6</p>
+<pre>
+X a = X();     // valid given X(const X&amp; copy_from_me) but not valid given X(X&amp; copy_from_me)
+               // because the second wants a non-const X&amp;
+               // to create a, the compiler first creates a temporary by invoking the default constructor
+               // of X, then uses the copy constructor to initialize as a copy of that temporary. 
+               // For some compilers both versions actually work but this behaviour should not be relied 
+               // upon because it's non-standard.
+</pre>
+<p>Another difference between them is the obvious:</p>
+<p>WHATSON? c0cfb694-c595-43fd-b4af-8884a2df7177</p>
+<pre>
+const X a;
+X b = a;       // valid given X(const X&amp; copy_from_me) but not valid given X(X&amp; copy_from_me)
+               // because the second wants a non-const X&amp;
+</pre>
+<p>The <code>X&amp;</code> form of the copy constructor is used when it is necessary to modify the copied object. This is very rare but it can be seen used in the standard library's <code>std::auto_ptr</code>. A reference must be provided:</p>
+<p>WHATSON? b560010b-65c5-41fd-bfad-8b523b3088bc</p>
+<pre>
+X a;
+X b = a;       // valid if any of the copy constructors are defined
+               // since a reference is being passed.
+</pre>
+<p>The following are invalid copy constructors (Reason - <code>copy_from_me</code> is not passed as reference) :</p>
+<p>WHATSON? d0a7eff1-36a0-48f0-b147-26ee856c59ad</p>
+<pre>
+X(X copy_from_me);
+X(const X copy_from_me);
+</pre>
+<p>because the call to those constructors would require a copy as well, which would result in an infinitely recursive call.</p>
+<p>The following cases may result in a call to a copy constructor:</p>
+<ol>
+<li>When an object is returned by value</li>
+<li>When an object is passed (to a function) by value as an argument</li>
+<li>When an object is thrown</li>
+<li>When an object is caught</li>
+<li>When an object is placed in a brace-enclosed initializer list</li>
+</ol>
+<p>These cases are collectively called <i>copy-initialization</i> and are equivalent to: <code>T x = a;</code></p>
+<p>It is however, not guaranteed that a copy constructor will be called in these cases, because the C++ Standard allows the compiler to optimize the copy away in certain cases, one example being the return value optimization (sometimes referred to as RVO).</p>
+<h2>Operation</h2>
+<p>An object can be assigned value using one of the two techniques:</p>
+<ul>
+<li>Explicit assignment in an expression</li>
+<li>Initialization</li>
+</ul>
+<h3>Explicit assignment in an expression</h3>
+<p>WHATSON? f4f5cf04-02ff-4566-ad92-36927743eda8</p>
+<pre>
+Object a;
+Object b;
+a = b;       // translates as Object::operator=(const Object&amp;), thus A.operator=(B) is called 
+             // (invoke simple copy, not copy constructor!)
+</pre>
+<h3>Initialization</h3>
+<p>An object can be initialized by any one of the following ways.</p>
+<p>a. Through declaration</p>
+<p>WHATSON? 43682b89-6c11-4b4e-ab2c-76c48a5774ad</p>
+<pre>
+Object b = a; // translates as Object::Object(const Object&amp;) (invoke copy constructor)
+</pre>
+<p>b. Through function arguments</p>
+<p>WHATSON? 1c3bc1fa-e21c-423c-b99c-c5f7c6d6a7eb</p>
+<pre>
+type function(Object a);
+</pre>
+<p>c. Through function return value</p>
+<p>WHATSON? f97a0bfd-e52e-4791-9be0-4cba9849f1e9</p>
+<pre>
+Object a = function();
+</pre>
+<p>The copy constructor is used only for initializations, and does not apply to assignments where the assignment operator is used instead.</p>
+<p>The implicit copy constructor of a class calls base copy constructors and copies its members by means appropriate to their type. If it is a class type, the copy constructor is called. If it is a scalar type, the built-in assignment operator is used. Finally, if it is an array, each element is copied in the manner appropriate to its type.</p>
+<p>By using a user-defined copy constructor the programmer can define the behavior to be performed when an object is copied.</p>
+<h2>Examples</h2>
+<p>These examples illustrate how copy constructors work and why they are required sometimes.</p>
+<h3>Implicit copy constructor</h3>
+<p>Let us consider the following example:</p>
+<p>WHATSON? 4c1e5334-d055-4884-b3ee-a9b5e9004c68</p>
+<pre>
+#include &lt;iostream&gt;
+ 
+class Person {
+public:
+    int age;
+ 
+    explicit Person(int a) 
+        : age(a)
+    {
+    }
+};
+ 
+int main() 
+{
+    Person timmy(10);
+    Person sally(15);
+ 
+    Person timmy_clone = timmy;
+    std::cout &lt;&lt; timmy.age &lt;&lt; " " &lt;&lt; sally.age &lt;&lt; " " &lt;&lt; timmy_clone.age &lt;&lt; std::endl;
+    timmy.age = 23;
+    std::cout &lt;&lt; timmy.age &lt;&lt; " " &lt;&lt; sally.age &lt;&lt; " " &lt;&lt; timmy_clone.age &lt;&lt; std::endl;
+}
+</pre>
+<p><b>Output</b></p>
+<p>WHATSON? 62d8189d-85c0-4e14-8009-dba02a8cf319</p>
+<pre>
+10 15 10
+23 15 10
+</pre>
+<p>As expected, <i>timmy</i> has been copied to the new object, <i>timmy_clone</i>. While <i>timmy's</i> age was changed, <i>timmy_clone's</i> age remained the same. This is because they are totally different objects.</p>
+<p>The compiler has generated a copy constructor for us, and it could be written like this:</p>
+<p>WHATSON? e421af36-34b5-45c8-9f58-1b3bc9e3377c</p>
+<pre>
+Person(const Person&amp; other) 
+    : age(other.age) // calls the copy constructor of the age
+{
+}
+</pre>
+<p>So, when do we really need a user-defined copy constructor? The next section will explore that question.</p>
+<h3>User-defined copy constructor</h3>
+<p>Now, consider a very simple dynamic array class like the following:</p>
+<p>WHATSON? decf4115-decd-4a78-aceb-fcb73c635ff9</p>
+<pre>
+#include &lt;iostream&gt;
+ 
+class Array {
+public:
+    int size;
+    int* data;
+ 
+    explicit Array(int sz) 
+        : size(sz), data(new int[size])
+    {
+    }
+ 
+    ~Array() 
+    {
+        delete[] this-&gt;data;
+    }
+};
+ 
+int main() 
+{
+    Array first(20);
+    first.data[0] = 25;
+ 
+    {
+        Array copy = first;
+        std::cout &lt;&lt; first.data[0] &lt;&lt; " " &lt;&lt; copy.data[0] &lt;&lt; std::endl;
+    }    // (1)
+ 
+    first.data[0] = 10;    // (2)
+}
+</pre>
+<p><b>Output</b></p>
+<p>WHATSON? 6f383759-0dd8-494b-9756-f4ac6607b189</p>
+<pre>
+25 25
+Segmentation fault
+</pre>
+<p>Since we did not specify a copy constructor, the compiler generated one for us. The generated constructor would look something like:</p>
+<p>WHATSON? 0ead734b-2320-45ad-89e0-ac4f22803821</p>
+<pre>
+Array(const Array&amp; other)
+  : size(other.size), data(other.data) {}
+</pre>
+<p>The problem with this constructor is that it performs a shallow copy of the <i>data</i> pointer. It only copies the address of the original data member; this means they both share a pointer to the same chunk of memory, which is not what we want. When the program reaches line <b>(1)</b>, <i>copy's</i> destructor gets called (because objects on the stack are destroyed automatically when their scope ends). <i>Array's</i> destructor deletes the <i>data</i> array of the original, therefore when it deleted <i>copy's</i> data, because they share the same pointer, it also deleted <i>first's</i> data. Line <b>(2)</b> now accesses invalid data and writes to it! This produces the infamous segmentation fault.</p>
+<p>If we write our own copy constructor that performs a <i>deep copy</i> then this problem goes away.</p>
+<p>WHATSON? 88a6aad4-fc0c-41e9-a25a-76b7a717b155</p>
+<pre>
+// for std::copy
+#include &lt;algorithm&gt;
+ 
+Array(const Array&amp; other)
+    : size(other.size), data(new int[other.size]) 
+{
+    std::copy(other.data, other.data + other.size, data); 
+}
+</pre>
+<p>Here, we are creating a new <b>int</b> array and copying the contents to it. Now, <i>other's</i> destructor deletes only its data, and not <i>first's</i> data. Line <b>(2)</b> will not produce a segmentation fault anymore.</p>
+<p>Instead of doing a deep copy right away, there are some optimization strategies that can be used. These allow you to safely share the same data between several objects, thus saving space. The copy-on-write strategy makes a copy of the data only when it is written to. Reference counting keeps the count of how many objects are referencing the data, and will delete it only when this count reaches zero (e.g. boost::shared_ptr).</p>
+<h3>Copy constructors and templates</h3>
+<p>Contrary to expectations, a template copy constructor is not a user-defined copy constructor. Thus it is not enough to just have:</p>
+<p>WHATSON? 273487eb-59a1-420f-a06e-5b8f4bff91d9</p>
+<pre>
+template &lt;typename A&gt; Array::Array(A const&amp; other)
+    : size(other.size()), data(new int[other.size()]) 
+{
+    std::copy(other.begin(), other.end(), data);
+}
+</pre>
+<p>(Note that the type of <code>A</code> can be <code>Array</code>.) A user-defined, non-template copy constructor must also be provided for construction of Array from Array.</p>
+<h2>Bitwise Copy Constructor</h2>
+<p>A bitwise copy constructor performs a simple variable-by-variable assignment copy of all the components of an object. The bitwise copy constructor is so named as it merely copies bit-by-bit from the original object to the new object.</p>
+<p>It is clear from the above figure that in a bitwise copy constructor the original as well as the new object point to the same variable. Hence, the value of the variable is changed for both the objects even if it is changed by only one object. </p>
+<h2>Logical Copy Constructor</h2>
+<p>A logical copy constructor makes a true copy of the structure as well as its dynamic structures. Logical copy constructors come into the picture mainly when there are pointers or complex objects within the object being copied.</p>
+<p>It can be seen from the above figure that in a logical copy constructor, a new dynamic - member variable is created for the pointer along with copying the values. </p>
+<h2>Explicit copy constructor</h2>
+<p>An explicit copy constructor is one that is declared explicit by using the <b>explicit</b> keyword. For example:</p>
+<p>WHATSON? ef35b280-5c9c-43a0-823e-aa2b959a958d</p>
+<pre>
+explicit X(const X&amp; copy_from_me);
+</pre>
+<p>It is used to prevent copying of objects at function calls or with the copy-initialization syntax.</p>
+<h2>See also</h2>
+<ul>
+<li>Assignment operator in C++</li>
+<li>Object copy</li>
+</ul>
+<h2>Notes</h2>
+<ol>
+<li><b>^</b> INCITS ISO IEC 14882-2003 12.8.2. <i>[1]</i></li>
+<li><b>^</b> ISO/IEC (2003). <i>ISO/IEC 14882:2003(E): Programming Languages - C++ §8.5 Initializers [dcl.init]</i> para. 12</li>
+<li><b>^</b> INCITS ISO IEC 14882-2003 12.8.8. <i>[2]</i></li>
+<li><b>^</b> Computer Science A Structured Approach Using C++ by Behrouz A. Forouzan and Richard F. Gilberg,figure 10-9, page 507</li>
+<li><b>^</b> Computer Science A Structured Approach Using C++ by Behrouz A. Forouzan and Richard F. Gilberg,figure 10-9, page 507</li>
+</ol>
+<h2>External links</h2>
+<ul>
+<li>How to: Write a Copy Constructor (C# Programming Guide) on MSDN</li>
+</ul>
+</body>
+</html>

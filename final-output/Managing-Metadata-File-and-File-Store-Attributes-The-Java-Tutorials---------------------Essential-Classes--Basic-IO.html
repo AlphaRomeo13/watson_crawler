@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Managing-Metadata-File-and-File-Store-Attributes-The-Java-Tutorials---------------------Essential-Classes--Basic-IO.html</title></head>
+<body>
+<h1>Managing Metadata (File and File Store Attributes)</h1>
+<p>The definition of <em>metadata</em> is "data about other data." With a file system, the data is contained in its files and directories, and the metadata tracks information about each of these objects: Is it a regular file, a directory, or a link? What is its size, creation date, last modified date, file owner, group owner, and access permissions?</p>
+<p>A file system's metadata is typically referred to as its <em>file attributes</em>. The <code>Files</code> class includes methods that can be used to obtain a single attribute of a file, or to set an attribute.</p>
+<p>If a program needs multiple file attributes around the same time, it can be inefficient to use methods that retrieve a single attribute. Repeatedly accessing the file system to retrieve a single attribute can adversely affect performance. For this reason, the <code>Files</code> class provides two <code>readAttributes</code> methods to fetch a file's attributes in one bulk operation.</p>
+<p>Before showing examples of the <code>readAttributes</code> methods, it should be mentioned that different file systems have different notions about which attributes should be tracked. For this reason, related file attributes are grouped together into views. A <em>view</em> maps to a particular file system implementation, such as POSIX or DOS, or to a common functionality, such as file ownership.</p>
+<p>The supported views are as follows:</p>
+<ul>
+<li>
+<code>BasicFileAttributeView</code> – Provides a view of basic attributes that are required to be supported by all file system implementations.</li>
+<li>
+<code>DosFileAttributeView</code> – Extends the basic attribute view with the standard four bits supported on file systems that support the DOS attributes.</li>
+<li>
+<code>PosixFileAttributeView</code> – Extends the basic attribute view with attributes supported on file systems that support the POSIX family of standards, such as UNIX. These attributes include file owner, group owner, and the nine related access permissions.</li>
+<li>
+<code>FileOwnerAttributeView</code> – Supported by any file system implementation that supports the concept of a file owner.</li>
+<li>
+<code>AclFileAttributeView</code> – Supports reading or updating a file's Access Control Lists (ACL). The NFSv4 ACL model is supported. Any ACL model, such as the Windows ACL model, that has a well-defined mapping to the NFSv4 model might also be supported.</li>
+<li>
+<code>UserDefinedFileAttributeView</code> – Enables support of metadata that is user defined. This view can be mapped to any extension mechanisms that a system supports. In the Solaris OS, for example, you can use this view to store the MIME type of a file.</li>
+</ul>
+<p>A specific file system implementation might support only the basic file attribute view, or it may support several of these file attribute views. A file system implementation might support other attribute views not included in this API.</p>
+<p>In most instances, you should not have to deal directly with any of the <code>FileAttributeView</code> interfaces. (If you do need to work directly with the <code>FileAttributeView</code>, you can access it via the 
+<code>getFileAttributeView(Path, Class&lt;V&gt;, LinkOption...)</code> method.)</p>
+<p>The <code>readAttributes</code> methods use generics and can be used to read the attributes for any of the file attributes views. The examples in the rest of this page use the <code>readAttributes</code> methods.</p>
+<p>The remainder of this section covers the following topics:</p>
+<ul>
+<li>Basic File Attributes</li>
+<li>Setting Time Stamps</li>
+<li>DOS File Attributes</li>
+<li>POSIX File Permissions</li>
+<li>Setting a File or Group Owner</li>
+<li>User-Defined File Attributes</li>
+<li>File Store Attributes</li>
+</ul>
+<h2>Basic File Attributes</h2>
+<p>As mentioned previously, to read the basic attributes of a file, you can use one of the <code>Files.readAttributes</code> methods, which reads all the basic attributes in one bulk operation. This is far more efficient than accessing the file system separately to read each individual attribute. The varargs argument currently supports the 
+<code>LinkOption</code> enum, <code>NOFOLLOW_LINKS</code>. Use this option when you do not want symbolic links to be followed.</p>
+<p>The following code snippet reads and prints the basic file attributes for a given file and uses the methods in the 
+<code>BasicFileAttributes</code> class.</p>
+<p>WHATSON? 579df9a3-4186-4f0c-9a1a-f6193434bc68</p>
+<pre>
+Path file = ...;
+BasicFileAttributes attr = Files.readAttributes(file, BasicFileAttributes.class);
+
+System.out.println("creationTime: " + attr.creationTime());
+System.out.println("lastAccessTime: " + attr.lastAccessTime());
+System.out.println("lastModifiedTime: " + attr.lastModifiedTime());
+
+System.out.println("isDirectory: " + attr.isDirectory());
+System.out.println("isOther: " + attr.isOther());
+System.out.println("isRegularFile: " + attr.isRegularFile());
+System.out.println("isSymbolicLink: " + attr.isSymbolicLink());
+System.out.println("size: " + attr.size());
+</pre>
+<p>In addition to the accessor methods shown in this example, there is a <code>fileKey</code> method that returns either an object that uniquely identifies the file or <code>null</code> if no file key is available.</p>
+<h2>Setting Time Stamps</h2>
+<p>The following code snippet sets the last modified time in milliseconds:</p>
+<p>WHATSON? a5ed2afa-a994-4d5a-a52b-df759160bfac</p>
+<pre>
+Path file = ...;
+BasicFileAttributes attr =
+    Files.readAttributes(file, BasicFileAttributes.class);
+long currentTime = System.currentTimeMillis();
+FileTime ft = FileTime.fromMillis(currentTime);
+Files.setLastModifiedTime(file, ft);
+}
+</pre>
+<h2>DOS File Attributes</h2>
+<p>DOS file attributes are also supported on file systems other than DOS, such as Samba. The following snippet uses the methods of the 
+<code>DosFileAttributes</code> class.</p>
+<p>WHATSON? 99c4226a-66e8-4312-9f05-14e0b80fcdc8</p>
+<pre>
+Path file = ...;
+try {
+    DosFileAttributes attr =
+        Files.readAttributes(file, DosFileAttributes.class);
+    System.out.println("isReadOnly is " + attr.isReadOnly());
+    System.out.println("isHidden is " + attr.isHidden());
+    System.out.println("isArchive is " + attr.isArchive());
+    System.out.println("isSystem is " + attr.isSystem());
+} catch (UnsupportedOperationException x) {
+    System.err.println("DOS file" +
+        " attributes not supported:" + x);
+}
+</pre>
+<p>However, you can set a DOS attribute using the 
+<code>setAttribute(Path, String, Object, LinkOption...)</code> method, as follows:</p>
+<p>WHATSON? 194a76eb-2753-43aa-92b0-a4d662bec37a</p>
+<pre>
+Path file = ...;
+Files.setAttribute(file, "dos:hidden", true);
+</pre>
+<h2>POSIX File Permissions</h2>
+<p><em>POSIX</em> is an acronym for Portable Operating System Interface for UNIX and is a set of IEEE and ISO standards designed to ensure interoperability among different flavors of UNIX. If a program conforms to these POSIX standards, it should be easily ported to other POSIX-compliant operating systems.</p>
+<p>Besides file owner and group owner, POSIX supports nine file permissions: read, write, and execute permissions for the file owner, members of the same group, and "everyone else."</p>
+<p>The following code snippet reads the POSIX file attributes for a given file and prints them to standard output. The code uses the methods in the 
+<code>PosixFileAttributes</code> class.</p>
+<p>WHATSON? 82d93370-4a9c-4f4c-a5cb-c1f27723fbb7</p>
+<pre>
+Path file = ...;
+PosixFileAttributes attr =
+    Files.readAttributes(file, PosixFileAttributes.class);
+System.out.format("%s %s %s%n",
+    attr.owner().getName(),
+    attr.group().getName(),
+    PosixFilePermissions.toString(attr.permissions()));
+</pre>
+<p>The 
+<code>PosixFilePermissions</code> helper class provides several useful methods, as follows:</p>
+<ul>
+<li>The <code>toString</code> method, used in the previous code snippet, converts the file permissions to a string (for example, <code>rw-r--r--</code>).</li>
+<li>The <code>fromString</code> method accepts a string representing the file permissions and constructs a <code>Set</code> of file permissions.</li>
+<li>The <code>asFileAttribute</code> method accepts a <code>Set</code> of file permissions and constructs a file attribute that can be passed to the <code>Path.createFile</code> or <code>Path.createDirectory</code> method.</li>
+</ul>
+<p>The following code snippet reads the attributes from one file and creates a new file, assigning the attributes from the original file to the new file:</p>
+<p>WHATSON? bb3dff7a-bc4c-4331-9ee9-1c08433021bc</p>
+<pre>
+Path sourceFile = ...;
+Path newFile = ...;
+PosixFileAttributes attrs =
+    Files.readAttributes(sourceFile, PosixFileAttributes.class);
+FileAttribute&lt;Set&lt;PosixFilePermission&gt;&gt; attr =
+    PosixFilePermissions.asFileAttribute(attrs.permissions());
+Files.createFile(file, attr);
+</pre>
+<p>The <code>asFileAttribute</code> method wraps the permissions as a <code>FileAttribute</code>. The code then attempts to create a new file with those permissions. Note that the <code>umask</code> also applies, so the new file might be more secure than the permissions that were requested.</p>
+<p>To set a file's permissions to values represented as a hard-coded string, you can use the following code:</p>
+<p>WHATSON? 22221187-d664-476a-bdca-5c902f3a6ed6</p>
+<pre>
+Path file = ...;
+Set&lt;PosixFilePermission&gt; perms =
+    PosixFilePermissions.fromString("rw-------");
+FileAttribute&lt;Set&lt;PosixFilePermission&gt;&gt; attr =
+    PosixFilePermissions.asFileAttribute(perms);
+Files.setPosixFilePermissions(file, perms);
+</pre>
+<p>The 
+<code><code>Chmod</code></code> example recursively changes the permissions of files in a manner similar to the <code>chmod</code> utility.</p>
+<h2>Setting a File or Group Owner</h2>
+<p>To translate a name into an object you can store as a file owner or a group owner, you can use the 
+<code>UserPrincipalLookupService</code> service. This service looks up a name or group name as a string and returns a <code>UserPrincipal</code> object representing that string. You can obtain the user principal look-up service for the default file system by using the 
+<code>FileSystem.getUserPrincipalLookupService</code> method.</p>
+<p>The following code snippet shows how to set the file owner by using the <code>setOwner</code> method:</p>
+<p>WHATSON? 75754543-8565-4a27-a00c-8d9ce96a855e</p>
+<pre>
+Path file = ...;
+UserPrincipal owner = file.GetFileSystem().getUserPrincipalLookupService()
+        .lookupPrincipalByName("sally");
+Files.setOwner(file, owner);
+</pre>
+<p>There is no special-purpose method in the <code>Files</code> class for setting a group owner. However, a safe way to do so directly is through the POSIX file attribute view, as follows:</p>
+<p>WHATSON? ca38b95c-e4ea-4371-8850-38a922a8f6f1</p>
+<pre>
+Path file = ...;
+GroupPrincipal group =
+    file.getFileSystem().getUserPrincipalLookupService()
+        .lookupPrincipalByGroupName("green");
+Files.getFileAttributeView(file, PosixFileAttributeView.class)
+     .setGroup(group);
+</pre>
+<h2>User-Defined File Attributes</h2>
+<p>If the file attributes supported by your file system implementation aren't sufficient for your needs, you can use the <code>UserDefinedAttributeView</code> to create and track your own file attributes.</p>
+<p>Some implementations map this concept to features like NTFS Alternative Data Streams and extended attributes on file systems such as ext3 and ZFS. Most implementations impose restrictions on the size of the value, for example, ext3 limits the size to 4 kilobytes.</p>
+<p>A file's MIME type can be stored as a user-defined attribute by using this code snippet:</p>
+<p>WHATSON? 4dbefd67-3ca5-410e-b7c0-267adbee3416</p>
+<pre>
+Path file = ...;
+UserDefinedFileAttributeView view = Files
+    .getFileAttributeView(file, UserDefinedFileAttributeView.class);
+view.write("user.mimetype",
+           Charset.defaultCharset().encode("text/html");
+</pre>
+<p>To read the MIME type attribute, you would use this code snippet:</p>
+<p>WHATSON? 09d73319-e11c-4b63-b978-85ce71b4423e</p>
+<pre>
+Path file = ...;
+UserDefinedFileAttributeView view = Files
+.getFileAttributeView(file,UserDefinedFileAttributeView.class);
+String name = "user.mimetype";
+ByteBuffer buf = ByteBuffer.allocate(view.size(name));
+view.read(name, buf);
+buf.flip();
+String value = Charset.defaultCharset().decode(buf).toString();
+</pre>
+<p>The 
+<code><code>Xdd</code></code> example shows how to get, set, and delete a user-defined attribute.</p>
+<p>WHATSON? 5717559e-6041-4590-b3f8-8043934b9c55</p>
+<pre>
+$ sudo mount -o remount,user_xattr /
+</pre>
+<p>If you want to make the change permanent, add an entry to <code>/etc/fstab</code>.</p>
+<h2>File Store Attributes</h2>
+<p>You can use the 
+<code>FileStore</code> class to learn information about a file store, such as how much space is available. The 
+<code>getFileStore(Path)</code> method fetches the file store for the specified file.</p>
+<p>The following code snippet prints the space usage for the file store where a particular file resides:</p>
+<p>WHATSON? f16af645-1125-4d1b-b35d-4a6ac5ed0cf9</p>
+<pre>
+Path file = ...;
+FileStore store = Files.getFileStore(file);
+
+long total = store.getTotalSpace() / 1024;
+long used = (store.getTotalSpace() -
+             store.getUnallocatedSpace()) / 1024;
+long avail = store.getUsableSpace() / 1024;
+</pre>
+<p>The 
+<code>DiskUsage</code> example uses this API to print disk space information for all the stores in the default file system. This example uses the 
+<code>getFileStores</code> method in the <code>FileSystem</code> class to fetch all the file stores for the the file system.</p>
+</body>
+</html>

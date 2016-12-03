@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>The-List-Interface-The-Java-Tutorials---------------------Collections--Interfaces.html</title></head>
+<body>
+<h1>The List Interface</h1>
+<p>A 
+<code>List</code> is an ordered 
+<code>Collection</code> (sometimes called a <i>sequence</i>). Lists may contain duplicate elements. In addition to the operations inherited from <code>Collection</code>, the <code>List</code> interface includes operations for the following:</p>
+<ul>
+<li><code>Positional access</code>  manipulates elements based on their numerical position in the list. This includes methods such as <code>get</code>, 
+<code>set</code>, <code>add</code>, <code>addAll</code>, and <code>remove</code>.</li>
+<li><code>Search</code>  searches for a specified object in the list and returns its numerical position. Search methods include
+<code>indexOf</code> and <code>lastIndexOf</code>.</li>
+<li><code>Iteration</code>  extends <code>Iterator</code> semantics to take advantage of the list's sequential nature. The 
+ <code>listIterator</code> methods provide this behavior.</li>
+<li><code>Range-view</code>  The <code>sublist</code> method performs arbitrary <i>range operations</i> on the list.</li>
+</ul>
+<p>The Java platform contains two general-purpose <code>List</code> implementations. 
+<code>ArrayList</code>, which is usually the better-performing implementation, and 
+<code>LinkedList</code> which offers better performance under certain circumstances. 
+</p>
+<h2>Collection Operations</h2>
+<p>The operations inherited from <code>Collection</code> all do about what you'd expect them to do, assuming you're already familiar with them. If you're not familiar with them from <code>Collection</code>, now would be a good time to read 
+The Collection Interface section. The <code>remove</code> operation always removes <i>the first</i> occurrence of the specified element from the list. The <code>add</code> and <code>addAll</code> operations always append the new element(s) to the <i>end</i> of the list. Thus, the following idiom concatenates one list to another.</p>
+<p>WHATSON? df32689e-39ba-4e3e-ac44-c73aed200142</p>
+<pre>
+list1.addAll(list2);
+</pre>
+<p>Here's a nondestructive form of this idiom, which produces a third <code>List</code> consisting of the second list appended to the first.</p>
+<p>WHATSON? 3ae6d4c2-fdd0-4f14-8266-51407bef6871</p>
+<pre>
+List&lt;Type&gt; list3 = new ArrayList&lt;Type&gt;(list1);
+list3.addAll(list2);
+</pre>
+<p>Note that the idiom, in its nondestructive form, takes advantage of <code>ArrayList</code>'s standard conversion constructor.</p>
+<p>
+And here's an example (JDK 8 and later) that aggregates some names into a <code>List</code>:
+</p>
+<p>WHATSON? 7b329b08-122f-4ad1-acfd-9482cc58c6e1</p>
+<pre>
+List&lt;String&gt; list = people.stream()
+.map(Person::getName)
+.collect(Collectors.toList());
+</pre>
+<p>Like the 
+<code>Set</code> interface, <code>List</code> strengthens the requirements on the <code>equals</code> and <code>hashCode</code> methods so that two <code>List</code> objects can be compared for logical equality without regard to their implementation classes. Two <code>List</code> objects are equal if they contain the same elements in the same order.</p>
+<h2>Positional Access and Search Operations</h2>
+<p>The basic <code>positional access</code> operations are <code>get</code>, <code>set</code>, <code>add</code> and <code>remove</code>. (The <code>set</code> and <code>remove</code> operations return the old value that is being overwritten or removed.) Other operations (<code>indexOf</code> and <code>lastIndexOf</code>) return 
+the first or last index of the specified element in the list.
+<!--
+ These behave just like their longer-named counterparts in <code>Vector</code> (<code>elementAt</code>, <code>setElementAt</code>, <code>insertElementAt</code>, and <code>removeElementAt</code>) with one noteworthy exception: The <code>set</code> and <code>remove</code> operations return the old value that is being overwritten or removed; the <code>Vector</code> counterparts (<code>setElementAt</code> and <code>removeElementAt</code>) return nothing (<code>void</code>). The <code>search</code> operations <code>indexOf</code> and <code>lastIndexOf</code> behave exactly like the identically named operations in <code>Vector</code>.
+-->
+
+</p>
+<p>The <code>addAll</code> operation inserts all the elements of the specified <code>Collection</code> starting at the specified position. The elements are inserted in the order they are returned by the specified <code>Collection</code>'s iterator. This call is the positional access analog of <code>Collection</code>'s <code>addAll</code> operation.</p>
+<p>Here's a little method to swap two indexed values in a <code>List</code>.</p>
+<p>WHATSON? e0cd0b71-5f37-4256-a002-3faad4d0383e</p>
+<pre>
+public static &lt;E&gt; void swap(List&lt;E&gt; a, int i, int j) {
+    E tmp = a.get(i);
+    a.set(i, a.get(j));
+    a.set(j, tmp);
+}
+</pre>
+<p>Of course, there's one big difference. This is a polymorphic algorithm: It swaps two elements in any <code>List</code>, regardless of its implementation type. Here's another polymorphic algorithm that uses the preceding <code>swap</code> method.</p>
+<p>WHATSON? 79ccb77a-57c1-4313-a014-b284a0a99997</p>
+<pre>
+public static void shuffle(List&lt;?&gt; list, Random rnd) {
+    for (int i = list.size(); i &gt; 1; i--)
+        swap(list, i - 1, rnd.nextInt(i));
+}
+</pre>
+<p>This algorithm, which is included in the Java platform's 
+<code>Collections</code> class, randomly permutes the specified list using the specified source of randomness. It's a bit subtle: It runs up the list from the bottom, repeatedly swapping a randomly selected element into the current position. Unlike most naive attempts at shuffling, it's <i>fair</i> (all permutations occur with equal likelihood, assuming an unbiased source of randomness) and <i>fast</i> (requiring exactly <code>list.size()-1</code> swaps). The following program uses this algorithm to print the words in its argument list in random order.</p>
+<p>WHATSON? b4e7dcc7-53b7-4507-bcb3-e432151c1a76</p>
+<pre>
+import java.util.*;
+
+public class Shuffle {
+    public static void main(String[] args) {
+        List&lt;String&gt; list = new ArrayList&lt;String&gt;();
+        for (String a : args)
+            list.add(a);
+        Collections.shuffle(list, new Random());
+        System.out.println(list);
+    }
+}
+</pre>
+<p>In fact, this program can be made even shorter and faster. The 
+<code>Arrays</code> class has a static factory method called <code>asList</code>, which allows an array to be viewed as a <code>List</code>. This method does not copy the array. Changes in the <code>List</code> write through to the array and vice versa. The resulting List is not a general-purpose <code>List</code> implementation, because it doesn't implement the (optional) <code>add</code> and <code>remove</code> operations: Arrays are not resizable. Taking advantage of <code>Arrays.asList</code> and calling the library version of <code>shuffle</code>, which uses a default source of randomness, you get the following 
+<code>tiny program</code> whose behavior is identical to the previous program.</p>
+<p>WHATSON? 26c9077e-41cf-4e1c-b1d6-a808e7a905bf</p>
+<pre>
+import java.util.*;
+
+public class Shuffle {
+    public static void main(String[] args) {
+        List&lt;String&gt; list = Arrays.asList(args);
+        Collections.shuffle(list);
+        System.out.println(list);
+    }
+}
+</pre>
+<h2>Iterators</h2>
+<p>As you'd expect, the <code>Iterator</code> returned by <code>List</code>'s <code>iterator</code> operation returns the elements of the list in proper sequence. <code>List</code> also provides a richer iterator, called a <code>ListIterator</code>, which allows you to traverse the list in either direction, modify the list during iteration, and obtain the current position of the iterator. 
+</p>
+<p>The three methods that <code>ListIterator</code> inherits from <code>Iterator</code> (<code>hasNext</code>, <code>next</code>, and <code>remove</code>) do exactly the same thing in both interfaces. The <code>hasPrevious</code> and the <code>previous</code> operations are exact analogues of <code>hasNext</code> and <code>next</code>. The former operations refer to the element before the (implicit) cursor, whereas the latter refer to the element after the cursor. The <code>previous</code> operation moves the cursor backward, whereas <code>next</code> moves it forward.</p>
+<p>Here's the standard idiom for iterating backward through a list.</p>
+<p>WHATSON? ccdf9735-e3b8-46da-b767-ad6c86c8a732</p>
+<pre>
+for (ListIterator&lt;Type&gt; it = list.listIterator(list.size()); it.hasPrevious(); ) {
+    Type t = it.previous();
+    ...
+}
+</pre>
+<p>Note the argument to <code>listIterator</code> in the preceding idiom. The <code>List</code> interface has two forms of the <code>listIterator</code> method. The form with no arguments returns a <code>ListIterator</code> positioned at the beginning of the list; the form with an <code>int</code> argument returns a <code>ListIterator</code> positioned at the specified index. The index refers to the element that would be returned by an initial call to <code>next</code>. An initial call to <code>previous</code> would return the element whose index was <code>index-1</code>. In a list of length <code>n</code>, there are <code>n+1</code> valid values for <code>index</code>, from <code>0</code> to <code>n</code>, inclusive.</p>
+<p>Intuitively speaking, the cursor is always between two elements  the one that would be returned by a call to <code>previous</code> and the one that would be returned by a call to <code>next</code>. The <code>n+1</code> valid <code>index</code> values correspond to the <code>n+1</code> gaps between elements, from the gap before the first element to the gap after the last one. 
+The following figure shows the five possible cursor positions in a list containing four elements.</p>
+<p>The five possible cursor positions.</p>
+<p>Calls to <code>next</code> and <code>previous</code> can be intermixed, but you have to be a bit careful. The first call to <code>previous</code> returns the same element as the last call to <code>next</code>. Similarly, the first call to <code>next</code> after a sequence of calls to <code>previous</code> returns the same element as the last call to <code>previous</code>.</p>
+<p>It should come as no surprise that the <code>nextIndex</code> method returns the index of the element that would be returned by a subsequent call to <code>next</code>, and <code>previousIndex</code> returns the index of the element that would be returned by a subsequent call to <code>previous</code>. These calls are typically used either to report the position where something was found or to record the position of the <code>ListIterator</code> so that another <code>ListIterator</code> with identical position can be created.</p>
+<p>It should also come as no surprise that the number returned by <code>nextIndex</code> is always one greater than the number returned by <code>previousIndex</code>. This implies the behavior of the two boundary cases: (1) a call to <code>previousIndex</code> when the cursor is before the initial element returns <code>-1</code> and (2) a call to <code>nextIndex</code> when the cursor is after the final element returns <code>list.size()</code>. To make all this concrete, the following is a possible implementation of <code>List.indexOf</code>.</p>
+<p>WHATSON? 6b2a50e4-41ba-48a2-96e3-ee0a6b05706b</p>
+<pre>
+public int indexOf(E e) {
+    for (ListIterator&lt;E&gt; it = listIterator(); it.hasNext(); )
+        if (e == null ? it.next() == null : e.equals(it.next()))
+            return it.previousIndex();
+    // Element not found
+    return -1;
+}
+</pre>
+<p>Note that the <code>indexOf</code> method returns <code>it.previousIndex()</code> even though it is traversing the list in the forward direction. The reason is that <code>it.nextIndex()</code> would return the index of the element we are about to examine, and we want to return the index of the element we just examined.</p>
+<p>The <code>Iterator</code> interface provides the <code>remove</code> operation to remove the last element returned by <code>next</code> from the <code>Collection</code>. For <code>ListIterator</code>, this operation removes the last element returned by <code>next</code> or <code>previous</code>. The <code>ListIterator</code> interface provides two additional operations to modify the list  <code>set</code> and <code>add</code>. The <code>set</code> method overwrites the last element returned by <code>next</code> or <code>previous</code> with the specified element. The following polymorphic algorithm uses <code>set</code> to replace all occurrences of one specified value with another.</p>
+<p>WHATSON? 25d4d264-f1c2-413e-8e24-39bc6f7eb023</p>
+<pre>
+public static &lt;E&gt; void replace(List&lt;E&gt; list, E val, E newVal) {
+    for (ListIterator&lt;E&gt; it = list.listIterator(); it.hasNext(); )
+        if (val == null ? it.next() == null : val.equals(it.next()))
+            it.set(newVal);
+}
+</pre>
+<p>The only bit of trickiness in this example is the equality test between <code>val</code> and <code>it.next</code>. You need to special-case a <code>val</code> value of <code>null</code> to prevent a <code>NullPointerException</code>.</p>
+<p>The <code>add</code> method inserts a new element into the list immediately before the current cursor position. This method is illustrated in the following polymorphic algorithm to replace all occurrences of a specified value with the sequence of values contained in the specified list.</p>
+<p>WHATSON? 02810728-64d4-41fd-a2ea-64ed3778e0ee</p>
+<pre>
+public static &lt;E&gt; 
+    void replace(List&lt;E&gt; list, E val, List&lt;? extends E&gt; newVals) {
+    for (ListIterator&lt;E&gt; it = list.listIterator(); it.hasNext(); ){
+        if (val == null ? it.next() == null : val.equals(it.next())) {
+            it.remove();
+            for (E e : newVals)
+                it.add(e);
+        }
+    }
+}
+</pre>
+<h2>Range-View Operation</h2>
+<p>The <code>range-view</code> operation, <code>subList(int fromIndex, int toIndex)</code>, returns a <code>List</code> view of the portion of this list whose indices range from <code>fromIndex</code>, inclusive, to <code>toIndex</code>, exclusive. This <i>half-open range</i> mirrors the typical <code>for</code> loop.</p>
+<p>WHATSON? 65a08670-1601-4ed2-ac44-b5972eb799d8</p>
+<pre>
+for (int i = fromIndex; i &lt; toIndex; i++) {
+    ...
+}
+</pre>
+<p>As the term <i>view</i> implies, the returned <code>List</code> is backed up by the <code>List</code> on which <code>subList</code> was called, so changes in the former are reflected in the latter.</p>
+<p>This method eliminates the need for explicit range operations (of the sort that commonly exist for arrays). Any operation that expects a <code>List</code> can be used as a range operation by passing a <code>subList</code> view instead of a whole <code>List</code>. For example, the following idiom removes a range of elements from a <code>List</code>.</p>
+<p>WHATSON? 1bd1cd3a-bcb0-4600-ad6d-f7eebe6f1b87</p>
+<pre>
+list.subList(fromIndex, toIndex).clear();
+</pre>
+<p>Similar idioms can be constructed to search for an element in a range.</p>
+<p>WHATSON? 3fb15e09-1ad0-4eb6-84e9-92e29eda88a5</p>
+<pre>
+int i = list.subList(fromIndex, toIndex).indexOf(o);
+int j = list.subList(fromIndex, toIndex).lastIndexOf(o);
+</pre>
+<p>Note that the preceding idioms return the index of the found element in the <code>subList</code>, not the index in the backing <code>List</code>.</p>
+<p>Any polymorphic algorithm that operates on a <code>List</code>, such as the <code>replace</code> and <code>shuffle</code> examples, works with the <code>List</code> returned by <code>subList</code>.</p>
+<p>Here's a polymorphic algorithm whose implementation uses <code>subList</code> to deal a hand from a deck. That is, it returns a new <code>List</code> (the "hand") containing the specified number of elements taken from the end of the specified <code>List</code> (the "deck"). The elements returned in the hand are removed from the deck.</p>
+<p>WHATSON? 3c27079b-005d-4fac-9821-54e61aa2d3cd</p>
+<pre>
+public static &lt;E&gt; List&lt;E&gt; dealHand(List&lt;E&gt; deck, int n) {
+    int deckSize = deck.size();
+    List&lt;E&gt; handView = deck.subList(deckSize - n, deckSize);
+    List&lt;E&gt; hand = new ArrayList&lt;E&gt;(handView);
+    handView.clear();
+    return hand;
+}
+</pre>
+<p>Note that this algorithm removes the hand from the <i>end</i> of the deck. For many common <code>List</code> implementations, such as <code>ArrayList</code>, the performance of removing elements from the end of the list is substantially better than that of removing elements from the beginning.</p>
+<p>The following is 
+<code>a program</code> that uses the <code>dealHand</code> method in combination with <code>Collections.shuffle</code> to generate hands from a normal 52-card deck. The program takes two command-line arguments: (1) the number of hands to deal and (2) the number of cards in each hand.</p>
+<p>WHATSON? 1d04e48d-868b-4041-9c48-b4a1e6a03890</p>
+<pre>
+import java.util.*;
+
+public class Deal {
+    public static void main(String[] args) {
+        if (args.length &lt; 2) {
+            System.out.println("Usage: Deal hands cards");
+            return;
+        }
+        int numHands = Integer.parseInt(args[0]);
+        int cardsPerHand = Integer.parseInt(args[1]);
+    
+        // Make a normal 52-card deck.
+        String[] suit = new String[] {
+            "spades", "hearts", 
+            "diamonds", "clubs" 
+        };
+        String[] rank = new String[] {
+            "ace", "2", "3", "4",
+            "5", "6", "7", "8", "9", "10", 
+            "jack", "queen", "king" 
+        };
+
+        List&lt;String&gt; deck = new ArrayList&lt;String&gt;();
+        for (int i = 0; i &lt; suit.length; i++)
+            for (int j = 0; j &lt; rank.length; j++)
+                deck.add(rank[j] + " of " + suit[i]);
+    
+        // Shuffle the deck.
+        Collections.shuffle(deck);
+    
+        if (numHands * cardsPerHand &gt; deck.size()) {
+            System.out.println("Not enough cards.");
+            return;
+        }
+    
+        for (int i = 0; i &lt; numHands; i++)
+            System.out.println(dealHand(deck, cardsPerHand));
+    }
+  
+    public static &lt;E&gt; List&lt;E&gt; dealHand(List&lt;E&gt; deck, int n) {
+        int deckSize = deck.size();
+        List&lt;E&gt; handView = deck.subList(deckSize - n, deckSize);
+        List&lt;E&gt; hand = new ArrayList&lt;E&gt;(handView);
+        handView.clear();
+        return hand;
+    }
+}
+</pre>
+<p>Running the program produces output like the following.</p>
+<p>WHATSON? fbba619a-bc50-41bf-b680-9bc00c8b6505</p>
+<pre>
+% java Deal 4 5
+
+[8 of hearts, jack of spades, 3 of spades, 4 of spades,
+    king of diamonds]
+[4 of diamonds, ace of clubs, 6 of clubs, jack of hearts,
+    queen of hearts]
+[7 of spades, 5 of spades, 2 of diamonds, queen of diamonds,
+    9 of clubs]
+[8 of spades, 6 of diamonds, ace of spades, 3 of hearts,
+    ace of hearts]
+</pre>
+<p>Although the <code>subList</code> operation is extremely powerful, some care must be exercised when using it. The semantics of the <code>List</code> returned by <code>subList</code> become undefined if elements are added to or removed from the backing <code>List</code> in any way other than via the returned <code>List</code>. Thus, it's highly recommended that you use the <code>List</code> returned by <code>subList</code> only as a transient object  to perform one or a sequence of range operations on the backing <code>List</code>. The longer you use the <code>subList</code> instance, the greater the probability that you'll compromise it by modifying the backing <code>List</code> directly or through another <code>subList</code> object. Note that it is legal to modify a sublist of a sublist and to continue using the original sublist (though not concurrently).</p>
+<h2>List Algorithms</h2>
+<p>Most polymorphic algorithms in the <code>Collections</code> class apply specifically to <code>List</code>. Having all these algorithms at your disposal makes it very easy to manipulate lists. Here's a summary of these algorithms, which are described in more detail in the 
+Algorithms section.</p>
+<ul>
+<li><code>sort</code>  sorts a <code>List</code> using a merge sort algorithm, which provides a fast, stable sort. (A <i>stable sort</i> is one that does not reorder equal elements.)</li>
+<li><code>shuffle</code>  randomly permutes the elements in a <code>List</code>.</li>
+<li><code>reverse</code>  reverses the order of the elements in a <code>List</code>.</li>
+<li><code>rotate</code>  rotates all the elements in a <code>List</code> by a specified distance.</li>
+<li><code>swap</code>  swaps the elements at specified positions in a <code>List</code>.</li>
+<li><code>replaceAll</code>  replaces all occurrences of one specified value with another.</li>
+<li><code>fill</code>  overwrites every element in a <code>List</code> with the specified value.</li>
+<li><code>copy</code>  copies the source <code>List</code> into the destination <code>List</code>.</li>
+<li><code>binarySearch</code>  searches for an element in an ordered <code>List</code> using the binary search algorithm.</li>
+<li><code>indexOfSubList</code>  returns the index of the first sublist of one <code>List</code> that is equal to another.</li>
+<li><code>lastIndexOfSubList</code>  returns the index of the last sublist of one <code>List</code> that is equal to another.</li>
+</ul>
+</body>
+</html>

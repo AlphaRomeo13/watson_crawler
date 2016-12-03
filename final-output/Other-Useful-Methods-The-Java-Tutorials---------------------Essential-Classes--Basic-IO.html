@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Other-Useful-Methods-The-Java-Tutorials---------------------Essential-Classes--Basic-IO.html</title></head>
+<body>
+<h1>Other Useful Methods</h1>
+<p>A few useful methods did not fit elsewhere in this lesson and are covered here. This section covers the following:</p>
+<ul>
+<li>Determining MIME Type</li>
+<li>Default File System</li>
+<li>Path String Separator</li>
+<li>File System's File Stores</li>
+</ul>
+<h2>Determining MIME Type</h2>
+<p>To determine the MIME type of a file, you might find the 
+<code>probeContentType(Path)</code> method useful. For example:</p>
+<p>WHATSON? 2b2a7777-169b-48ca-9aba-5bde9a1e210c</p>
+<pre>
+try {
+    String type = Files.probeContentType(filename);
+    if (type == null) {
+        System.err.format("'%s' has an" + " unknown filetype.%n", filename);
+    } else if (!type.equals("text/plain") {
+        System.err.format("'%s' is not" + " a plain text file.%n", filename);
+        continue;
+    }
+} catch (IOException x) {
+    System.err.println(x);
+}
+</pre>
+<p>Note that <code>probeContentType</code> returns null if the content type cannot be determined.</p>
+<p>The implementation of this method is highly platform specific and is not infallible. The content type is determind by the platform's default file type detector. For example, if the detector determines a file's content type to be <code>application/x-java</code> based on the <code>.class</code> extension, it might be fooled.</p>
+<p>You can provide a custom 
+<code>FileTypeDetector</code> if the default is not sufficient for your needs.</p>
+<p>The 
+<code><code>Email</code></code> example uses the <code>probeContentType</code> method.</p>
+<h2>Default File System</h2>
+<p>To retrieve the default file system, use the 
+<code>getDefault</code> method. Typically, this <code>FileSystems</code> method (note the plural) is chained to one of the <code>FileSystem</code> methods (note the singular), as follows:</p>
+<p>WHATSON? aad64668-c95c-4f40-97cf-4f4bdf0fd836</p>
+<pre>
+PathMatcher matcher =
+    FileSystems.getDefault().getPathMatcher("glob:*.*");
+</pre>
+<h2>Path String Separator</h2>
+<p>The path separator for POSIX file systems is the forward slash, <code>/</code>, and for Microsoft Windows is the backslash, <code>\</code>. Other file systems might use other delimiters. To retrieve the <code>Path</code> separator for the default file system, you can use one of the following approaches:</p>
+<p>WHATSON? 631821e4-c906-400c-ab5e-678932f3545d</p>
+<pre>
+String separator = File.separator;
+String separator = FileSystems.getDefault().getSeparator();
+</pre>
+<p>The 
+<code>getSeparator</code> method is also used to retrieve the path separator for any available file system.</p>
+<h2>File System's File Stores</h2>
+<p>A file system has one or more file stores to hold its files and directories. The <em>file store</em> represents the underlying storage device. In UNIX operating systems, each mounted file system is represented by a file store. In Microsoft Windows, each volume is represented by a file store: <code>C:</code>, <code>D:</code>, and so on.</p>
+<p>To retrieve a list of all the file stores for the file system, you can use the 
+<code>getFileStores</code> method. This method returns an <code>Iterable</code>, which allows you to use the 
+enhanced for statement to iterate over all the root directories.</p>
+<p>WHATSON? f3f05e37-d63e-40e2-b15a-ef4b1042529b</p>
+<pre>
+for (FileStore store: FileSystems.getDefault().getFileStores()) {
+   ...
+}
+</pre>
+<p>If you want to retrive the file store where a particular file is located, use the 
+<code>getFileStore</code> method in the <code>Files</code> class, as follows:</p>
+<p>WHATSON? 1824402b-cc08-4c57-a55d-6fcc73ba1ffc</p>
+<pre>
+Path file = ...;
+FileStore store= Files.getFileStore(file);
+</pre>
+<p>The 
+<code>DiskUsage</code> example uses the <code>getFileStores</code> method.</p>
+</body>
+</html>

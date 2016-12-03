@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Displaying-a-Customized-Loading-Progress-Indicator-The-Java-Tutorials---------------------Deployment--Java-Web-Start.html</title></head>
+<body>
+<h1>Displaying a Customized Loading Progress Indicator</h1>
+<p>A Java Web Start application can display a customized loading progress indicator that shows the progress of download of the application's resources.</p>
+<p>Consider the Weather application and the <code>CustomProgress</code> class to understand how to implement a customized loading progress indicator for a Java Web Start application. For the purpose of demonstrating a large and prolonged download, this Java Web Start application's JAR file has been artificially inflated and the <code>customprogress_webstart.jnlp</code> file specifies additional JAR files as resources.</p>
+<h2>Developing a Customized Loading Progress Indicator</h2>
+<p>To develop a customized loading progress indicator for your Java Web Start application, create a class that implements the 
+<code>DownloadServiceListener</code> interface.</p>
+<p>The constructor of the loading progress indicator class should not have any parameters.</p>
+<p>WHATSON? 5c7f8073-2761-4377-bae9-3f1fde7ee44c</p>
+<pre>
+import javax.jnlp.DownloadServiceListener;
+import java.awt.Container;
+import java.applet.AppletStub;
+import netscape.javascript.*;
+// ...
+public class <b>CustomProgress
+        implements DownloadServiceListener</b> {   
+    JFrame frame = null;
+    JProgressBar progressBar = null;
+    boolean uiCreated = false;
+
+    public CustomProgress() {
+    }
+...
+}    
+</pre>
+<p>The following code snippet shows how to build the UI for the loading progress indicator:</p>
+<p>WHATSON? 0a14cdf7-e6dd-4e8a-b05b-682a95fd41b4</p>
+<pre>
+private void create() {
+    JPanel top = createComponents();
+    frame = new JFrame(); // top level custom progress
+                          // indicator UI
+    frame.getContentPane().add(top,
+                               BorderLayout.CENTER);
+    frame.setBounds(300,300,400,300);
+    frame.pack();
+    updateProgressUI(0);
+}
+
+private JPanel createComponents() {
+    JPanel top = new JPanel();
+    top.setBackground(Color.WHITE);
+    top.setLayout(new BorderLayout(20, 20));
+ 
+    String lblText =
+        "&lt;html&gt;&lt;font color=green size=+2" +
+        "&gt;JDK Documentation&lt;/font&gt;&lt;br/&gt; " +
+        "The one-stop shop for Java enlightenment! &lt;br/&gt;&lt;/html&gt;";
+    JLabel lbl = new JLabel(lblText);
+    top.add(lbl, BorderLayout.NORTH);
+    ...
+    progressBar = new JProgressBar(0, 100);
+    progressBar.setValue(0);
+    progressBar.setStringPainted(true);
+    top.add(progressBar, BorderLayout.SOUTH);
+
+    return top;
+}
+</pre>
+<p>Create and update the loading progress indicator in the following methods based on the <code>overallPercent</code> argument. These methods are invoked regularly by the Java Web Start software to communicate the progress of the application's download. Java Web Start software will always send a message when download and validation of resources is 100% complete.</p>
+<p>WHATSON? bf3babfe-9032-4d1d-a80e-8b29dcbdaeca</p>
+<pre>
+public void <b>progress</b>(URL url, String version, long readSoFar,
+                     long total, int overallPercent) {        
+    updateProgressUI(overallPercent);
+
+}
+
+public void <b>upgradingArchive</b>(java.net.URL url,
+                  java.lang.String version,
+                  int patchPercent,
+                  int overallPercent) {
+    updateProgressUI(overallPercent);
+}
+
+public void <b>validating</b>(java.net.URL url,
+            java.lang.String version,
+            long entry,
+            long total,
+            int overallPercent) {
+    updateProgressUI(overallPercent);
+}
+
+private void <b>updateProgressUI</b>(int overallPercent) {
+    if (overallPercent &gt; 0 &amp;&amp; overallPercent &lt; 99) {
+        if (!uiCreated) {
+            uiCreated = true;
+            // create custom progress indicator's
+            // UI only if there is more work to do,
+            // meaning overallPercent &gt; 0 and
+            // &lt; 100 this prevents flashing when
+            // RIA is loaded from cache
+            create();
+        }
+        progressBar.setValue(overallPercent);
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                frame.setVisible(true);
+            }
+        });
+    } else {
+        // hide frame when overallPercent is
+        // above 99
+        SwingUtilities.invokeLater(new Runnable() {
+            public void run() {
+                frame.setVisible(false);
+                frame.dispose();
+            }
+        });
+    }
+}
+</pre>
+<p>Compile the loading progress indicator class and build a JAR file with all the resources needed to display the loading progress indicator. Include the <code>&lt;your JRE directory&gt;/lib/javaws.jar</code> file in your <code>classpath</code> to enable compilation.</p>
+<p>The loading progress indicator class is now ready for use. The next step is to specify this loading progress indicator JAR file as your Java Web Start application's progress indicator.</p>
+<h2>Specifying a Customized Loading Progress Indicator for a Java Web Start Application</h2>
+<p>To specify a customized loading progress indicator for a Java Web Start application, include the following information in the application's JNLP file:</p>
+<ul>
+<li><code>jar</code> tag with the <code>download="progress"</code> attribute</li>
+<li><code>progress-class</code> attribute with the fully qualified name of the customized loading progress class.</li>
+</ul>
+<p>The following code snippet from the 
+<code><code>customprogress_webstart.jnlp</code></code> file displays the usage of the <code>download="progress"</code> and <code>progress-class</code> attributes.</p>
+<p>WHATSON? 76e14aea-80c1-4901-96c8-8327cf75546f</p>
+<pre>
+&lt;jnlp spec="1.0+" codebase=
+  "http://docs.oracle.com/javase/tutorialJWS/samples/deployment" 
+   href="customprogress_webstartJWSProject/customprogress_webstart.jnlp"&gt;
+  &lt;!-- ... --&gt;
+  &lt;resources&gt;
+    &lt;j2se version="1.7+"/&gt;
+    &lt;jar href=
+      "webstart_AppWithCustomProgressIndicator/webstart_AppWithCustomProgressIndicator.jar" /&gt;
+    &lt;jar href=
+      "webstart_CustomProgressIndicator/webstart_CustomProgressIndicator.jar"
+         <b>download="progress"</b> /&gt;
+    &lt;jar href=
+      "webstart_AppWithCustomProgressIndicator/lib/IconDemo.jar" /&gt;
+    &lt;jar href=
+      "webstart_AppWithCustomProgressIndicator/lib/SplitPaneDemo.jar" /&gt;
+    &lt;jar href=
+      "webstart_AppWithCustomProgressIndicator/lib/SplitPaneDemo2.jar" /&gt;
+    &lt;jar href=
+      "webstart_AppWithCustomProgressIndicator/lib/TextBatchPrintingDemo.jar" /&gt;
+    &lt;jar href=
+      "webstart_AppWithCustomProgressIndicator/lib/ToolBarDemo.jar" /&gt;
+    &lt;jar href=
+      "webstart_AppWithCustomProgressIndicator/lib/ToolBarDemo2.jar" /&gt;
+    &lt;jar href=
+      "webstart_AppWithCustomProgressIndicator/lib/SwingSet2.jar" /&gt;
+  &lt;/resources&gt;
+  &lt;application-desc 
+      main-class="customprogressindicatordemo.Main"
+      <b>progress-class</b>="customprogressindicator.CustomProgress"
+  /&gt;
+  &lt;!-- ... --&gt;
+&lt;/jnlp&gt;
+</pre>
+<p>Deploy the Java Web Start application in a web page. Open 
+<code><code>JavaWebStartAppPage.html</code></code> in a web browser to view the customized loading progress indicator for the Weather application.</p>
+<p>
+Download source code for the <em>Java Web Start Application With Customized Loading Progress Indicator</em> example to experiment further.</p>
+<p>See the 
+Customizing the Loading Experience topic for more information about customizing the rich Internet application (RIA) loading experience.</p>
+</body>
+</html>

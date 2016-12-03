@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>App-Widget-Design-Guidelines--Android-Developers.html</title></head>
+<body>
+<h1>App Widget Design Guidelines</h1>
+<h2>Quickview</h2>
+<ul>
+  <li>App Widget layouts should be flexible, resizing to fit their parent container</li>
+  <li>As of Android 3.0, app widgets can depict collections of items and provide a representative
+    preview image for the widget gallery</li>
+  <li>As of Android 3.1, app widgets can be resizable horizontally and/or vertically</li>
+  <li>As of Android 4.0, app widgets have margins automatically applied</li>
+</ul>
+<h2>In this document</h2>
+<ol>
+<li>Standard Widget Anatomy</li>
+<li>Designing Widget Layouts and Background Graphics</li>
+<li>Using the App Widget Templates Pack</li>
+</ol>
+<h2>Downloads</h2>
+<ol>
+<li>App Widget Templates Pack,
+  v4.0 »</li>
+</ol>
+<h2>See also</h2>
+<ol>
+<li>App Widgets</li>
+<li>
+  
+    AppWidgets blog post</li>
+</ol>
+<p><strong>New Guides for App Designers!</strong></p>
+<p>Check out the new documents for designers at <strong>Android Design</strong>.</p>
+<p>App widgets (sometimes just "widgets") are a feature introduced in Android 1.5 and vastly
+improved in Android 3.0 and 3.1. A widget can display an application's most timely or otherwise
+relevant information at a glance, on a user's Home screen. The standard Android system image
+includes several widgets, including a widget for the Analog Clock, Music, and other
+applications.</p>
+<p><strong>Figure 1.</strong> Example app widgets in Android 4.0.</p>
+<p>This document describes how to design a widget so that it fits graphically with other widgets and
+with the other elements of the Android Home screen such as launcher icons and shortcuts. It also
+describes some standards for widget artwork and some widget graphics tips and tricks.</p>
+<p>
+
+</p>
+<p>For information about developing widgets, see the App Widgets section of the <em>Developer's
+Guide</em>.</p>
+<h2>Standard Widget Anatomy</h2>
+<p>Typical Android app widgets have three main components: A bounding box, a frame, and the widget's
+graphical controls and other elements. App widgets can contain a subset of the View widgets in
+Android; supported controls include text labels, buttons, and images. For a full list of available
+Views, see the Creating the
+App Widget Layout section in the <em>Developer's Guide</em>. Well-designed widgets leave some
+margins between the edges of the bounding box and the frame, and padding between the inner edges of
+the frame and the widget's controls.</p>
+<p><strong>Figure 2.</strong> Widgets generally have margins between the
+bounding box and frame, and padding between the frame and widget controls.</p>
+<p><strong>Note: </strong> As of Android 4.0, app widgets are automatically given
+margins between the widget frame and the app widget's bounding box to provide better alignment with
+other widgets and icons on the user's home screen. To take advantage of this strongly recommended
+behavior, set your application's targetSdkVersion to 14 or
+greater.</p>
+<p>Widgets designed to fit visually with other widgets on the Home screen take cues from the other
+elements on the Home screen for alignment; they also use standard shading effects. All of these
+details are described in this document.</p>
+<h3>Determining a size for your widget</h3>
+<p>Each widget must define a <code>minWidth</code> and <code>minHeight</code>, indicating the
+minimum amount of space it should consume by default. When users add a widget to their Home screen,
+it will generally occupy more than the minimum width and height you specify. Android Home screens
+offer users a grid of available spaces into which they can place widgets and icons. This grid can
+vary by device; for example, many handsets offer a 4x4 grid, and tablets can offer a larger, 8x7
+grid. <strong>When your widget is added, it will be stretched to occupy the minimum number of cells,
+horizontally and vertically, required to satisfy its <code>minWidth</code> and
+<code>minHeight</code> constraints.</strong> As we discuss in Designing Widget
+Layouts and Background Graphics below, using nine-patch backgrounds and flexible layouts for app
+widgets will allow your widget to gracefully adapt to the device's Home screen grid and remain
+usable and aesthetically awesome.</p>
+<p>While the width and height of a cell—as well as the amount of automatic margins applied to
+widgets—may vary across devices, you can use the table below to roughly estimate your widget's
+minimum dimensions, given the desired number of occupied grid cells:</p>
+<p>It is a good practice to be conservative with <code>minWidth</code> and <code>minHeight</code>,
+specifying the minimum size that renders the widget in a good default state. For an example of how
+to provide a <code>minWidth</code> and <code>minHeight</code>, suppose you have a music player
+widget that shows the currently playing song artist and title (vertically stacked), a
+<strong>Play</strong> button, and a <strong>Next</strong> button:</p>
+<p><strong>Figure 3.</strong> An example music player widget.</p>
+<p>Your minimum height should be the height of your two TextViews for the artist and title, plus
+some text margins. Your minimum width should be the minimum usable widths of the
+<strong>Play</strong> and <strong>Next</strong> buttons, plus the minimum text width (say, the width
+of 10 characters), plus any horizontal text margins.</p>
+<p><strong>Figure 4.</strong> Example sizes and margins for
+<code>minWidth</code>/<code>minHeight</code> calculations. We chose 144dp as an example good minimum
+width for the text labels.</p>
+<p>Example calculations are below:</p>
+<ul>
+  <li><code>minWidth</code> = 144dp + (2 × 8dp) + (2 × 56dp) =
+    <strong>272dp</strong></li>
+  <li><code>minHeight</code> = 48dp + (2 × 4dp) = <strong>56dp</strong></li>
+</ul>
+<p>If there is any inherent content padding in your widget background nine-patch, you should add to
+<code>minWidth</code> and <code>minHeight</code> accordingly.</p>
+<h3>Resizable widgets</h3>
+<p>Widgets can be resized horizontally and/or vertically as of Android 3.1, meaning that
+<code>minWidth</code> and <code>minHeight</code> effectively become the <em>default</em> size for
+the widget. You can specify the minimum widget size using <code>minResizeWidth</code> and
+<code>minResizeHeight</code>; these values should specify the size below which the widget would be
+illegible or otherwise unusable.</p>
+<p>This is generally a preferred feature for collection widgets such as those based on <code>ListView</code> or <code>GridView</code>.</p>
+<h3>Adding margins to your app widget</h3>
+<p>As previously mentioned, Android 4.0 will automatically add small, standard margins to each edge
+of widgets on the Home screen, for applications that specify a <code>targetSdkVersion</code> of 14
+or greater. This helps to visually balance the Home screen, and thus <strong>we recommend that you
+do not add any extra margins outside of your app widget's background shape in Android
+4.0</strong>.</p>
+<p>It's easy to write a single layout that has custom margins applied for earlier versions of the
+platform, and has no extra margins for Android 4.0 and greater. See Adding Margins to App Widgets
+in the <em>Developer's Guide</em> for information on how to achieve this with layout XML.</p>
+<h2>Designing Widget Layouts and Background Graphics</h2>
+<p>Most widgets will have a solid background rectangle or rounded rectangle shape. It is a best
+practice to define this shape using nine patches; one for each screen density (see Supporting Multiple Screens for details).
+Nine-patches can be created with the draw9patch tool, or simply with a
+graphics editing program such as Adobe® Photoshop. This will allow the widget background shape
+to take up the entire available space. The nine-patch should be edge-to-edge with no transparent
+pixels providing extra margins, save for perhaps a few border pixels for <strong>subtle</strong>
+drop shadows or other subtle effects.</p>
+<p><strong>Note: </strong> Just like with controls in activities, you should ensure
+that interactive controls have distinct visual focused and pressed states using state list
+drawables.</p>
+<p><strong>Figure 5.</strong> Nine-patch border pixels indicating stretchable
+regions and content padding.</p>
+<p>Some app widgets, such as those using a <code>StackView</code>, have a transparent
+background. For this case, each individual item in the StackView should use a nine-patch background
+that is edge-to-edge with little or no border transparent pixels for margins.</p>
+<p>For the contents of the widget, you should use flexible layouts such as <code>RelativeLayout</code>, <code>LinearLayout</code>, or <code>FrameLayout</code>. Just as your activity layouts must adapt to different physical screen
+sizes, widget layouts must adapt to different Home screen grid cell sizes.</p>
+<p>Below is an example layout that a music widget showing text information and two buttons can use.
+It builds upon the previous discussion of adding margins depending on OS version. Note that the
+most robust and resilient way to add margins to the widget is to wrap the widget frame and contents
+in a padded <code>FrameLayout</code>.</p>
+<p>WHATSON? b4b6e319-ed7e-478b-a0b7-0ddd8c8510f6</p>
+<pre>
+&lt;FrameLayout
+  android:layout_width="match_parent"
+  android:layout_height="match_parent"
+  android:padding="@dimen/widget_margin"&gt;
+
+  &lt;LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal"
+    android:background="@drawable/my_widget_background"&gt;
+
+    &lt;TextView
+      android:id="@+id/song_info"
+      android:layout_width="0dp"
+      android:layout_height="match_parent"
+      android:layout_weight="1" /&gt;
+
+    &lt;Button
+      android:id="@+id/play_button"
+      android:layout_width="@dimen/my_button_width"
+      android:layout_height="match_parent" /&gt;
+
+    &lt;Button
+      android:id="@+id/skip_button"
+      android:layout_width="@dimen/my_button_width"
+      android:layout_height="match_parent" /&gt;
+  &lt;/LinearLayout&gt;
+&lt;/FrameLayout&gt;
+</pre>
+<p>If you now take a look at the example music widget from the previous section, you can begin to
+use flexible layouts attributes like so:</p>
+<p><strong>Figure 6.</strong> Excerpt flexible layouts and attributes.</p>
+<p>When a user adds the widget to their home screen, on an example Android 4.0 device where each
+grid cell is 80dp × 100dp in size and 8dp of margins are automatically applied on all sizes,
+the widget will be stretched, like so:</p>
+<p><strong>Figure 7.</strong> Music widget sitting on an example 80dp x 100dp
+grid with 8dp of automatic margins added by the system.</p>
+<h2>Using the App Widget Templates Pack</h2>
+<p>When starting to design a new widget, or updating an existing widget, it's a good idea to first
+look at the widget design templates below. The downloadable package below includes nine-patch
+background graphics, XML, and source Adobe® Photoshop files for multiple screen densities, OS
+version widget styles, and widget colors. The template package also contains graphics useful for
+making your entire widget or parts of your widget (e.g. buttons) interactive.</p>
+<p><strong>Figure 8.</strong> Excerpts from the App Widget Templates Pack
+(medium-density, dark, Android 4.0/previous styles, default/focused/pressed states).</p>
+<p>You can obtain the latest App Widget Templates Pack archive using the link below:</p>
+<p>
+  Download the App Widget Templates Pack for Android 4.0 »</p>
+<h1>App Widget Design Guidelines</h1>
+<h2>Quickview</h2>
+<ul>
+  <li>App Widget layouts should be flexible, resizing to fit their parent container</li>
+  <li>As of Android 3.0, app widgets can depict collections of items and provide a representative
+    preview image for the widget gallery</li>
+  <li>As of Android 3.1, app widgets can be resizable horizontally and/or vertically</li>
+  <li>As of Android 4.0, app widgets have margins automatically applied</li>
+</ul>
+<h2>In this document</h2>
+<ol>
+<li>Standard Widget Anatomy</li>
+<li>Designing Widget Layouts and Background Graphics</li>
+<li>Using the App Widget Templates Pack</li>
+</ol>
+<h2>Downloads</h2>
+<ol>
+<li>App Widget Templates Pack,
+  v4.0 »</li>
+</ol>
+<h2>See also</h2>
+<ol>
+<li>App Widgets</li>
+<li>
+  
+    AppWidgets blog post</li>
+</ol>
+<p><strong>New Guides for App Designers!</strong></p>
+<p>Check out the new documents for designers at <strong>Android Design</strong>.</p>
+<p>App widgets (sometimes just "widgets") are a feature introduced in Android 1.5 and vastly
+improved in Android 3.0 and 3.1. A widget can display an application's most timely or otherwise
+relevant information at a glance, on a user's Home screen. The standard Android system image
+includes several widgets, including a widget for the Analog Clock, Music, and other
+applications.</p>
+<p><strong>Figure 1.</strong> Example app widgets in Android 4.0.</p>
+<p>This document describes how to design a widget so that it fits graphically with other widgets and
+with the other elements of the Android Home screen such as launcher icons and shortcuts. It also
+describes some standards for widget artwork and some widget graphics tips and tricks.</p>
+<p>
+
+</p>
+<p>For information about developing widgets, see the App Widgets section of the <em>Developer's
+Guide</em>.</p>
+<h2>Standard Widget Anatomy</h2>
+<p>Typical Android app widgets have three main components: A bounding box, a frame, and the widget's
+graphical controls and other elements. App widgets can contain a subset of the View widgets in
+Android; supported controls include text labels, buttons, and images. For a full list of available
+Views, see the Creating the
+App Widget Layout section in the <em>Developer's Guide</em>. Well-designed widgets leave some
+margins between the edges of the bounding box and the frame, and padding between the inner edges of
+the frame and the widget's controls.</p>
+<p><strong>Figure 2.</strong> Widgets generally have margins between the
+bounding box and frame, and padding between the frame and widget controls.</p>
+<p><strong>Note: </strong> As of Android 4.0, app widgets are automatically given
+margins between the widget frame and the app widget's bounding box to provide better alignment with
+other widgets and icons on the user's home screen. To take advantage of this strongly recommended
+behavior, set your application's targetSdkVersion to 14 or
+greater.</p>
+<p>Widgets designed to fit visually with other widgets on the Home screen take cues from the other
+elements on the Home screen for alignment; they also use standard shading effects. All of these
+details are described in this document.</p>
+<h3>Determining a size for your widget</h3>
+<p>Each widget must define a <code>minWidth</code> and <code>minHeight</code>, indicating the
+minimum amount of space it should consume by default. When users add a widget to their Home screen,
+it will generally occupy more than the minimum width and height you specify. Android Home screens
+offer users a grid of available spaces into which they can place widgets and icons. This grid can
+vary by device; for example, many handsets offer a 4x4 grid, and tablets can offer a larger, 8x7
+grid. <strong>When your widget is added, it will be stretched to occupy the minimum number of cells,
+horizontally and vertically, required to satisfy its <code>minWidth</code> and
+<code>minHeight</code> constraints.</strong> As we discuss in Designing Widget
+Layouts and Background Graphics below, using nine-patch backgrounds and flexible layouts for app
+widgets will allow your widget to gracefully adapt to the device's Home screen grid and remain
+usable and aesthetically awesome.</p>
+<p>While the width and height of a cell—as well as the amount of automatic margins applied to
+widgets—may vary across devices, you can use the table below to roughly estimate your widget's
+minimum dimensions, given the desired number of occupied grid cells:</p>
+<p>It is a good practice to be conservative with <code>minWidth</code> and <code>minHeight</code>,
+specifying the minimum size that renders the widget in a good default state. For an example of how
+to provide a <code>minWidth</code> and <code>minHeight</code>, suppose you have a music player
+widget that shows the currently playing song artist and title (vertically stacked), a
+<strong>Play</strong> button, and a <strong>Next</strong> button:</p>
+<p><strong>Figure 3.</strong> An example music player widget.</p>
+<p>Your minimum height should be the height of your two TextViews for the artist and title, plus
+some text margins. Your minimum width should be the minimum usable widths of the
+<strong>Play</strong> and <strong>Next</strong> buttons, plus the minimum text width (say, the width
+of 10 characters), plus any horizontal text margins.</p>
+<p><strong>Figure 4.</strong> Example sizes and margins for
+<code>minWidth</code>/<code>minHeight</code> calculations. We chose 144dp as an example good minimum
+width for the text labels.</p>
+<p>Example calculations are below:</p>
+<ul>
+  <li><code>minWidth</code> = 144dp + (2 × 8dp) + (2 × 56dp) =
+    <strong>272dp</strong></li>
+  <li><code>minHeight</code> = 48dp + (2 × 4dp) = <strong>56dp</strong></li>
+</ul>
+<p>If there is any inherent content padding in your widget background nine-patch, you should add to
+<code>minWidth</code> and <code>minHeight</code> accordingly.</p>
+<h3>Resizable widgets</h3>
+<p>Widgets can be resized horizontally and/or vertically as of Android 3.1, meaning that
+<code>minWidth</code> and <code>minHeight</code> effectively become the <em>default</em> size for
+the widget. You can specify the minimum widget size using <code>minResizeWidth</code> and
+<code>minResizeHeight</code>; these values should specify the size below which the widget would be
+illegible or otherwise unusable.</p>
+<p>This is generally a preferred feature for collection widgets such as those based on <code>ListView</code> or <code>GridView</code>.</p>
+<h3>Adding margins to your app widget</h3>
+<p>As previously mentioned, Android 4.0 will automatically add small, standard margins to each edge
+of widgets on the Home screen, for applications that specify a <code>targetSdkVersion</code> of 14
+or greater. This helps to visually balance the Home screen, and thus <strong>we recommend that you
+do not add any extra margins outside of your app widget's background shape in Android
+4.0</strong>.</p>
+<p>It's easy to write a single layout that has custom margins applied for earlier versions of the
+platform, and has no extra margins for Android 4.0 and greater. See Adding Margins to App Widgets
+in the <em>Developer's Guide</em> for information on how to achieve this with layout XML.</p>
+<h2>Designing Widget Layouts and Background Graphics</h2>
+<p>Most widgets will have a solid background rectangle or rounded rectangle shape. It is a best
+practice to define this shape using nine patches; one for each screen density (see Supporting Multiple Screens for details).
+Nine-patches can be created with the draw9patch tool, or simply with a
+graphics editing program such as Adobe® Photoshop. This will allow the widget background shape
+to take up the entire available space. The nine-patch should be edge-to-edge with no transparent
+pixels providing extra margins, save for perhaps a few border pixels for <strong>subtle</strong>
+drop shadows or other subtle effects.</p>
+<p><strong>Note: </strong> Just like with controls in activities, you should ensure
+that interactive controls have distinct visual focused and pressed states using state list
+drawables.</p>
+<p><strong>Figure 5.</strong> Nine-patch border pixels indicating stretchable
+regions and content padding.</p>
+<p>Some app widgets, such as those using a <code>StackView</code>, have a transparent
+background. For this case, each individual item in the StackView should use a nine-patch background
+that is edge-to-edge with little or no border transparent pixels for margins.</p>
+<p>For the contents of the widget, you should use flexible layouts such as <code>RelativeLayout</code>, <code>LinearLayout</code>, or <code>FrameLayout</code>. Just as your activity layouts must adapt to different physical screen
+sizes, widget layouts must adapt to different Home screen grid cell sizes.</p>
+<p>Below is an example layout that a music widget showing text information and two buttons can use.
+It builds upon the previous discussion of adding margins depending on OS version. Note that the
+most robust and resilient way to add margins to the widget is to wrap the widget frame and contents
+in a padded <code>FrameLayout</code>.</p>
+<p>WHATSON? ea4332ee-707a-494c-b932-353df510fae8</p>
+<pre>
+&lt;FrameLayout
+  android:layout_width="match_parent"
+  android:layout_height="match_parent"
+  android:padding="@dimen/widget_margin"&gt;
+
+  &lt;LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal"
+    android:background="@drawable/my_widget_background"&gt;
+
+    &lt;TextView
+      android:id="@+id/song_info"
+      android:layout_width="0dp"
+      android:layout_height="match_parent"
+      android:layout_weight="1" /&gt;
+
+    &lt;Button
+      android:id="@+id/play_button"
+      android:layout_width="@dimen/my_button_width"
+      android:layout_height="match_parent" /&gt;
+
+    &lt;Button
+      android:id="@+id/skip_button"
+      android:layout_width="@dimen/my_button_width"
+      android:layout_height="match_parent" /&gt;
+  &lt;/LinearLayout&gt;
+&lt;/FrameLayout&gt;
+</pre>
+<p>If you now take a look at the example music widget from the previous section, you can begin to
+use flexible layouts attributes like so:</p>
+<p><strong>Figure 6.</strong> Excerpt flexible layouts and attributes.</p>
+<p>When a user adds the widget to their home screen, on an example Android 4.0 device where each
+grid cell is 80dp × 100dp in size and 8dp of margins are automatically applied on all sizes,
+the widget will be stretched, like so:</p>
+<p><strong>Figure 7.</strong> Music widget sitting on an example 80dp x 100dp
+grid with 8dp of automatic margins added by the system.</p>
+<h2>Using the App Widget Templates Pack</h2>
+<p>When starting to design a new widget, or updating an existing widget, it's a good idea to first
+look at the widget design templates below. The downloadable package below includes nine-patch
+background graphics, XML, and source Adobe® Photoshop files for multiple screen densities, OS
+version widget styles, and widget colors. The template package also contains graphics useful for
+making your entire widget or parts of your widget (e.g. buttons) interactive.</p>
+<p><strong>Figure 8.</strong> Excerpts from the App Widget Templates Pack
+(medium-density, dark, Android 4.0/previous styles, default/focused/pressed states).</p>
+<p>You can obtain the latest App Widget Templates Pack archive using the link below:</p>
+<p>
+  Download the App Widget Templates Pack for Android 4.0 »</p>
+</body>
+</html>

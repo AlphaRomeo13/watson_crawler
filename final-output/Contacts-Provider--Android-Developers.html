@@ -1,0 +1,3448 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Contacts-Provider--Android-Developers.html</title></head>
+<body>
+<h1>Contacts Provider</h1>
+<h2>Quickview</h2>
+<ul>
+    <li>Android's repository of information about people.</li>
+    <li>
+        Syncs with the web.
+    </li>
+    <li>
+        Integrates social stream data.
+    </li>
+</ul>
+<h2>In this document</h2>
+<ol>
+    <li>
+        Contacts Provider Organization
+    </li>
+    <li>
+        Raw contacts
+    </li>
+    <li>
+        Data
+    </li>
+    <li>
+        Contacts
+    </li>
+    <li>
+        Data From Sync Adapters
+    </li>
+    <li>
+        Required Permissions
+    </li>
+    <li>
+        The User Profile
+    </li>
+    <li>
+        Contacts Provider Metadata
+    </li>
+    <li>
+        Contacts Provider Access
+    </li><li>
+    </li>
+    <li>
+        Contacts Provider Sync Adapters
+    </li>
+    <li>
+        Social Stream Data
+    </li>
+    <li>
+        Additional Contacts Provider Features
+    </li>
+</ol>
+<h2>Key classes</h2>
+<ol>
+    <li><code>ContactsContract.Contacts</code></li>
+    <li><code>ContactsContract.RawContacts</code></li>
+    <li><code>ContactsContract.Data</code></li>
+    <li><code>ContactsContract.StreamItems</code></li>
+</ol>
+<h2>Related Samples</h2>
+<ol>
+    <li>
+        
+        Contact Manager
+        
+    </li>
+    <li>
+        
+        Sample Sync Adapter
+    </li>
+</ol>
+<h2>See Also</h2>
+<ol>
+    <li>
+        
+        Content Provider Basics
+        
+    </li>
+</ol>
+<p>
+    The Contacts Provider is a powerful and flexible Android component that manages the
+    device's central repository of data about people. The Contacts Provider is the source of data
+    you see in the device's contacts application, and you can also access its data in your own
+    application and transfer data between the device and online services. The provider accommodates
+    a wide range of data sources and tries to manage as much data as possible for each person, with
+    the result that its organization is complex. Because of this, the provider's API includes an
+    extensive set of contract classes and interfaces that facilitate both data retrieval and
+    modification.
+</p>
+<p>
+    This guide describes the following:
+</p>
+<ul>
+        <li>
+            The basic provider structure.
+        </li>
+        <li>
+            How to retrieve data from the provider.
+        </li>
+        <li>
+            How to modify data in the provider.
+        </li>
+        <li>
+            How to write a sync adapter for synchronizing data from your server to the
+            Contacts Provider.
+        </li>
+    </ul>
+<p>
+    This guide assumes that you know the basics of Android content providers. To learn more
+    about Android content providers, read the
+    
+    Content Provider Basics guide. The
+    Sample Sync Adapter
+    sample app is an example of using a sync adapter to transfer data between the Contacts
+    Provider and a sample application hosted by Google Web Services.
+</p>
+<h2>Contacts Provider Organization</h2>
+<p>
+    The Contacts Provider is an Android content provider component. It maintains three types of
+    data about a person, each of which corresponds to a table offered by the provider, as
+    illustrated in figure 1:
+</p>
+<p>
+  <strong>Figure 1.</strong> Contacts Provider table structure.
+</p>
+<p>
+    The three tables are commonly referred to by the names of their contract classes. The classes
+    define constants for content URIs, column names, and column values used by the tables:
+</p>
+<p>
+    The other tables represented by contract classes in <code>ContactsContract</code>
+    are auxiliary tables that the Contacts Provider uses to manage its operations or support
+    specific functions in the device's contacts or telephony applications.
+</p>
+<h2>Raw contacts</h2>
+<p>
+    A raw contact represents a person's data coming from a single account type and account
+    name. Because the Contacts Provider allows more than one online service as the source of
+    data for a person, the Contacts Provider allows multiple raw contacts for the same person.
+    Multiple raw contacts also allow a user to combine a person's data from more than one account
+    from the same account type.
+</p>
+<p>
+    Most of the data for a raw contact isn't stored in the
+    <code>ContactsContract.RawContacts</code> table. Instead, it's stored in one or more
+    rows in the <code>ContactsContract.Data</code> table. Each data row has a column
+    <code>Data.RAW_CONTACT_ID</code> that
+    contains the <code>RawContacts._ID</code> value of its
+    parent <code>ContactsContract.RawContacts</code> row.
+</p>
+<h3>Important raw contact columns</h3>
+<p>
+    The important columns in the <code>ContactsContract.RawContacts</code> table are
+    listed in table 1. Please read the notes that follow after the table:
+</p>
+<p>
+    <strong>Table 1.</strong> Important raw contact columns.
+</p>
+<h4>Notes</h4>
+<p>
+    The following are important notes about the
+    <code>ContactsContract.RawContacts</code> table:
+</p>
+<ul>
+    <li>
+        A raw contact's name is not stored in its row in
+        <code>ContactsContract.RawContacts</code>. Instead, it's stored in
+        the <code>ContactsContract.Data</code> table, in a
+        <code>ContactsContract.CommonDataKinds.StructuredName</code> row. A raw contact
+        has only one row of this type in the <code>ContactsContract.Data</code> table.
+    </li>
+    <li>
+        <strong>Caution:</strong> To use your own account data in a raw contact row, it must
+        first be registered with the <code>AccountManager</code>. To do this, prompt
+        users to add the account type and their account name to the list of accounts. If you don't
+        do this, the Contacts Provider will automatically delete your raw contact row.
+        <p>
+            For example, if you want your app to maintain contacts data for your web-based service
+            with the domain <code>com.example.dataservice</code>, and the user's account for your service
+            is <code>becky.sharp@dataservice.example.com</code>, the user must first add the account
+            "type" (<code>com.example.dataservice</code>) and account "name"
+            (<code>becky.smart@dataservice.example.com</code>) before your app can add raw contact rows.
+            You can explain this requirement to the user in documentation, or you can prompt the
+            user to add the type and name, or both. Account types and account names
+            are described in more detail in the next section.
+    </p></li>
+</ul>
+<p>
+            For example, if you want your app to maintain contacts data for your web-based service
+            with the domain <code>com.example.dataservice</code>, and the user's account for your service
+            is <code>becky.sharp@dataservice.example.com</code>, the user must first add the account
+            "type" (<code>com.example.dataservice</code>) and account "name"
+            (<code>becky.smart@dataservice.example.com</code>) before your app can add raw contact rows.
+            You can explain this requirement to the user in documentation, or you can prompt the
+            user to add the type and name, or both. Account types and account names
+            are described in more detail in the next section.
+    </p>
+<h3>Sources of raw contacts data</h3>
+<p>
+    To understand how raw contacts work, consider the user "Emily Dickinson" who has the following
+    three user accounts defined on her device:
+</p>
+<ul>
+    <li><code>emily.dickinson@gmail.com</code></li>
+    <li><code>emilyd@gmail.com</code></li>
+    <li>Twitter account "belle_of_amherst"</li>
+</ul>
+<p>
+    This user has enabled <em>Sync Contacts</em> for all three of these accounts in the
+    <em>Accounts</em> settings.
+</p>
+<p>
+    Suppose Emily Dickinson opens a browser window, logs into Gmail as
+    <code>emily.dickinson@gmail.com</code>, opens
+    Contacts, and adds "Thomas Higginson". Later on, she logs into Gmail as
+    <code>emilyd@gmail.com</code> and sends an email to "Thomas Higginson", which automatically
+    adds him as a contact. She also follows "colonel_tom" (Thomas Higginson's Twitter ID) on
+    Twitter.
+</p>
+<p>
+    The Contacts Provider creates three raw contacts as a result of this work:
+</p>
+<ol>
+    <li>
+        A raw contact for "Thomas Higginson" associated with <code>emily.dickinson@gmail.com</code>.
+        The user account type is Google.
+    </li>
+    <li>
+        A second raw contact for "Thomas Higginson" associated with <code>emilyd@gmail.com</code>.
+        The user account type is also Google. There is a second raw contact even
+        though the name is identical to a previous name, because the person was added for a
+        different user account.
+    </li>
+    <li>
+        A third raw contact for "Thomas Higginson" associated with "belle_of_amherst". The user
+        account type is Twitter.
+    </li>
+</ol>
+<h2>Data</h2>
+<p>
+    As noted previously, the data for a raw contact is stored in a
+    <code>ContactsContract.Data</code> row that is linked to the raw contact's
+    <code>_ID</code> value. This allows a single raw contact to have multiple instances of the same
+    type of data such as email addresses or phone numbers. For example, if
+    "Thomas Higginson" for <code>emilyd@gmail.com</code>  (the raw contact row for Thomas Higginson
+    associated with the Google account <code>emilyd@gmail.com</code>) has a home email address of
+    <code>thigg@gmail.com</code> and a work email address of
+    <code>thomas.higginson@gmail.com</code>, the Contacts Provider stores the two email address
+    rows and links them both to the raw contact.
+</p>
+<p>
+    Notice that different types of data are stored in this single table. Display name,
+    phone number, email, postal address, photo, and website detail rows are all found in the
+    <code>ContactsContract.Data</code> table. To help manage this, the
+    <code>ContactsContract.Data</code> table has some columns with descriptive names,
+    and others with generic names. The contents of a descriptive-name column have the same meaning
+    regardless of the type of data in the row, while the contents of a generic-name column have
+    different meanings depending on the type of data.
+</p>
+<h3>Descriptive column names</h3>
+<p>
+    Some examples of descriptive column names are:
+</p>
+<h3>Generic column names</h3>
+<p>
+    There are 15 generic columns named <code>DATA1</code> through
+    <code>DATA15</code> that are generally available and an additional four generic
+    columns <code>SYNC1</code> through <code>SYNC4</code> that should only be used by sync
+    adapters. The generic column name constants always work, regardless of the type of
+    data the row contains.
+</p>
+<p>
+    The <code>DATA1</code> column is indexed.  The Contacts Provider always uses this column for
+    the data that the provider expects will be the most frequent target of a query. For example,
+    in an email row, this column contains the actual email address.
+</p>
+<p>
+    By convention, the column <code>DATA15</code> is reserved for storing Binary Large Object
+    (BLOB) data such as photo thumbnails.
+</p>
+<h3>Type-specific column names</h3>
+<p>
+    To facilitate working with the columns for a particular type of row, the Contacts Provider
+    also provides type-specific column name constants, defined in subclasses of
+    <code>ContactsContract.CommonDataKinds</code>. The constants simply give a
+    different constant name to the same column name, which helps you access data in a row of a
+    particular type.
+</p>
+<p>
+    For example, the <code>ContactsContract.CommonDataKinds.Email</code> class defines
+    type-specific column name constants for a <code>ContactsContract.Data</code> row
+    that has the MIME type
+    <code>Email.CONTENT_ITEM_TYPE</code>. The class contains the constant
+    <code>ADDRESS</code> for the email address
+    column. The actual value of
+    <code>ADDRESS</code> is "data1", which is
+    the same as the column's generic name.
+</p>
+<p>
+    <strong>Caution:</strong> Don't add your own custom data to the
+    <code>ContactsContract.Data</code> table using a row that has one of the
+    provider's pre-defined MIME types. If you do, you may lose the data or cause the provider to
+    malfunction. For example, you should not add a row with the MIME type
+    <code>Email.CONTENT_ITEM_TYPE</code> that contains a user name instead of an email address in the
+    column <code>DATA1</code>. If you use your own custom MIME type for the row, then you are free
+    to define your own type-specific column names and use the columns however you wish.
+</p>
+<p>
+    Figure 2 shows how descriptive columns and data columns appear in a
+    <code>ContactsContract.Data</code> row, and how type-specific column names "overlay"
+    the generic column names
+</p>
+<p>
+  <strong>Figure 2.</strong> Type-specific column names and generic column names.
+</p>
+<h3>Type-specific column name classes</h3>
+<p>
+    Table 2 lists the most commonly-used type-specific column name classes:
+</p>
+<p>
+  <strong>Table 2.</strong> Type-specific column name classes</p>
+<h3>Contacts</h3>
+<p>
+    The Contacts Provider combines the raw contact rows across all account types and account names
+    to form a <strong>contact</strong>. This facilitates displaying and modifying all the data a
+    user has collected for a person. The Contacts Provider manages the creation of new contact
+    rows, and the aggregation of raw contacts with an existing contact row. Neither applications nor
+    sync adapters are allowed to add contacts, and some columns in a contact row are read-only.
+</p>
+<p>
+    <strong>Note:</strong> If you try to add a contact to the Contacts Provider with an
+    <code>insert()</code>, you'll get
+    an <code>UnsupportedOperationException</code> exception. If you try to update a column
+    that's listed as "read-only," the update is ignored.
+</p>
+<p>
+    The Contacts Provider creates a new contact in response to the addition of a new raw contact
+    that doesn't match any existing contacts. The provider also does this if an existing raw
+    contact's data changes in such a way that it no longer matches the contact to which it was
+    previously attached. If an application or sync adapter creates a new raw contact that
+    <em>does</em> match an existing contact, the new raw contact is aggregated to the existing
+    contact.
+</p>
+<p>
+    The Contacts Provider links a contact row to its raw contact rows with the contact row's
+    <code>_ID</code> column in the <code>Contacts</code>
+    table. The <code>CONTACT_ID</code> column of the raw contacts table
+    <code>ContactsContract.RawContacts</code> contains <code>_ID</code> values for
+    the contacts row associated with each raw contacts row.
+</p>
+<p>
+    The <code>ContactsContract.Contacts</code> table also has the column
+    <code>LOOKUP_KEY</code> that is a
+    "permanent" link to the contact row. Because the Contacts Provider maintains contacts
+    automatically, it may change a contact row's <code>_ID</code> value
+    in response to an aggregation or sync. Even If this happens, the content URI
+    <code>CONTENT_LOOKUP_URI</code> combined with
+    contact's <code>LOOKUP_KEY</code> will still
+    point to the contact row, so you can use
+    <code>LOOKUP_KEY</code>
+    to maintain links to "favorite" contacts, and so forth. This column has its own format that is
+    unrelated to the format of the <code>_ID</code> column.
+</p>
+<p>
+    Figure 3 shows how the three main tables relate to each other.
+</p>
+<p>
+  <strong>Figure 3.</strong> Contacts, Raw Contacts, and Details table relationships.
+</p>
+<h2>Data From Sync Adapters</h2>
+<p>
+    Users enter contacts data directly into the device, but data also flows into the Contacts
+    Provider from web services via <strong>sync adapters</strong>, which automate
+    the transfer of data between the device and services. Sync adapters run in the background
+    under the control of the system, and they call <code>ContentResolver</code> methods
+    to manage data.
+</p>
+<p>
+    In Android, the web service that a sync adapter works with is identified by an account type.
+    Each sync adapter works with one account type, but it can support multiple account names for
+    that type. Account types and account names are described briefly in the section
+    Sources of raw contacts data. The following definitions offer
+    more detail, and describe how account type and name relate to sync adapters and services.
+</p>
+<p>
+    Account types don't have to be unique. A user can configure multiple Google Contacts accounts
+    and download their data to the Contacts Provider; this may happen if the user has one set of
+    personal contacts for a personal account name, and another set for work. Account names are
+    usually unique. Together, they identify a specific data flow between the Contacts Provider and
+    an external service.
+</p>
+<p>
+    If you want to transfer your service's data to the Contacts Provider, you need to write your
+    own sync adapter. This is described in more detail in the section
+    Contacts Provider Sync Adapters.
+</p>
+<p>
+    Figure 4 shows how the Contacts Provider fits into the flow of data
+    about people. In the box marked "sync adapters," each adapter is labeled by its account type.
+</p>
+<p>
+  <strong>Figure 4.</strong> The Contacts Provider flow of data.
+</p>
+<h2>Required Permissions</h2>
+<p>
+    Applications that want to access the Contacts Provider must request the following
+    permissions:
+</p>
+<p>
+    These permissions do not extend to the user profile data. The user profile and its
+    required permissions are discussed in the following section,
+    The User Profile.
+</p>
+<p>
+    Remember that the user's contacts data is personal and sensitive. Users are concerned about
+    their privacy, so they don't want applications collecting data about them or their contacts.
+    If it's not obvious why you need permission to access their contacts data, they may give
+    your application low ratings or simply refuse to install it.
+</p>
+<h2>The User Profile</h2>
+<p>
+    The <code>ContactsContract.Contacts</code> table has a single row containing
+    profile data for the device's user. This data describes the device's <code>user</code> rather
+    than one of the user's contacts. The profile contacts row is linked to a raw
+    contacts row for each system that uses a profile.
+    Each profile raw contact row can have multiple data rows. Constants for accessing the user
+    profile are available in the <code>ContactsContract.Profile</code> class.
+</p>
+<p>
+    Access to the user profile requires special permissions. In addition to the
+    <code>READ_CONTACTS</code> and
+    <code>WRITE_CONTACTS</code> permissions needed to read and write, access
+    to the user profile requires the <code>READ_PROFILE</code> and
+    <code>WRITE_PROFILE</code> permissions for read and write access,
+    respectively.
+</p>
+<p>
+    Remember that you should consider a user's profile to be sensitive. The permission
+    <code>READ_PROFILE</code> allows you to access the device user's
+    personally-identifying data. Make sure to tell the user why
+    you need user profile access permissions in the description of your application.
+</p>
+<p>
+    To retrieve the contact row that contains the user's profile,
+    call <code>ContentResolver.query()</code>. Set the content URI to
+    <code>CONTENT_URI</code> and don't provide any
+    selection criteria. You can also use this content URI as the base URI for retrieving raw
+    contacts or data for the profile. For example, this snippet retrieves data for the profile:
+</p>
+<p>WHATSON? 3f959ba5-82da-4604-8c4c-ac9744b6a901</p>
+<pre>
+// Sets the columns to retrieve for the user profile
+mProjection = new String[]
+    {
+        Profile._ID,
+        Profile.DISPLAY_NAME_PRIMARY,
+        Profile.LOOKUP_KEY,
+        Profile.PHOTO_THUMBNAIL_URI
+    };
+
+// Retrieves the profile from the Contacts Provider
+mProfileCursor =
+        getContentResolver().query(
+                Profile.CONTENT_URI,
+                mProjection ,
+                null,
+                null,
+                null);
+</pre>
+<p>
+    <strong>Note:</strong> If you retrieve multiple contact rows, and you want to determine if one of them
+    is the user profile, test the row's
+    <code>IS_USER_PROFILE</code> column. This column
+    is set to "1" if the contact is the user profile.
+</p>
+<h2>Contacts Provider Metadata</h2>
+<p>
+    The Contacts Provider manages data that keeps track of the state of contacts data in the
+    repository. This metadata about the repository is stored in various places, including the
+    Raw Contacts, Data, and Contacts table rows, the
+    <code>ContactsContract.Settings</code> table, and the
+    <code>ContactsContract.SyncState</code> table. The following table shows the
+    effect of each of these pieces of metadata:
+</p>
+<p>
+  <strong>Table 3.</strong> Metadata in the Contacts Provider</p>
+<p>
+                Sync adapters that modify the raw contact or data tables should always append the
+                string <code>CALLER_IS_SYNCADAPTER</code> to the
+                content URI they use. This prevents the provider from marking rows as dirty.
+                Otherwise, sync adapter modifications appear to be local modifications and are
+                sent to the server, even though the server was the source of the modification.
+            </p>
+<p>
+                In particular, the source id must be <strong>unique</strong> for each account
+                type and should be stable across syncs:
+            </p>
+<ul>
+                    <li>
+                        Unique: Each raw contact for an account must have its own source id. If you
+                        don't enforce this, you'll cause problems in the contacts application.
+                        Notice that two raw contacts for the same account <em>type</em> may have
+                        the same source id. For example, the raw contact "Thomas Higginson" for the
+                        account <code>emily.dickinson@gmail.com</code> is allowed to have the same source
+                        id as the raw contact "Thomas Higginson" for the account
+                        <code>emilyd@gmail.com</code>.
+                    </li>
+                    <li>
+                        Stable: Source ids are a permanent part of the online service's data for
+                        the raw contact. For example, if the user clears Contacts Storage from the
+                        Apps settings and re-syncs, the restored raw contacts should have the same
+                        source ids as before. If you don't enforce this, shortcuts will stop
+                        working.
+                    </li>
+                </ul>
+<h2>Contacts Provider Access</h2>
+<p>
+    This section describes guidelines for accessing data from the Contacts Provider, focusing on
+    the following:
+</p>
+<ul>
+    <li>
+        Entity queries.
+    </li>
+    <li>
+        Batch modification.
+    </li>
+    <li>
+        Retrieval and modification with intents.
+    </li>
+    <li>
+        Data integrity.
+    </li>
+</ul>
+<p>
+    Making modifications from a sync adapter is also covered in more detail in the section
+    Contacts Provider Sync Adapters.
+</p>
+<h3>Querying entities</h3>
+<p>
+    Because the Contacts Provider tables are organized in a hierarchy, it's often useful to
+    retrieve a row and all of the "child" rows that are linked to it. For example, to display
+    all the information for a person, you may want to retrieve all the
+    <code>ContactsContract.RawContacts</code> rows for a single
+    <code>ContactsContract.Contacts</code> row, or all the
+    <code>ContactsContract.CommonDataKinds.Email</code> rows for a single
+    <code>ContactsContract.RawContacts</code> row. To facilitate this, the Contacts
+    Provider offers <strong>entity</strong> constructs, which act like database joins between
+    tables.
+</p>
+<p>
+    An entity is like a table composed of selected columns from a parent table and its child table.
+    When you query an entity, you supply a projection and search criteria based on the columns
+    available from the entity. The result is a <code>Cursor</code> that contains
+    contains one row for each child table row that was retrieved. For example, if you query
+    <code>ContactsContract.Contacts.Entity</code> for a contact name
+    and all the <code>ContactsContract.CommonDataKinds.Email</code> rows for all the
+    raw contacts for that name, you get back a <code>Cursor</code> containing one row
+    for each <code>ContactsContract.CommonDataKinds.Email</code> row.
+</p>
+<p>
+    Entities simplify queries. Using an entity, you can retrieve all of the contacts data for a
+    contact or raw contact at once, instead of having to query the parent table first to get an
+    ID, and then having to query the child table with that ID. Also, the Contacts Provider processes
+    a query against an entity in a single transaction, which ensures that the retrieved data is
+    internally consistent.
+</p>
+<p>
+    <strong>Note:</strong> An entity usually doesn't contain all the columns of the parent and
+    child table. If you attempt to work with a column name that isn't in the list of column name
+    constants for the entity, you'll get an <code>Exception</code>.
+</p>
+<p>
+    The following snippet shows how to retrieve all the raw contact rows for a contact. The snippet
+    is part of a larger application that has two activities, "main" and "detail". The main activity
+    shows a list of contact rows; when the user select one, the activity sends its ID to the detail
+    activity. The detail activity uses the <code>ContactsContract.Contacts.Entity</code>
+    to display all of the data rows from all of the raw contacts associated with the selected
+    contact.
+</p>
+<p>
+    This snippet is taken from the "detail" activity:
+</p>
+<p>WHATSON? bc78b197-c80e-4451-89d9-be0df84e2863</p>
+<pre>
+...
+    /*
+     * Appends the entity path to the URI. In the case of the Contacts Provider, the
+     * expected URI is content://com.google.contacts/#/entity (# is the ID value).
+     */
+    mContactUri = Uri.withAppendedPath(
+            mContactUri,
+            ContactsContract.Contacts.Entity.CONTENT_DIRECTORY);
+
+    // Initializes the loader identified by LOADER_ID.
+    getLoaderManager().initLoader(
+            LOADER_ID,  // The identifier of the loader to initialize
+            null,       // Arguments for the loader (in this case, none)
+            this);      // The context of the activity
+
+    // Creates a new cursor adapter to attach to the list view
+    mCursorAdapter = new SimpleCursorAdapter(
+            this,                        // the context of the activity
+            R.layout.detail_list_item,   // the view item containing the detail widgets
+            mCursor,                     // the backing cursor
+            mFromColumns,                // the columns in the cursor that provide the data
+            mToViews,                    // the views in the view item that display the data
+            0);                          // flags
+
+    // Sets the ListView's backing adapter.
+    mRawContactList.setAdapter(mCursorAdapter);
+...
+@Override
+public Loader&lt;Cursor&gt; onCreateLoader(int id, Bundle args) {
+
+    /*
+     * Sets the columns to retrieve.
+     * RAW_CONTACT_ID is included to identify the raw contact associated with the data row.
+     * DATA1 contains the first column in the data row (usually the most important one).
+     * MIMETYPE indicates the type of data in the data row.
+     */
+    String[] projection =
+        {
+            ContactsContract.Contacts.Entity.RAW_CONTACT_ID,
+            ContactsContract.Contacts.Entity.DATA1,
+            ContactsContract.Contacts.Entity.MIMETYPE
+        };
+
+    /*
+     * Sorts the retrieved cursor by raw contact id, to keep all data rows for a single raw
+     * contact collated together.
+     */
+    String sortOrder =
+            ContactsContract.Contacts.Entity.RAW_CONTACT_ID +
+            " ASC";
+
+    /*
+     * Returns a new CursorLoader. The arguments are similar to
+     * ContentResolver.query(), except for the Context argument, which supplies the location of
+     * the ContentResolver to use.
+     */
+    return new CursorLoader(
+            getApplicationContext(),  // The activity's context
+            mContactUri,              // The entity content URI for a single contact
+            projection,               // The columns to retrieve
+            null,                     // Retrieve all the raw contacts and their data rows.
+            null,                     //
+            sortOrder);               // Sort by the raw contact ID.
+}
+</pre>
+<p>
+    When the load is finished, <code>LoaderManager</code> invokes a callback to
+    <code>onLoadFinished()</code>. One of the incoming arguments to this method is a
+    <code>Cursor</code> with the results of the query. In your own app, you can get the
+    data from this <code>Cursor</code> to display it or work with it further.
+</p>
+<h3>Batch modification</h3>
+<p>
+    Whenever possible, you should insert, update, and delete data in the Contacts Provider in
+    "batch mode", by creating an <code>ArrayList</code> of
+    <code>ContentProviderOperation</code> objects and calling
+    <code>applyBatch()</code>. Because
+    the Contacts Provider performs all of the operations in an
+    <code>applyBatch()</code> in a single
+    transaction, your modifications will never leave the contacts repository in an inconsistent
+    state. A batch modification also facilitates inserting a raw contact and its detail data at
+    the same time.
+</p>
+<p>
+    <strong>Note:</strong> To modify a <em>single</em> raw contact, consider sending an intent to
+    the device's contacts application rather than handling the modification in your app.
+    Doing this is described in more detail in the section
+    Retrieval and modification with intents.
+</p>
+<h4>Yield points</h4>
+<p>
+    A batch modification containing a large number of operations can block other processes,
+    resulting in a bad overall user experience. To organize all the modifications you want to
+    perform in as few separate lists as possible, and at the same time prevent them from
+    blocking the system, you should set <strong>yield points</strong> for one or more operations.
+    A yield point is a <code>ContentProviderOperation</code> object that has its
+    <code>isYieldAllowed()</code> value set to
+    <code>true</code>. When the Contacts Provider encounters a yield point, it pauses its work to
+    let other processes run and closes the current transaction. When the provider starts again, it
+    continues with the next operation in the <code>ArrayList</code> and starts a new
+    transaction.
+</p>
+<p>
+    Yield points do result in more than one transaction per call to
+    <code>applyBatch()</code>. Because of
+    this, you should set a yield point for the last operation for a set of related rows.
+    For example, you should set a yield point for the last operation in a set that adds a
+    raw contact rows and its associated data rows, or the last operation for a set of rows related
+    to a single contact.
+</p>
+<p>
+    Yield points are also a unit of atomic operation. All accesses between two yield points will
+    either succeed or fail as a single unit. If you don't set any yield points, the smallest
+    atomic operation is the entire batch of operations. If you do use yield points, you prevent
+    operations from degrading system performance, while at the same time ensuring that a subset of
+    operations is atomic.
+</p>
+<h4>Modification back references</h4>
+<p>
+    When you're inserting a new raw contact row and its associated data rows as a set of
+    <code>ContentProviderOperation</code> objects, you have to link the data rows to
+    the raw contact row by inserting the raw contact's
+    <code>_ID</code> value as the
+    <code>RAW_CONTACT_ID</code> value. However, this
+    value isn't available when you're creating the <code>ContentProviderOperation</code>
+    for the data row, because you haven't yet applied the
+    <code>ContentProviderOperation</code> for the raw contact row. To work around this,
+    the <code>ContentProviderOperation.Builder</code> class has the method
+    <code>withValueBackReference()</code>.
+    This method allows you to insert or modify a column with the
+    result of a previous operation.
+</p>
+<p>
+    The <code>withValueBackReference()</code>
+    method has two arguments:
+</p>
+<p>
+                The entire result array is created when you first call
+                <code>applyBatch()</code>,
+                with a size equal to the size of the <code>ArrayList</code> of
+                <code>ContentProviderOperation</code> objects you provide. However, all
+                the elements in the result array are set to <code>null</code>, and if you try
+                to do a back reference to a result for an operation that hasn't yet been applied,
+<code>withValueBackReference()</code>
+                throws an <code>Exception</code>.
+
+            </p>
+<p>
+    The following snippets show how to insert a new raw contact and data in batch. They
+    includes code that establishes a yield point and uses a back reference. The snippets are an
+    expanded version of the <code>createContacEntry()</code> method, which is part of the
+    <code>ContactAdder</code> class in the
+    <code>
+    Contact Manager</code> sample application.
+</p>
+<p>
+    The first snippet retrieves contact data from the UI. At this point, the user has already
+    selected the account for which the new raw contact should be added.
+</p>
+<p>WHATSON? 52bb2468-00e7-4b66-94e9-ecddb3ed533d</p>
+<pre>
+// Creates a contact entry from the current UI values, using the currently-selected account.
+protected void createContactEntry() {
+    /*
+     * Gets values from the UI
+     */
+    String name = mContactNameEditText.getText().toString();
+    String phone = mContactPhoneEditText.getText().toString();
+    String email = mContactEmailEditText.getText().toString();
+
+    int phoneType = mContactPhoneTypes.get(
+            mContactPhoneTypeSpinner.getSelectedItemPosition());
+
+    int emailType = mContactEmailTypes.get(
+            mContactEmailTypeSpinner.getSelectedItemPosition());
+</pre>
+<p>
+    The next snippet creates an operation to insert the raw contact row into the
+    <code>ContactsContract.RawContacts</code> table:
+</p>
+<p>WHATSON? 45f0a468-0bde-4430-b86b-099ddb552259</p>
+<pre>
+    /*
+     * Prepares the batch operation for inserting a new raw contact and its data. Even if
+     * the Contacts Provider does not have any data for this person, you can't add a Contact,
+     * only a raw contact. The Contacts Provider will then add a Contact automatically.
+     */
+
+     // Creates a new array of ContentProviderOperation objects.
+    ArrayList&lt;ContentProviderOperation&gt; ops =
+            new ArrayList&lt;ContentProviderOperation&gt;();
+
+    /*
+     * Creates a new raw contact with its account type (server type) and account name
+     * (user's account). Remember that the display name is not stored in this row, but in a
+     * StructuredName data row. No other data is required.
+     */
+    ContentProviderOperation.Builder op =
+            ContentProviderOperation.newInsert(ContactsContract.RawContacts.CONTENT_URI)
+            .withValue(ContactsContract.RawContacts.ACCOUNT_TYPE, mSelectedAccount.getType())
+            .withValue(ContactsContract.RawContacts.ACCOUNT_NAME, mSelectedAccount.getName());
+
+    // Builds the operation and adds it to the array of operations
+    ops.add(op.build());
+</pre>
+<p>
+    Next, the code creates data rows for the display name, phone, and email rows.
+</p>
+<p>
+    Each operation builder object uses
+    <code>withValueBackReference()</code>
+    to get the
+    <code>RAW_CONTACT_ID</code>. The reference points
+    back to the <code>ContentProviderResult</code> object from the first operation,
+    which adds the raw contact row and returns its new <code>_ID</code>
+    value. As a result, each data row is automatically linked by its
+    <code>RAW_CONTACT_ID</code>
+    to the new <code>ContactsContract.RawContacts</code> row to which it belongs.
+</p>
+<p>
+    The <code>ContentProviderOperation.Builder</code> object that adds the email row is
+    flagged with <code>withYieldAllowed()</code>, which sets a yield point:
+</p>
+<p>WHATSON? 9d4cccba-6a82-40b3-85fd-d5672e7e8b87</p>
+<pre>
+    // Creates the display name for the new raw contact, as a StructuredName data row.
+    op =
+            ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
+            /*
+             * withValueBackReference sets the value of the first argument to the value of
+             * the ContentProviderResult indexed by the second argument. In this particular
+             * call, the raw contact ID column of the StructuredName data row is set to the
+             * value of the result returned by the first operation, which is the one that
+             * actually adds the raw contact row.
+             */
+            .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, 0)
+
+            // Sets the data row's MIME type to StructuredName
+            .withValue(ContactsContract.Data.MIMETYPE,
+                    ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE)
+
+            // Sets the data row's display name to the name in the UI.
+            .withValue(ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME, name);
+
+    // Builds the operation and adds it to the array of operations
+    ops.add(op.build());
+
+    // Inserts the specified phone number and type as a Phone data row
+    op =
+            ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
+            /*
+             * Sets the value of the raw contact id column to the new raw contact ID returned
+             * by the first operation in the batch.
+             */
+            .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, 0)
+
+            // Sets the data row's MIME type to Phone
+            .withValue(ContactsContract.Data.MIMETYPE,
+                    ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE)
+
+            // Sets the phone number and type
+            .withValue(ContactsContract.CommonDataKinds.Phone.NUMBER, phone)
+            .withValue(ContactsContract.CommonDataKinds.Phone.TYPE, phoneType);
+
+    // Builds the operation and adds it to the array of operations
+    ops.add(op.build());
+
+    // Inserts the specified email and type as a Phone data row
+    op =
+            ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
+            /*
+             * Sets the value of the raw contact id column to the new raw contact ID returned
+             * by the first operation in the batch.
+             */
+            .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, 0)
+
+            // Sets the data row's MIME type to Email
+            .withValue(ContactsContract.Data.MIMETYPE,
+                    ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE)
+
+            // Sets the email address and type
+            .withValue(ContactsContract.CommonDataKinds.Email.ADDRESS, email)
+            .withValue(ContactsContract.CommonDataKinds.Email.TYPE, emailType);
+
+    /*
+     * Demonstrates a yield point. At the end of this insert, the batch operation's thread
+     * will yield priority to other threads. Use after every set of operations that affect a
+     * single contact, to avoid degrading performance.
+     */
+    op.withYieldAllowed(true);
+
+    // Builds the operation and adds it to the array of operations
+    ops.add(op.build());
+</pre>
+<p>
+    The last snippet shows the call to
+    <code>applyBatch()</code> that
+    inserts the new raw contact and data rows.
+</p>
+<p>WHATSON? 43b88d43-8942-4af8-acf7-e812e01cf484</p>
+<pre>
+    // Ask the Contacts Provider to create a new contact
+    Log.d(TAG,"Selected account: " + mSelectedAccount.getName() + " (" +
+            mSelectedAccount.getType() + ")");
+    Log.d(TAG,"Creating contact: " + name);
+
+    /*
+     * Applies the array of ContentProviderOperation objects in batch. The results are
+     * discarded.
+     */
+    try {
+
+            getContentResolver().applyBatch(ContactsContract.AUTHORITY, ops);
+    } catch (Exception e) {
+
+            // Display a warning
+            Context ctx = getApplicationContext();
+
+            CharSequence txt = getString(R.string.contactCreationFailure);
+            int duration = Toast.LENGTH_SHORT;
+            Toast toast = Toast.makeText(ctx, txt, duration);
+            toast.show();
+
+            // Log exception
+            Log.e(TAG, "Exception encountered while inserting contact: " + e);
+    }
+}
+</pre>
+<p>
+    Batch operations also allow you to implement <strong>optimistic concurrency control</strong>,
+    a method of applying modification transactions without having to lock the underlying repository.
+    To use this method, you apply the transaction and then check for other modifications that
+    may have been made at the same time. If you find an inconsistent modification has occurred, you
+    roll back your transaction and retry it.
+</p>
+<p>
+    Optimistic concurrency control is useful for a mobile device, where there's only one user at
+    a time, and simultaneous accesses to a data repository are rare. Because locking isn't used,
+    no time is wasted on setting locks or waiting for other transactions to release their locks.
+</p>
+<p>
+    To use optimistic concurrency control while updating a single
+    <code>ContactsContract.RawContacts</code> row, follow these steps:
+</p>
+<ol>
+    <li>
+        Retrieve the raw contact's <code>VERSION</code>
+        column along with the other data you retrieve.
+    </li>
+    <li>
+        Create a <code>ContentProviderOperation.Builder</code> object suitable for
+        enforcing a constraint, using the method
+        <code>newAssertQuery(Uri)</code>. For the content URI,
+        use <code>RawContacts.CONTENT_URI</code>
+        with the raw contact's <code>_ID</code> appended to it.
+    </li>
+    <li>
+        For the <code>ContentProviderOperation.Builder</code> object, call
+        <code>withValue()</code> to compare the <code>VERSION</code>
+        column to the version number you just retrieved.
+    </li>
+    <li>
+        For the same <code>ContentProviderOperation.Builder</code>, call
+        <code>withExpectedCount()</code> to ensure that only one row is tested by this assertion.
+    </li>
+    <li>
+        Call <code>build()</code> to create the
+        <code>ContentProviderOperation</code> object, then add this object as the
+        first object in the <code>ArrayList</code> that you pass to
+        <code>applyBatch()</code>.
+    </li>
+    <li>
+        Apply the batch transaction.
+    </li>
+</ol>
+<p>
+    If the raw contact row is updated by another operation between the time you read the row and
+    the time you attempt to modify it, the "assert" <code>ContentProviderOperation</code>
+    will fail, and the entire batch of operations will be backed out. You can then choose to retry
+    the batch or take some other action.
+</p>
+<p>
+    The following snippet demonstrates how to create an "assert"
+    <code>ContentProviderOperation</code> after querying for a single raw contact using
+    a <code>CursorLoader</code>:
+</p>
+<p>WHATSON? f91f26f6-5bcb-478c-82df-8f4df7fea7cb</p>
+<pre>
+/*
+ * The application uses CursorLoader to query the raw contacts table. The system calls this method
+ * when the load is finished.
+ */
+public void onLoadFinished(Loader&lt;Cursor&gt; loader, Cursor cursor) {
+
+    // Gets the raw contact's _ID and VERSION values
+    mRawContactID = cursor.getLong(cursor.getColumnIndex(BaseColumns._ID));
+    mVersion = cursor.getInt(cursor.getColumnIndex(SyncColumns.VERSION));
+}
+
+...
+
+// Sets up a Uri for the assert operation
+Uri rawContactUri = ContentUris.withAppendedId(RawContacts.CONTENT_URI, mRawContactID);
+
+// Creates a builder for the assert operation
+ContentProviderOperation.Builder assertOp = ContentProviderOperation.netAssertQuery(rawContactUri);
+
+// Adds the assertions to the assert operation: checks the version and count of rows tested
+assertOp.withValue(SyncColumns.VERSION, mVersion);
+assertOp.withExpectedCount(1);
+
+// Creates an ArrayList to hold the ContentProviderOperation objects
+ArrayList ops = new ArrayList&lt;ContentProviderOperationg&gt;;
+
+ops.add(assertOp.build());
+
+// You would add the rest of your batch operations to "ops" here
+
+...
+
+// Applies the batch. If the assert fails, an Exception is thrown
+try
+    {
+        ContentProviderResult[] results =
+                getContentResolver().applyBatch(AUTHORITY, ops);
+
+    } catch (OperationApplicationException e) {
+
+        // Actions you want to take if the assert operation fails go here
+    }
+</pre>
+<h3>Retrieval and modification with intents</h3>
+<p>
+    Sending an intent to the device's contacts application allows you to access the Contacts
+    Provider indirectly. The intent starts the device's contacts application UI, in which users can
+    do contacts-related work. With this type of access, users can:
+    </p>
+<ul>
+        <li>Pick a contact from a list and have it returned to your app for further work.</li>
+        <li>Edit an existing contact's data.</li>
+        <li>Insert a new raw contact for any of their accounts.</li>
+        <li>Delete a contact or contacts data.</li>
+    </ul>
+<p>
+    If the user is inserting or updating data, you can collect the data first and send it as
+    part of the intent.
+</p>
+<p>
+    When you use intents to access the Contacts Provider via the device's contacts application, you
+    don't have to write your own UI or code for accessing the provider. You also don't have to
+    request permission to read or write to the provider. The device's contacts application can
+    delegate read permission for a contact to you, and because you're making modifications to the
+    provider through another application, you don't have to have write permissions.
+</p>
+<p>
+    The general process of sending an intent to access a provider is described in detail in the
+    
+    Content Provider Basics guide in the section "Data access via intents." The action,
+    MIME type, and data values you use for the available tasks are summarized in Table 4, while the
+    extras values you can use with
+    <code>putExtra()</code> are listed in the
+    reference documentation for <code>ContactsContract.Intents.Insert</code>:
+</p>
+<p>
+  <strong>Table 4.</strong> Contacts Provider Intents.
+</p>
+<ul>
+                <li>
+<code>Contacts.CONTENT_URI</code>,
+                    which displays a list of contacts.
+                </li>
+                <li>
+<code>Phone.CONTENT_URI</code>,
+                    which displays a list of phone numbers for a raw contact.
+                </li>
+                <li>
+<code>StructuredPostal.CONTENT_URI</code>,
+                    which displays a list of postal addresses for a raw contact.
+                </li>
+                <li>
+<code>Email.CONTENT_URI</code>,
+                    which displays a list of email addresses for a raw contact.
+                </li>
+            </ul>
+<p>
+                Call
+         <code>startActivityForResult()</code>,
+                which returns the content URI of the selected row. The form of the URI is the
+                table's content URI with the row's <code>LOOKUP_ID</code> appended to it.
+                The device's contacts app delegates read and write permissions to this content URI
+                for the life of your activity. See the
+                
+                Content Provider Basics guide for more details.
+            </p>
+<p>
+                <strong>Note:</strong> There's no need to send a name value in this intent's extras,
+                because the user always picks an existing name or adds a new one. Moreover,
+                if you send a name, and the user chooses to do an edit, the contacts app will
+                display the name you send, overwriting the previous value. If the user doesn't
+                notice this and saves the edit, the old value is lost.
+            </p>
+<p>
+    The device's contacts app doesn't allow you to delete a raw contact or any of its data with an
+    intent. Instead, to delete a raw contact, use
+    <code>ContentResolver.delete()</code>
+    or <code>ContentProviderOperation.newDelete()</code>.
+</p>
+<p>
+    The following snippet shows how to construct and send an intent that inserts a new raw
+    contact and data:
+</p>
+<p>WHATSON? 536a0436-b65f-42be-8ea1-ec2446244c7a</p>
+<pre>
+// Gets values from the UI
+String name = mContactNameEditText.getText().toString();
+String phone = mContactPhoneEditText.getText().toString();
+String email = mContactEmailEditText.getText().toString();
+
+String company = mCompanyName.getText().toString();
+String jobtitle = mJobTitle.getText().toString();
+
+// Creates a new intent for sending to the device's contacts application
+Intent insertIntent = new Intent(ContactsContract.Intents.Insert.ACTION);
+
+// Sets the MIME type to the one expected by the insertion activity
+insertIntent.setType(ContactsContract.RawContacts.CONTENT_TYPE);
+
+// Sets the new contact name
+insertIntent.putExtra(ContactsContract.Intents.Insert.NAME, name);
+
+// Sets the new company and job title
+insertIntent.putExtra(ContactsContract.Intents.Insert.COMPANY, company);
+insertIntent.putExtra(ContactsContract.Intents.Insert.JOB_TITLE, jobtitle);
+
+/*
+ * Demonstrates adding data rows as an array list associated with the DATA key
+ */
+
+// Defines an array list to contain the ContentValues objects for each row
+ArrayList&lt;ContentValues&gt; contactData = new ArrayList&lt;ContentValues&gt;();
+
+
+/*
+ * Defines the raw contact row
+ */
+
+// Sets up the row as a ContentValues object
+ContentValues rawContactRow = new ContentValues();
+
+// Adds the account type and name to the row
+rawContactRow.put(ContactsContract.RawContacts.ACCOUNT_TYPE, mSelectedAccount.getType());
+rawContactRow.put(ContactsContract.RawContacts.ACCOUNT_NAME, mSelectedAccount.getName());
+
+// Adds the row to the array
+contactData.add(rawContactRow);
+
+/*
+ * Sets up the phone number data row
+ */
+
+// Sets up the row as a ContentValues object
+ContentValues phoneRow = new ContentValues();
+
+// Specifies the MIME type for this data row (all data rows must be marked by their type)
+phoneRow.put(
+        ContactsContract.Data.MIMETYPE,
+        ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE
+);
+
+// Adds the phone number and its type to the row
+phoneRow.put(ContactsContract.CommonDataKinds.Phone.NUMBER, phone);
+
+// Adds the row to the array
+contactData.add(phoneRow);
+
+/*
+ * Sets up the email data row
+ */
+
+// Sets up the row as a ContentValues object
+ContentValues emailRow = new ContentValues();
+
+// Specifies the MIME type for this data row (all data rows must be marked by their type)
+emailRow.put(
+        ContactsContract.Data.MIMETYPE,
+        ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE
+);
+
+// Adds the email address and its type to the row
+emailRow.put(ContactsContract.CommonDataKinds.Email.ADDRESS, email);
+
+// Adds the row to the array
+contactData.add(emailRow);
+
+/*
+ * Adds the array to the intent's extras. It must be a parcelable object in order to
+ * travel between processes. The device's contacts app expects its key to be
+ * Intents.Insert.DATA
+ */
+insertIntent.putParcelableArrayListExtra(ContactsContract.Intents.Insert.DATA, contactData);
+
+// Send out the intent to start the device's contacts app in its add contact activity.
+startActivity(insertIntent);
+</pre>
+<h3>Data integrity</h3>
+<p>
+    Because the contacts repository contains important and sensitive data that users expect to be
+    correct and up-to-date, the Contacts Provider has well-defined rules for data integrity. It's
+    your responsibility to conform to these rules when you modify contacts data. The important
+    rules are listed here:
+</p>
+<h3>Custom data rows</h3>
+<p>
+    By creating and using your own custom MIME types, you can insert, edit, delete, and retrieve
+    your own data rows in the <code>ContactsContract.Data</code> table. Your rows
+    are limited to using the column defined in
+    <code>ContactsContract.DataColumns</code>, although you can map your own
+    type-specific column names to the default column names. In the device's contacts application,
+    the data for your rows is displayed but can't be edited or deleted, and users can't add
+    additional data. To allow users to modify your custom data rows, you must provide an editor
+    activity in your own application.
+</p>
+<p>
+    To display your custom data, provide a <code>contacts.xml</code> file containing a
+    <code>&lt;ContactsAccountType&gt;</code> element and one or more of its
+    <code>&lt;ContactsDataKind&gt;</code> child elements. This is described in more detail in the
+    section <code>&lt;ContactsDataKind&gt; element</code>.
+</p>
+<p>
+    To learn more about custom MIME types, read the
+    
+    Creating a Content Provider guide.
+</p>
+<h2>Contacts Provider Sync Adapters</h2>
+<p>
+    The Contacts Provider is specifically designed for handling <strong>synchronization</strong>
+    of contacts data between a device and an online service. This allows users to download
+    existing data to a new device and upload existing data to a new account.
+    Synchronization also ensures that users have the latest data at hand, regardless
+    of the source of additions and changes. Another advantage of synchronization is that it makes
+    contacts data available even when the device is not connected to the network.
+</p>
+<p>
+    Although you can implement synchronization in a variety of ways, the Android system provides
+    a plug-in synchronization framework that automates the following tasks:
+    </p>
+<ul>
+
+    <li>
+        Checking network availability.
+    </li>
+    <li>
+        Scheduling and executing synchronization, based on user preferences.
+    </li>
+    <li>
+        Restarting synchronizations that have stopped.
+    </li>
+    </ul>
+<p>
+    To use this framework, you supply a sync adapter plug-in. Each sync adapter is unique to a
+    service and content provider, but can handle multiple account names for the same service. The
+    framework also allows multiple sync adapters for the same service and provider.
+</p>
+<h1>Contacts Provider</h1>
+<h3>Sync adapter classes and files</h3>
+<p>
+    You implement a sync adapter as a subclass of
+    <code>AbstractThreadedSyncAdapter</code> and install it as part of an Android
+    application. The system learns about the sync adapter from elements in your application
+    manifest, and from a special XML file pointed to by the manifest. The XML file defines the
+    account type for the online service and the authority for the content provider, which together
+    uniquely identify the adapter. The sync adapter does not become active until the user adds an
+    account for the sync adapter's  account type and enables synchronization for the content
+    provider the sync adapter syncs with.  At that point, the system starts managing the adapter,
+    calling it as necessary to synchronize between the content provider and the server.
+</p>
+<p>
+    <strong>Note:</strong> Using an account type as part of the sync adapter's identification allows
+    the system to detect and group together sync adapters that access different services from the
+    same organization. For example, sync adapters for Google online services all have the same
+    account type <code>com.google</code>. When users add a Google account to their devices, all
+    of the installed sync adapters for Google services are listed together; each sync adapter
+    listed syncs with a different content provider on the device.
+</p>
+<p>
+    Because most services require users to verify their identity before accessing
+    data, the Android system offers an authentication framework that is similar to, and often
+    used in conjunction with, the sync adapter framework. The authentication framework uses
+    plug-in authenticators that are subclasses of
+    <code>AbstractAccountAuthenticator</code>. An authenticator verifies
+    the user's identity in the following steps:
+    </p>
+<ol>
+        <li>
+            Collects the user's name, password or similar information (the user's
+            <strong>credentials</strong>).
+        </li>
+        <li>
+            Sends the credentials to the service
+        </li>
+        <li>
+            Examines the service's reply.
+        </li>
+    </ol>
+<p>
+    If the service accepts the credentials, the authenticator can
+    store the credentials for later use. Because of the plug-in authenticator framework, the
+    <code>AccountManager</code> can provide access to any authtokens an authenticator
+    supports and chooses to expose, such as OAuth2 authtokens.
+</p>
+<p>
+    Although authentication is not required, most contacts services use it.
+    However, you're not required to use the Android authentication framework to do authentication.
+</p>
+<h3>Sync adapter implementation</h3>
+<p>
+    To implement a sync adapter for the Contacts Provider, you start by creating an
+    Android application that contains the following:
+</p>
+<p>
+                In the 
+                Sample Sync Adapter sample app, the class name of this service is
+                <code>com.example.android.samplesync.syncadapter.SyncService</code>.
+            </p>
+<p>
+                In the 
+                Sample Sync Adapter sample app, the sync adapter is defined in the class
+                <code>com.example.android.samplesync.syncadapter.SyncAdapter</code>.
+            </p>
+<p>
+                In the 
+                Sample Sync Adapter sample app, the class name of this service is
+                <code>com.example.android.samplesync.authenticator.AuthenticationService</code>.
+            </p>
+<p>
+                In the 
+                Sample Sync Adapter sample app, the authenticator is defined in the class
+                <code>com.example.android.samplesync.authenticator.Authenticator</code>.
+            </p>
+<ul>
+                <li>
+                    The
+<code>&lt;meta-data&gt;</code>
+                    element for the sync adapter service points to the
+                    XML file <code>res/xml/syncadapter.xml</code>. In turn, this file specifies
+                    a URI for the web service that will be synchronized with the Contacts Provider,
+                    and an account type for the web service.
+                </li>
+                <li>
+                    <strong>Optional:</strong> The
+<code>&lt;meta-data&gt;</code>
+                    element for the authenticator points to the XML file
+                    <code>res/xml/authenticator.xml</code>. In turn, this file specifies the
+                    account type that this authenticator supports, as well as UI resources that
+                    appear during the authentication process. The account type specified in this
+                    element must be the same as the account type specified for the sync
+                    adapter.
+                </li>
+            </ul>
+<h2>Social Stream Data</h2>
+<p>
+    The <code>ContactsContract.StreamItems</code> and
+    <code>ContactsContract.StreamItemPhotos</code> tables
+    manage incoming data from social networks. You can write a sync adapter that adds stream data
+    from your own network to these tables, or you can read stream data from these tables and
+    display it in your own application, or both. With these features, your social networking
+    services and applications can be integrated into Android's social networking experience.
+</p>
+<h2>Quickview</h2>
+<ul>
+    <li>Android's repository of information about people.</li>
+    <li>
+        Syncs with the web.
+    </li>
+    <li>
+        Integrates social stream data.
+    </li>
+</ul>
+<h2>In this document</h2>
+<ol>
+    <li>
+        Contacts Provider Organization
+    </li>
+    <li>
+        Raw contacts
+    </li>
+    <li>
+        Data
+    </li>
+    <li>
+        Contacts
+    </li>
+    <li>
+        Data From Sync Adapters
+    </li>
+    <li>
+        Required Permissions
+    </li>
+    <li>
+        The User Profile
+    </li>
+    <li>
+        Contacts Provider Metadata
+    </li>
+    <li>
+        Contacts Provider Access
+    </li><li>
+    </li>
+    <li>
+        Contacts Provider Sync Adapters
+    </li>
+    <li>
+        Social Stream Data
+    </li>
+    <li>
+        Additional Contacts Provider Features
+    </li>
+</ol>
+<h2>Key classes</h2>
+<ol>
+    <li><code>ContactsContract.Contacts</code></li>
+    <li><code>ContactsContract.RawContacts</code></li>
+    <li><code>ContactsContract.Data</code></li>
+    <li><code>ContactsContract.StreamItems</code></li>
+</ol>
+<h2>Related Samples</h2>
+<ol>
+    <li>
+        
+        Contact Manager
+        
+    </li>
+    <li>
+        
+        Sample Sync Adapter
+    </li>
+</ol>
+<h2>See Also</h2>
+<ol>
+    <li>
+        
+        Content Provider Basics
+        
+    </li>
+</ol>
+<p>
+    The Contacts Provider is a powerful and flexible Android component that manages the
+    device's central repository of data about people. The Contacts Provider is the source of data
+    you see in the device's contacts application, and you can also access its data in your own
+    application and transfer data between the device and online services. The provider accommodates
+    a wide range of data sources and tries to manage as much data as possible for each person, with
+    the result that its organization is complex. Because of this, the provider's API includes an
+    extensive set of contract classes and interfaces that facilitate both data retrieval and
+    modification.
+</p>
+<p>
+    This guide describes the following:
+</p>
+<ul>
+        <li>
+            The basic provider structure.
+        </li>
+        <li>
+            How to retrieve data from the provider.
+        </li>
+        <li>
+            How to modify data in the provider.
+        </li>
+        <li>
+            How to write a sync adapter for synchronizing data from your server to the
+            Contacts Provider.
+        </li>
+    </ul>
+<p>
+    This guide assumes that you know the basics of Android content providers. To learn more
+    about Android content providers, read the
+    
+    Content Provider Basics guide. The
+    Sample Sync Adapter
+    sample app is an example of using a sync adapter to transfer data between the Contacts
+    Provider and a sample application hosted by Google Web Services.
+</p>
+<h2>Contacts Provider Organization</h2>
+<p>
+    The Contacts Provider is an Android content provider component. It maintains three types of
+    data about a person, each of which corresponds to a table offered by the provider, as
+    illustrated in figure 1:
+</p>
+<p>
+  <strong>Figure 1.</strong> Contacts Provider table structure.
+</p>
+<p>
+    The three tables are commonly referred to by the names of their contract classes. The classes
+    define constants for content URIs, column names, and column values used by the tables:
+</p>
+<h3>Social stream text</h3>
+<p>
+    Stream items are always associated with a raw contact. The
+    <code>RAW_CONTACT_ID</code> links to the
+    <code>_ID</code> value for the raw contact. The account type and account name of the raw
+    contact are also stored in the stream item row.
+</p>
+<p>
+    Store the data from your stream in the following columns:
+</p>
+<ul>
+            <li>
+                <code>CONTACT_ID</code>: The
+                <code>_ID</code> value of the contact that this stream
+                item is associated with.
+            </li>
+            <li>
+                <code>CONTACT_LOOKUP_KEY</code>: The
+                <code>LOOKUP_KEY</code> value of the
+                contact this stream item is associated with.
+            </li>
+            <li>
+                <code>RAW_CONTACT_ID</code>: The
+                <code>_ID</code> value of the raw contact that this stream
+                item is associated with.
+            </li>
+        </ul>
+<p>
+    To display identifying information for your stream items, use the
+    <code>RES_ICON</code>,
+    <code>RES_LABEL</code>, and
+    <code>RES_PACKAGE</code> to link to resources
+    in your application.
+</p>
+<p>
+    The <code>ContactsContract.StreamItems</code> table also contains the columns
+    <code>SYNC1</code> through
+    <code>SYNC4</code> for the exclusive use of
+    sync adapters.
+</p>
+<h3>Social stream photos</h3>
+<p>
+   The <code>ContactsContract.StreamItemPhotos</code> table stores photos associated
+   with a stream item. The table's
+   <code>STREAM_ITEM_ID</code> column
+   links to values in the <code>_ID</code> column of
+   <code>ContactsContract.StreamItems</code> table. Photo references are stored in the
+   table in these columns:
+</p>
+<h3>Using the social stream tables</h3>
+<p>
+    These tables work the same as the other main tables in the Contacts Provider, except that:
+</p>
+<ul>
+        <li>
+            These tables require additional access permissions. To read from them, your application
+            must have the permission <code>READ_SOCIAL_STREAM</code>. To
+            modify them, your application must have the permission
+            <code>WRITE_SOCIAL_STREAM</code>.
+        </li>
+        <li>
+            For the <code>ContactsContract.StreamItems</code> table, the number of rows
+            stored for each raw contact is limited. Once this limit is reached,
+            the Contacts Provider makes space for new stream item rows by automatically deleting
+            the rows having the oldest
+            <code>TIMESTAMP</code>. To get the
+            limit, issue a query to the content URI
+            <code>CONTENT_LIMIT_URI</code>. You can leave
+            all the arguments other than the content URI set to <code>null</code>. The query
+            returns a Cursor containing a single row, with the single column
+            <code>MAX_ITEMS</code>.
+        </li>
+    </ul>
+<p>
+    The class <code>ContactsContract.StreamItems.StreamItemPhotos</code> defines a
+    sub-table of <code>ContactsContract.StreamItemPhotos</code> containing the photo
+    rows for a single stream item.
+</p>
+<h3>Social stream interactions</h3>
+<p>
+    The social stream data managed by the Contacts Provider, in conjunction with the
+    device's contacts application, offers a powerful way to connect your social networking system
+    with existing contacts. The following features are available:
+</p>
+<p>
+    The other tables represented by contract classes in <code>ContactsContract</code>
+    are auxiliary tables that the Contacts Provider uses to manage its operations or support
+    specific functions in the device's contacts or telephony applications.
+</p>
+<h2>Raw contacts</h2>
+<p>
+    A raw contact represents a person's data coming from a single account type and account
+    name. Because the Contacts Provider allows more than one online service as the source of
+    data for a person, the Contacts Provider allows multiple raw contacts for the same person.
+    Multiple raw contacts also allow a user to combine a person's data from more than one account
+    from the same account type.
+</p>
+<p>
+    Most of the data for a raw contact isn't stored in the
+    <code>ContactsContract.RawContacts</code> table. Instead, it's stored in one or more
+    rows in the <code>ContactsContract.Data</code> table. Each data row has a column
+    <code>Data.RAW_CONTACT_ID</code> that
+    contains the <code>RawContacts._ID</code> value of its
+    parent <code>ContactsContract.RawContacts</code> row.
+</p>
+<h3>Important raw contact columns</h3>
+<p>
+    The important columns in the <code>ContactsContract.RawContacts</code> table are
+    listed in table 1. Please read the notes that follow after the table:
+</p>
+<p>
+    <strong>Table 1.</strong> Important raw contact columns.
+</p>
+<h4>Notes</h4>
+<p>
+    The following are important notes about the
+    <code>ContactsContract.RawContacts</code> table:
+</p>
+<ul>
+    <li>
+        A raw contact's name is not stored in its row in
+        <code>ContactsContract.RawContacts</code>. Instead, it's stored in
+        the <code>ContactsContract.Data</code> table, in a
+        <code>ContactsContract.CommonDataKinds.StructuredName</code> row. A raw contact
+        has only one row of this type in the <code>ContactsContract.Data</code> table.
+    </li>
+    <li>
+        <strong>Caution:</strong> To use your own account data in a raw contact row, it must
+        first be registered with the <code>AccountManager</code>. To do this, prompt
+        users to add the account type and their account name to the list of accounts. If you don't
+        do this, the Contacts Provider will automatically delete your raw contact row.
+        <p>
+            For example, if you want your app to maintain contacts data for your web-based service
+            with the domain <code>com.example.dataservice</code>, and the user's account for your service
+            is <code>becky.sharp@dataservice.example.com</code>, the user must first add the account
+            "type" (<code>com.example.dataservice</code>) and account "name"
+            (<code>becky.smart@dataservice.example.com</code>) before your app can add raw contact rows.
+            You can explain this requirement to the user in documentation, or you can prompt the
+            user to add the type and name, or both. Account types and account names
+            are described in more detail in the next section.
+    </p></li>
+</ul>
+<p>
+            For example, if you want your app to maintain contacts data for your web-based service
+            with the domain <code>com.example.dataservice</code>, and the user's account for your service
+            is <code>becky.sharp@dataservice.example.com</code>, the user must first add the account
+            "type" (<code>com.example.dataservice</code>) and account "name"
+            (<code>becky.smart@dataservice.example.com</code>) before your app can add raw contact rows.
+            You can explain this requirement to the user in documentation, or you can prompt the
+            user to add the type and name, or both. Account types and account names
+            are described in more detail in the next section.
+    </p>
+<h3>Sources of raw contacts data</h3>
+<p>
+    To understand how raw contacts work, consider the user "Emily Dickinson" who has the following
+    three user accounts defined on her device:
+</p>
+<ul>
+    <li><code>emily.dickinson@gmail.com</code></li>
+    <li><code>emilyd@gmail.com</code></li>
+    <li>Twitter account "belle_of_amherst"</li>
+</ul>
+<p>
+    This user has enabled <em>Sync Contacts</em> for all three of these accounts in the
+    <em>Accounts</em> settings.
+</p>
+<p>
+    Suppose Emily Dickinson opens a browser window, logs into Gmail as
+    <code>emily.dickinson@gmail.com</code>, opens
+    Contacts, and adds "Thomas Higginson". Later on, she logs into Gmail as
+    <code>emilyd@gmail.com</code> and sends an email to "Thomas Higginson", which automatically
+    adds him as a contact. She also follows "colonel_tom" (Thomas Higginson's Twitter ID) on
+    Twitter.
+</p>
+<p>
+    The Contacts Provider creates three raw contacts as a result of this work:
+</p>
+<ul>
+        <li>
+            By syncing your social networking service to the Contacts Provider with a sync
+            adapter, you can retrieve recent activity for a user's contacts and store it in
+            the <code>ContactsContract.StreamItems</code> and
+            <code>ContactsContract.StreamItemPhotos</code> tables for later use.
+        </li>
+        <li>
+            Besides regular synchronization, you can trigger your sync adapter to retrieve
+            additional data when the user selects a contact to view. This allows your sync adapter
+            to retrieve high-resolution photos and the most recent stream items for the contact.
+        </li>
+        <li>
+            By registering a notification with the device's contacts application and the Contacts
+            Provider, you can <em>receive</em> an intent when a contact is viewed, and at that point
+            update the contact's status from your service. This approach may be faster and use less
+            bandwidth than doing a full sync with a sync adapter.
+        </li>
+        <li>
+            Users can add a contact to your social networking service while looking at the contact
+            in the device's contacts application. You enable this with the "invite contact" feature,
+            which you enable with a combination of an activity that adds an existing contact to your
+            network, and an XML file that provides the device's contacts application and the
+            Contacts Provider with the details of your application.
+        </li>
+    </ul>
+<p>
+    Regular synchronization of stream items with the Contacts Provider is the same as
+    other synchronizations. To learn more about synchronization, see the section
+    Contacts Provider Sync Adapters. Registering notifications and
+    inviting contacts are covered in the next two sections.
+</p>
+<h4>Registering to handle social networking views</h4>
+<p>
+    To register your sync adapter to receive notifications when the user views a contact that's
+    managed by your sync adapter:
+</p>
+<ol>
+    <li>
+        Create a file named <code>contacts.xml</code> in your project's <code>res/xml/</code>
+        directory. If you already have this file, you can skip this step.
+    </li>
+    <li>
+        In this file, add the element
+<code>&lt;ContactsAccountType xmlns:android="http://schemas.android.com/apk/res/android"&gt;</code>.
+        If this element already exists, you can skip this step.
+    </li>
+    <li>
+        To register a service that is notified when the user opens a contact's detail page in
+        the device's contacts application, add the attribute
+        <code>viewContactNotifyService="<em>serviceclass</em>"</code> to the element, where
+        <code><em>serviceclass</em></code> is the fully-qualified classname of the service
+        that should receive the intent from the device's contacts application. For the notifier
+        service, use a class that extends <code>IntentService</code>, to allow the service to
+        receive intents. The data in the incoming intent contains the content URI of the raw
+        contact the user clicked. From the notifier service, you can bind to and then call your
+        sync adapter to update the data for the raw contact.
+    </li>
+</ol>
+<p>
+    To register an activity to be called when the user clicks on a stream item or photo or both:
+</p>
+<ol>
+    <li>
+        Create a file named <code>contacts.xml</code> in your project's <code>res/xml/</code>
+        directory. If you already have this file, you can skip this step.
+    </li>
+    <li>
+        In this file, add the element
+<code>&lt;ContactsAccountType xmlns:android="http://schemas.android.com/apk/res/android"&gt;</code>.
+        If this element already exists, you can skip this step.
+    </li>
+    <li>
+        To register one of your activities to handle the user clicking on a stream item in the
+        device's contacts application, add the attribute
+        <code>viewStreamItemActivity="<em>activityclass</em>"</code> to the element, where
+        <code><em>activityclass</em></code> is the fully-qualified classname of the activity
+        that should receive the intent from the device's contacts application.
+    </li>
+    <li>
+        To register one of your activities to handle the user clicking on a stream photo in the
+        device's contacts application, add the attribute
+        <code>viewStreamItemPhotoActivity="<em>activityclass</em>"</code> to the element, where
+        <code><em>activityclass</em></code> is the fully-qualified classname of the activity
+        that should receive the intent from the device's contacts application.
+    </li>
+</ol>
+<p>
+    The <code>&lt;ContactsAccountType&gt;</code> element is described in more detail in the
+    section &lt;ContactsAccountType&gt; element.
+</p>
+<p>
+    The incoming intent contains the content URI of the item or photo that the user clicked.
+    To have separate activities for text items and for photos, use both attributes in the same file.
+</p>
+<h4>Interacting with your social networking service</h4>
+<p>
+    Users don't have to leave the device's contacts application to invite a contact to your social
+    networking site. Instead, you can have the device's contacts app send an intent for inviting the
+    contact to one of your activities. To set this up:
+</p>
+<ol>
+    <li>
+        Create a file named <code>contacts.xml</code> in your project's <code>res/xml/</code>
+        directory. If you already have this file, you can skip this step.
+    </li>
+    <li>
+        In this file, add the element
+<code>&lt;ContactsAccountType xmlns:android="http://schemas.android.com/apk/res/android"&gt;</code>.
+        If this element already exists, you can skip this step.
+    </li>
+    <li>
+        Add the following attributes:
+        <ul>
+            <li><code>inviteContactActivity="<em>activityclass</em>"</code></li>
+            <li>
+                <code>inviteContactActionLabel="@string/<em>invite_action_label</em>"</code>
+            </li>
+        </ul>
+        The <code><em>activityclass</em></code> value is the fully-qualified classname of the
+        activity that should receive the intent. The <code><em>invite_action_label</em></code>
+        value is a text string that's displayed in the <strong>Add Connection</strong> menu in the
+        device's contacts application.
+    </li>
+</ol>
+<ul>
+            <li><code>inviteContactActivity="<em>activityclass</em>"</code></li>
+            <li>
+                <code>inviteContactActionLabel="@string/<em>invite_action_label</em>"</code>
+            </li>
+        </ul>
+<p>
+    <strong>Note:</strong> <code>ContactsSource</code> is a deprecated tag name for
+    <code>ContactsAccountType</code>.
+</p>
+<ol>
+    <li>
+        A raw contact for "Thomas Higginson" associated with <code>emily.dickinson@gmail.com</code>.
+        The user account type is Google.
+    </li>
+    <li>
+        A second raw contact for "Thomas Higginson" associated with <code>emilyd@gmail.com</code>.
+        The user account type is also Google. There is a second raw contact even
+        though the name is identical to a previous name, because the person was added for a
+        different user account.
+    </li>
+    <li>
+        A third raw contact for "Thomas Higginson" associated with "belle_of_amherst". The user
+        account type is Twitter.
+    </li>
+</ol>
+<h2>Data</h2>
+<p>
+    As noted previously, the data for a raw contact is stored in a
+    <code>ContactsContract.Data</code> row that is linked to the raw contact's
+    <code>_ID</code> value. This allows a single raw contact to have multiple instances of the same
+    type of data such as email addresses or phone numbers. For example, if
+    "Thomas Higginson" for <code>emilyd@gmail.com</code>  (the raw contact row for Thomas Higginson
+    associated with the Google account <code>emilyd@gmail.com</code>) has a home email address of
+    <code>thigg@gmail.com</code> and a work email address of
+    <code>thomas.higginson@gmail.com</code>, the Contacts Provider stores the two email address
+    rows and links them both to the raw contact.
+</p>
+<p>
+    Notice that different types of data are stored in this single table. Display name,
+    phone number, email, postal address, photo, and website detail rows are all found in the
+    <code>ContactsContract.Data</code> table. To help manage this, the
+    <code>ContactsContract.Data</code> table has some columns with descriptive names,
+    and others with generic names. The contents of a descriptive-name column have the same meaning
+    regardless of the type of data in the row, while the contents of a generic-name column have
+    different meanings depending on the type of data.
+</p>
+<h3>Descriptive column names</h3>
+<p>
+    Some examples of descriptive column names are:
+</p>
+<h3>Generic column names</h3>
+<p>
+    There are 15 generic columns named <code>DATA1</code> through
+    <code>DATA15</code> that are generally available and an additional four generic
+    columns <code>SYNC1</code> through <code>SYNC4</code> that should only be used by sync
+    adapters. The generic column name constants always work, regardless of the type of
+    data the row contains.
+</p>
+<p>
+    The <code>DATA1</code> column is indexed.  The Contacts Provider always uses this column for
+    the data that the provider expects will be the most frequent target of a query. For example,
+    in an email row, this column contains the actual email address.
+</p>
+<p>
+    By convention, the column <code>DATA15</code> is reserved for storing Binary Large Object
+    (BLOB) data such as photo thumbnails.
+</p>
+<h3>Type-specific column names</h3>
+<p>
+    To facilitate working with the columns for a particular type of row, the Contacts Provider
+    also provides type-specific column name constants, defined in subclasses of
+    <code>ContactsContract.CommonDataKinds</code>. The constants simply give a
+    different constant name to the same column name, which helps you access data in a row of a
+    particular type.
+</p>
+<p>
+    For example, the <code>ContactsContract.CommonDataKinds.Email</code> class defines
+    type-specific column name constants for a <code>ContactsContract.Data</code> row
+    that has the MIME type
+    <code>Email.CONTENT_ITEM_TYPE</code>. The class contains the constant
+    <code>ADDRESS</code> for the email address
+    column. The actual value of
+    <code>ADDRESS</code> is "data1", which is
+    the same as the column's generic name.
+</p>
+<p>
+    <strong>Caution:</strong> Don't add your own custom data to the
+    <code>ContactsContract.Data</code> table using a row that has one of the
+    provider's pre-defined MIME types. If you do, you may lose the data or cause the provider to
+    malfunction. For example, you should not add a row with the MIME type
+    <code>Email.CONTENT_ITEM_TYPE</code> that contains a user name instead of an email address in the
+    column <code>DATA1</code>. If you use your own custom MIME type for the row, then you are free
+    to define your own type-specific column names and use the columns however you wish.
+</p>
+<p>
+    Figure 2 shows how descriptive columns and data columns appear in a
+    <code>ContactsContract.Data</code> row, and how type-specific column names "overlay"
+    the generic column names
+</p>
+<p>
+  <strong>Figure 2.</strong> Type-specific column names and generic column names.
+</p>
+<h3>Type-specific column name classes</h3>
+<h3>contacts.xml reference</h3>
+<p>
+    The file <code>contacts.xml</code> contains XML elements that control the interaction of your
+    sync adapter and application with the contacts application and the Contacts Provider. These
+    elements are described in the following sections.
+</p>
+<h4>&lt;ContactsAccountType&gt; element</h4>
+<p>
+    The <code>&lt;ContactsAccountType&gt;</code> element controls the interaction of your
+    application with the contacts application. It has the following syntax:
+</p>
+<p>WHATSON? a3dd61bc-d4f4-404c-86d1-222cca56e8e5</p>
+<pre>
+&lt;ContactsAccountType
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        inviteContactActivity="<em>activity_name</em>"
+        inviteContactActionLabel="<em>invite_command_text</em>"
+        viewContactNotifyService="<em>view_notify_service</em>"
+        viewGroupActivity="<em>group_view_activity</em>"
+        viewGroupActionLabel="<em>group_action_text</em>"
+        viewStreamItemActivity="<em>viewstream_activity_name</em>"
+        viewStreamItemPhotoActivity="<em>viewphotostream_activity_name</em>"&gt;
+</pre>
+<p>
+    <strong>contained in:</strong>
+</p>
+<p>
+    <code>res/xml/contacts.xml</code>
+</p>
+<p>
+    <strong>can contain:</strong>
+</p>
+<p>
+    <strong><code>&lt;ContactsDataKind&gt;</code></strong>
+</p>
+<p>
+    <strong>Description:</strong>
+</p>
+<p>
+    Declares Android components and UI labels that allow users to invite one of their contacts to
+    a social network, notify users when one of their social networking streams is updated, and
+    so forth.
+</p>
+<p>
+    Notice that the attribute prefix <code>android:</code> is not necessary for the attributes
+    of <code>&lt;ContactsAccountType&gt;</code>.
+</p>
+<p>
+    <strong>Attributes:</strong>
+</p>
+<p>
+            For example, if you install the Google+ application on your device and you sync
+            Google+ with the contacts application, you'll see Google+ circles listed as groups
+            in your contacts application's <strong>Groups</strong> tab. If you click on a
+            Google+ circle, you'll see people in that circle listed as a "group". At the top of
+            the display, you'll see a Google+ icon; if you click it, control switches to the
+            Google+ app. The contacts application does this with the
+            <code>viewGroupActivity</code>, using the Google+ icon as the value of
+            <code>viewGroupActionLabel</code>.
+        </p>
+<p>
+            A string resource identifier is allowed for this attribute.
+        </p>
+<h4>&lt;ContactsDataKind&gt; element</h4>
+<p>
+    Table 2 lists the most commonly-used type-specific column name classes:
+</p>
+<p>
+  <strong>Table 2.</strong> Type-specific column name classes</p>
+<h3>Contacts</h3>
+<p>
+    The Contacts Provider combines the raw contact rows across all account types and account names
+    to form a <strong>contact</strong>. This facilitates displaying and modifying all the data a
+    user has collected for a person. The Contacts Provider manages the creation of new contact
+    rows, and the aggregation of raw contacts with an existing contact row. Neither applications nor
+    sync adapters are allowed to add contacts, and some columns in a contact row are read-only.
+</p>
+<p>
+    <strong>Note:</strong> If you try to add a contact to the Contacts Provider with an
+    <code>insert()</code>, you'll get
+    an <code>UnsupportedOperationException</code> exception. If you try to update a column
+    that's listed as "read-only," the update is ignored.
+</p>
+<p>
+    The Contacts Provider creates a new contact in response to the addition of a new raw contact
+    that doesn't match any existing contacts. The provider also does this if an existing raw
+    contact's data changes in such a way that it no longer matches the contact to which it was
+    previously attached. If an application or sync adapter creates a new raw contact that
+    <em>does</em> match an existing contact, the new raw contact is aggregated to the existing
+    contact.
+</p>
+<p>
+    The Contacts Provider links a contact row to its raw contact rows with the contact row's
+    <code>_ID</code> column in the <code>Contacts</code>
+    table. The <code>CONTACT_ID</code> column of the raw contacts table
+    <code>ContactsContract.RawContacts</code> contains <code>_ID</code> values for
+    the contacts row associated with each raw contacts row.
+</p>
+<p>
+    The <code>ContactsContract.Contacts</code> table also has the column
+    <code>LOOKUP_KEY</code> that is a
+    "permanent" link to the contact row. Because the Contacts Provider maintains contacts
+    automatically, it may change a contact row's <code>_ID</code> value
+    in response to an aggregation or sync. Even If this happens, the content URI
+    <code>CONTENT_LOOKUP_URI</code> combined with
+    contact's <code>LOOKUP_KEY</code> will still
+    point to the contact row, so you can use
+    <code>LOOKUP_KEY</code>
+    to maintain links to "favorite" contacts, and so forth. This column has its own format that is
+    unrelated to the format of the <code>_ID</code> column.
+</p>
+<p>
+    Figure 3 shows how the three main tables relate to each other.
+</p>
+<p>
+  <strong>Figure 3.</strong> Contacts, Raw Contacts, and Details table relationships.
+</p>
+<h2>Data From Sync Adapters</h2>
+<p>
+    Users enter contacts data directly into the device, but data also flows into the Contacts
+    Provider from web services via <strong>sync adapters</strong>, which automate
+    the transfer of data between the device and services. Sync adapters run in the background
+    under the control of the system, and they call <code>ContentResolver</code> methods
+    to manage data.
+</p>
+<p>
+    In Android, the web service that a sync adapter works with is identified by an account type.
+    Each sync adapter works with one account type, but it can support multiple account names for
+    that type. Account types and account names are described briefly in the section
+    Sources of raw contacts data. The following definitions offer
+    more detail, and describe how account type and name relate to sync adapters and services.
+</p>
+<p>
+    Account types don't have to be unique. A user can configure multiple Google Contacts accounts
+    and download their data to the Contacts Provider; this may happen if the user has one set of
+    personal contacts for a personal account name, and another set for work. Account names are
+    usually unique. Together, they identify a specific data flow between the Contacts Provider and
+    an external service.
+</p>
+<p>
+    If you want to transfer your service's data to the Contacts Provider, you need to write your
+    own sync adapter. This is described in more detail in the section
+    Contacts Provider Sync Adapters.
+</p>
+<p>
+    Figure 4 shows how the Contacts Provider fits into the flow of data
+    about people. In the box marked "sync adapters," each adapter is labeled by its account type.
+</p>
+<p>
+  <strong>Figure 4.</strong> The Contacts Provider flow of data.
+</p>
+<p>
+    The <code>&lt;ContactsDataKind&gt;</code> element controls the display of your application's
+    custom data rows in the contacts application's UI. It has the following syntax:
+</p>
+<p>WHATSON? 7918c885-e7ea-47db-b994-c35cbc11c392</p>
+<pre>
+&lt;ContactsDataKind
+        android:mimeType="<em>MIMEtype</em>"
+        android:icon="<em>icon_resources</em>"
+        android:summaryColumn="<em>column_name</em>"
+        android:detailColumn="<em>column_name</em>"&gt;
+</pre>
+<p>
+    <strong>contained in:</strong>
+</p>
+<p>
+    <strong>Description:</strong>
+</p>
+<p>
+    Use this element to have the contacts application display the contents of a custom data row as
+    part of the details of a raw contact. Each <code>&lt;ContactsDataKind&gt;</code> child element
+    of <code>&lt;ContactsAccountType&gt;</code> represents a type of custom data row that your sync
+    adapter adds to the <code>ContactsContract.Data</code> table. Add one
+    <code>&lt;ContactsDataKind&gt;</code> element for each custom MIME type you use. You don't have
+    to add the element if you have a custom data row for which you don't want to display data.
+</p>
+<p>
+    <strong>Attributes:</strong>
+</p>
+<h2>Additional Contacts Provider Features</h2>
+<p>
+    Besides the main features described in previous sections, the Contacts Provider offers
+    these useful features for working with contacts data:
+</p>
+<ul>
+       <li>Contact groups</li>
+       <li>Photo features</li>
+    </ul>
+<h3>Contact groups</h3>
+<p>
+    The Contacts Provider can optionally label collections of related contacts with
+    <strong>group</strong> data. If the server associated with a user account
+    wants to maintain groups, the sync adapter for the account's account type should transfer
+    groups data between the Contacts Provider and the server. When users add a new contact to the
+    server and then put this contact in a new group, the sync adapter must add the new group
+    to the <code>ContactsContract.Groups</code> table. The group or groups a raw
+    contact belongs to are stored in the <code>ContactsContract.Data</code> table, using
+    the <code>ContactsContract.CommonDataKinds.GroupMembership</code> MIME type.
+</p>
+<p>
+    If you're designing a sync adapter that will add raw contact data from
+    server to the Contacts Provider, and you aren't using groups, then you need to tell the
+    Provider to make your data visible. In the code that is executed when a user adds an account
+    to the device, update the <code>ContactsContract.Settings</code>
+    row that the Contacts Provider adds for the account. In this row, set the value of the
+    <code>Settings.UNGROUPED_VISIBLE</code> column to 1. When you do this, the Contacts Provider will always
+    make your contacts data visible, even if you don't use groups.
+</p>
+<h3>Contact photos</h3>
+<h2>Required Permissions</h2>
+<p>
+    Applications that want to access the Contacts Provider must request the following
+    permissions:
+</p>
+<p>
+    These permissions do not extend to the user profile data. The user profile and its
+    required permissions are discussed in the following section,
+    The User Profile.
+</p>
+<p>
+    Remember that the user's contacts data is personal and sensitive. Users are concerned about
+    their privacy, so they don't want applications collecting data about them or their contacts.
+    If it's not obvious why you need permission to access their contacts data, they may give
+    your application low ratings or simply refuse to install it.
+</p>
+<h2>The User Profile</h2>
+<p>
+    The <code>ContactsContract.Contacts</code> table has a single row containing
+    profile data for the device's user. This data describes the device's <code>user</code> rather
+    than one of the user's contacts. The profile contacts row is linked to a raw
+    contacts row for each system that uses a profile.
+    Each profile raw contact row can have multiple data rows. Constants for accessing the user
+    profile are available in the <code>ContactsContract.Profile</code> class.
+</p>
+<p>
+    Access to the user profile requires special permissions. In addition to the
+    <code>READ_CONTACTS</code> and
+    <code>WRITE_CONTACTS</code> permissions needed to read and write, access
+    to the user profile requires the <code>READ_PROFILE</code> and
+    <code>WRITE_PROFILE</code> permissions for read and write access,
+    respectively.
+</p>
+<p>
+    Remember that you should consider a user's profile to be sensitive. The permission
+    <code>READ_PROFILE</code> allows you to access the device user's
+    personally-identifying data. Make sure to tell the user why
+    you need user profile access permissions in the description of your application.
+</p>
+<p>
+    To retrieve the contact row that contains the user's profile,
+    call <code>ContentResolver.query()</code>. Set the content URI to
+    <code>CONTENT_URI</code> and don't provide any
+    selection criteria. You can also use this content URI as the base URI for retrieving raw
+    contacts or data for the profile. For example, this snippet retrieves data for the profile:
+</p>
+<p>WHATSON? f095ec78-2b10-4522-bc79-800ddad21962</p>
+<pre>
+// Sets the columns to retrieve for the user profile
+mProjection = new String[]
+    {
+        Profile._ID,
+        Profile.DISPLAY_NAME_PRIMARY,
+        Profile.LOOKUP_KEY,
+        Profile.PHOTO_THUMBNAIL_URI
+    };
+
+// Retrieves the profile from the Contacts Provider
+mProfileCursor =
+        getContentResolver().query(
+                Profile.CONTENT_URI,
+                mProjection ,
+                null,
+                null,
+                null);
+</pre>
+<p>
+    <strong>Note:</strong> If you retrieve multiple contact rows, and you want to determine if one of them
+    is the user profile, test the row's
+    <code>IS_USER_PROFILE</code> column. This column
+    is set to "1" if the contact is the user profile.
+</p>
+<p>
+    The <code>ContactsContract.Data</code> table stores photos as rows with MIME type
+    <code>Photo.CONTENT_ITEM_TYPE</code>. The row's
+    <code>CONTACT_ID</code> column is linked to the
+    <code>_ID</code> column of the raw contact to which it belongs.
+    The class <code>ContactsContract.Contacts.Photo</code> defines a sub-table of
+    <code>ContactsContract.Contacts</code> containing photo information for a contact's
+    primary photo, which is the primary photo of the contact's primary raw contact. Similarly,
+    the class <code>ContactsContract.RawContacts.DisplayPhoto</code> defines a sub-table
+    of <code>ContactsContract.RawContacts</code> containing photo information for a
+    raw contact's primary photo.
+</p>
+<p>
+    The reference documentation for <code>ContactsContract.Contacts.Photo</code> and
+    <code>ContactsContract.RawContacts.DisplayPhoto</code> contain examples of
+    retrieving photo information. There is no convenience class for retrieving the primary
+    thumbnail for a raw contact, but you can send a query to the
+    <code>ContactsContract.Data</code> table, selecting on the raw contact's
+    <code>_ID</code>, the
+    <code>Photo.CONTENT_ITEM_TYPE</code>, and the <code>IS_PRIMARY</code>
+    column to find the raw contact's primary photo row.
+</p>
+<p>
+    Social stream data for a person may also include photos. These are stored in the
+    <code>ContactsContract.StreamItemPhotos</code> table, which is described in more
+    detail in the section Social stream photos.
+</p>
+<h2>Contacts Provider Metadata</h2>
+<p>
+    The Contacts Provider manages data that keeps track of the state of contacts data in the
+    repository. This metadata about the repository is stored in various places, including the
+    Raw Contacts, Data, and Contacts table rows, the
+    <code>ContactsContract.Settings</code> table, and the
+    <code>ContactsContract.SyncState</code> table. The following table shows the
+    effect of each of these pieces of metadata:
+</p>
+<p>
+  <strong>Table 3.</strong> Metadata in the Contacts Provider</p>
+<p>
+                Sync adapters that modify the raw contact or data tables should always append the
+                string <code>CALLER_IS_SYNCADAPTER</code> to the
+                content URI they use. This prevents the provider from marking rows as dirty.
+                Otherwise, sync adapter modifications appear to be local modifications and are
+                sent to the server, even though the server was the source of the modification.
+            </p>
+<p>
+                In particular, the source id must be <strong>unique</strong> for each account
+                type and should be stable across syncs:
+            </p>
+<ul>
+                    <li>
+                        Unique: Each raw contact for an account must have its own source id. If you
+                        don't enforce this, you'll cause problems in the contacts application.
+                        Notice that two raw contacts for the same account <em>type</em> may have
+                        the same source id. For example, the raw contact "Thomas Higginson" for the
+                        account <code>emily.dickinson@gmail.com</code> is allowed to have the same source
+                        id as the raw contact "Thomas Higginson" for the account
+                        <code>emilyd@gmail.com</code>.
+                    </li>
+                    <li>
+                        Stable: Source ids are a permanent part of the online service's data for
+                        the raw contact. For example, if the user clears Contacts Storage from the
+                        Apps settings and re-syncs, the restored raw contacts should have the same
+                        source ids as before. If you don't enforce this, shortcuts will stop
+                        working.
+                    </li>
+                </ul>
+<h2>Contacts Provider Access</h2>
+<p>
+    This section describes guidelines for accessing data from the Contacts Provider, focusing on
+    the following:
+</p>
+<ul>
+    <li>
+        Entity queries.
+    </li>
+    <li>
+        Batch modification.
+    </li>
+    <li>
+        Retrieval and modification with intents.
+    </li>
+    <li>
+        Data integrity.
+    </li>
+</ul>
+<p>
+    Making modifications from a sync adapter is also covered in more detail in the section
+    Contacts Provider Sync Adapters.
+</p>
+<h3>Querying entities</h3>
+<p>
+    Because the Contacts Provider tables are organized in a hierarchy, it's often useful to
+    retrieve a row and all of the "child" rows that are linked to it. For example, to display
+    all the information for a person, you may want to retrieve all the
+    <code>ContactsContract.RawContacts</code> rows for a single
+    <code>ContactsContract.Contacts</code> row, or all the
+    <code>ContactsContract.CommonDataKinds.Email</code> rows for a single
+    <code>ContactsContract.RawContacts</code> row. To facilitate this, the Contacts
+    Provider offers <strong>entity</strong> constructs, which act like database joins between
+    tables.
+</p>
+<p>
+    An entity is like a table composed of selected columns from a parent table and its child table.
+    When you query an entity, you supply a projection and search criteria based on the columns
+    available from the entity. The result is a <code>Cursor</code> that contains
+    contains one row for each child table row that was retrieved. For example, if you query
+    <code>ContactsContract.Contacts.Entity</code> for a contact name
+    and all the <code>ContactsContract.CommonDataKinds.Email</code> rows for all the
+    raw contacts for that name, you get back a <code>Cursor</code> containing one row
+    for each <code>ContactsContract.CommonDataKinds.Email</code> row.
+</p>
+<p>
+    Entities simplify queries. Using an entity, you can retrieve all of the contacts data for a
+    contact or raw contact at once, instead of having to query the parent table first to get an
+    ID, and then having to query the child table with that ID. Also, the Contacts Provider processes
+    a query against an entity in a single transaction, which ensures that the retrieved data is
+    internally consistent.
+</p>
+<p>
+    <strong>Note:</strong> An entity usually doesn't contain all the columns of the parent and
+    child table. If you attempt to work with a column name that isn't in the list of column name
+    constants for the entity, you'll get an <code>Exception</code>.
+</p>
+<p>
+    The following snippet shows how to retrieve all the raw contact rows for a contact. The snippet
+    is part of a larger application that has two activities, "main" and "detail". The main activity
+    shows a list of contact rows; when the user select one, the activity sends its ID to the detail
+    activity. The detail activity uses the <code>ContactsContract.Contacts.Entity</code>
+    to display all of the data rows from all of the raw contacts associated with the selected
+    contact.
+</p>
+<p>
+    This snippet is taken from the "detail" activity:
+</p>
+<p>WHATSON? b25bf733-8c60-4372-9af3-1096a8c404a5</p>
+<pre>
+...
+    /*
+     * Appends the entity path to the URI. In the case of the Contacts Provider, the
+     * expected URI is content://com.google.contacts/#/entity (# is the ID value).
+     */
+    mContactUri = Uri.withAppendedPath(
+            mContactUri,
+            ContactsContract.Contacts.Entity.CONTENT_DIRECTORY);
+
+    // Initializes the loader identified by LOADER_ID.
+    getLoaderManager().initLoader(
+            LOADER_ID,  // The identifier of the loader to initialize
+            null,       // Arguments for the loader (in this case, none)
+            this);      // The context of the activity
+
+    // Creates a new cursor adapter to attach to the list view
+    mCursorAdapter = new SimpleCursorAdapter(
+            this,                        // the context of the activity
+            R.layout.detail_list_item,   // the view item containing the detail widgets
+            mCursor,                     // the backing cursor
+            mFromColumns,                // the columns in the cursor that provide the data
+            mToViews,                    // the views in the view item that display the data
+            0);                          // flags
+
+    // Sets the ListView's backing adapter.
+    mRawContactList.setAdapter(mCursorAdapter);
+...
+@Override
+public Loader&lt;Cursor&gt; onCreateLoader(int id, Bundle args) {
+
+    /*
+     * Sets the columns to retrieve.
+     * RAW_CONTACT_ID is included to identify the raw contact associated with the data row.
+     * DATA1 contains the first column in the data row (usually the most important one).
+     * MIMETYPE indicates the type of data in the data row.
+     */
+    String[] projection =
+        {
+            ContactsContract.Contacts.Entity.RAW_CONTACT_ID,
+            ContactsContract.Contacts.Entity.DATA1,
+            ContactsContract.Contacts.Entity.MIMETYPE
+        };
+
+    /*
+     * Sorts the retrieved cursor by raw contact id, to keep all data rows for a single raw
+     * contact collated together.
+     */
+    String sortOrder =
+            ContactsContract.Contacts.Entity.RAW_CONTACT_ID +
+            " ASC";
+
+    /*
+     * Returns a new CursorLoader. The arguments are similar to
+     * ContentResolver.query(), except for the Context argument, which supplies the location of
+     * the ContentResolver to use.
+     */
+    return new CursorLoader(
+            getApplicationContext(),  // The activity's context
+            mContactUri,              // The entity content URI for a single contact
+            projection,               // The columns to retrieve
+            null,                     // Retrieve all the raw contacts and their data rows.
+            null,                     //
+            sortOrder);               // Sort by the raw contact ID.
+}
+</pre>
+<p>
+    When the load is finished, <code>LoaderManager</code> invokes a callback to
+    <code>onLoadFinished()</code>. One of the incoming arguments to this method is a
+    <code>Cursor</code> with the results of the query. In your own app, you can get the
+    data from this <code>Cursor</code> to display it or work with it further.
+</p>
+<h3>Batch modification</h3>
+<p>
+    Whenever possible, you should insert, update, and delete data in the Contacts Provider in
+    "batch mode", by creating an <code>ArrayList</code> of
+    <code>ContentProviderOperation</code> objects and calling
+    <code>applyBatch()</code>. Because
+    the Contacts Provider performs all of the operations in an
+    <code>applyBatch()</code> in a single
+    transaction, your modifications will never leave the contacts repository in an inconsistent
+    state. A batch modification also facilitates inserting a raw contact and its detail data at
+    the same time.
+</p>
+<p>
+    <strong>Note:</strong> To modify a <em>single</em> raw contact, consider sending an intent to
+    the device's contacts application rather than handling the modification in your app.
+    Doing this is described in more detail in the section
+    Retrieval and modification with intents.
+</p>
+<h4>Yield points</h4>
+<p>
+    A batch modification containing a large number of operations can block other processes,
+    resulting in a bad overall user experience. To organize all the modifications you want to
+    perform in as few separate lists as possible, and at the same time prevent them from
+    blocking the system, you should set <strong>yield points</strong> for one or more operations.
+    A yield point is a <code>ContentProviderOperation</code> object that has its
+    <code>isYieldAllowed()</code> value set to
+    <code>true</code>. When the Contacts Provider encounters a yield point, it pauses its work to
+    let other processes run and closes the current transaction. When the provider starts again, it
+    continues with the next operation in the <code>ArrayList</code> and starts a new
+    transaction.
+</p>
+<p>
+    Yield points do result in more than one transaction per call to
+    <code>applyBatch()</code>. Because of
+    this, you should set a yield point for the last operation for a set of related rows.
+    For example, you should set a yield point for the last operation in a set that adds a
+    raw contact rows and its associated data rows, or the last operation for a set of rows related
+    to a single contact.
+</p>
+<p>
+    Yield points are also a unit of atomic operation. All accesses between two yield points will
+    either succeed or fail as a single unit. If you don't set any yield points, the smallest
+    atomic operation is the entire batch of operations. If you do use yield points, you prevent
+    operations from degrading system performance, while at the same time ensuring that a subset of
+    operations is atomic.
+</p>
+<h4>Modification back references</h4>
+<p>
+    When you're inserting a new raw contact row and its associated data rows as a set of
+    <code>ContentProviderOperation</code> objects, you have to link the data rows to
+    the raw contact row by inserting the raw contact's
+    <code>_ID</code> value as the
+    <code>RAW_CONTACT_ID</code> value. However, this
+    value isn't available when you're creating the <code>ContentProviderOperation</code>
+    for the data row, because you haven't yet applied the
+    <code>ContentProviderOperation</code> for the raw contact row. To work around this,
+    the <code>ContentProviderOperation.Builder</code> class has the method
+    <code>withValueBackReference()</code>.
+    This method allows you to insert or modify a column with the
+    result of a previous operation.
+</p>
+<p>
+    The <code>withValueBackReference()</code>
+    method has two arguments:
+</p>
+<p>
+                The entire result array is created when you first call
+                <code>applyBatch()</code>,
+                with a size equal to the size of the <code>ArrayList</code> of
+                <code>ContentProviderOperation</code> objects you provide. However, all
+                the elements in the result array are set to <code>null</code>, and if you try
+                to do a back reference to a result for an operation that hasn't yet been applied,
+<code>withValueBackReference()</code>
+                throws an <code>Exception</code>.
+
+            </p>
+<p>
+    The following snippets show how to insert a new raw contact and data in batch. They
+    includes code that establishes a yield point and uses a back reference. The snippets are an
+    expanded version of the <code>createContacEntry()</code> method, which is part of the
+    <code>ContactAdder</code> class in the
+    <code>
+    Contact Manager</code> sample application.
+</p>
+<p>
+    The first snippet retrieves contact data from the UI. At this point, the user has already
+    selected the account for which the new raw contact should be added.
+</p>
+<p>WHATSON? 82aa6261-a5e0-43be-bc60-8470844ab99f</p>
+<pre>
+// Creates a contact entry from the current UI values, using the currently-selected account.
+protected void createContactEntry() {
+    /*
+     * Gets values from the UI
+     */
+    String name = mContactNameEditText.getText().toString();
+    String phone = mContactPhoneEditText.getText().toString();
+    String email = mContactEmailEditText.getText().toString();
+
+    int phoneType = mContactPhoneTypes.get(
+            mContactPhoneTypeSpinner.getSelectedItemPosition());
+
+    int emailType = mContactEmailTypes.get(
+            mContactEmailTypeSpinner.getSelectedItemPosition());
+</pre>
+<p>
+    The next snippet creates an operation to insert the raw contact row into the
+    <code>ContactsContract.RawContacts</code> table:
+</p>
+<p>WHATSON? 3815d2f5-f2b4-467a-870d-08ee8de50985</p>
+<pre>
+    /*
+     * Prepares the batch operation for inserting a new raw contact and its data. Even if
+     * the Contacts Provider does not have any data for this person, you can't add a Contact,
+     * only a raw contact. The Contacts Provider will then add a Contact automatically.
+     */
+
+     // Creates a new array of ContentProviderOperation objects.
+    ArrayList&lt;ContentProviderOperation&gt; ops =
+            new ArrayList&lt;ContentProviderOperation&gt;();
+
+    /*
+     * Creates a new raw contact with its account type (server type) and account name
+     * (user's account). Remember that the display name is not stored in this row, but in a
+     * StructuredName data row. No other data is required.
+     */
+    ContentProviderOperation.Builder op =
+            ContentProviderOperation.newInsert(ContactsContract.RawContacts.CONTENT_URI)
+            .withValue(ContactsContract.RawContacts.ACCOUNT_TYPE, mSelectedAccount.getType())
+            .withValue(ContactsContract.RawContacts.ACCOUNT_NAME, mSelectedAccount.getName());
+
+    // Builds the operation and adds it to the array of operations
+    ops.add(op.build());
+</pre>
+<p>
+    Next, the code creates data rows for the display name, phone, and email rows.
+</p>
+<p>
+    Each operation builder object uses
+    <code>withValueBackReference()</code>
+    to get the
+    <code>RAW_CONTACT_ID</code>. The reference points
+    back to the <code>ContentProviderResult</code> object from the first operation,
+    which adds the raw contact row and returns its new <code>_ID</code>
+    value. As a result, each data row is automatically linked by its
+    <code>RAW_CONTACT_ID</code>
+    to the new <code>ContactsContract.RawContacts</code> row to which it belongs.
+</p>
+<p>
+    The <code>ContentProviderOperation.Builder</code> object that adds the email row is
+    flagged with <code>withYieldAllowed()</code>, which sets a yield point:
+</p>
+<p>WHATSON? 73cb4fc9-c293-43e7-b0b6-31460bb76fac</p>
+<pre>
+    // Creates the display name for the new raw contact, as a StructuredName data row.
+    op =
+            ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
+            /*
+             * withValueBackReference sets the value of the first argument to the value of
+             * the ContentProviderResult indexed by the second argument. In this particular
+             * call, the raw contact ID column of the StructuredName data row is set to the
+             * value of the result returned by the first operation, which is the one that
+             * actually adds the raw contact row.
+             */
+            .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, 0)
+
+            // Sets the data row's MIME type to StructuredName
+            .withValue(ContactsContract.Data.MIMETYPE,
+                    ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE)
+
+            // Sets the data row's display name to the name in the UI.
+            .withValue(ContactsContract.CommonDataKinds.StructuredName.DISPLAY_NAME, name);
+
+    // Builds the operation and adds it to the array of operations
+    ops.add(op.build());
+
+    // Inserts the specified phone number and type as a Phone data row
+    op =
+            ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
+            /*
+             * Sets the value of the raw contact id column to the new raw contact ID returned
+             * by the first operation in the batch.
+             */
+            .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, 0)
+
+            // Sets the data row's MIME type to Phone
+            .withValue(ContactsContract.Data.MIMETYPE,
+                    ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE)
+
+            // Sets the phone number and type
+            .withValue(ContactsContract.CommonDataKinds.Phone.NUMBER, phone)
+            .withValue(ContactsContract.CommonDataKinds.Phone.TYPE, phoneType);
+
+    // Builds the operation and adds it to the array of operations
+    ops.add(op.build());
+
+    // Inserts the specified email and type as a Phone data row
+    op =
+            ContentProviderOperation.newInsert(ContactsContract.Data.CONTENT_URI)
+            /*
+             * Sets the value of the raw contact id column to the new raw contact ID returned
+             * by the first operation in the batch.
+             */
+            .withValueBackReference(ContactsContract.Data.RAW_CONTACT_ID, 0)
+
+            // Sets the data row's MIME type to Email
+            .withValue(ContactsContract.Data.MIMETYPE,
+                    ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE)
+
+            // Sets the email address and type
+            .withValue(ContactsContract.CommonDataKinds.Email.ADDRESS, email)
+            .withValue(ContactsContract.CommonDataKinds.Email.TYPE, emailType);
+
+    /*
+     * Demonstrates a yield point. At the end of this insert, the batch operation's thread
+     * will yield priority to other threads. Use after every set of operations that affect a
+     * single contact, to avoid degrading performance.
+     */
+    op.withYieldAllowed(true);
+
+    // Builds the operation and adds it to the array of operations
+    ops.add(op.build());
+</pre>
+<p>
+    The last snippet shows the call to
+    <code>applyBatch()</code> that
+    inserts the new raw contact and data rows.
+</p>
+<p>WHATSON? 69c4438b-b31d-4d53-ad1b-771ae48c6966</p>
+<pre>
+    // Ask the Contacts Provider to create a new contact
+    Log.d(TAG,"Selected account: " + mSelectedAccount.getName() + " (" +
+            mSelectedAccount.getType() + ")");
+    Log.d(TAG,"Creating contact: " + name);
+
+    /*
+     * Applies the array of ContentProviderOperation objects in batch. The results are
+     * discarded.
+     */
+    try {
+
+            getContentResolver().applyBatch(ContactsContract.AUTHORITY, ops);
+    } catch (Exception e) {
+
+            // Display a warning
+            Context ctx = getApplicationContext();
+
+            CharSequence txt = getString(R.string.contactCreationFailure);
+            int duration = Toast.LENGTH_SHORT;
+            Toast toast = Toast.makeText(ctx, txt, duration);
+            toast.show();
+
+            // Log exception
+            Log.e(TAG, "Exception encountered while inserting contact: " + e);
+    }
+}
+</pre>
+<p>
+    Batch operations also allow you to implement <strong>optimistic concurrency control</strong>,
+    a method of applying modification transactions without having to lock the underlying repository.
+    To use this method, you apply the transaction and then check for other modifications that
+    may have been made at the same time. If you find an inconsistent modification has occurred, you
+    roll back your transaction and retry it.
+</p>
+<p>
+    Optimistic concurrency control is useful for a mobile device, where there's only one user at
+    a time, and simultaneous accesses to a data repository are rare. Because locking isn't used,
+    no time is wasted on setting locks or waiting for other transactions to release their locks.
+</p>
+<p>
+    To use optimistic concurrency control while updating a single
+    <code>ContactsContract.RawContacts</code> row, follow these steps:
+</p>
+<ol>
+    <li>
+        Retrieve the raw contact's <code>VERSION</code>
+        column along with the other data you retrieve.
+    </li>
+    <li>
+        Create a <code>ContentProviderOperation.Builder</code> object suitable for
+        enforcing a constraint, using the method
+        <code>newAssertQuery(Uri)</code>. For the content URI,
+        use <code>RawContacts.CONTENT_URI</code>
+        with the raw contact's <code>_ID</code> appended to it.
+    </li>
+    <li>
+        For the <code>ContentProviderOperation.Builder</code> object, call
+        <code>withValue()</code> to compare the <code>VERSION</code>
+        column to the version number you just retrieved.
+    </li>
+    <li>
+        For the same <code>ContentProviderOperation.Builder</code>, call
+        <code>withExpectedCount()</code> to ensure that only one row is tested by this assertion.
+    </li>
+    <li>
+        Call <code>build()</code> to create the
+        <code>ContentProviderOperation</code> object, then add this object as the
+        first object in the <code>ArrayList</code> that you pass to
+        <code>applyBatch()</code>.
+    </li>
+    <li>
+        Apply the batch transaction.
+    </li>
+</ol>
+<p>
+    If the raw contact row is updated by another operation between the time you read the row and
+    the time you attempt to modify it, the "assert" <code>ContentProviderOperation</code>
+    will fail, and the entire batch of operations will be backed out. You can then choose to retry
+    the batch or take some other action.
+</p>
+<p>
+    The following snippet demonstrates how to create an "assert"
+    <code>ContentProviderOperation</code> after querying for a single raw contact using
+    a <code>CursorLoader</code>:
+</p>
+<p>WHATSON? 0b88e426-5633-49f4-83e8-a49518c8b7d5</p>
+<pre>
+/*
+ * The application uses CursorLoader to query the raw contacts table. The system calls this method
+ * when the load is finished.
+ */
+public void onLoadFinished(Loader&lt;Cursor&gt; loader, Cursor cursor) {
+
+    // Gets the raw contact's _ID and VERSION values
+    mRawContactID = cursor.getLong(cursor.getColumnIndex(BaseColumns._ID));
+    mVersion = cursor.getInt(cursor.getColumnIndex(SyncColumns.VERSION));
+}
+
+...
+
+// Sets up a Uri for the assert operation
+Uri rawContactUri = ContentUris.withAppendedId(RawContacts.CONTENT_URI, mRawContactID);
+
+// Creates a builder for the assert operation
+ContentProviderOperation.Builder assertOp = ContentProviderOperation.netAssertQuery(rawContactUri);
+
+// Adds the assertions to the assert operation: checks the version and count of rows tested
+assertOp.withValue(SyncColumns.VERSION, mVersion);
+assertOp.withExpectedCount(1);
+
+// Creates an ArrayList to hold the ContentProviderOperation objects
+ArrayList ops = new ArrayList&lt;ContentProviderOperationg&gt;;
+
+ops.add(assertOp.build());
+
+// You would add the rest of your batch operations to "ops" here
+
+...
+
+// Applies the batch. If the assert fails, an Exception is thrown
+try
+    {
+        ContentProviderResult[] results =
+                getContentResolver().applyBatch(AUTHORITY, ops);
+
+    } catch (OperationApplicationException e) {
+
+        // Actions you want to take if the assert operation fails go here
+    }
+</pre>
+<h3>Retrieval and modification with intents</h3>
+<p>
+    Sending an intent to the device's contacts application allows you to access the Contacts
+    Provider indirectly. The intent starts the device's contacts application UI, in which users can
+    do contacts-related work. With this type of access, users can:
+    </p>
+<ul>
+        <li>Pick a contact from a list and have it returned to your app for further work.</li>
+        <li>Edit an existing contact's data.</li>
+        <li>Insert a new raw contact for any of their accounts.</li>
+        <li>Delete a contact or contacts data.</li>
+    </ul>
+<p>
+    If the user is inserting or updating data, you can collect the data first and send it as
+    part of the intent.
+</p>
+<p>
+    When you use intents to access the Contacts Provider via the device's contacts application, you
+    don't have to write your own UI or code for accessing the provider. You also don't have to
+    request permission to read or write to the provider. The device's contacts application can
+    delegate read permission for a contact to you, and because you're making modifications to the
+    provider through another application, you don't have to have write permissions.
+</p>
+<p>
+    The general process of sending an intent to access a provider is described in detail in the
+    
+    Content Provider Basics guide in the section "Data access via intents." The action,
+    MIME type, and data values you use for the available tasks are summarized in Table 4, while the
+    extras values you can use with
+    <code>putExtra()</code> are listed in the
+    reference documentation for <code>ContactsContract.Intents.Insert</code>:
+</p>
+<p>
+  <strong>Table 4.</strong> Contacts Provider Intents.
+</p>
+<ul>
+                <li>
+<code>Contacts.CONTENT_URI</code>,
+                    which displays a list of contacts.
+                </li>
+                <li>
+<code>Phone.CONTENT_URI</code>,
+                    which displays a list of phone numbers for a raw contact.
+                </li>
+                <li>
+<code>StructuredPostal.CONTENT_URI</code>,
+                    which displays a list of postal addresses for a raw contact.
+                </li>
+                <li>
+<code>Email.CONTENT_URI</code>,
+                    which displays a list of email addresses for a raw contact.
+                </li>
+            </ul>
+<p>
+                Call
+         <code>startActivityForResult()</code>,
+                which returns the content URI of the selected row. The form of the URI is the
+                table's content URI with the row's <code>LOOKUP_ID</code> appended to it.
+                The device's contacts app delegates read and write permissions to this content URI
+                for the life of your activity. See the
+                
+                Content Provider Basics guide for more details.
+            </p>
+<p>
+                <strong>Note:</strong> There's no need to send a name value in this intent's extras,
+                because the user always picks an existing name or adds a new one. Moreover,
+                if you send a name, and the user chooses to do an edit, the contacts app will
+                display the name you send, overwriting the previous value. If the user doesn't
+                notice this and saves the edit, the old value is lost.
+            </p>
+<p>
+    The device's contacts app doesn't allow you to delete a raw contact or any of its data with an
+    intent. Instead, to delete a raw contact, use
+    <code>ContentResolver.delete()</code>
+    or <code>ContentProviderOperation.newDelete()</code>.
+</p>
+<p>
+    The following snippet shows how to construct and send an intent that inserts a new raw
+    contact and data:
+</p>
+<p>WHATSON? b6a65708-54f7-4176-87ec-b13a50b84586</p>
+<pre>
+// Gets values from the UI
+String name = mContactNameEditText.getText().toString();
+String phone = mContactPhoneEditText.getText().toString();
+String email = mContactEmailEditText.getText().toString();
+
+String company = mCompanyName.getText().toString();
+String jobtitle = mJobTitle.getText().toString();
+
+// Creates a new intent for sending to the device's contacts application
+Intent insertIntent = new Intent(ContactsContract.Intents.Insert.ACTION);
+
+// Sets the MIME type to the one expected by the insertion activity
+insertIntent.setType(ContactsContract.RawContacts.CONTENT_TYPE);
+
+// Sets the new contact name
+insertIntent.putExtra(ContactsContract.Intents.Insert.NAME, name);
+
+// Sets the new company and job title
+insertIntent.putExtra(ContactsContract.Intents.Insert.COMPANY, company);
+insertIntent.putExtra(ContactsContract.Intents.Insert.JOB_TITLE, jobtitle);
+
+/*
+ * Demonstrates adding data rows as an array list associated with the DATA key
+ */
+
+// Defines an array list to contain the ContentValues objects for each row
+ArrayList&lt;ContentValues&gt; contactData = new ArrayList&lt;ContentValues&gt;();
+
+
+/*
+ * Defines the raw contact row
+ */
+
+// Sets up the row as a ContentValues object
+ContentValues rawContactRow = new ContentValues();
+
+// Adds the account type and name to the row
+rawContactRow.put(ContactsContract.RawContacts.ACCOUNT_TYPE, mSelectedAccount.getType());
+rawContactRow.put(ContactsContract.RawContacts.ACCOUNT_NAME, mSelectedAccount.getName());
+
+// Adds the row to the array
+contactData.add(rawContactRow);
+
+/*
+ * Sets up the phone number data row
+ */
+
+// Sets up the row as a ContentValues object
+ContentValues phoneRow = new ContentValues();
+
+// Specifies the MIME type for this data row (all data rows must be marked by their type)
+phoneRow.put(
+        ContactsContract.Data.MIMETYPE,
+        ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE
+);
+
+// Adds the phone number and its type to the row
+phoneRow.put(ContactsContract.CommonDataKinds.Phone.NUMBER, phone);
+
+// Adds the row to the array
+contactData.add(phoneRow);
+
+/*
+ * Sets up the email data row
+ */
+
+// Sets up the row as a ContentValues object
+ContentValues emailRow = new ContentValues();
+
+// Specifies the MIME type for this data row (all data rows must be marked by their type)
+emailRow.put(
+        ContactsContract.Data.MIMETYPE,
+        ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE
+);
+
+// Adds the email address and its type to the row
+emailRow.put(ContactsContract.CommonDataKinds.Email.ADDRESS, email);
+
+// Adds the row to the array
+contactData.add(emailRow);
+
+/*
+ * Adds the array to the intent's extras. It must be a parcelable object in order to
+ * travel between processes. The device's contacts app expects its key to be
+ * Intents.Insert.DATA
+ */
+insertIntent.putParcelableArrayListExtra(ContactsContract.Intents.Insert.DATA, contactData);
+
+// Send out the intent to start the device's contacts app in its add contact activity.
+startActivity(insertIntent);
+</pre>
+<h3>Data integrity</h3>
+<p>
+    Because the contacts repository contains important and sensitive data that users expect to be
+    correct and up-to-date, the Contacts Provider has well-defined rules for data integrity. It's
+    your responsibility to conform to these rules when you modify contacts data. The important
+    rules are listed here:
+</p>
+<h3>Custom data rows</h3>
+<p>
+    By creating and using your own custom MIME types, you can insert, edit, delete, and retrieve
+    your own data rows in the <code>ContactsContract.Data</code> table. Your rows
+    are limited to using the column defined in
+    <code>ContactsContract.DataColumns</code>, although you can map your own
+    type-specific column names to the default column names. In the device's contacts application,
+    the data for your rows is displayed but can't be edited or deleted, and users can't add
+    additional data. To allow users to modify your custom data rows, you must provide an editor
+    activity in your own application.
+</p>
+<p>
+    To display your custom data, provide a <code>contacts.xml</code> file containing a
+    <code>&lt;ContactsAccountType&gt;</code> element and one or more of its
+    <code>&lt;ContactsDataKind&gt;</code> child elements. This is described in more detail in the
+    section <code>&lt;ContactsDataKind&gt; element</code>.
+</p>
+<p>
+    To learn more about custom MIME types, read the
+    
+    Creating a Content Provider guide.
+</p>
+<h2>Contacts Provider Sync Adapters</h2>
+<p>
+    The Contacts Provider is specifically designed for handling <strong>synchronization</strong>
+    of contacts data between a device and an online service. This allows users to download
+    existing data to a new device and upload existing data to a new account.
+    Synchronization also ensures that users have the latest data at hand, regardless
+    of the source of additions and changes. Another advantage of synchronization is that it makes
+    contacts data available even when the device is not connected to the network.
+</p>
+<p>
+    Although you can implement synchronization in a variety of ways, the Android system provides
+    a plug-in synchronization framework that automates the following tasks:
+    </p>
+<ul>
+
+    <li>
+        Checking network availability.
+    </li>
+    <li>
+        Scheduling and executing synchronization, based on user preferences.
+    </li>
+    <li>
+        Restarting synchronizations that have stopped.
+    </li>
+    </ul>
+<p>
+    To use this framework, you supply a sync adapter plug-in. Each sync adapter is unique to a
+    service and content provider, but can handle multiple account names for the same service. The
+    framework also allows multiple sync adapters for the same service and provider.
+</p>
+<h3>Sync adapter classes and files</h3>
+<p>
+    You implement a sync adapter as a subclass of
+    <code>AbstractThreadedSyncAdapter</code> and install it as part of an Android
+    application. The system learns about the sync adapter from elements in your application
+    manifest, and from a special XML file pointed to by the manifest. The XML file defines the
+    account type for the online service and the authority for the content provider, which together
+    uniquely identify the adapter. The sync adapter does not become active until the user adds an
+    account for the sync adapter's  account type and enables synchronization for the content
+    provider the sync adapter syncs with.  At that point, the system starts managing the adapter,
+    calling it as necessary to synchronize between the content provider and the server.
+</p>
+<p>
+    <strong>Note:</strong> Using an account type as part of the sync adapter's identification allows
+    the system to detect and group together sync adapters that access different services from the
+    same organization. For example, sync adapters for Google online services all have the same
+    account type <code>com.google</code>. When users add a Google account to their devices, all
+    of the installed sync adapters for Google services are listed together; each sync adapter
+    listed syncs with a different content provider on the device.
+</p>
+<p>
+    Because most services require users to verify their identity before accessing
+    data, the Android system offers an authentication framework that is similar to, and often
+    used in conjunction with, the sync adapter framework. The authentication framework uses
+    plug-in authenticators that are subclasses of
+    <code>AbstractAccountAuthenticator</code>. An authenticator verifies
+    the user's identity in the following steps:
+    </p>
+<ol>
+        <li>
+            Collects the user's name, password or similar information (the user's
+            <strong>credentials</strong>).
+        </li>
+        <li>
+            Sends the credentials to the service
+        </li>
+        <li>
+            Examines the service's reply.
+        </li>
+    </ol>
+<p>
+    If the service accepts the credentials, the authenticator can
+    store the credentials for later use. Because of the plug-in authenticator framework, the
+    <code>AccountManager</code> can provide access to any authtokens an authenticator
+    supports and chooses to expose, such as OAuth2 authtokens.
+</p>
+<p>
+    Although authentication is not required, most contacts services use it.
+    However, you're not required to use the Android authentication framework to do authentication.
+</p>
+<h3>Sync adapter implementation</h3>
+<p>
+    To implement a sync adapter for the Contacts Provider, you start by creating an
+    Android application that contains the following:
+</p>
+<p>
+                In the 
+                Sample Sync Adapter sample app, the class name of this service is
+                <code>com.example.android.samplesync.syncadapter.SyncService</code>.
+            </p>
+<p>
+                In the 
+                Sample Sync Adapter sample app, the sync adapter is defined in the class
+                <code>com.example.android.samplesync.syncadapter.SyncAdapter</code>.
+            </p>
+<p>
+                In the 
+                Sample Sync Adapter sample app, the class name of this service is
+                <code>com.example.android.samplesync.authenticator.AuthenticationService</code>.
+            </p>
+<p>
+                In the 
+                Sample Sync Adapter sample app, the authenticator is defined in the class
+                <code>com.example.android.samplesync.authenticator.Authenticator</code>.
+            </p>
+<ul>
+                <li>
+                    The
+<code>&lt;meta-data&gt;</code>
+                    element for the sync adapter service points to the
+                    XML file <code>res/xml/syncadapter.xml</code>. In turn, this file specifies
+                    a URI for the web service that will be synchronized with the Contacts Provider,
+                    and an account type for the web service.
+                </li>
+                <li>
+                    <strong>Optional:</strong> The
+<code>&lt;meta-data&gt;</code>
+                    element for the authenticator points to the XML file
+                    <code>res/xml/authenticator.xml</code>. In turn, this file specifies the
+                    account type that this authenticator supports, as well as UI resources that
+                    appear during the authentication process. The account type specified in this
+                    element must be the same as the account type specified for the sync
+                    adapter.
+                </li>
+            </ul>
+<h2>Social Stream Data</h2>
+<p>
+    The <code>ContactsContract.StreamItems</code> and
+    <code>ContactsContract.StreamItemPhotos</code> tables
+    manage incoming data from social networks. You can write a sync adapter that adds stream data
+    from your own network to these tables, or you can read stream data from these tables and
+    display it in your own application, or both. With these features, your social networking
+    services and applications can be integrated into Android's social networking experience.
+</p>
+<h3>Social stream text</h3>
+<p>
+    Stream items are always associated with a raw contact. The
+    <code>RAW_CONTACT_ID</code> links to the
+    <code>_ID</code> value for the raw contact. The account type and account name of the raw
+    contact are also stored in the stream item row.
+</p>
+<p>
+    Store the data from your stream in the following columns:
+</p>
+<ul>
+            <li>
+                <code>CONTACT_ID</code>: The
+                <code>_ID</code> value of the contact that this stream
+                item is associated with.
+            </li>
+            <li>
+                <code>CONTACT_LOOKUP_KEY</code>: The
+                <code>LOOKUP_KEY</code> value of the
+                contact this stream item is associated with.
+            </li>
+            <li>
+                <code>RAW_CONTACT_ID</code>: The
+                <code>_ID</code> value of the raw contact that this stream
+                item is associated with.
+            </li>
+        </ul>
+<p>
+    To display identifying information for your stream items, use the
+    <code>RES_ICON</code>,
+    <code>RES_LABEL</code>, and
+    <code>RES_PACKAGE</code> to link to resources
+    in your application.
+</p>
+<p>
+    The <code>ContactsContract.StreamItems</code> table also contains the columns
+    <code>SYNC1</code> through
+    <code>SYNC4</code> for the exclusive use of
+    sync adapters.
+</p>
+<h3>Social stream photos</h3>
+<p>
+   The <code>ContactsContract.StreamItemPhotos</code> table stores photos associated
+   with a stream item. The table's
+   <code>STREAM_ITEM_ID</code> column
+   links to values in the <code>_ID</code> column of
+   <code>ContactsContract.StreamItems</code> table. Photo references are stored in the
+   table in these columns:
+</p>
+<h3>Using the social stream tables</h3>
+<p>
+    These tables work the same as the other main tables in the Contacts Provider, except that:
+</p>
+<ul>
+        <li>
+            These tables require additional access permissions. To read from them, your application
+            must have the permission <code>READ_SOCIAL_STREAM</code>. To
+            modify them, your application must have the permission
+            <code>WRITE_SOCIAL_STREAM</code>.
+        </li>
+        <li>
+            For the <code>ContactsContract.StreamItems</code> table, the number of rows
+            stored for each raw contact is limited. Once this limit is reached,
+            the Contacts Provider makes space for new stream item rows by automatically deleting
+            the rows having the oldest
+            <code>TIMESTAMP</code>. To get the
+            limit, issue a query to the content URI
+            <code>CONTENT_LIMIT_URI</code>. You can leave
+            all the arguments other than the content URI set to <code>null</code>. The query
+            returns a Cursor containing a single row, with the single column
+            <code>MAX_ITEMS</code>.
+        </li>
+    </ul>
+<p>
+    The class <code>ContactsContract.StreamItems.StreamItemPhotos</code> defines a
+    sub-table of <code>ContactsContract.StreamItemPhotos</code> containing the photo
+    rows for a single stream item.
+</p>
+<h3>Social stream interactions</h3>
+<p>
+    The social stream data managed by the Contacts Provider, in conjunction with the
+    device's contacts application, offers a powerful way to connect your social networking system
+    with existing contacts. The following features are available:
+</p>
+<ul>
+        <li>
+            By syncing your social networking service to the Contacts Provider with a sync
+            adapter, you can retrieve recent activity for a user's contacts and store it in
+            the <code>ContactsContract.StreamItems</code> and
+            <code>ContactsContract.StreamItemPhotos</code> tables for later use.
+        </li>
+        <li>
+            Besides regular synchronization, you can trigger your sync adapter to retrieve
+            additional data when the user selects a contact to view. This allows your sync adapter
+            to retrieve high-resolution photos and the most recent stream items for the contact.
+        </li>
+        <li>
+            By registering a notification with the device's contacts application and the Contacts
+            Provider, you can <em>receive</em> an intent when a contact is viewed, and at that point
+            update the contact's status from your service. This approach may be faster and use less
+            bandwidth than doing a full sync with a sync adapter.
+        </li>
+        <li>
+            Users can add a contact to your social networking service while looking at the contact
+            in the device's contacts application. You enable this with the "invite contact" feature,
+            which you enable with a combination of an activity that adds an existing contact to your
+            network, and an XML file that provides the device's contacts application and the
+            Contacts Provider with the details of your application.
+        </li>
+    </ul>
+<p>
+    Regular synchronization of stream items with the Contacts Provider is the same as
+    other synchronizations. To learn more about synchronization, see the section
+    Contacts Provider Sync Adapters. Registering notifications and
+    inviting contacts are covered in the next two sections.
+</p>
+<h4>Registering to handle social networking views</h4>
+<p>
+    To register your sync adapter to receive notifications when the user views a contact that's
+    managed by your sync adapter:
+</p>
+<ol>
+    <li>
+        Create a file named <code>contacts.xml</code> in your project's <code>res/xml/</code>
+        directory. If you already have this file, you can skip this step.
+    </li>
+    <li>
+        In this file, add the element
+<code>&lt;ContactsAccountType xmlns:android="http://schemas.android.com/apk/res/android"&gt;</code>.
+        If this element already exists, you can skip this step.
+    </li>
+    <li>
+        To register a service that is notified when the user opens a contact's detail page in
+        the device's contacts application, add the attribute
+        <code>viewContactNotifyService="<em>serviceclass</em>"</code> to the element, where
+        <code><em>serviceclass</em></code> is the fully-qualified classname of the service
+        that should receive the intent from the device's contacts application. For the notifier
+        service, use a class that extends <code>IntentService</code>, to allow the service to
+        receive intents. The data in the incoming intent contains the content URI of the raw
+        contact the user clicked. From the notifier service, you can bind to and then call your
+        sync adapter to update the data for the raw contact.
+    </li>
+</ol>
+<p>
+    To register an activity to be called when the user clicks on a stream item or photo or both:
+</p>
+<ol>
+    <li>
+        Create a file named <code>contacts.xml</code> in your project's <code>res/xml/</code>
+        directory. If you already have this file, you can skip this step.
+    </li>
+    <li>
+        In this file, add the element
+<code>&lt;ContactsAccountType xmlns:android="http://schemas.android.com/apk/res/android"&gt;</code>.
+        If this element already exists, you can skip this step.
+    </li>
+    <li>
+        To register one of your activities to handle the user clicking on a stream item in the
+        device's contacts application, add the attribute
+        <code>viewStreamItemActivity="<em>activityclass</em>"</code> to the element, where
+        <code><em>activityclass</em></code> is the fully-qualified classname of the activity
+        that should receive the intent from the device's contacts application.
+    </li>
+    <li>
+        To register one of your activities to handle the user clicking on a stream photo in the
+        device's contacts application, add the attribute
+        <code>viewStreamItemPhotoActivity="<em>activityclass</em>"</code> to the element, where
+        <code><em>activityclass</em></code> is the fully-qualified classname of the activity
+        that should receive the intent from the device's contacts application.
+    </li>
+</ol>
+<p>
+    The <code>&lt;ContactsAccountType&gt;</code> element is described in more detail in the
+    section &lt;ContactsAccountType&gt; element.
+</p>
+<p>
+    The incoming intent contains the content URI of the item or photo that the user clicked.
+    To have separate activities for text items and for photos, use both attributes in the same file.
+</p>
+<h4>Interacting with your social networking service</h4>
+<p>
+    Users don't have to leave the device's contacts application to invite a contact to your social
+    networking site. Instead, you can have the device's contacts app send an intent for inviting the
+    contact to one of your activities. To set this up:
+</p>
+<ol>
+    <li>
+        Create a file named <code>contacts.xml</code> in your project's <code>res/xml/</code>
+        directory. If you already have this file, you can skip this step.
+    </li>
+    <li>
+        In this file, add the element
+<code>&lt;ContactsAccountType xmlns:android="http://schemas.android.com/apk/res/android"&gt;</code>.
+        If this element already exists, you can skip this step.
+    </li>
+    <li>
+        Add the following attributes:
+        <ul>
+            <li><code>inviteContactActivity="<em>activityclass</em>"</code></li>
+            <li>
+                <code>inviteContactActionLabel="@string/<em>invite_action_label</em>"</code>
+            </li>
+        </ul>
+        The <code><em>activityclass</em></code> value is the fully-qualified classname of the
+        activity that should receive the intent. The <code><em>invite_action_label</em></code>
+        value is a text string that's displayed in the <strong>Add Connection</strong> menu in the
+        device's contacts application.
+    </li>
+</ol>
+<ul>
+            <li><code>inviteContactActivity="<em>activityclass</em>"</code></li>
+            <li>
+                <code>inviteContactActionLabel="@string/<em>invite_action_label</em>"</code>
+            </li>
+        </ul>
+<p>
+    <strong>Note:</strong> <code>ContactsSource</code> is a deprecated tag name for
+    <code>ContactsAccountType</code>.
+</p>
+<h3>contacts.xml reference</h3>
+<p>
+    The file <code>contacts.xml</code> contains XML elements that control the interaction of your
+    sync adapter and application with the contacts application and the Contacts Provider. These
+    elements are described in the following sections.
+</p>
+<h4>&lt;ContactsAccountType&gt; element</h4>
+<p>
+    The <code>&lt;ContactsAccountType&gt;</code> element controls the interaction of your
+    application with the contacts application. It has the following syntax:
+</p>
+<p>WHATSON? 8d1e7232-76ec-4bb1-a002-aa124ff127d9</p>
+<pre>
+&lt;ContactsAccountType
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        inviteContactActivity="<em>activity_name</em>"
+        inviteContactActionLabel="<em>invite_command_text</em>"
+        viewContactNotifyService="<em>view_notify_service</em>"
+        viewGroupActivity="<em>group_view_activity</em>"
+        viewGroupActionLabel="<em>group_action_text</em>"
+        viewStreamItemActivity="<em>viewstream_activity_name</em>"
+        viewStreamItemPhotoActivity="<em>viewphotostream_activity_name</em>"&gt;
+</pre>
+<p>
+    <strong>contained in:</strong>
+</p>
+<p>
+    <code>res/xml/contacts.xml</code>
+</p>
+<p>
+    <strong>can contain:</strong>
+</p>
+<p>
+    <strong><code>&lt;ContactsDataKind&gt;</code></strong>
+</p>
+<p>
+    <strong>Description:</strong>
+</p>
+<p>
+    Declares Android components and UI labels that allow users to invite one of their contacts to
+    a social network, notify users when one of their social networking streams is updated, and
+    so forth.
+</p>
+<p>
+    Notice that the attribute prefix <code>android:</code> is not necessary for the attributes
+    of <code>&lt;ContactsAccountType&gt;</code>.
+</p>
+<p>
+    <strong>Attributes:</strong>
+</p>
+<p>
+            For example, if you install the Google+ application on your device and you sync
+            Google+ with the contacts application, you'll see Google+ circles listed as groups
+            in your contacts application's <strong>Groups</strong> tab. If you click on a
+            Google+ circle, you'll see people in that circle listed as a "group". At the top of
+            the display, you'll see a Google+ icon; if you click it, control switches to the
+            Google+ app. The contacts application does this with the
+            <code>viewGroupActivity</code>, using the Google+ icon as the value of
+            <code>viewGroupActionLabel</code>.
+        </p>
+<p>
+            A string resource identifier is allowed for this attribute.
+        </p>
+<h4>&lt;ContactsDataKind&gt; element</h4>
+<p>
+    The <code>&lt;ContactsDataKind&gt;</code> element controls the display of your application's
+    custom data rows in the contacts application's UI. It has the following syntax:
+</p>
+<p>WHATSON? 54fedfd5-4501-4bda-a193-acaac31bb480</p>
+<pre>
+&lt;ContactsDataKind
+        android:mimeType="<em>MIMEtype</em>"
+        android:icon="<em>icon_resources</em>"
+        android:summaryColumn="<em>column_name</em>"
+        android:detailColumn="<em>column_name</em>"&gt;
+</pre>
+<p>
+    <strong>contained in:</strong>
+</p>
+<p>
+    <strong>Description:</strong>
+</p>
+<p>
+    Use this element to have the contacts application display the contents of a custom data row as
+    part of the details of a raw contact. Each <code>&lt;ContactsDataKind&gt;</code> child element
+    of <code>&lt;ContactsAccountType&gt;</code> represents a type of custom data row that your sync
+    adapter adds to the <code>ContactsContract.Data</code> table. Add one
+    <code>&lt;ContactsDataKind&gt;</code> element for each custom MIME type you use. You don't have
+    to add the element if you have a custom data row for which you don't want to display data.
+</p>
+<p>
+    <strong>Attributes:</strong>
+</p>
+<h2>Additional Contacts Provider Features</h2>
+<p>
+    Besides the main features described in previous sections, the Contacts Provider offers
+    these useful features for working with contacts data:
+</p>
+<ul>
+       <li>Contact groups</li>
+       <li>Photo features</li>
+    </ul>
+<h3>Contact groups</h3>
+<p>
+    The Contacts Provider can optionally label collections of related contacts with
+    <strong>group</strong> data. If the server associated with a user account
+    wants to maintain groups, the sync adapter for the account's account type should transfer
+    groups data between the Contacts Provider and the server. When users add a new contact to the
+    server and then put this contact in a new group, the sync adapter must add the new group
+    to the <code>ContactsContract.Groups</code> table. The group or groups a raw
+    contact belongs to are stored in the <code>ContactsContract.Data</code> table, using
+    the <code>ContactsContract.CommonDataKinds.GroupMembership</code> MIME type.
+</p>
+<p>
+    If you're designing a sync adapter that will add raw contact data from
+    server to the Contacts Provider, and you aren't using groups, then you need to tell the
+    Provider to make your data visible. In the code that is executed when a user adds an account
+    to the device, update the <code>ContactsContract.Settings</code>
+    row that the Contacts Provider adds for the account. In this row, set the value of the
+    <code>Settings.UNGROUPED_VISIBLE</code> column to 1. When you do this, the Contacts Provider will always
+    make your contacts data visible, even if you don't use groups.
+</p>
+<h3>Contact photos</h3>
+<p>
+    The <code>ContactsContract.Data</code> table stores photos as rows with MIME type
+    <code>Photo.CONTENT_ITEM_TYPE</code>. The row's
+    <code>CONTACT_ID</code> column is linked to the
+    <code>_ID</code> column of the raw contact to which it belongs.
+    The class <code>ContactsContract.Contacts.Photo</code> defines a sub-table of
+    <code>ContactsContract.Contacts</code> containing photo information for a contact's
+    primary photo, which is the primary photo of the contact's primary raw contact. Similarly,
+    the class <code>ContactsContract.RawContacts.DisplayPhoto</code> defines a sub-table
+    of <code>ContactsContract.RawContacts</code> containing photo information for a
+    raw contact's primary photo.
+</p>
+<p>
+    The reference documentation for <code>ContactsContract.Contacts.Photo</code> and
+    <code>ContactsContract.RawContacts.DisplayPhoto</code> contain examples of
+    retrieving photo information. There is no convenience class for retrieving the primary
+    thumbnail for a raw contact, but you can send a query to the
+    <code>ContactsContract.Data</code> table, selecting on the raw contact's
+    <code>_ID</code>, the
+    <code>Photo.CONTENT_ITEM_TYPE</code>, and the <code>IS_PRIMARY</code>
+    column to find the raw contact's primary photo row.
+</p>
+<p>
+    Social stream data for a person may also include photos. These are stored in the
+    <code>ContactsContract.StreamItemPhotos</code> table, which is described in more
+    detail in the section Social stream photos.
+</p>
+</body>
+</html>

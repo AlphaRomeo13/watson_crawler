@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Temporal-Query-The-Java-Tutorials---------------------Date-Time--Standard-Calendar.html</title></head>
+<body>
+<h1>Temporal Query</h1>
+<p>
+A 
+<tt>TemporalQuery</tt> can be used to retrieve information from a temporal-based object.</p>
+<h2>Predefined Queries</h2>
+<p>
+The
+<tt>TemporalQueries</tt> class (note the plural) provides several predefined queries, including methods that are useful when the application cannot identify the type of temporal-based object. As with the adjusters, the predefined queries are defined as static methods and are designed to be used with the
+static import statement.</p>
+<p>
+The
+<tt>precision</tt> query, for example, returns the smallest <tt>ChronoUnit</tt> that can be returned by a particular temporal-based object. The following example uses the <tt>precision</tt> query on several types of temporal-based objects:</p>
+<p>WHATSON? 0b1962b1-a11b-4e58-b1e0-eeb71e23b2ec</p>
+<pre>
+TemporalQueries query = TemporalQueries.precision();
+System.out.printf("LocalDate precision is %s%n",
+                  LocalDate.now().query(query));
+System.out.printf("LocalDateTime precision is %s%n",
+                  LocalDateTime.now().query(query));
+System.out.printf("Year precision is %s%n",
+                  Year.now().query(query));
+System.out.printf("YearMonth precision is %s%n",
+                  YearMonth.now().query(query));
+System.out.printf("Instant precision is %s%n",
+                  Instant.now().query(query));
+</pre>
+<p>The output looks like the following:</p>
+<p>WHATSON? 55b899e0-1947-44bb-9d3a-50269b9bec39</p>
+<pre>
+LocalDate precision is Days
+LocalDateTime precision is Nanos
+Year precision is Years
+YearMonth precision is Months
+Instant precision is Nanos
+</pre>
+<h2>Custom Queries</h2>
+<p>
+You can also create your own custom queries. One way to do this is to create a class that implements the <tt>TemporalQuery</tt> interface with the 
+<tt>queryFrom(TemporalAccessor)</tt> method. The
+<code><tt>CheckDate</tt></code> example implements two custom queries. The first custom query can be found in the 
+<code><tt>FamilyVacations</tt></code> class, which implements the 
+<tt>TemporalQuery</tt> interface. The <tt>queryFrom</tt> method compares the passed-in date against scheduled vacation dates and returns <tt>TRUE</tt> if it falls within those date ranges.</p>
+<p>WHATSON? 2ed51e1d-abe8-4605-b931-8b6902daf637</p>
+<pre>
+// Returns true if the passed-in date occurs during one of the
+// family vacations. Because the query compares the month and day only,
+// the check succeeds even if the Temporal types are not the same.
+public Boolean queryFrom(TemporalAccessor date) {
+    int month = date.get(ChronoField.MONTH_OF_YEAR);
+    int day   = date.get(ChronoField.DAY_OF_MONTH);
+
+    // Disneyland over Spring Break
+    if ((month == Month.APRIL.getValue()) &amp;&amp; ((day &gt;= 3) &amp;&amp; (day &lt;= 8)))
+        return Boolean.TRUE;
+
+    // Smith family reunion on Lake Saugatuck
+    if ((month == Month.AUGUST.getValue()) &amp;&amp; ((day &gt;= 8) &amp;&amp; (day &lt;= 14)))
+        return Boolean.TRUE;
+
+    return Boolean.FALSE;
+}
+</pre>
+<p>
+The second custom query is implemented in the 
+<code><tt>FamilyBirthdays</tt></code> class. This class provides an <tt>isFamilyBirthday</tt> method that compares the passed-in date against several birthdays and returns <tt>TRUE</tt> if there is a match.</p>
+<p>WHATSON? 2be62929-ffb3-4286-80e1-55937d768acf</p>
+<pre>
+// Returns true if the passed-in date is the same as one of the
+// family birthdays. Because the query compares the month and day only,
+// the check succeeds even if the Temporal types are not the same.
+public static Boolean isFamilyBirthday(TemporalAccessor date) {
+    int month = date.get(ChronoField.MONTH_OF_YEAR);
+    int day   = date.get(ChronoField.DAY_OF_MONTH);
+
+    // Angie's birthday is on April 3.
+    if ((month == Month.APRIL.getValue()) &amp;&amp; (day == 3))
+        return Boolean.TRUE;
+
+    // Sue's birthday is on June 18.
+    if ((month == Month.JUNE.getValue()) &amp;&amp; (day == 18))
+        return Boolean.TRUE;
+
+    // Joe's birthday is on May 29.
+    if ((month == Month.MAY.getValue()) &amp;&amp; (day == 29))
+        return Boolean.TRUE;
+
+    return Boolean.FALSE;
+}
+</pre>
+<p>
+The <tt>FamilyBirthday</tt> class does not implement the <tt>TemporalQuery</tt> interface and can be used as part of a
+lambda expression. The following code, from the <tt>CheckDate</tt> example, shows how to invoke both custom queries.</p>
+<p>WHATSON? 09869622-b00f-46e2-becf-ed6a25595bdc</p>
+<pre>
+// Invoking the query without using a lambda expression.
+Boolean isFamilyVacation = date.query(new FamilyVacations());
+
+// Invoking the query using a lambda expression.
+Boolean isFamilyBirthday = date.query(FamilyBirthdays::isFamilyBirthday);
+
+if (isFamilyVacation.booleanValue() || isFamilyBirthday.booleanValue())
+    System.out.printf("%s is an important date!%n", date);
+else
+    System.out.printf("%s is not an important date.%n", date);
+</pre>
+</body>
+</html>

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Function-composition-computer-science---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Function composition (computer science)</h1>
+<p>In computer science, <b>function composition</b> (not to be confused with object composition) is an act or mechanism to combine simple functions to build more complicated ones. Like the usual composition of functions in mathematics, the result of each function is passed as the argument of the next, and the result of the last one is the result of the whole.</p>
+<p>Programmers frequently apply functions to results of other functions, and almost all programming languages allow it. In some cases, the composition of functions is interesting as a function in its own right, to be used later. Such a function can always be defined but languages with first-class functions make it easier.</p>
+<p>The ability to easily compose functions encourages factoring (breaking apart) functions for maintainability and code reuse. More generally, big systems might be built by composing whole programs.</p>
+<p>Narrowly speaking, function composition applies to functions that operate on a finite amount of data, each step sequentially processing it before handing it to the next. Functions that operate on potentially infinite data (a stream or other codata), known as filters, and are instead connected in a pipeline, which is analogous to function composition and can execute concurrently.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Composing function calls</li>
+<li>2 Naming the composition of functions</li>
+<li>3 First-class composition</li>
+<li>4 Research survey</li>
+<li>5 Large-scale composition</li>
+<li>6 See also</li>
+<li>7 Notes</li>
+<li>8 References</li>
+</ul>
+<p></p>
+<h2>Composing function calls</h2>
+<p>For example, suppose we have two functions <img class="mwe-math-fallback-image-inline tex" alt="f" src="//upload.wikimedia.org/math/8/f/a/8fa14cdd754f91cc6554c9e71929cce7.png"> and <img class="mwe-math-fallback-image-inline tex" alt="g" src="//upload.wikimedia.org/math/b/2/f/b2f5ff47436671b6e533d8dc3614845d.png">, as in <img class="mwe-math-fallback-image-inline tex" alt="z=f(y)" src="//upload.wikimedia.org/math/3/e/f/3ef3cadf29d48026f675ae9b1c31cc7b.png"> and <img class="mwe-math-fallback-image-inline tex" alt="y=g(x)" src="//upload.wikimedia.org/math/d/1/3/d13f453d5a25ba83fd2f3ecc74880538.png">. Composing them means we first compute <img class="mwe-math-fallback-image-inline tex" alt="y=g(x)" src="//upload.wikimedia.org/math/d/1/3/d13f453d5a25ba83fd2f3ecc74880538.png">, and then use <img class="mwe-math-fallback-image-inline tex" alt="y" src="//upload.wikimedia.org/math/4/1/5/415290769594460e2e485922904f345d.png"> to compute <img class="mwe-math-fallback-image-inline tex" alt="z=f(y)" src="//upload.wikimedia.org/math/3/e/f/3ef3cadf29d48026f675ae9b1c31cc7b.png">. Here is the example in the C language:</p>
+<p>WHATSON? 6a493a11-6dea-4d14-a3f8-956a84fcbc27</p>
+<pre>
+float x, y, z;
+// ...
+y = g(x);
+z = f(y);
+</pre>
+<p>The steps can be combined if we don't give a name to the intermediate result:</p>
+<p>WHATSON? 58d161d2-8ea8-4558-9b12-153791ebb3bd</p>
+<pre>
+z = f(g(x));
+</pre>
+<p>Despite differences in length, these two implementations compute the same result. The second implementation requires only one line of code and is colloquially referred to as a "highly composed" form. Readability and hence maintainability is one advantage of highly composed forms, since they require fewer lines of code, minimizing a program's "surface area". DeMarco and Lister empirically verify an inverse relationship between surface area and maintainability. On the other hand, it may be possible to overuse highly composed forms. A nesting of too many functions may have the opposite effect, making the code less maintainable.</p>
+<p>In a stack-based language, functional composition is even more natural: it is performed by concatenation, and is usually the primary method of program design. The above example in Forth:</p>
+<p>WHATSON? 04c5d71f-7afd-4110-b5fc-5b8583328bdc</p>
+<pre>
+g f
+</pre>
+<p>Which will take whatever was on the stack before, apply g, then f, and leave the result on the stack. See postfix composition notation for the corresponding mathematical notation.</p>
+<h2>Naming the composition of functions</h2>
+<p>Now suppose that the combination of calling f() on the result of g() is frequently useful and we want to name foo() and use it as a function in its own right.</p>
+<p>In all languages, we can define a new function implemented by composition. Example in C:</p>
+<p>WHATSON? ef558171-cfd7-4f30-8b22-09f63992003e</p>
+<pre>
+float foo(float x) {
+    return f(g(x));
+}
+</pre>
+<p>(the long form with intermediates would work as well.) Example in Forth:</p>
+<p>WHATSON? 3bd53273-d06e-41cf-a1db-f67afd4021b6</p>
+<pre>
+   : foo g f ;
+</pre>
+<p>In languages such as C, the only way to create a new function is to define it in the program source, which means that functions can't be composed at run time.</p>
+<h2>First-class composition</h2>
+<p>In functional programming languages, function composition can be naturally expressed as a higher-order function or operator. In Haskell, the example given above becomes:</p>
+<p>WHATSON? 445bf59b-25d1-4272-8012-71c7e3bc5938</p>
+<pre>
+foo = f . g
+</pre>
+<p>using the built-in composition operator (.), which can be read as <i>f after g</i> or <i>g composed with f</i>.</p>
+<p>The composition operator itself can be defined in Haskell using a lambda expression:</p>
+<p>WHATSON? 597d845f-cba8-46d5-88bd-ca90ab3cfdb9</p>
+<pre>
+(.) :: (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+f . g = \x -&gt; f (g x)
+</pre>
+<p>The first lines describes the type of (.) - it takes a pair of functions and returns a function. Note that Haskell doesn't require specification of the exact input and output types of f and g, only the relations between them (f must accept what g returns). This makes (.) a polymorphic operator.</p>
+<p>Variants of Lisp, especially Scheme, the interchangeability of code and data together with the treatment of functions lend themselves extremely well for a recursive definition of a variadic compositional operator.</p>
+<p>WHATSON? b9bab28c-cc13-47f7-b7c8-4ddf30039ff1</p>
+<pre>
+(define (compose . fs)
+  (if (null? fs) (lambda (x) x) ; if no argument is given, evaluates to the identity function
+      (lambda (x) ((car fs) ((apply compose (cdr fs)) x)))))
+ 
+; examples
+(define (add-a-bang str)
+  (string-append str "!"))
+ 
+(define givebang
+  (compose string-&gt;symbol add-a-bang symbol-&gt;string))
+ 
+(givebang 'set) ; ===&gt; set!
+ 
+; anonymous composition
+((compose sqrt negate square) 5) ; ===&gt; 0+5i
+</pre>
+<p>In JavaScript we can define it as a function which takes two functions f and g, and produces a function:</p>
+<p>WHATSON? 7ae51f8d-74f3-4922-9152-bd2237d344b9</p>
+<pre>
+function o(f, g) {
+    return function(x) {
+        return f(g(x));
+    }
+}
+</pre>
+<p>In Python, a way to define the composition for any group of functions, is using reduce function (use functools.reduce in Python 3):</p>
+<p>WHATSON? 9c18967e-12bb-468c-9762-ece5f7a61275</p>
+<pre>
+def compose(*funcs):
+    """Compose a group of functions (f(g(h(..)))) into a single composite func"""
+    return reduce(lambda f, g: lambda *args, **kwargs: f(g(*args, **kwargs)), funcs)
+ 
+# Example
+f = lambda x: x+1
+g = lambda x: x*2
+h = lambda x: x-3
+ 
+# Call the function x=10 : ((x-3)*2)+1 = 15
+print (compose(f, g, h))(10)
+</pre>
+<h2>Research survey</h2>
+<p>Notions of composition, including the principle of compositionality and composability, are so ubiquitous that numerous strands of research have separately evolved. The following is a sampling of the kind of research in which the notion of composition is central.</p>
+<ul>
+<li>Steele (1994) directly applied function composition to the assemblage of building blocks known as 'monads' in the Haskell programming language.</li>
+<li>Meyer (1988) addressed the software reuse problem in terms of composability.</li>
+<li>Abadi &amp; Lamport (1993) formally defined a proof rule for functional composition that assures a program's safety and liveness.</li>
+<li>Kracht (2001) identified a strengthened form of compositionality by placing it into a semiotic system and applying it to the problem of structural ambiguity frequently encountered in computational linguistics.</li>
+<li>van Gelder &amp; Port (1993) examined the role of compositionality in analog aspects of natural language processing.</li>
+<li>According to a review by Gibbons (2002), formal treatment of composition underlies validation of component assembly in visual programming languages like IBM's Visual Age for the Java language.</li>
+</ul>
+<h2>Large-scale composition</h2>
+<p>Whole programs or systems can be treated as functions, which can be readily composed if their inputs and outputs are well-defined pipelines allowing easy composition of filters were so successful that it become a design pattern of operating systems.</p>
+<p>Imperative procedures with side effects violate referential transparency and therefore are not cleanly composable. However if you consider the "state of the world" before and after running the code as its input and output, you get a clean function. Composition of such functions corresponds to running the procedures one after the other. The Monads formalism uses this idea to incorporate side effects and I/O into functional languages.</p>
+<h2>See also</h2>
+<ul>
+<li>Functional decomposition</li>
+<li>Implementation inheritance</li>
+<li>Inheritance semantics</li>
+<li>Pipeline (Unix)</li>
+<li>Iteratee</li>
+<li>Principle of compositionality</li>
+<li>Virtual inheritance</li>
+</ul>
+<h2>Notes</h2>
+<ol>
+<li><b>^</b> Cox (1986), pp. 15–17</li>
+<li><b>^</b> DeMarco &amp; Lister (1995), pp. 133–135.</li>
+<li><b>^</b> Raymond (2003)</li>
+</ol>
+</body>
+</html>

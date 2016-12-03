@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Union-type---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Union type</h1>
+<p>In computer science, a <b>union</b> is a value that may have any of several representations or formats; or it is a data structure that consists of a variable that may hold such a value. Some programming languages support special data types, called <b>union types</b>, to describe such values and variables. In other words, a union type definition will specify which of a number of permitted primitive types may be stored in its instances, e.g., "float or long integer". Contrast with a record (or structure), which could be defined to contain a float <i>and</i> an integer; in a union, there is only one value at any given time.</p>
+<p>A union can be pictured as a chunk of memory that is used to store variables of different data types. Once a new value is assigned to a field, the existing data is overwritten with the new data. The memory area storing the value has no intrinsic type (other than just bytes or words of memory), but the value can be treated as one of several abstract data types, having the type of the value that was last written to the memory area.</p>
+<p>In type theory, a union has a sum type.</p>
+<p>Depending on the language and type, a union value may be used in some operations, such as assignment and comparison for equality, without knowing its specific type. Other operations may require that knowledge, either by some external information, or by the use of a tagged union.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Untagged unions</li>
+<li>2 Unions in various programming languages
+<ul>
+<li>2.1 C/C++
+<ul>
+<li>2.1.1 Anonymous union</li>
+</ul>
+</li>
+<li>2.2 COBOL</li>
+</ul>
+</li>
+<li>3 Syntax and Example</li>
+<li>4 Difference between Union and Structure</li>
+<li>5 See also</li>
+<li>6 External links</li>
+</ul>
+<ul>
+<li>2.1 C/C++
+<ul>
+<li>2.1.1 Anonymous union</li>
+</ul>
+</li>
+<li>2.2 COBOL</li>
+</ul>
+<ul>
+<li>2.1.1 Anonymous union</li>
+</ul>
+<p></p>
+<h2>Untagged unions</h2>
+<p>Because of the limitations of their use, untagged unions are generally only provided in untyped languages or in a type-unsafe way (as in C). They have the advantage over simple tagged unions of not requiring space to store a data type tag.</p>
+<p>The name "union" stems from the type's formal definition. If a type is considered as the set of all values that that type can take on, a union type is simply the mathematical union of its constituting types, since it can take on any value any of its fields can. Also, because a mathematical union discards duplicates, if more than one field of the union can take on a single common value, it is impossible to tell from the value alone which field was last written.</p>
+<p>However, one useful programming function of unions is to map smaller data elements to larger ones for easier manipulation. A data structure consisting, for example, of 4 bytes and a 32-bit integer, can form a union with an unsigned 64-bit integer, and thus be more readily accessed for purposes of comparison etc.</p>
+<h2>Unions in various programming languages</h2>
+<h3>C/C++</h3>
+<p>In C and C++, untagged unions are expressed nearly exactly like structures (structs), except that each data member begins at the same location in memory. The data members, as in structures, need not be primitive values, and in fact may be structures or even other unions. However, C++ does not allow for a data member to be any type that has a full fledged constructor/destructor and/or copy constructor, or a non-trivial copy assignment operator. For example, it is impossible to have the standard C++ string as a member of a union. (C++11 lifts some of these restrictions.)</p>
+<p>Like a structure, all of the members of a union are by default public. The keywords <code>private</code>, <code>public</code>, and <code>protected</code> may be used inside a structure or a union in exactly the same way they are used inside a class for defining private, public, and protected member access.</p>
+<p>The primary use of a union is allowing access to a common location by different data types, for example hardware input/output access, perhaps bitfield and word sharing. Unions also provide crude polymorphism. However, there is no checking of types, so it is up to the programmer to be sure that the proper fields are accessed in different contexts. The relevant field of a union variable is typically determined by the state of other variables, possibly in an enclosing struct.</p>
+<p>One common C programming idiom uses unions to perform what C++ calls a <b>reinterpret_cast</b>, by assigning to one field of a union and reading from another, as is done in code which depends on the raw representation of the values. A practical example is the method of computing square roots using the IEEE representation. This is not, however, a safe use of unions in general.</p>
+<p>Structure and union specifiers have the same form. [ . . . ] The size of a union is sufficient to contain the largest of its members. The value of at most one of the members can be stored in a union object at any time. A pointer to a union object, suitably converted, points to each of its members (or if a member is a bit-field, then to the unit in which it resides), and vice versa.</p>
+<h4>Anonymous union</h4>
+<p>Unions can also be anonymous; that is, they do not have a name. Their data members are accessed directly. In addition to this, they have certain other restrictions like:</p>
+<ul>
+<li>They must also be declared as static if declared in file scope. If declared in local scope, they must be static or automatic.</li>
+<li>They can have only public members; private and protected members in anonymous unions generate errors.</li>
+<li>They cannot have function members.</li>
+</ul>
+<p>Simply omitting the class-name portion of the syntax does not make a union an anonymous union. For a union to qualify as an anonymous union, the declaration must not declare an object. Example:</p>
+<p>WHATSON? 474b77bd-5708-4b2e-b648-578510296d30</p>
+<pre>
+// anonymous_unions.cpp
+#include &lt;iostream&gt;
+using namespace std;
+int main() {
+   union {
+      int d;
+      char f;
+   };
+ 
+   d = 4;
+   cout &lt;&lt; d &lt;&lt; endl;
+ 
+   f = 'i';
+   cout &lt;&lt; f &lt;&lt; endl;
+}
+</pre>
+<h3>COBOL</h3>
+<p>In COBOL, union data items are defined in two ways. The first uses the <tt>RENAMES</tt> (66 level) keyword, which effectively maps a second alphanumeric data item on top of the same memory location as a preceding data item. In the example code below, data item <tt>PERSON-REC</tt> is defined as a group containing another group and a numeric data item. <tt>PERSON-DATA</tt> is defined as an alphanumeric data item that renames <tt>PERSON-REC</tt>, treating the data bytes continued within it as character data.</p>
+<p>WHATSON? 0df449a5-a750-4f91-814a-22aa2e231547</p>
+<pre>
+  01  PERSON-REC.
+      05  PERSON-NAME.
+          10  PERSON-NAME-LAST    PIC X(12).
+          10  PERSON-NAME-FIRST   PIC X(16).
+          10  PERSON-NAME-MID     PIC X.
+      05  PERSON-ID               PIC 9(9) PACKED-DECIMAL.
+ 
+  01  PERSON-DATA                 RENAMES PERSON-REC.
+</pre>
+<p>The second way to define a union type is by using the <tt>REDEFINES</tt> keyword. In the example code below, data item <tt>VERS-NUM</tt> is defined as a 2-byte binary integer containing a version number. A second data item <tt>VERS-BYTES</tt> is defined as a two-character alphanumeric variable. Since the second item is <i>redefined</i> over the first item, the two items share the same address in memory, and therefore share the same underlying data bytes. The first item interprets the two data bytes as a binary value, while the second item interprets the bytes as character values.</p>
+<p>WHATSON? 69b1023a-475c-4814-a3c6-6b980977a14c</p>
+<pre>
+  01  VERS-INFO.
+      05  VERS-NUM        PIC S9(4) COMP.
+      05  VERS-BYTES      PIC X(2)
+                          REDEFINES VERS-NUM.
+</pre>
+<h2>Syntax and Example</h2>
+<p>In C and C++, the syntax is:</p>
+<p>WHATSON? f3fa24f5-a41d-4fd6-868b-eb3d391d5b44</p>
+<pre>
+union &lt;name&gt;
+{
+    &lt;datatype&gt;  &lt;1st variable name&gt;;
+    &lt;datatype&gt;  &lt;2nd variable name&gt;;
+    .
+    .
+    .
+    &lt;datatype&gt;  &lt;nth variable name&gt;;
+} &lt;union variable name&gt;;
+</pre>
+<p>A structure can also be a member of a union, as the following example shows:</p>
+<p>WHATSON? a9a810bc-ca61-4224-b022-9511ee636799</p>
+<pre>
+union name1
+{
+    struct name2
+    {  
+        int     a;
+        float   b;
+        char    c;
+    } svar;
+    int     d;
+} uvar;
+</pre>
+<p>This example defines a variable <code>uvar</code> as a union (tagged as <code>name1</code>), which contains two members, a structure (tagged as <code>name2</code>) named <code>svar</code> (which in turn contains three members), and an integer variable named <code>d</code>.</p>
+<p>Unions may occur within structures and arrays, and vice versa:</p>
+<p>WHATSON? e865b59a-369b-4401-945e-6dfcc6a7dcac</p>
+<pre>
+struct
+{  
+    int flags;
+    char *name;
+    int utype;
+    union {
+        int ival;
+        float fval;
+        char *sval;
+    } u;
+} symtab[NSYM];
+</pre>
+<p>The number ival is referred to as symtab[i].u.ival and the first character of string sval by either of *symtab[i].u.sval or symtab[i].u.sval[0].</p>
+<h2>Difference between Union and Structure</h2>
+<p>A union is a class all of whose data members are mapped to the same address within its object. The size of an object of a union is, therefore, the size of its largest data member.</p>
+<p>In a structure, all of its data members are stored in contiguous memory locations. The size of an object of a struct is, therefore, the size of the sum of all its data members.</p>
+<p>This gain in space efficiency, while valuable in certain circumstances, comes at a great cost of safety: the program logic must ensure that it only reads the field most recently written along all possible execution paths. The exception is when unions are used for type conversion: in this case, a certain field is written and the subsequently read field is deliberately different.</p>
+<p>An example illustrating this point is:</p>
+<p>WHATSON? 225cc735-9887-4608-9e15-98ed37b3dfb8</p>
+<pre>
+                                  +-----+-----+
+struct { int a; float b; }  gives |  a  |  b  |
+                                  +-----+-----+
+                                     ^     ^
+                                     |     |
+                  memory location:  150   154
+                                     |
+                                     ˇ
+                                  +-----+
+union { int a; float b; }  gives  |  a  |
+                                  |  b  |
+                                  +-----+
+</pre>
+<p>Structures are used where an "object" is composed of other objects, like a point object consisting of two integers, those being the x and y coordinates:</p>
+<p>WHATSON? f128395a-db13-40dd-9fd9-a16eb189b12b</p>
+<pre>
+typedef struct {
+    int x;           // x and y are separate
+    int y;
+} tPoint;
+</pre>
+<p>Unions are typically used in situation where an object can be one of many things but only one at a time, such as a type-less storage system:</p>
+<p>WHATSON? 0d442384-44e0-4f40-a938-b8a70dc1db65</p>
+<pre>
+typedef enum { STR, INT } tType;
+typedef struct {
+    tType typ;          // typ is separate.
+    union {
+        int ival;       // ival and sval occupy same memory.
+        char *sval;
+    };
+} tVal;
+</pre>
+<h2>See also</h2>
+<ul>
+<li>Tagged union</li>
+<li>UNION operator</li>
+</ul>
+<h2>External links</h2>
+<ul>
+<li>boost::variant, a type-safe alternative to C++ unions</li>
+<li>MSDN: Classes,Structures &amp; Unions, for examples and syntax</li>
+<li>differences, differences between union &amp; structure</li>
+<li>Difference between struct and union in C++</li>
+</ul>
+<ul>
+<li>v</li>
+<li>t</li>
+<li>e</li>
+</ul>
+<ul>
+<li>Collection</li>
+<li>Container</li>
+</ul>
+<ul>
+<li>Associative array</li>
+<li>Double-ended priority queue</li>
+<li>Double-ended queue</li>
+<li>List</li>
+<li>Map</li>
+<li>Multimap</li>
+<li>Priority queue</li>
+<li>Queue</li>
+<li>Set
+<ul>
+<li>multiset</li>
+</ul>
+</li>
+<li>Disjoint Sets</li>
+<li>Stack</li>
+</ul>
+<ul>
+<li>multiset</li>
+</ul>
+<ul>
+<li>Bit array</li>
+<li>Circular buffer</li>
+<li>Dynamic array</li>
+<li>Hash table</li>
+<li>Hashed array tree</li>
+<li>Sparse array</li>
+</ul>
+<ul>
+<li>Association list</li>
+<li>Linked list</li>
+<li>Skip list</li>
+<li>Unrolled linked list</li>
+<li>XOR linked list</li>
+</ul>
+<ul>
+<li>B-tree</li>
+<li>Binary search tree
+<ul>
+<li>AA</li>
+<li>AVL</li>
+<li>red-black</li>
+<li>self-balancing</li>
+<li>splay</li>
+</ul>
+</li>
+<li>Heap
+<ul>
+<li>binary</li>
+<li>binomial</li>
+<li>Fibonacci</li>
+</ul>
+</li>
+<li>R-tree
+<ul>
+<li>R*</li>
+<li>R+</li>
+<li>Hilbert</li>
+</ul>
+</li>
+<li>Trie
+<ul>
+<li>Hash tree</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li>AA</li>
+<li>AVL</li>
+<li>red-black</li>
+<li>self-balancing</li>
+<li>splay</li>
+</ul>
+<ul>
+<li>binary</li>
+<li>binomial</li>
+<li>Fibonacci</li>
+</ul>
+<ul>
+<li>R*</li>
+<li>R+</li>
+<li>Hilbert</li>
+</ul>
+<ul>
+<li>Hash tree</li>
+</ul>
+<ul>
+<li>Binary decision diagram</li>
+<li>Directed acyclic graph</li>
+<li>Directed acyclic word graph</li>
+</ul>
+<ul>
+<li>List of data structures</li>
+</ul>
+<ul>
+<li>v</li>
+<li>t</li>
+<li>e</li>
+</ul>
+<ul>
+<li>Bit</li>
+<li>Byte</li>
+<li>Trit</li>
+<li>Tryte</li>
+<li>Word</li>
+</ul>
+<ul>
+<li>Bignum</li>
+<li>Complex</li>
+<li>Decimal</li>
+<li>Fixed-point</li>
+<li>Floating-point</li>
+<li>Integer
+<ul>
+<li>signedness</li>
+</ul>
+</li>
+<li>Interval</li>
+<li>Rational</li>
+</ul>
+<ul>
+<li>signedness</li>
+</ul>
+<ul>
+<li>Character</li>
+<li>String
+<ul>
+<li>null-terminated</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li>null-terminated</li>
+</ul>
+<ul>
+<li>Address
+<ul>
+<li>physical</li>
+<li>virtual</li>
+</ul>
+</li>
+<li>Reference</li>
+</ul>
+<ul>
+<li>physical</li>
+<li>virtual</li>
+</ul>
+<ul>
+<li>Algebraic data type
+<ul>
+<li>generalized</li>
+</ul>
+</li>
+<li>Array</li>
+<li>Associative array</li>
+<li>Class</li>
+<li>Dependent</li>
+<li>Equality</li>
+<li>Inductive</li>
+<li>List</li>
+<li>Object
+<ul>
+<li>metaobject</li>
+</ul>
+</li>
+<li>Option type</li>
+<li>Product</li>
+<li>Record</li>
+<li>Set</li>
+<li><strong class="selflink">Union</strong>
+<ul>
+<li>tagged</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li>generalized</li>
+</ul>
+<ul>
+<li>metaobject</li>
+</ul>
+<ul>
+<li>tagged</li>
+</ul>
+<ul>
+<li>Boolean</li>
+<li>Bottom type</li>
+<li>Collection</li>
+<li>Enumerated type</li>
+<li>Exception</li>
+<li>Function type</li>
+<li>Opaque data type</li>
+<li>Recursive data type</li>
+<li>Semaphore</li>
+<li>Stream</li>
+<li>Top type</li>
+<li>Type class</li>
+<li>Unit type</li>
+<li>Void</li>
+</ul>
+<ul>
+<li>Abstract data type</li>
+<li>Data structure</li>
+<li>Generic</li>
+<li>Kind
+<ul>
+<li>metaclass</li>
+</ul>
+</li>
+<li>Parametric polymorphism</li>
+<li>Primitive data type</li>
+<li>Protocol
+<ul>
+<li>interface</li>
+</ul>
+</li>
+<li>Subtyping</li>
+<li>Type constructor</li>
+<li>Type conversion</li>
+<li>Type system</li>
+</ul>
+<ul>
+<li>metaclass</li>
+</ul>
+<ul>
+<li>interface</li>
+</ul>
+</body>
+</html>

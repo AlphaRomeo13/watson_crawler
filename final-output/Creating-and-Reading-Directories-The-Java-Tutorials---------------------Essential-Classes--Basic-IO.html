@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Creating-and-Reading-Directories-The-Java-Tutorials---------------------Essential-Classes--Basic-IO.html</title></head>
+<body>
+<h1>Creating and Reading Directories</h1>
+<p>Some of the methods previously discussed, such as <code>delete</code>, work on files, links <em>and</em> directories. But how do you list all the directories at the top of a file system? How do you list the contents of a directory or create a directory?</p>
+<p>This section covers the following functionality specific to directories:</p>
+<ul>
+<li>Listing a File System's Root Directories</li>
+<li>Creating a Directory</li>
+<li>Creating a Temporary Directory</li>
+<li>Listing a Directory's Contents</li>
+<li>Filtering a Directory Listing By Using Globbing</li>
+<li>Writing Your Own Directory Filter</li>
+</ul>
+<h2>Listing a File System's Root Directories</h2>
+<p>You can list all the root directories for a file system by using the 
+<code>FileSystem.getRootDirectories</code> method. This method returns an <code>Iterable</code>, which enables you to use the 
+enhanced for statement to iterate over all the root directories.</p>
+<p>The following code snippet prints the root directories for the default file system:</p>
+<p>WHATSON? ed303471-26e8-4c66-bc8f-bf690252d505</p>
+<pre>
+Iterable&lt;Path&gt; dirs = FileSystems.getDefault().getRootDirectories();
+for (Path name: dirs) {
+    System.err.println(name);
+}
+</pre>
+<h2>Creating a Directory</h2>
+<p>You can create a new directory by using the 
+<code>createDirectory(Path, FileAttribute&lt;?&gt;)</code> method. If you don't specify any <code>FileAttributes</code>, the new directory will have default attributes. For example:</p>
+<p>WHATSON? 154bf0c7-02c4-42fa-99af-c0b11cd6ed8a</p>
+<pre>
+Path dir = ...;
+Files.createDirectory(path);
+</pre>
+<p>The following code snippet creates a new directory on a POSIX file system that has specific permissions:</p>
+<p>WHATSON? 0b0a0b59-b829-466e-a9f1-a6c92efa80f6</p>
+<pre>
+Set&lt;PosixFilePermission&gt; perms =
+    PosixFilePermissions.fromString("rwxr-x---");
+FileAttribute&lt;Set&lt;PosixFilePermission&gt;&gt; attr =
+    PosixFilePermissions.asFileAttribute(perms);
+Files.createDirectory(file, attr);
+</pre>
+<p>To create a directory several levels deep when one or more of the parent directories might not yet exist, you can use the convenience method, 
+<code>createDirectories(Path, FileAttribute&lt;?&gt;)</code>. As with the <code>createDirectory(Path, FileAttribute&lt;?&gt;)</code> method, you can specify an optional set of initial file attributes. The following code snippet uses default attributes:</p>
+<p>WHATSON? 8db20e6f-7006-44c0-a942-da379aa5c74d</p>
+<pre>
+Files.createDirectories(Paths.get("foo/bar/test"));
+</pre>
+<p>The directories are created, as needed, from the top down. In the <code>foo/bar/test</code> example, if the <code>foo</code> directory does not exist, it is created. Next, the <code>bar</code> directory is created, if needed, and, finally, the <code>test</code> directory is created.</p>
+<p>It is possible for this method to fail after creating some, but not all, of the parent directories.</p>
+<h2>Creating a Temporary Directory</h2>
+<p>You can create a temporary directory using one of <code>createTempDirectory</code> methods:</p>
+<ul>
+<li>
+<code>createTempDirectory(Path, String, FileAttribute&lt;?&gt;...)</code></li>
+<li>
+<code>createTempDirectory(String, FileAttribute&lt;?&gt;...)</code></li>
+</ul>
+<p>The first method allows the code to specify a location for the temporary directory and the second method creates a new directory in the default temporary-fle directory.</p>
+<h2>Listing a Directory's Contents</h2>
+<p>You can list all the contents of a directory by using the 
+<code>newDirectoryStream(Path)</code> method. This method returns an object that implements the 
+<code>DirectoryStream</code> interface. The class that implements the <code>DirectoryStream</code> interface also implements <code>Iterable</code>, so you can iterate through the directory stream, reading all of the objects. This approach scales well to very large directories.</p>
+<p>The following code snippet shows how to print the contents of a directory:</p>
+<p>WHATSON? ec4bc4b5-3212-4ec5-890f-22f4eaf26429</p>
+<pre>
+Path dir = ...;
+try (DirectoryStream&lt;Path&gt; stream = Files.newDirectoryStream(dir)) {
+    for (Path file: stream) {
+        System.out.println(file.getFileName());
+    }
+} catch (IOException | DirectoryIteratorException x) {
+    // IOException can never be thrown by the iteration.
+    // In this snippet, it can only be thrown by newDirectoryStream.
+    System.err.println(x);
+}
+</pre>
+<p>The <code>Path</code> objects returned by the iterator are the names of the entries resolved against the directory. So, if you are listing the contents of the <code>/tmp</code> directory, the entries are returned with the form <code>/tmp/a</code>, <code>/tmp/b</code>, and so on.</p>
+<p>This method returns the entire contents of a directory: files, links, subdirectories, and hidden files. If you want to be more selective about the contents that are retrieved, you can use one of the other <code>newDirectoryStream</code> methods, as described later in this page.</p>
+<p>Note that if there is an exception during directory iteration then <code>DirectoryIteratorException</code> is thrown with the <code>IOException</code> as the cause. Iterator methods cannot throw exception exceptions.</p>
+<h2>Filtering a Directory Listing By Using Globbing</h2>
+<p>If you want to fetch only files and subdirectories where each name matches a particular pattern, you can do so by using the 
+<code>newDirectoryStream(Path, String)</code> method, which provides a built-in glob filter. If you are not familiar with glob syntax, see 
+What Is a Glob?</p>
+<p>For example, the following code snippet lists files relating to Java: <em>.class</em>, <em>.java</em>, and <em>.jar</em> files.:</p>
+<p>WHATSON? 820d81f2-f230-4238-89b2-9831e3086448</p>
+<pre>
+Path dir = ...;
+try (DirectoryStream&lt;Path&gt; stream =
+     Files.newDirectoryStream(dir, "*.{java,class,jar}")) {
+    for (Path entry: stream) {
+        System.out.println(entry.getFileName());
+    }
+} catch (IOException x) {
+    // IOException can never be thrown by the iteration.
+    // In this snippet, it can // only be thrown by newDirectoryStream.
+    System.err.println(x);
+}
+</pre>
+<h2>Writing Your Own Directory Filter</h2>
+<p>Perhaps you want to filter the contents of a directory based on some condition other than pattern matching. You can create your own filter by implementing the 
+<code>DirectoryStream.Filter&lt;T&gt;</code> interface. This interface consists of one method, <code>accept</code>, which determines whether a file fulfills the search requirement.</p>
+<p>For example, the following code snippet implements a filter that retrieves only directories:</p>
+<p>WHATSON? bae72a5e-9fdc-47f4-812a-af7d1e55d596</p>
+<pre>
+DirectoryStream.Filter&lt;Path&gt; filter =
+    newDirectoryStream.Filter&lt;Path&gt;() {
+    public boolean accept(Path file) throws IOException {
+        try {
+            return (Files.isDirectory(path));
+        } catch (IOException x) {
+            // Failed to determine if it's a directory.
+            System.err.println(x);
+            return false;
+        }
+    }
+};
+</pre>
+<p>Once the filter has been created, it can be invoked by using the 
+<code>newDirectoryStream(Path, DirectoryStream.Filter&lt;? super Path&gt;)</code> method. The following code snippet uses the <code>isDirectory</code> filter to print only the directory's subdirectories to standard output:</p>
+<p>WHATSON? 37dcdafe-f70c-453e-8f8e-473c49528adf</p>
+<pre>
+Path dir = ...;
+try (DirectoryStream&lt;Path&gt;
+                       stream = Files.newDirectoryStream(dir, filter)) {
+    for (Path entry: stream) {
+        System.out.println(entry.getFileName());
+    }
+} catch (IOException x) {
+    System.err.println(x);
+}
+</pre>
+<p>This method is used to filter a single directory only. However, if you want to find all the subdirectories in a file tree, you would use the mechanism for 
+Walking the File Tree.</p>
+</body>
+</html>

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Mixin---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Mixin</h1>
+<p>In object-oriented programming languages, a <b>mixin</b> is a class which contains a combination of methods from other classes. How such a combination is done depends on the language, but it is not by inheritance. If a combination contains all methods of combined classes it is equivalent to multiple inheritance.</p>
+<p>Mixins encourage code reuse and can be used to avoid inheritance ambiguity multiple inheritance can cause  (the "diamond problem"), or to work around lack of support for multiple inheritance in a language.</p>
+<p>A mixin can also be viewed as an interface with implemented methods. When a class includes a mixin, the class implements the interface and includes, rather than inherits, all the mixin's attributes (fields, properties) and methods. They become part of the class during compilation.</p>
+<p>A mixin can defer definition and binding of methods until runtime, though attributes and instantiation parameters are still defined at compile time. This differs from the most widely used approach (which originated in the programming language Simula) of defining all attributes, methods and initialization at compile time.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 History</li>
+<li>2 Definition and implementation</li>
+<li>3 Programming languages that use mixins</li>
+<li>4 Example
+<ul>
+<li>4.1 In Common Lisp</li>
+<li>4.2 In Python</li>
+<li>4.3 In other languages</li>
+</ul>
+</li>
+<li>5 Interfaces and traits</li>
+<li>6 See also</li>
+<li>7 References</li>
+<li>8 External links</li>
+</ul>
+<ul>
+<li>4.1 In Common Lisp</li>
+<li>4.2 In Python</li>
+<li>4.3 In other languages</li>
+</ul>
+<p></p>
+<h2>History</h2>
+<p>Mixins first appeared in the Symbolics' object-oriented Flavors system (developed by Howard Cannon), which was an approach to object-orientation used in Lisp Machine Lisp. The name was inspired by Steve's Ice Cream Parlor in Somerville, Massachusetts: The ice cream shop owner offered a basic flavor of ice cream (vanilla, chocolate, etc.) and blended in a combination of extra items (nuts, cookies, fudge, etc.) and called the item a "Mix-in", his own trademarked term at the time.</p>
+<h2>Definition and implementation</h2>
+<p>In Simula, classes are defined in a block in which attributes, methods and class initialization are all defined together; thus all the methods that can be invoked on a class are defined together, and the definition of the class is complete.</p>
+<p>In Flavors a Mixin is a class from which another class can inherit slot definitions and methods. The Mixin usually does have direct instances. Since a Flavor can inherit from more than one other Flavor, it can inherit from one or more Mixins. Note that the original Flavors did not use generic functions.</p>
+<p>In New Flavors (a successor of Flavors) and CLOS, methods are organized in "generic functions". These generic functions are functions that are defined in multiple cases (methods) by class dispatch and method combinations.</p>
+<p>CLOS and Flavors allow mixin methods to add behavior to existing methods: <code>:before</code> and <code>:after</code> daemons, whoppers and wrappers in Flavors. CLOS added <code>:around</code> methods and the ability to call shadowed methods via <code>CALL-NEXT-METHOD</code>. So, for example, a stream-lock-mixin can add locking around existing methods of a stream class. In Flavors one would write a wrapper or a whopper and in CLOS one would use an <code>:around</code> method. Both CLOS and Flavors allow the computed reuse via method combinations. <code>:before</code>, <code>:after</code> and <code>:around</code> methods are a feature of the standard method combination. Other method combinations are provided.</p>
+<p>An example is the <code>+</code> method combination, where the results of all applicable methods of a generic function are added to compute the return value. This is used, for example, with the border-mixin for graphical objects. A graphical object may have a generic width function. The border-mixin would add a border around an object and has a method computing its width. A new class <code>bordered-button</code> (that is both a graphical object and uses the <code>border</code> mixin) would compute its width by calling all applicable width methods—via the <code>+</code> method combination. All return values are added and create the combined width of the object.</p>
+<p>In an OOPSLA 90 paper, Gilad Bracha and William Cook reinterpret different inheritance mechanisms found in Smalltalk, Beta and CLOS as special forms of a mixin inheritance.</p>
+<h2>Programming languages that use mixins</h2>
+<p>Other than Flavors and CLOS (a part of Common Lisp), some languages that use mixins are:</p>
+<ul>
+<li>Ada (by extending an existing tagged record with arbitrary operations in a generic)</li>
+<li>ColdFusion (Class based using includes and Object based by assigning methods from one object to another at runtime)</li>
+<li>Curl (with Curl RTE)</li>
+<li>D (called "template mixins"; D also includes a "mixin" statement which compiles strings as code.)</li>
+<li>Factor</li>
+<li>Groovy</li>
+<li>JavaScript Delegation - Functions as Roles (Traits and Mixins)</li>
+<li>Perl</li>
+<li>PHP's "traits"</li>
+<li>Python</li>
+<li>Racket (mixins documentation)</li>
+<li>Ruby</li>
+<li>Scala</li>
+<li>XOTcl/TclOO (object systems for Tcl)</li>
+</ul>
+<p>Some languages do not support mixins on the language level, but can easily mimic them by copying methods from one object to another at runtime, thereby "borrowing" the mixin's methods. Note that this is also possible with statically typed languages, but it requires constructing a new object with the extended set of methods.</p>
+<p>Other languages which do not support mixins can support them in a round-about way via other language constructs. C# and Visual Basic .NET support the addition of extension methods on interfaces, meaning any class implementing an interface with extension methods defined will have the extension methods available as pseudo-members.</p>
+<h2>Example</h2>
+<h3>In Common Lisp</h3>
+<p>Common Lisp provides mixins in CLOS (Common Lisp Object System) similar to Flavors.</p>
+<p><code>object-width</code> is a generic function with one argument and is using the <code>+</code> method combination. The <code>+</code> method combination determines that all applicable methods for a generic function will be called and the results will be added.</p>
+<p>WHATSON? 4ab1fd48-d624-484f-8dba-9d4796521d94</p>
+<pre>
+(defgeneric object-width (object)
+  (:method-combination +))
+</pre>
+<p><code>button</code> is a class with one slot for the button text.</p>
+<p>WHATSON? d9930214-3b46-4b9f-9e02-d9145719ef83</p>
+<pre>
+(defclass button ()
+  ((text :initform "click me")))
+</pre>
+<p>There is a method for objects of class button that computes the width based on the length of the button text. <code>+</code> is the method qualifier for the method combination of the same name.</p>
+<p>WHATSON? 652e79cf-e3ee-4363-b9cd-f39a29f901dd</p>
+<pre>
+(defmethod object-width + ((object button))
+   (* 10 (length (slot-value object 'text))))
+</pre>
+<p>A <code>border-mixin</code> class. The naming is just a convention. No superclasses. No slots.</p>
+<p>WHATSON? 0ebe466c-1514-4abc-a11d-2e4ce7644c52</p>
+<pre>
+(defclass border-mixin () ())
+</pre>
+<p>There is a method computing the width of the border. Here it is just 4.</p>
+<p>WHATSON? 47809e23-31e0-420e-9289-9acdf3348a80</p>
+<pre>
+(defmethod object-width + ((object border-mixin))
+  4)
+</pre>
+<p><code>bordered-button</code> is a class inheriting from both <code>border-mixin</code> and <code>button</code>.</p>
+<p>WHATSON? 557b0636-b6fa-4b05-be1d-0b2a4eaad706</p>
+<pre>
+(defclass bordered-button (border-mixin button) ())
+</pre>
+<p>We can now compute the width of a button. Calling <code>object-width</code> computes 80. The result is the result of the single applicable method: the method <code>object-width</code> for the class <code>button</code>.</p>
+<p>WHATSON? 52d78c1b-89f5-4df9-9bbb-14561aca0866</p>
+<pre>
+? (object-width (make-instance 'button))
+80
+</pre>
+<p>We can also compute the width of a <code>bordered-button</code>. Calling <code>object-width</code> computes 84. The result is the sum of the results of the two applicable methods: the method <code>object-width</code> for the class <code>button</code> and the method <code>object-width</code> for the class <code>border-mixin</code>.</p>
+<p>WHATSON? ae1c4b78-ed45-4f14-b949-8d3bdd8625ef</p>
+<pre>
+? (object-width (make-instance 'bordered-button))
+84
+</pre>
+<h3>In Python</h3>
+<p>In Python, the <code>SocketServer</code> module has both a <code>UDPServer</code> class and a <code>TCPServer</code> class. They act as servers for UDP and TCP socket servers, respectively. Additionally, there are two mixin classes: <code>ForkingMixIn</code> and <code>ThreadingMixIn</code>. Normally, all new connections are handled within the same process. By extending <code>TCPServer</code> with the <code>ThreadingMixIn</code> as follows:</p>
+<p>WHATSON? da0d44b3-15b5-4fa3-bddf-e317931937dd</p>
+<pre>
+class ThreadingTCPServer(ThreadingMixIn, TCPServer):
+  pass
+</pre>
+<p>the <code>ThreadingMixIn</code> class adds functionality to the TCP server such that each new connection creates a new thread. Alternatively, using the <code>ForkingMixIn</code> would cause the process to be forked for each new connection. Clearly, the functionality to create a new thread or fork a process is not terribly useful as a stand-alone class.</p>
+<p>In this usage example, the mixins provide alternative underlying functionality without affecting the functionality as a socket server.</p>
+<h3>In other languages</h3>
+<p>In the Curl web-content language, multiple inheritance is used as classes with no instances may implement methods. Common mixins include all skinnable <code>ControlUI</code>s inheriting from <code>SkinnableControlUI</code>, user interface delegate objects that require dropdown menus inheriting from StandardBaseDropdownUI and such explicitly named mixin classes as <code>FontGraphicMixin</code>, <code>FontVisualMixin</code> and <code>NumericAxisMixin-of</code> class. Version 7.0 added library access so that mixins do not need to be in the same package or be public abstract. Curl constructors are factories that facilitates using multiple-inheritance without explicit declaration of either interfaces or mixins.</p>
+<h2>Interfaces and traits</h2>
+<p>Some of the functionality of mixins is provided by interfaces in popular languages like Java and C#. However, an interface only specifies what the class must support and cannot provide an implementation. Another class, providing an implementation and dependent with the interface, is needed for refactoring common behavior into a single place.</p>
+<p>Interfaces combined with aspect-oriented programming can produce full fledged mixins in languages that support such features, such as C# or Java. Additionally, through the use of the marker interface pattern, generic programming, and extension methods, C# 3.0 has the ability to mimic mixins.</p>
+<p>ECMAScript (commonly referred to as JavaScript) does not need to mimic object composition by stepwise copying fields from one object to another. It natively supports Trait and Mixin based object composition via function objects that implement additional behavior and then are delegated via <code>call</code> or <code>apply</code> to objects that are in need of such new functionality.</p>
+<h2>See also</h2>
+<ul>
+<li>Abstract type</li>
+<li>Policy-based design</li>
+<li>Trait, a similar structure that doesn't require linear composition</li>
+</ul>
+</body>
+</html>

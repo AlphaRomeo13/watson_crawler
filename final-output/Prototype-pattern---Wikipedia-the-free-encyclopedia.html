@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Prototype-pattern---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Prototype pattern</h1>
+<p>The <b>prototype pattern</b> is a creational design pattern in software development. It is used when the type of objects to create is determined by a prototypical instance, which is cloned to produce new objects. This pattern is used to:</p>
+<ul>
+<li>avoid subclasses of an object creator in the client application, like the abstract factory pattern does.</li>
+<li>avoid the inherent cost of creating a new object in the standard way (e.g., using the 'new' keyword) when it is prohibitively expensive for a given application.</li>
+</ul>
+<p>To implement the pattern, declare an abstract base class that specifies a pure virtual <i>clone()</i> method. Any class that needs a "polymorphic constructor" capability derives itself from the abstract base class, and implements the <i>clone()</i> operation.</p>
+<p>The client, instead of writing code that invokes the "new" operator on a hard-coded class name, calls the <i>clone()</i> method on the prototype, calls a factory method with a parameter designating the particular concrete derived class desired, or invokes the <i>clone()</i> method through some mechanism provided by another design pattern.</p>
+<p>The mitotic division of a cell — resulting in two identical cells — is an example of a prototype that plays an active role in copying itself and thus, demonstrates the Prototype pattern. When a cell splits, two cells of identical genotype result. In other words, the cell clones itself.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Structure</li>
+<li>2 Rules of thumb</li>
+<li>3 Pseudocode</li>
+<li>4 C# Example</li>
+<li>5 Java Example</li>
+<li>6 References</li>
+<li>7 Sources</li>
+<li>8 See also</li>
+</ul>
+<p></p>
+<h2>Structure</h2>
+<h2>Rules of thumb</h2>
+<p>Sometimes creational patterns overlap — there are cases when either Prototype or Abstract Factory would be appropriate. At other times they complement each other: Abstract Factory might store a set of Prototypes from which to clone and return product objects (GoF, p126). Abstract Factory, Builder, and Prototype can use Singleton in their implementations. (GoF, p81, 134). Abstract Factory classes are often implemented with Factory Methods (creation through inheritance), but they can be implemented using Prototype (creation through delegation). (GoF, p95)</p>
+<p>Often, designs start out using Factory Method (less complicated, more customizable, subclasses proliferate) and evolve toward Abstract Factory, Prototype, or Builder (more flexible, more complex) as the designer discovers where more flexibility is needed. (GoF, p136)</p>
+<p>Prototype doesn't require subclassing, but it does require an "initialize" operation. Factory Method requires subclassing, but doesn't require initialization. (GoF, p116)</p>
+<p>Designs that make heavy use of the Composite and Decorator patterns often can benefit from Prototype as well. (GoF, p126)</p>
+<p>The rule of thumb could be that you would need to clone() an <i>Object</i> when you want to create another Object <i>at runtime</i> that is a <i>true copy</i> of the Object you are cloning. <i>True copy</i> means all the attributes of the newly created Object should be the same as the Object you are cloning. If you could have <i>instantiated</i> the class by using <i>new</i> instead, you would get an Object with all attributes as their initial values. For example, if you are designing a system for performing bank account transactions, then you would want to make a copy of the Object that holds your account information, perform transactions on it, and then replace the original Object with the modified one. In such cases, you would want to use clone() instead of new.</p>
+<h2>Pseudocode</h2>
+<p>Let's write an occurrence browser class for a text. This class lists the occurrences of a word in a text. Such an object is expensive to create as the locations of the occurrences need an expensive process to find. So, to duplicate such an object, we use the prototype pattern:</p>
+<p>WHATSON? 470d46c5-c60b-44e1-971b-4c11f8a58338</p>
+<pre>
+<b>class</b> WordOccurrences <b>is</b>
+  <b>field</b> occurrences <b>is</b>
+    The list of the index of each occurrence of the word in the text.
+
+  <b>constructor</b> WordOccurrences(text, word) <b>is</b>
+      <b>input:</b> the <i>text</i> in which the occurrences have to be found
+      <b>input:</b> the <i>word</i> that should appear in the text
+    Empty the <i>occurrences</i> list
+    <b>for each</b> textIndex <b>in</b> text
+      isMatching := true
+      <b>for each</b> wordIndex <b>in</b> word
+        <b>if</b> the current word character does not match the current text character <b>then</b>
+          isMatching := false
+      <b>if</b> isMatching is true <b>then</b>
+        Add the current textIndex into the <i>occurrences</i> list
+
+  <b>method</b> getOneOccurrenceIndex(n) <b>is</b>
+      <b>input:</b> a number to point on the <i>n</i>th occurrence.
+      <b>output:</b> the index of the <i>n</i>th occurrence.
+    Return the <i>n</i>th item of the <i>occurrences</i> field if any.
+
+  <b>method</b> clone() <b>is</b>
+      <b>output:</b> a WordOccurrences object containing the same data.
+    Call clone() on the super class.
+    On the returned object, set the <i>occurrences</i> field with the value of the local <i>occurrences</i> field.
+    Return the cloned object.
+
+text := "The prototype pattern is a creational design pattern in software development first described in design patterns, the book."
+word := "pattern"d
+searchEngine := new WordOccurrences(text, word)
+anotherSearchEngine := searchEngine.clone()
+</pre>
+<p><i>(the search algorithm is not optimized; it is a basic algorithm to illustrate the pattern implementation)</i></p>
+<h2>C# Example</h2>
+<p>This pattern creates the kind of object using its prototype. In other words, while creating the object of Prototype object, the class actually creates a clone of it and returns it as prototype.You can see here, we have used MemberwiseClone method to clone the prototype when required.</p>
+<p>WHATSON? 954fb1a8-bc74-49d7-8d0b-458ff8af55e6</p>
+<pre>
+//IVSR: Prototype pattern
+ 
+    public abstract class Prototype
+    {
+        // normal implementation
+        public abstract Prototype Clone();
+    }
+ 
+    public class ConcretePrototype1 : Prototype
+    {
+        public override Prototype Clone()
+        {
+            return (Prototype)this.MemberwiseClone(); // Clones the concrete class.
+        }
+    }
+ 
+    public class ConcretePrototype2 : Prototype
+    {
+        public override Prototype Clone()
+        {
+            return (Prototype)this.MemberwiseClone(); // Clones the concrete class.
+        }
+    }
+</pre>
+<h2>Java Example</h2>
+<p>This pattern creates the kind of object using its prototype. In other words, while creating the object of Prototype object, the class actually creates a clone of it and returns it as prototype.You can see here, we have used Clone method to clone the prototype when required.</p>
+<p>WHATSON? f065066c-4d34-4940-8a39-7356227feeb5</p>
+<pre>
+// Prototype pattern
+ 
+    public abstract class Prototype {
+		public abstract Prototype clone();
+	}
+ 
+	public class ConcretePrototype1 extends Prototype {
+		@Override
+		public Prototype clone() {
+			return this.clone();
+		}
+	}
+ 
+	public class ConcretePrototype2 extends Prototype {
+		@Override
+		public Prototype clone() {
+			return this.clone();
+		}
+	}
+</pre>
+</body>
+</html>

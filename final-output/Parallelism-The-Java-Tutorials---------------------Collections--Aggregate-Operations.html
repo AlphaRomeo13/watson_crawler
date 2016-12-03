@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Parallelism-The-Java-Tutorials---------------------Collections--Aggregate-Operations.html</title></head>
+<body>
+<h1>Parallelism</h1>
+<p>Parallel computing involves dividing a problem into subproblems, solving those problems simultaneously (in parallel, with each subproblem running in a separate thread), and then combining the results of the solutions to the subproblems. Java SE provides the
+fork/join framework, which enables you to more easily implement parallel computing in your applications. However, with this framework, you must specify how the problems are subdivided (partitioned). With aggregate operations, the Java runtime performs this partitioning and combining of solutions for you.</p>
+<p>One difficulty in implementing parallelism in applications that use collections is that collections are not thread-safe, which means that multiple threads cannot manipulate a collection without introducing
+thread interference or
+memory consistency errors. The Collections Framework provides 
+synchronization wrappers, which add automatic synchronization to an arbitrary collection, making it thread-safe. However, synchronization introduces
+thread contention. You want to avoid thread contention because it prevents threads from running in parallel. Aggregate operations and parallel streams enable you to implement parallelism with non-thread-safe collections provided that you do not modify the collection while you are operating on it.</p>
+<p>Note that parallelism is not automatically faster than performing operations serially, although it can be if you have enough data and processor cores. While aggregate operations enable you to more easily implement parallelism, it is still your responsibility to determine if your application is suitable for parallelism.</p>
+<p>This section covers the following topics:</p>
+<ul>
+  <li>Executing Streams in Parallel</li>
+  <li>Concurrent Reduction</li>  
+  <li>Ordering</li>
+  <li>Side Effects
+    <ul>
+      <li>Laziness</li>
+      <li>Interference</li>
+      <li>Stateful Lambda Expressions</li>
+    </ul>
+  </li>
+</ul>
+<ul>
+      <li>Laziness</li>
+      <li>Interference</li>
+      <li>Stateful Lambda Expressions</li>
+    </ul>
+<p>You can find the code excerpts described in this section in the example
+<code>ParallelismExamples</code>.</p>
+<h2>Executing Streams in Parallel</h2>
+<p>You can execute streams in serial or in parallel. When a stream executes in parallel, the Java runtime partitions the stream into multiple substreams. Aggregate operations iterate over and process these substreams in parallel and then combine the results.</p>
+<p>When you create a stream, it is always a serial stream unless otherwise specified. To create a parallel stream, invoke the operation
+<code>Collection.parallelStream</code>. Alternatively, invoke the operation
+<code>BaseStream.parallel</code>. For example, the following statement calculates the average age of all male members in parallel:</p>
+<p>WHATSON? 7de1b186-eca6-4219-aa69-ac38f6e7bd26</p>
+<pre>double average = roster
+    .parallelStream()
+    .filter(p -&gt; p.getGender() == Person.Sex.MALE)
+    .mapToInt(Person::getAge)
+    .average()
+    .getAsDouble();</pre>
+<h2>Concurrent Reduction</h2>
+<p>Consider again the following example (which is described in the section
+Reduction) that groups members by gender. This example invokes the <code>collect</code> operation, which reduces the collection <code>roster</code> into a <code>Map</code>:</p>
+<p>WHATSON? 7ee621a4-cf63-4d83-9857-4e41539c4393</p>
+<pre>Map&lt;Person.Sex, List&lt;Person&gt;&gt; byGender =
+    roster
+        .stream()
+        .collect(
+            Collectors.groupingBy(Person::getGender));</pre>
+<p>The following is the parallel equivalent:</p>
+<p>WHATSON? bf2aaea4-7288-46ae-9907-f846255d0bc5</p>
+<pre>ConcurrentMap&lt;Person.Sex, List&lt;Person&gt;&gt; byGender =
+    roster
+        .parallelStream()
+        .collect(
+            Collectors.groupingByConcurrent(Person::getGender));</pre>
+<p>This is called a <em>concurrent reduction</em>. The Java runtime performs a concurrent reduction if all of the the following are true for a particular pipeline that contains the <code>collect</code> operation:</p>
+<ul>
+
+  <li>The stream is parallel.</li>
+  
+  <li>The parameter of the <code>collect</code> operation, the collector, has the characteristic
+<code>Collector.Characteristics.CONCURRENT</code>. To determine the characteristics of a collector, invoke the
+<code>Collector.characteristics</code> method.</li>
+  
+  <li>Either the stream is unordered, or the collector has the characteristic
+<code>Collector.Characteristics.UNORDERED</code>. To ensure that the stream is unordered, invoke the
+<code>BaseStream.unordered</code> operation.</li>
+  
+</ul>
+<p><strong>Note</strong>: This example returns an instance of
+<code>ConcurrentMap</code> instead of <code>Map</code> and invokes the
+<code>groupingByConcurrent</code>  operation instead of <code>groupingBy</code>. (See the section
+Concurrent Collections for more information about <code>ConcurrentMap</code>.) Unlike the operation <code>groupingByConcurrent</code>, the operation <code>groupingBy</code> performs poorly with parallel streams. (This is because it operates by merging two maps by key, which is computationally expensive.) Similarly, the operation
+<code>Collectors.toConcurrentMap</code> performs better with parallel streams than the operation
+<code>Collectors.toMap</code>.</p>
+<h2>Ordering</h2>
+<p>The order in which a pipeline processes the elements of a stream depends on whether the stream is executed in serial or in parallel, the source of the stream, and intermediate operations. For example, consider the following example that prints the elements of an instance of <code>ArrayList</code> with the <code>forEach</code> operation several times:</p>
+<p>WHATSON? b7942a28-cebf-48e8-b569-56079fc97c4d</p>
+<pre>Integer[] intArray = {1, 2, 3, 4, 5, 6, 7, 8 };
+List&lt;Integer&gt; listOfIntegers =
+    new ArrayList&lt;&gt;(Arrays.asList(intArray));
+
+System.out.println("listOfIntegers:");
+listOfIntegers
+    .stream()
+    .forEach(e -&gt; System.out.print(e + " "));
+System.out.println("");
+
+System.out.println("listOfIntegers sorted in reverse order:");
+Comparator&lt;Integer&gt; normal = Integer::compare;
+Comparator&lt;Integer&gt; reversed = normal.reversed(); 
+Collections.sort(listOfIntegers, reversed);  
+listOfIntegers
+    .stream()
+    .forEach(e -&gt; System.out.print(e + " "));
+System.out.println("");
+     
+System.out.println("Parallel stream");
+listOfIntegers
+    .parallelStream()
+    .forEach(e -&gt; System.out.print(e + " "));
+System.out.println("");
+    
+System.out.println("Another parallel stream:");
+listOfIntegers
+    .parallelStream()
+    .forEach(e -&gt; System.out.print(e + " "));
+System.out.println("");
+     
+System.out.println("With forEachOrdered:");
+listOfIntegers
+    .parallelStream()
+    .forEachOrdered(e -&gt; System.out.print(e + " "));
+System.out.println("");</pre>
+<p>This example consists of five pipelines. It prints output similar to the following:</p>
+<p>WHATSON? 2d7545ad-2ba8-48d5-a283-449f1092689c</p>
+<pre>listOfIntegers:
+1 2 3 4 5 6 7 8
+listOfIntegers sorted in reverse order:
+8 7 6 5 4 3 2 1
+Parallel stream:
+3 4 1 6 2 5 7 8
+Another parallel stream:
+6 3 1 5 7 8 4 2
+With forEachOrdered:
+8 7 6 5 4 3 2 1</pre>
+<p>This example does the following:</p>
+<ul>
+
+  <li>The first pipeline prints the elements of the list <code>listOfIntegers</code> in the order that they were added to the list.</li>
+  
+  <li>The second pipeline prints the elements of <code>listOfIntegers</code> after it was sorted by the method
+<code>Collections.sort</code>.</li>
+  
+  <li>The third and fourth pipelines print the elements of the list in an apparently random order. Remember that stream operations use internal iteration when processing elements of a stream. Consequently, when you execute a stream in parallel, the Java compiler and runtime determine the order in which to process the stream's elements to maximize the benefits of parallel computing unless otherwise specified by the stream operation.</li>
+  
+  <li>The fifth pipeline uses the method
+<code>forEachOrdered</code>, which processes the elements of the stream in the order specified by its source, regardless of whether you executed the stream in serial or parallel. Note that you may lose the benefits of parallelism if you use operations like <code>forEachOrdered</code> with parallel streams.</li>
+</ul>
+<h2>Side Effects</h2>
+<p>A method or an expression has a side effect if, in addition to returning or producing a value, it also modifies the state of the computer. Examples include  mutable reductions (operations that use the <code>collect</code> operation; see the section
+Reduction for more information) as well as invoking the <code>System.out.println</code> method for debugging. The JDK handles certain side effects in pipelines well. In particular, the <code>collect</code> method is designed to perform the most common stream operations that have side effects in a parallel-safe manner. Operations like <code>forEach</code> and <code>peek</code> are designed for side effects; a lambda expression that returns void, such as one that invokes <code>System.out.println</code>, can do nothing but have side effects. Even so, you should use the <code>forEach</code> and <code>peek</code> operations with care; if you use one of these operations with a parallel stream, then the Java runtime may invoke the lambda expression that you specified as its parameter concurrently from multiple threads. In addition, never pass as parameters lambda expressions that have side effects in operations such as <code>filter</code> and <code>map</code>. The following sections discuss interference and stateful lambda expressions, both of which can be sources of side effects and can return inconsistent or unpredictable results, especially in parallel streams. However, the concept of laziness is discussed first, because it has a direct effect on interference.</p>
+<h3>Laziness</h3>
+<p>All intermediate operations are <em>lazy</em>. An expression, method, or algorithm is lazy if its value is evaluated only when it is required. (An algorithm is <em>eager</em> if it is evaluated or processed immediately.) Intermediate operations are lazy because they do not start processing the contents of the stream until the terminal operation commences. Processing streams lazily enables the Java compiler and runtime to optimize how they process streams. For example, in a pipeline such as the <code>filter</code>-<code>mapToInt</code>-<code>average</code> example described in the section
+Aggregate Operations, the <code>average</code> operation could obtain the first several integers from the stream created by the <code>mapToInt</code> operation, which obtains elements from the <code>filter</code> operation. The <code>average</code> operation would repeat this process until it had obtained all required elements from the stream, and then it would calculate the average.</p>
+<h3>Interference</h3>
+<p>Lambda expressions in stream operations should not <em>interfere</em>. Interference occurs when the source of a stream is modified while a pipeline processes the stream.  For example, the following code attempts to concatenate the strings contained in the <code>List</code> <code>listOfStrings</code>. However, it throws a <code>ConcurrentModifiedException</code>:</p>
+<p>WHATSON? c6b88caa-b1b0-4c10-8845-c0756e578145</p>
+<pre>try {
+    List&lt;String&gt; listOfStrings =
+        new ArrayList&lt;&gt;(Arrays.asList("one", "two"));
+         
+    // This will fail as the peek operation will attempt to add the
+    // string "three" to the source after the terminal operation has
+    // commenced. 
+             
+    String concatenatedString = listOfStrings
+        .stream()
+        
+        // Don't do this! Interference occurs here.
+        .peek(s -&gt; listOfStrings.add("three"))
+        
+        .reduce((a, b) -&gt; a + " " + b)
+        .get();
+                 
+    System.out.println("Concatenated string: " + concatenatedString);
+         
+} catch (Exception e) {
+    System.out.println("Exception caught: " + e.toString());
+}</pre>
+<p>This example concatenates the strings contained in <code>listOfStrings</code> into an <code>Optional&lt;String&gt;</code> value with the <code>reduce</code> operation, which is a terminal operation. However, the pipeline here invokes the intermediate operation <code>peek</code>, which attempts to add a new element to <code>listOfStrings</code>. Remember, all intermediate operations are lazy. This means that the pipeline in this example begins execution when the operation <code>get</code> is invoked, and ends execution when the <code>get</code> operation completes. The argument of the <code>peek</code> operation attempts to modify the stream source during the execution of the pipeline, which causes the Java runtime to throw a <code>ConcurrentModifiedException</code>.</p>
+<h3>Stateful Lambda Expressions</h3>
+<p>Avoid using <em>stateful lambda expressions</em> as parameters in stream operations. A stateful lambda expression is one whose result depends on any state that might change during the execution of a pipeline. The following example adds elements from the <code>List</code> <code>listOfIntegers</code> to a new <code>List</code> instance with the <code>map</code> intermediate operation. It does this twice, first with a serial stream and then with a parallel stream:</p>
+<p>WHATSON? 4ba96e77-61ed-4bb0-992b-64729cad528c</p>
+<pre>List&lt;Integer&gt; serialStorage = new ArrayList&lt;&gt;();
+     
+System.out.println("Serial stream:");
+listOfIntegers
+    .stream()
+    
+    // Don't do this! It uses a stateful lambda expression.
+    .map(e -&gt; { serialStorage.add(e); return e; })
+    
+    .forEachOrdered(e -&gt; System.out.print(e + " "));
+System.out.println("");
+     
+serialStorage
+    .stream()
+    .forEachOrdered(e -&gt; System.out.print(e + " "));
+System.out.println("");
+
+System.out.println("Parallel stream:");
+List&lt;Integer&gt; parallelStorage = Collections.synchronizedList(
+    new ArrayList&lt;&gt;());
+listOfIntegers
+    .parallelStream()
+    
+    // Don't do this! It uses a stateful lambda expression.
+    .map(e -&gt; { parallelStorage.add(e); return e; })
+    
+    .forEachOrdered(e -&gt; System.out.print(e + " "));
+System.out.println("");
+     
+parallelStorage
+    .stream()
+    .forEachOrdered(e -&gt; System.out.print(e + " "));
+System.out.println("");</pre>
+<p>The lambda expression <code>e -&gt; { parallelStorage.add(e); return e; }</code> is a stateful lambda expression. Its result can vary every time the code is run. This example prints the following:</p>
+<p>WHATSON? 3bfda7a3-fe06-40a9-89df-b313ce3b27f2</p>
+<pre>Serial stream:
+8 7 6 5 4 3 2 1
+8 7 6 5 4 3 2 1
+Parallel stream:
+8 7 6 5 4 3 2 1
+1 3 6 2 4 5 8 7</pre>
+<p>The operation <code>forEachOrdered</code> processes elements in the order specified by the stream, regardless of whether the stream is executed in serial or parallel. However, when a stream is executed in parallel, the <code>map</code> operation processes elements of the stream specified by the Java runtime and compiler. Consequently, the order in which the lambda expression <code>e -&gt; { parallelStorage.add(e); return e; }</code> adds elements to the <code>List</code> <code>parallelStorage</code> can vary every time the code is run. For deterministic and predictable results, ensure that lambda expression parameters in stream operations are not stateful.</p>
+<p><strong>Note</strong>: This example invokes the method
+<code>synchronizedList</code> so that the <code>List</code> <code>parallelStorage</code> is thread-safe. Remember that collections are not thread-safe. This means that multiple threads should not access a particular collection at the same time. Suppose that you do not invoke the method <code>synchronizedList</code> when creating <code>parallelStorage</code>:</p>
+<p>WHATSON? 98b0b859-84bb-4cdd-a0ff-2d0d325fc8d1</p>
+<pre>List&lt;Integer&gt; parallelStorage = new ArrayList&lt;&gt;();</pre>
+<p>The example behaves erratically because multiple threads access and modify <code>parallelStorage</code> without a mechanism like synchronization to schedule when a particular thread may access the <code>List</code> instance. Consequently, the example could print output similar to the following:</p>
+<p>WHATSON? 2436d41d-8081-484b-8605-acf4b20e00f8</p>
+<pre>Parallel stream:
+8 7 6 5 4 3 2 1
+null 3 5 4 7 8 1 2</pre>
+</body>
+</html>

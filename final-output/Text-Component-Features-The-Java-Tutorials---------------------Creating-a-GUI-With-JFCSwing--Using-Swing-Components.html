@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Text-Component-Features-The-Java-Tutorials---------------------Creating-a-GUI-With-JFCSwing--Using-Swing-Components.html</title></head>
+<body>
+<h1>Text Component Features</h1>
+<p>The 
+<code>JTextComponent</code> class is the foundation for Swing text components. This class provides the following customizable features for all of its descendants:</p>
+<ul>
+<li>A model, known as a <em>document</em>, that manages the component's content.</li>
+<li>A view, which displays the component on screen.</li>
+<li>A controller, known as an <em>editor kit</em>, that reads and writes text and implements editing capabilities with 
+actions.</li>
+<li>Support for infinite undo and redo.</li>
+<li>A pluggable caret and support for caret change listeners and navigation filters.</li>
+</ul>
+<p>See the example called <code>TextComponentDemo</code> to explore these capabilities. Although the <code>TextComponentDemo</code> example contains a customized instance of <code>JTextPane</code>, the capabilities discussed in this section are inherited by all <code>JTextComponent</code> subclasses.</p>
+<p>The upper text component is the customized text pane. The lower text component is an instance of <code>JTextArea</code>, which serves as a log that reports all changes made to the contents of the text pane. The status line at the bottom of the window reports either the location of the selection or the position of the caret, depending on whether text is selected.</p>
+<ol>
+<li>Click the Launch button to run TextComponentDemo using 
+Java™ Web Start (download JDK 7 or later). Alternatively, to compile and run the example yourself, consult the example index.<img src="../../images/jws-launch-button.png" width="88" height="23" align="bottom" alt="Launches the TextComponentDemo Application"><br></li>
+<li>Use the mouse to select text and place the cursor in the text pane. Information about the selection and cursor is displayed at the bottom of the window.</li>
+<li>Enter text by typing on the keyboard. You can move the caret around using the arrow keys on the keyboard or the four emacs key bindings: Ctrl-B (backward one character), Ctrl-F (forward one character), Ctrl-N (down one line), and Ctrl-P (up one line).</li>
+<li>Open the Edit menu, and use its menu items to edit text in the text pane. Make a selection in the text area at the bottom of the window. Because the text area is not editable, only some of the Edit menu's commands, like copy-to-clipboard, work. It is important to note though, that the menu operates on both text components.</li>
+<li>Use the items in the Style menu to apply different styles to the text in the text pane.</li>
+</ol>
+<p>Using the <code>TextComponentDemo</code> example as a reference point, this section covers the following topics:</p>
+<ul>
+<li>Associating Text Actions With Menus and Buttons</li>
+<li>Associating Text Actions With Key Strokes</li>
+<li>Implementing Undo and Redo</li>
+<li>Concepts: About Documents</li>
+<li>Implementing a Document Filter</li>
+<li>Listening for Changes on a Document</li>
+<li>Listening for Caret and Selection Changes</li>
+<li>Concepts: About Editor Kits</li>
+</ul>
+<h2>Associating Text Actions With Menus and Buttons</h2>
+<p>All Swing text components support standard editing commands such as cut, copy, paste, and insert characters. Each editing command is represented and implemented by an <code>Action</code> object. (To learn more about actions see 
+How to Use Actions.) Actions allow you to associate a command with a GUI component, such as a menu item or button, and therefore build a GUI around a text component.</p>
+<p>You can invoke the <code>getActions</code> method on any text component to receive an array containing all actions supported by this component. It is also possible to load the array of actions into a <code>HashMap</code> so your program can retrieve an action by name. Here is the code from the <code>TextComponentDemo</code> example that takes the actions from the text pane and loads them into a <code>HashMap</code>.</p>
+<p>WHATSON? 7e777091-49b4-4a52-a284-e07f99e3403c</p>
+<pre>
+private HashMap&lt;Object, Action&gt; createActionTable(JTextComponent textComponent) {
+        HashMap&lt;Object, Action&gt; actions = new HashMap&lt;Object, Action&gt;();
+        Action[] actionsArray = textComponent.getActions();
+        for (int i = 0; i &lt; actionsArray.length; i++) {
+            Action a = actionsArray[i];
+            actions.put(a.getValue(Action.NAME), a);
+        }
+        return actions;
+    }
+</pre>
+<p>Here is the method for retrieving an action by its name from the hash map:</p>
+<p>WHATSON? b63297a5-2bc1-4815-aff5-7e433389fb6d</p>
+<pre>
+private Action getActionByName(String name) {
+    return actions.get(name);
+}
+</pre>
+<p>You can use both methods verbatim in your programs.</p>
+<p>The following code shows how the cut menu item is created and associated with the action of removing text from the text component.</p>
+<p>WHATSON? de0d74bd-d340-4cfc-aba8-da1cfaefb539</p>
+<pre>
+protected JMenu createEditMenu() {
+    JMenu menu = new JMenu("Edit");
+    ...
+    menu.add(getActionByName(DefaultEditorKit.cutAction));
+    ...
+</pre>
+<p>This code gets the action by name using the handy method shown previously. It then adds the action to the menu. That is all you need to do. The menu and the action take care of everything else. Note that the name of the action comes from 
+<code>DefaultEditorKit</code>. This kit provides actions for basic text editing and is the superclass for all the editor kits provided by Swing. So its capabilities are available to all text components unless thay are overridden by a customization.</p>
+<p>For efficiency, text components share actions. The <code>Action</code> object returned by <code>getActionByName(DefaultEditorKit.cutAction)</code> is shared by the uneditable <code>JTextArea</code> at the bottom of the window. This sharing characteristic has two important ramifications:</p>
+<ul>
+<li>Generally, you should not modify <code>Action</code> objects you get from editor kits. If you do, the changes affect all text components in your program.</li>
+<li><code>Action</code> objects can operate on other text components in the program, sometimes more than you intended. In this example, even though it is not editable, the <code>JTextArea</code> shares actions with the <code>JTextPane</code>. (Select some text in the text area, then choose the cut-to-clipboard menu item. You will hear a beep because the text area is not editable.) If you do not want to share, instantiate the <code>Action</code> object yourself. <code>DefaultEditorKit</code> defines a number of useful <code>Action</code> subclasses.</li>
+</ul>
+<p>Here is the code that creates the Style menu and puts the Bold menu item in it:</p>
+<p>WHATSON? da849bf0-dba7-4ad4-adf4-a8522fcd9e5f</p>
+<pre>
+protected JMenu createStyleMenu() {
+    JMenu menu = new JMenu("Style");
+ 
+    Action action = new StyledEditorKit.BoldAction();
+    action.putValue(Action.NAME, "Bold");
+    menu.add(action);
+    ...
+</pre>
+<p>The <code>StyledEditorKit</code> provides <code>Action</code> subclasses to implement editing commands for styled text. You will note that instead of getting the action from the editor kit, this code creates an instance of the <code>BoldAction</code> class. Thus, this action is not shared with any other text component, and changing its name will not affect any other text component.</p>
+<h2>Associating Text Actions With Key Strokes</h2>
+<p>In addition to associating an action with a GUI component, you can also associate an action with a key stroke by using a text component's input map. Input maps are described in 
+How to Use Key Bindings.</p>
+<p>The text pane in the <code>TextComponentDemo</code> example supports four key bindings not provided by default.</p>
+<ul>
+<li>Ctrl-B to move the caret backward one character</li>
+<li>Ctrl-F to move the caret forward one character</li>
+<li>Ctrl-N to move the caret down one line</li>
+<li>Ctrl-P to move the caret up one line</li>
+</ul>
+<p>The following code adds the Ctrl-B key binding to the text pane. The code for adding the other three bindings listed above is similar.</p>
+<p>WHATSON? 8c21fa83-0118-4443-bce9-da6ab7d134e7</p>
+<pre>
+InputMap inputMap = textPane.getInputMap();
+
+KeyStroke key = KeyStroke.getKeyStroke(KeyEvent.VK_B,
+                                       Event.CTRL_MASK);
+inputMap.put(key, DefaultEditorKit.backwardAction);
+</pre>
+<p>First, the code obtains the text component's input map. Next, it finds a 
+<code>KeyStroke</code> object representing the Ctrl-B key sequence. Finally, the code binds the key stroke to the <code>Action</code> that moves the cursor backward.</p>
+<h2>Implementing Undo and Redo</h2>
+<p>Implementing undo and redo has two parts:</p>
+<ul>
+<li>Remembering undoable edits.</li>
+<li>Implementing the undo and redo commands and providing a user interface for them.</li>
+</ul>
+<p><strong>Part 1: Remembering Undoable Edits</strong><br>
+To support undo and redo, a text component must remember each edit that occurs, the order of edits, and what is needed to undo each edit. The example program uses an instance of the 
+<code>UndoManager</code> class to manage its list of undoable edits. The undo manager is created where the member variables are declared:</p>
+<p>WHATSON? 086180ed-65a4-4861-9768-a56488f205ae</p>
+<pre>
+protected UndoManager undo = new UndoManager();
+</pre>
+<p>Now, let us look at how the program discovers undoable edits and adds them to the undo manager.</p>
+<p>A document notifies interested listeners whenever an undoable edit occurs on the document content. An important step in implementing undo and redo is to register an undoable edit listener on the document of the text component. The following code adds an instance of <code>MyUndoableEditListener</code> to the text pane's document:</p>
+<p>WHATSON? 9ae71f58-a020-42f8-8ebb-0499918f36da</p>
+<pre>
+doc.addUndoableEditListener(new MyUndoableEditListener());
+</pre>
+<p>The undoable edit listener used in our example adds the edit to the undo manager's list:</p>
+<p>WHATSON? f972f4a8-71a0-463f-a985-12bea7609b46</p>
+<pre>
+protected class MyUndoableEditListener
+          implements UndoableEditListener {
+    public void undoableEditHappened(UndoableEditEvent e) {
+        //Remember the edit and update the menus
+        undo.addEdit(e.getEdit());
+        undoAction.updateUndoState();
+        redoAction.updateRedoState();
+    }
+}  
+</pre>
+<p>Note that this method updates two objects: <code>undoAction</code> and <code>redoAction</code>. These are the action objects attached to the Undo and Redo menu items, respectively. The next step shows you how to create the menu items and how to implement the two actions. For general information about undoable edit listeners and undoable edit events, see How to Write an Undoable Edit Listener.</p>
+<p>By default, each undoable edit undoes a single character entry. It is possible with some effort to group edits so that a series of key strokes is combined into one undoable edit. Grouping edits in this manner would require you to define a class that intercepts undoable edit events from the document, combining them if appropriate and forwarding the results to your undoable edit listener.</p>
+<p><strong>Part 2: Implementing the Undo and Redo Commands</strong><br>
+The first step in implementing undo and redo is to create the actions to put in the Edit menu.</p>
+<p>WHATSON? 7b318787-a764-4fad-be3e-455ddf8e09d5</p>
+<pre>
+JMenu menu = new JMenu("Edit");
+
+//Undo and redo are actions of our own creation
+undoAction = new UndoAction();
+menu.add(undoAction);
+
+redoAction = new RedoAction();
+menu.add(redoAction);
+...
+</pre>
+<p>The undo and redo actions are implemented by custom <code>AbstractAction</code> subclasses: <code>UndoAction</code> and <code>RedoAction</code>, respectively. These classes are inner classes of the example's primary class.</p>
+<p>When the user invokes the <code>undo</code> command, the <code>actionPerformed</code> method of the <code>UndoAction</code> class is called:</p>
+<p>WHATSON? aefae342-ce0f-4752-bf3b-5a2c439e367f</p>
+<pre>
+public void actionPerformed(ActionEvent e) {
+    try {
+        undo.undo();
+    } catch (CannotUndoException ex) {
+        System.out.println("Unable to undo: " + ex);
+        ex.printStackTrace();
+    }
+    updateUndoState();
+    redoAction.updateRedoState();
+}
+</pre>
+<p>This method calls the undo manager's <code>undo</code> method and updates the menu items to reflect the new undo/redo state.</p>
+<p>Similarly, when the user invokes the <code>redo</code> command, the <code>actionPerformed</code> method of the <code>RedoAction</code> class is called:</p>
+<p>WHATSON? 913a179e-0f30-4bb5-9628-585838cca5dd</p>
+<pre>
+public void actionPerformed(ActionEvent e) {
+    try {
+        undo.redo();
+    } catch (CannotRedoException ex) {
+        System.out.println("Unable to redo: " + ex);
+        ex.printStackTrace();
+    }
+    updateRedoState();
+    undoAction.updateUndoState();
+}
+</pre>
+<p>This method is similar to undo, except that it calls the undo manager's <code>redo</code> method.</p>
+<p>Much of the code in the <code>UndoAction</code> and <code>RedoAction</code> classes is dedicated to enabling and disabling the actions as appropriate of the current state, and changing the names of the menu items to reflect the edit to be undone or redone.</p>
+<p>The implementation of undo and redo in the <code>TextComponentDemo</code> example was taken from the <code>NotePad</code> demo that comes with the JDK software. Many programmers will also be able to copy this implementation of undo/redo without modification.</p>
+<h2>Concepts: About Documents</h2>
+<p>Like other Swing components, a text component separates its data (known as the <em>model</em>) from its view of the data. If you are not yet familiar with the model-view split used by Swing components, refer to Using Models.</p>
+<p>A text component's model is known as a <em>document</em> and is an instance of a class that implements the 
+<code>Document</code> interface. A document provides the following services for a text component:</p>
+<ul>
+<li>Contains the text. A document stores the textual content in <code>Element</code> objects, which can represent any logical text structure, such as paragraphs, or text runs that share styles. We do not describe <code>Element</code> objects here.</li>
+<li>Provides support for editing the text through the <code>remove</code> and <code>insertString</code> methods.</li>
+<li>Notifies document listeners and undoable edit listeners of changes to the text.</li>
+<li>Manages <code>Position</code> objects, which track a particular location within the text even as the text is modified.</li>
+<li>Allows you to obtain information about the text, such as its length, and segments of the text as a string.</li>
+</ul>
+<p>The Swing text package contains a subinterface of <code>Document</code>, 
+<code>StyledDocument</code>, that adds support for marking up the text with styles. One <code>JTextComponent</code> subclass, <code>JTextPane</code>, requires that its document be a <code>StyledDocument</code> rather than merely a <code>Document</code>.</p>
+<p>The <code>javax.swing.text</code> package provides the following hierarchy of document classes, which implement specialized documents for the various <code>JTextComponent</code> subclasses:</p>
+<p>A <code>PlainDocument</code> is the default document for text fields, password fields, and text areas. <code>PlainDocument</code> provides a basic container for text where all the text is displayed in the same font. Even though an editor pane is a styled text component, it uses an instance of <code>PlainDocument</code> by default. The default document for a standard <code>JTextPane</code> is an instance of <code>DefaultStyledDocument</code>  a container for styled text in no particular format. However, the document instance used by any particular editor pane or text pane depends on the type of content bound to it. If you use the <code>setPage</code> method to load text into an editor pane or text pane, the document instance used by the pane might change. Refer to How to Use Editor Panes and Text Panes for details.</p>
+<p>Although you can set the document of a text component, it is usually easier to allow it to set automatically, and if necessary, use a <em>document filter</em> to change how the text component's data is set. You can implement certain customizations either by installing a document filter or by replacing a text component's document with one of your own. For example, the text pane in the <code>TextComponentDemo</code> example has a document filter that limits the number of characters the text pane can contain.</p>
+<h2>Implementing a Document Filter</h2>
+<p>To implement a document filter, create a subclass of 
+<code>DocumentFilter</code> and then attach it to a document using the <code>setDocumentFilter</code> method defined in the <code>AbstractDocument</code> class. Although it is possible to have documents that do not descend from <code>AbstractDocument</code>, by default Swing text components use <code>AbstractDocument</code> subclasses for their documents.</p>
+<p>The <code>TextComponentDemo</code> application has a document filter, 
+<code>DocumentSizeFilter</code>, that limits the number of characters that the text pane can contain. Here is the code that creates the filter and attaches it to the text pane's document:</p>
+<p>WHATSON? bd3d53a2-019f-41a4-aca4-d06ae66f4721</p>
+<pre>
+<em>...//Where member variables are declared:</em>
+JTextPane textPane;
+AbstractDocument doc;
+static final int MAX_CHARACTERS = 300;
+...
+textPane = new JTextPane();
+...
+StyledDocument styledDoc = textPane.getStyledDocument();
+if (styledDoc instanceof AbstractDocument) {
+    doc = (AbstractDocument)styledDoc;
+    doc.setDocumentFilter(new DocumentSizeFilter(MAX_CHARACTERS));
+} 
+</pre>
+<p>To limit the characters allowed in the document, <code>DocumentSizeFilter</code> overrides the <code>DocumentFilter</code> class's <code>insertString</code> method, which is called each time that text is inserted into the document. It also overrides the <code>replace</code> method, which is most likely to be called when the user pastes in new text. In general, text insertion can result when the user types or pastes in new text, or when the <code>setText</code> method is called. Here is the <code>DocumentSizeFilter</code> class's implementation of the <code>insertString</code> method:</p>
+<p>WHATSON? a77ba0a4-0289-4d2a-bf86-95e12c7a28ca</p>
+<pre>
+public void insertString(FilterBypass fb, int offs,
+                         String str, AttributeSet a)
+    throws BadLocationException {
+
+    if ((fb.getDocument().getLength() + str.length()) &lt;= maxCharacters)
+        super.insertString(fb, offs, str, a);
+    else
+        Toolkit.getDefaultToolkit().beep();
+}
+</pre>
+<p>The code for <code>replace</code> is similar. The 
+<code>FilterBypass</code> parameter to the methods defined by the <code>DocumentFilter</code> class is simply an object that enables the document to be updated in a thread-safe way.</p>
+<p>Because the preceding document filter is concerned with additions to the document's data, it only overrides the <code>insertString</code> and <code>replace</code> methods. Most document filters would override <code>DocumentFilter</code>'s <code>remove</code> method as well.</p>
+<h2>Listening for Changes on a Document</h2>
+<p>You can register two different types of listeners on a document: document listeners and undoable edit listeners. This subsection describes document listeners. For information about undoable edit listeners, refer to Implementing Undo and Redo.</p>
+<p>A document notifies registered document listeners of changes to the document. Use a document listener to create a reaction when text is inserted or removed from a document, or when the text style changes.</p>
+<p>The <code>TextComponentDemo</code> program uses a document listener to update the change log whenever a change is made to the text pane. The following line of code registers an instance of the <code>MyDocumentListener</code> class as a listener on the text pane's document:</p>
+<p>WHATSON? 6a6a5560-0762-43ad-bffe-13b6f9323733</p>
+<pre>
+doc.addDocumentListener(new MyDocumentListener());
+</pre>
+<p>Here is the implementation of the <code>MyDocumentListener</code> class:</p>
+<p>WHATSON? ca6142ef-5c97-4ccf-8b74-67c2357def52</p>
+<pre>
+protected class MyDocumentListener implements DocumentListener {
+    public void insertUpdate(DocumentEvent e) {
+        displayEditInfo(e);
+    }
+    public void removeUpdate(DocumentEvent e) {
+        displayEditInfo(e);
+    }
+    public void changedUpdate(DocumentEvent e) {
+        displayEditInfo(e);
+    }
+    private void displayEditInfo(DocumentEvent e) {
+            Document document = (Document)e.getDocument();
+            int changeLength = e.getLength();
+            changeLog.append(e.getType().toString() + ": "
+                + changeLength + " character"
+                + ((changeLength == 1) ? ". " : "s. ")
+                + " Text length = " + document.getLength()
+                + "." + newline);
+    }
+} 
+</pre>
+<p>The listener implements three methods for handling three different types of document events: insertion, removal, and style changes. <code>StyledDocument</code> instances can fire all three types of events. <code>PlainDocument</code> instances fire events only for insertion and removal. For general information about document listeners and document events, see How to Write a Document Listener.</p>
+<p> Remember that the document filter for this text pane limits the number of characters allowed in the document. If you try to add more text than the document filter allows, the document filter blocks the change and the listener's <code>insertUpdate</code> method is not called. Document listeners are notified of changes only if the change has already occurred.</p>
+<p>You may want to change the document's text within a document listener. <strong>However, you should never modify the contents of a text component from within a document listener.</strong> If you do, the program will likely deadlock. Instead, you can use a formatted text field or provide a document filter.</p>
+<h2>Listening for Caret and Selection Changes</h2>
+<p>The <code>TextComponentDemo</code> program uses a caret listener to display the current position of the caret or, if text is selected, the extent of the selection.</p>
+<p>The caret listener class in this example is a <code>JLabel</code> subclass. Here is the code that creates the caret listener label and makes it a caret listener of the text pane:</p>
+<p>WHATSON? da28d222-53a2-4abb-a1ab-a7be71ad96fe</p>
+<pre>
+//Create the status area
+CaretListenerLabel caretListenerLabel = new CaretListenerLabel(
+                                                "Caret Status");
+...
+textPane.addCaretListener(caretListenerLabel);
+</pre>
+<p>A caret listener must implement one method, <code>caretUpdate</code>, which is called each time the caret moves or the selection changes. Here is the <code>CaretListenerLabel</code> implementation of <code>caretUpdate</code>:</p>
+<p>WHATSON? 7b77c116-71ab-4a53-8073-c73cacd03c9b</p>
+<pre>
+public void caretUpdate(CaretEvent e) {
+    //Get the location in the text
+    int dot = e.getDot();
+    int mark = e.getMark();
+    if (dot == mark) {  // no selection
+        try {
+            Rectangle caretCoords = textPane.modelToView(dot);
+            //Convert it to view coordinates
+            setText("caret: text position: " + dot +
+                    ", view location = [" +
+                    caretCoords.x + ", " + caretCoords.y + "]" +
+                    newline);
+        } catch (BadLocationException ble) {
+            setText("caret: text position: " + dot + newline);
+        }
+     } else if (dot &lt; mark) {
+        setText("selection from: " + dot + " to " + mark + newline);
+     } else {
+        setText("selection from: " + mark + " to " + dot + newline);
+     }
+}
+
+</pre>
+<p>As you can see, this listener updates its text label to reflect the current state of the caret or selection. The listener gets the information to display from the caret event object. For general information about caret listeners and caret events, see How to Write a Caret Listener.</p>
+<p>As with document listeners, a caret listener is passive. It reacts to changes in the caret or in the selection, but does not change the caret or the selection itself. If you want to change the caret or selection, use a <em>navigation filter</em> or a custom caret.</p>
+<p>Implementing a navigation filter is similar to implementing a document filter. First, write a subclass of 
+<code>NavigationFilter</code>. Then attach an instance of the subclass to a text component with the <code>setNavigationFilter</code> method.</p>
+<p>You might create a custom caret to customize the appearance of a caret. To create a custom caret, write a class that implements the 
+<code>Caret</code> interface  perhaps by extending the 
+<code>DefaultCaret</code> class. Then provide an instance of your class as an argument to the <code>setCaret</code> method on a text component.</p>
+<h2>Concepts: About Editor Kits</h2>
+<p>Text components use an <code>EditorKit</code> to tie the various pieces of the text component together. The editor kit provides the view factory, document, caret, and actions. An editor kit also reads and writes documents of a particular format. Although all text components use editor kits, some components hide theirs. You cannot set or get the editor kit used by a text field or text area. Editor panes and text panes provide the <code>getEditorKit</code> method to get the current editor kit and the <code>setEditorKit</code> method to change it.</p>
+<p>For all components, the <code>JTextComponent</code> class provides the API for you to indirectly invoke or customize some editor kit capabilities. For example, <code>JTextComponent</code> provides the <code>read</code> and <code>write</code> methods, which invoke the editor kit's <code>read</code> and <code>write</code> methods. <code>JTextComponent</code> also provides a method, <code>getActions</code>, which returns all of the actions supported by a component.</p>
+<p>The Swing text package provides the following editor kits:</p>
+<p>Each of the editor kits listed above has been registered with the <code>JEditorPane</code> class and associated with the text format that the kit reads, writes, and edits. When a file is loaded into an editor pane, the pane checks the format of the file against its registered kits. If a registered kit is found that supports that file format, the pane uses the kit to read the file, display, and edit it. Thus, the editor pane effectively transforms itself into an editor for that text format. You can extend <code>JEditorPane</code> to support your own text format by creating an editor kit for it, and then using <code>JEditorPane</code>'s <code>registerEditorKitForContentType</code> to associate your kit with your text format.</p>
+</body>
+</html>

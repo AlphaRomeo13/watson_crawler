@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Message-passing---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Message passing</h1>
+<p>In computer science, <b>message passing</b> sends a message to a process (which may be an actor or object) and relies on the process and the supporting infrastructure to select and invoke the actual code to run. Message passing differs from conventional programming where a process, subroutine, or function is directly invoked by name. Message passing is key to some models of concurrency and object-oriented programming.</p>
+<p>Message passing is used ubiquitously in modern computer software. It is used as a way for the objects that make up a program to work with each other and as a way for objects and systems running on different computers (e.g., the Internet) to interact. Message passing may be implemented by various mechanisms, including channels.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Overview</li>
+<li>2 Synchronous versus asynchronous message passing</li>
+<li>3 Distributed objects</li>
+<li>4 Message passing versus calling</li>
+<li>5 Mathematical models</li>
+<li>6 Examples</li>
+<li>7 See also</li>
+<li>8 References</li>
+<li>9 External links</li>
+<li>10 Further reading</li>
+</ul>
+<p></p>
+<h2>Overview</h2>
+<p>Message passing is a technique for invoking behavior (i.e., running a program) on a computer. In contrast to the traditional technique of calling a program by name, message passing uses an object model to distinguish the general function from the specific implementations. The invoking program sends a message and relies on the object to select and execute the appropriate code. The justifications for using an intermediate layer essentially falls into two categories: encapsulation and distribution.</p>
+<p>Encapsulation is the idea that software objects should be able to invoke services on other objects without knowing or caring about how those services are implemented. Encapsulation can reduce the amount of coding logic and make systems more maintainable. E.g., rather than having IF-THEN statements that determine which subroutine or function to call a developer can just send a message to the object and the object will select the appropriate code based on its type.</p>
+<p>One of the first examples of how this can be used was in the domain of computer graphics. There are all sorts of various complications in manipulating graphic objects. For example, simply using the right formula to compute the area of an enclosed shape will vary depending on if the shape is a triangle, rectangle, elipse, or circle. In traditional computer programming this would result in long IF-THEN statements testing what sort of object the shape was and calling the appropriate code. The object-oriented way to handle this is to define a class called <code>Shape</code> with subclasses such as <code>Rectangle</code> and <code>Ellipse</code> (which in turn have subclasses <code>Square</code> and <code>Circle</code>) and then to simply send a message to any <code>Shape</code> asking it to compute its area. Each <code>Shape</code> object will then invoke the appropriate code with the formula appropriate for that kind of object.</p>
+<p>Distributed message passing provides developers with a layer of the architecture that provides common services to build systems made up of sub-systems that run on disparate computers in different locations and at different times. When sending a distributed object a message the messaging layer can take care of issues such as:</p>
+<ul>
+<li>Finding the appropriate object, including objects running on different computers, using different operating systems and programming languages, at different locations from where the message originated.</li>
+<li>Saving the message on a queue if the appropriate object to handle the message is not currently running and then invoking the message when the object is available. Also, storing the result if needed until the sending object is ready to receive it.</li>
+<li>Controlling various transactional requirements for distributed transactions, e.g. ensuring ACID properties on data.</li>
+</ul>
+<h2>Synchronous versus asynchronous message passing</h2>
+<p>One of the most important distinctions among message passing systems is whether they use synchronous or asynchronous message passing. Synchronous message passing occurs between objects that are running at the same time. With asynchronous message passing it is possible for the receiving object to be busy or not running when the requesting object sends the message.</p>
+<p>Synchronous message passing is what typical object-oriented programming languages such as Java and Smalltalk use. Asynchronous message passing requires additional capabilities for storing and retransmitting data for systems that may not run concurrently.</p>
+<p>The advantage to synchronous message passing is that it is conceptually less complex. Synchronous message passing is analogous to a function call in which the message sender is the function caller and the message receiver is the called function. Function calling is easy and familiar. Just as the function caller stops until the called function completes, the sending process stops until the receiving process completes. This alone makes synchronous message unworkable for some applications. For example, if synchronous message passing would be used exclusively, large, distributed systems generally would not perform well enough to be usable. Such large, distributed systems may need to continue to operate while some of their subsystems are down; subsystems may need to go offline for some kind of maintenance, or have times when subsystems are not open to receiving input from other systems.</p>
+<p>Imagine a busy business office having 100 desktop computers that send emails to each other using synchronous message passing exclusively. Because the office system does not use asynchronous message passing, one worker turning off their computer can cause the other 99 computers to freeze until the worker turns their computer back on to process a single email.</p>
+<p>Asynchronous message passing is generally implemented so that all the complexities that naturally occur when trying to synchronize systems and data are handled by an intermediary level of software. Commercial vendors who develop software products to support these intermediate levels usually call their software "middleware". One of the most common types of middleware to support asynchronous messaging is called Message Oriented Middleware (MOM)</p>
+<p>With asynchronous message passing, the sending system does not wait for a response. Continuing the function call analogy, asynchronous message passing would be a function call that returns immediately, without waiting for the called function to execute. Such an asynchronous function call would merely deliver the arguments, if any, to the called function, and tell the called function to execute, and then return to continue its own execution. Asynchronous message passing simply sends the message to the message bus. The bus stores the message until the receiving process requests messages sent to it. When the receiving process arrives at the result, it sends the result to the message bus. And the message bus holds the message until the original process (or some designated next process) picks up its messages from the message bus.</p>
+<p>Synchronous communication can be built on top of asynchronous communication by using a Synchronizer. For example, the α-Synchronizer works by ensuring that the sender always waits for an acknowledgement message from the receiver. The sender only sends the next message after the acknowledgement has been received.</p>
+<p>The buffer required in asynchronous communication can cause problems when it is full. A decision has to be made whether to block the sender or whether to discard future messages. If the sender is blocked, it may lead to an unexpected deadlock. If messages are dropped, then communication is no longer reliable. These are all examples of the kinds of problems that middleware vendors try to address.</p>
+<h2>Distributed objects</h2>
+<p>In addition to the distinction between synchronous and asynchronous message passing the other primary distinguishing feature of message passing systems is whether they use distributed or local objects. With distributed objects the sender and receiver may exist on different computers, running different operating systems, using different programming languages, etc. In this case the bus layer takes care of details about converting data from one system to another, sending and receiving data across the network, etc. The Remote Procedure Call (RPC) protocol in Unix was an early example of this. Note that with this type of message passing it is not a requirement that either the sender or receiver are implemented using object-oriented programming. It is possible to wrap systems developed using procedural languages and treat them as large grained objects capable of sending and receiving messages.</p>
+<p>Examples of systems that support distributed objects are: ONC RPC, CORBA, Java RMI, DCOM, SOAP, .NET Remoting, CTOS, QNX Neutrino RTOS, OpenBinder, and D-Bus. Distributed object systems have been called "shared nothing" systems because the message passing abstraction hides underlying state changes that may be used in the implementation of sending messages.</p>
+<h2>Message passing versus calling</h2>
+<p>Distributed or asynchronous message passing has some overhead associated with it compared to the simpler way of simply calling a procedure. In a traditional procedure call, arguments are passed to the receiver typically by one or more general purpose registers or in a parameter list containing the addresses of each of the arguments. This form of communication differs from message passing in at least three crucial areas:</p>
+<ul>
+<li>total memory usage</li>
+<li>transfer time</li>
+<li>locality</li>
+</ul>
+<p>In message passing, each of the arguments has to copy the existing argument into a portion of the new message. This applies regardless of the size of the argument and in some cases the arguments can be as large as a document which can be megabytes worth of data. The argument has to be copied in its entirety and transmitted to the receiving object.</p>
+<p>By contrast, for a standard procedure call, only an address (a few bits) needs to be passed for each argument and may even be passed in a general purpose register requiring zero additional storage and zero transfer time.</p>
+<p>This of course is not possible for distributed systems since an (absolute) address – in the callers address space – is normally meaningless to the remote program (however, a relative address might in fact be usable if the receiver had an <i>exact</i> copy of, at least some of, the sender's memory in advance). Web browsers and web servers are examples of processes that communicate by message passing. A URL is an example of a way of referencing resources that does not depend on exposing the internals of a process.</p>
+<p>A subroutine call or method invocation will not exit until the invoked computation has terminated. Asynchronous message passing, by contrast, can result in a response arriving a significant time after the request message was sent.</p>
+<p>A message handler will, in general, process messages from more than one sender. This means its state can change for reasons unrelated to the behaviour of a single sender or client process. This is in contrast to the typical behaviour of an object upon which methods are being invoked: the latter is expected to remain in the same state between method invocations. In other words, the message handler behaves analogously to a volatile object.</p>
+<h2>Mathematical models</h2>
+<p>The prominent mathematical models of message passing are the Actor model and Pi calculus. In mathematical terms a message is the single means to pass control to an object. If the object responds to the message, it has a method for that message.</p>
+<p>Alan Kay has argued that message passing is more important than objects in OOP, and that objects themselves are often over-emphasized. The live distributed objects programming model builds upon this observation; it uses the concept of a distributed data flow to characterize the behavior of a complex distributed system in terms of message patterns, using high-level, functional-style specifications.</p>
+<h2>Examples</h2>
+<ul>
+<li>Actor model implementation</li>
+<li>Amorphous computing</li>
+<li>Flow-based programming</li>
+<li>SOAP (protocol)</li>
+</ul>
+<h2>See also</h2>
+<ul>
+<li>Active message</li>
+<li>Distributed computing</li>
+<li>Event loop</li>
+<li>Inter-process communication</li>
+<li>Message-oriented middleware</li>
+<li>Messaging pattern</li>
+<li>Message passing in computer clusters</li>
+</ul>
+</body>
+</html>

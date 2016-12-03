@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Watching-a-Directory-for-Changes-The-Java-Tutorials---------------------Essential-Classes--Basic-IO.html</title></head>
+<body>
+<h1>Watching a Directory for Changes</h1>
+<p>Have you ever found yourself editing a file, using an IDE or another editor, and a dialog box appears to inform you that one of the open files has changed on the file system and needs to be reloaded? Or perhaps, like the NetBeans IDE, the application just quietly updates the file without notifying you. The following sample dialog box shows how this notification looks with the free editor, 
+jEdit:</p>
+<p></p>
+<p>To implement this functionality, called <em>file change notification</em>, a program must be able to detect what is happening to the relevant directory on the file system. One way to do so is to poll the file system looking for changes, but this approach is inefficient. It does not scale to applications that have hundreds of open files or directories to monitor.</p>
+<p>The <code>java.nio.file</code> package provides a file change notification API, called the Watch Service API. This API enables you to register a directory (or directories) with the watch service. When registering, you tell the service which types of events you are interested in: file creation, file deletion, or file modification. When the service detects an event of interest, it is forwarded to the registered process. The registered process has a thread (or a pool of threads) dedicated to watching for any events it has registered for. When an event comes in, it is handled as needed.</p>
+<p>This section covers the following:</p>
+<ul>
+<li>Watch Service Overview</li>
+<li>Try It Out</li>
+<li>Creating a Watch Service and Registering for Events</li>
+<li>Processing Events</li>
+<li>Retrieving the File Name</li>
+<li>When to Use and Not Use This API</li>
+</ul>
+<h2>Watch Service Overview</h2>
+<p>The <code>WatchService</code> API is fairly low level, allowing you to customize it. You can use it as is, or you can choose to create a high-level API on top of this mechanism so that it is suited to your particular needs.</p>
+<p>Here are the basic steps required to implement a watch service:</p>
+<ul>
+<li>Create a <code>WatchService</code> "watcher" for the file system.</li>
+<li>For each directory that you want monitored, register it with the watcher. When registering a directory, you specify the type of events for which you want notification. You receive a <code>WatchKey</code> instance for each directory that you register.</li>
+<li>Implement an infinite loop to wait for incoming events. When an event occurs, the key is signaled and placed into the watcher's queue.</li>
+<li>Retrieve the key from the watcher's queue. You can obtain the file name from the key.</li>
+<li>Retrieve each pending event for the key (there might be multiple events) and process as needed.</li>
+<li>Reset the key, and resume waiting for events.</li>
+<li>Close the service: The watch service exits when either the thread exits or when it is closed (by invoking its <code>closed</code> method).</li>
+</ul>
+<p><code>WatchKeys</code> are thread-safe and can be used with the <code>java.nio.concurrent</code> package. You can dedicate a 
+thread pool to this effort.</p>
+<h2>Try It Out</h2>
+<p>Because this API is more advanced, try it out before proceeding. Save the 
+<code><code>WatchDir</code></code> example to your computer, and compile it. Create a <code>test</code> directory that will be passed to the example. <code>WatchDir</code> uses a single thread to process all events, so it blocks keyboard input while waiting for events. Either run the program in a separate window, or in the background, as follows:</p>
+<p>WHATSON? 8a4725d7-10ba-46b2-97cd-cd42f2aee99d</p>
+<pre>
+java WatchDir test &amp;
+</pre>
+<p>Play with creating, deleting, and editing files in the <code>test</code> directory. When any of these events occurs, a message is printed to the console. When you have finished, delete the <code>test</code> directory and <code>WatchDir</code> exits. Or, if you prefer, you can manually kill the process.</p>
+<p>You can also watch an entire file tree by specifying the <code>-r</code> option. When you specify <code>-r</code>, <code>WatchDir</code> 
+walks the file tree, registering each directory with the watch service.</p>
+<h2>Creating a Watch Service and Registering for Events</h2>
+<p>The first step is to create a new 
+<code>WatchService</code> by using the 
+<code>newWatchService</code> method in the <code>FileSystem</code> class, as follows:</p>
+<p>WHATSON? d6a3dd73-e5ba-4cef-a0cc-427ba292504e</p>
+<pre>
+WatchService watcher = FileSystems.getDefault().newWatchService();
+</pre>
+<p>Next, register one or more objects with the watch service. Any object that implements the 
+<code>Watchable</code> interface can be registered. The <code>Path</code> class implements the <code>Watchable</code> interface, so each directory to be monitored is registered as a <code>Path</code> object.</p>
+<p>As with any <code>Watchable</code>, the <code>Path</code> class implements two <code>register</code> methods. This page uses the two-argument version, 
+<code>register(WatchService, WatchEvent.Kind&lt;?&gt;...)</code>. (The three-argument version takes a <code>WatchEvent.Modifier</code>, which is not currently implemented.)</p>
+<p>When registering an object with the watch service, you specify the types of events that you want to monitor. The supported 
+<code>StandardWatchEventKinds</code> event types follow:</p>
+<ul>
+<li><code>ENTRY_CREATE</code> – A directory entry is created.</li>
+<li><code>ENTRY_DELETE</code> – A directory entry is deleted.</li>
+<li><code>ENTRY_MODIFY</code> – A directory entry is modified.</li>
+<li><code>OVERFLOW</code> – Indicates that events might have been lost or discarded. You do not have to register for the <code>OVERFLOW</code> event to receive it.</li>
+</ul>
+<p>The following code snippet shows how to register a <code>Path</code> instance for all three event types:</p>
+<p>WHATSON? 8d56074a-1953-4d83-b2ea-4c3675ffc1f2</p>
+<pre>
+import static java.nio.file.StandardWatchEventKinds.*;
+
+Path dir = ...;
+try {
+    WatchKey key = dir.register(watcher,
+                           ENTRY_CREATE,
+                           ENTRY_DELETE,
+                           ENTRY_MODIFY);
+} catch (IOException x) {
+    System.err.println(x);
+}
+</pre>
+<h2>Processing Events</h2>
+<p>The order of events in an event processing loop follow:</p>
+<ol>
+<li>Get a watch key. Three methods are provided:
+<ul>
+<li>
+<code>poll</code> – Returns a queued key, if available. Returns immediately with a <code>null</code> value, if unavailable.</li>
+<li>
+<code>poll(long, TimeUnit)</code> – Returns a queued key, if one is available. If a queued key is not immediately available, the program waits until the specified time. The <code>TimeUnit</code> argument determines whether the specified time is nanoseconds, milliseconds, or some other unit of time.</li>
+<li>
+<code>take</code> – Returns a queued key. If no queued key is available, this method waits.</li>
+</ul>
+</li>
+<li>Process the pending events for the key. You fetch the <code>List</code> of 
+<code>WatchEvents</code>from the 
+<code>pollEvents</code> method.</li>
+<li>Retrieve the type of event by using the 
+<code>kind</code> method. No matter what events the key has registered for, it is possible to receive an <code>OVERFLOW</code> event. You can choose to handle the overflow or ignore it, but you should test for it.</li>
+<li>Retrieve the file name associated with the event. The file name is stored as the context of the event, so the 
+<code>context</code> method is used to retrieve it.</li>
+<li>After the events for the key have been processed, you need to put the key back into a <code>ready</code> state by invoking 
+<code>reset</code>. If this method returns <code>false</code>, the key is no longer valid and the loop can exit. This step is very <strong>important</strong>. If you fail to invoke <code>reset</code>, this key will not receive any further events.</li>
+</ol>
+<ul>
+<li>
+<code>poll</code> – Returns a queued key, if available. Returns immediately with a <code>null</code> value, if unavailable.</li>
+<li>
+<code>poll(long, TimeUnit)</code> – Returns a queued key, if one is available. If a queued key is not immediately available, the program waits until the specified time. The <code>TimeUnit</code> argument determines whether the specified time is nanoseconds, milliseconds, or some other unit of time.</li>
+<li>
+<code>take</code> – Returns a queued key. If no queued key is available, this method waits.</li>
+</ul>
+<p>A watch key has a state. At any given time, its state might be one of the following:</p>
+<ul>
+<li><code>Ready</code> indicates that the key is ready to accept events. When first created, a key is in the ready state.</li>
+<li><code>Signaled</code> indicates that one or more events are queued. Once the key has been signaled, it is no longer in the ready state until the 
+<code>reset</code> method is invoked.</li>
+<li><code>Invalid</code> indicates that the key is no longer active. This state happens when one of the following events occurs:
+<ul>
+<li>The process explicitly cancels the key by using the 
+<code>cancel</code> method.</li>
+<li>The directory becomes inaccessible.</li>
+<li>The watch service is 
+closed.</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li>The process explicitly cancels the key by using the 
+<code>cancel</code> method.</li>
+<li>The directory becomes inaccessible.</li>
+<li>The watch service is 
+closed.</li>
+</ul>
+<p>Here is an example of an event processing loop. It is taken from the 
+<code><code>Email</code></code> example, which watches a directory, waiting for new files to appear. When a new file becomes available, it is examined to determine if it is a <code>text/plain</code> file by using the 
+<code>probeContentType(Path)</code> method. The intention is that <code>text/plain</code> files will be emailed to an alias, but that implementation detail is left to the reader.</p>
+<p>The methods specific to the watch service API are shown in bold:</p>
+<p>WHATSON? 8ff64f57-90c1-4052-ad97-1c2e1a2dc2fb</p>
+<pre>
+for (;;) {
+
+    // wait for key to be signaled
+    WatchKey key;
+    try {
+        <strong>key = watcher.take()</strong>;
+    } catch (InterruptedException x) {
+        return;
+    }
+
+    for (WatchEvent&lt;?&gt; event: <strong>key.pollEvents()</strong>) {
+        WatchEvent.Kind&lt;?&gt; <strong>kind = event.kind()</strong>;
+
+        // This key is registered only
+        // for ENTRY_CREATE events,
+        // but an OVERFLOW event can
+        // occur regardless if events
+        // are lost or discarded.
+        <strong>if (kind == OVERFLOW)</strong> {
+            continue;
+        }
+
+        // The filename is the
+        // context of the event.
+        <strong>WatchEvent&lt;Path&gt; ev = (WatchEvent&lt;Path&gt;)event;
+        Path filename = ev.context();</strong>
+
+        // Verify that the new
+        //  file is a text file.
+        try {
+            // Resolve the filename against the directory.
+            // If the filename is "test" and the directory is "foo",
+            // the resolved name is "test/foo".
+            Path child = dir.resolve(filename);
+            if (!Files.probeContentType(child).equals("text/plain")) {
+                System.err.format("New file '%s'" +
+                    " is not a plain text file.%n", filename);
+                continue;
+            }
+        } catch (IOException x) {
+            System.err.println(x);
+            continue;
+        }
+
+        // Email the file to the
+        //  specified email alias.
+        System.out.format("Emailing file %s%n", filename);
+        //Details left to reader....
+    }
+
+    // Reset the key -- this step is critical if you want to
+    // receive further watch events.  If the key is no longer valid,
+    // the directory is inaccessible so exit the loop.
+    boolean <strong>valid = key.reset()</strong>;
+    if (!valid) {
+        break;
+    }
+}
+</pre>
+<h2>Retrieving the File Name</h2>
+<p>The file name is retrieved from the event context. The 
+<code><code>Email</code></code> example retrieves the file name with this code:</p>
+<p>WHATSON? aba09c68-9837-4e3d-a099-6ba1a80b892f</p>
+<pre>
+WatchEvent&lt;Path&gt; ev = (WatchEvent&lt;Path&gt;)event;
+Path filename = ev.context();
+</pre>
+<p>When you compile the <code>Email</code> example, it generates the following error:</p>
+<p>WHATSON? 5f1e3746-a0b6-48c9-a49a-f277573cc594</p>
+<pre>
+Note: Email.java uses unchecked or unsafe operations.
+Note: Recompile with -Xlint:unchecked for details.
+</pre>
+<p>This error is a result of the line of code that casts the <code>WatchEvent&lt;T&gt;</code> to a <code>WatchEvent&lt;Path&gt;</code>. The 
+<code><code>WatchDir</code></code> example avoids this error by creating a utility <code>cast</code> method that suppresses the unchecked warning, as follows:</p>
+<p>WHATSON? f8f146ef-51f0-4a24-9d82-e7c0afd9f1db</p>
+<pre>
+@SuppressWarnings("unchecked")
+static &lt;T&gt; WatchEvent&lt;T&gt; cast(WatchEvent&lt;?&gt; event) {
+    return (WatchEvent&lt;Path&gt;)event;
+}
+</pre>
+<p>If you are unfamiliar with the <code>@SuppressWarnings</code> syntax, see 
+Annotations.</p>
+<h2>When to Use and Not Use This API</h2>
+<p>The Watch Service API is designed for applications that need to be notified about file change events. It is well suited for any application, like an editor or IDE, that potentially has many open files and needs to ensure that the files are synchronized with the file system. It is also well suited for an application server that watches a directory, perhaps waiting for <code>.jsp</code> or <code>.jar</code> files to drop, in order to deploy them.</p>
+<p>This API is <em>not</em> designed for indexing a hard drive. Most file system implementations have native support for file change notification. The Watch Service API takes advantage of this support where available. However, when a file system does not support this mechanism, the Watch Service will poll the file system, waiting for events. 
+</p>
+</body>
+</html>

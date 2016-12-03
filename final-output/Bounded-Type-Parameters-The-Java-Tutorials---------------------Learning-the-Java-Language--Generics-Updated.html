@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Bounded-Type-Parameters-The-Java-Tutorials---------------------Learning-the-Java-Language--Generics-Updated.html</title></head>
+<body>
+<h1>Bounded Type Parameters</h1>
+<p>
+There may be times when you want to restrict the types that can be used as type arguments in a parameterized type. For example, a method that operates on numbers might only want to accept instances of <code>Number</code> or its subclasses. This is what <i>bounded type parameters</i> are for.</p>
+<p>
+To declare a bounded type parameter, list the type parameter's name, followed by the <code>extends</code> keyword, followed by its <i>upper bound</i>, which in this example is <code>Number</code>. Note that, in this context, <code>extends</code> is used in a general sense to mean either "extends" (as in classes) or "implements" (as in interfaces).</p>
+<p>WHATSON? 4ffac620-7ee1-4ac5-a22b-ef50eba99195</p>
+<pre>
+public class Box&lt;T&gt; {
+
+    private T t;          
+
+    public void set(T t) {
+        this.t = t;
+    }
+
+    public T get() {
+        return t;
+    }
+
+    public &lt;U <b>extends Number</b>&gt; void inspect(U u){
+        System.out.println("T: " + t.getClass().getName());
+        System.out.println("U: " + u.getClass().getName());
+    }
+
+    public static void main(String[] args) {
+        Box&lt;Integer&gt; integerBox = new Box&lt;Integer&gt;();
+        integerBox.set(new Integer(10));
+        integerBox.inspect("some text"); // <b>error: this is still String!</b>
+    }
+}
+</pre>
+<p>By modifying our generic method to include this bounded type parameter, compilation will now fail, since our invocation of <code>inspect</code> still includes a <code>String</code>:</p>
+<p>WHATSON? bd6286b5-d19f-49c9-aaf2-ebd292d8badf</p>
+<pre>
+Box.java:21: &lt;U&gt;inspect(U) in Box&lt;java.lang.Integer&gt; cannot
+  be applied to (java.lang.String)
+                        integerBox.inspect("10");
+                                  ^
+1 error
+</pre>
+<p>
+In addition to limiting the types you can use to instantiate a generic type, bounded type parameters allow you to invoke methods defined in the bounds:</p>
+<p>WHATSON? 34aab05b-5061-4157-8c88-32366bf716f9</p>
+<pre>
+public class NaturalNumber&lt;T extends Integer&gt; {
+
+    private T n;
+
+    public NaturalNumber(T n)  { this.n = n; }
+
+    public boolean isEven() {
+        return <strong>n.intValue()</strong> % 2 == 0;
+    }
+
+    // ...
+}
+</pre>
+<p>
+The <tt>isEven</tt> method invokes the <tt>intValue</tt> method defined in the <tt>Integer</tt> class through <tt>n</tt>.</p>
+<h2>Multiple Bounds</h2>
+<p>
+The preceding example illustrates the use of a type parameter with a single bound, but a type parameter can have <em>multiple bounds</em>:</p>
+<p>WHATSON? ec19f540-9968-4307-931d-cab5b4b9bf5f</p>
+<pre>
+&lt;T extends B1 &amp; B2 &amp; B3&gt;
+</pre>
+<p>
+A type variable with multiple bounds is a subtype of all the types listed in the bound. If one of the bounds is a class, it must be specified first.  For example:</p>
+<p>WHATSON? cde454d5-5355-41c2-ab99-93cbde585f2b</p>
+<pre>
+Class A { /* ... */ }
+interface B { /* ... */ }
+interface C { /* ... */ }
+
+class D &lt;T extends A &amp; B &amp; C&gt; { /* ... */ }
+</pre>
+<p>
+If bound <tt>A</tt> is not specified first, you get a compile-time error:</p>
+<p>WHATSON? 047e578f-13c5-4fe9-bc26-38803cca31af</p>
+<pre>
+class D &lt;T extends B &amp; A &amp; C&gt; { /* ... */ }  // compile-time error
+</pre>
+</body>
+</html>

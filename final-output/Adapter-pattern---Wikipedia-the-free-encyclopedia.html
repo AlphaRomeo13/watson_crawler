@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Adapter-pattern---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Adapter pattern</h1>
+<p>In software engineering, the <b>adapter pattern</b> is a software design pattern that allows the interface of an existing class to be used from another interface. It is often used to make existing classes work with others without modifying their source code.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Definition</li>
+<li>2 Structure
+<ul>
+<li>2.1 Object Adapter pattern</li>
+<li>2.2 Class Adapter pattern</li>
+<li>2.3 A further form of runtime Adapter pattern</li>
+<li>2.4 Implementation of Adapter pattern</li>
+</ul>
+</li>
+<li>3 See also</li>
+<li>4 References</li>
+</ul>
+<ul>
+<li>2.1 Object Adapter pattern</li>
+<li>2.2 Class Adapter pattern</li>
+<li>2.3 A further form of runtime Adapter pattern</li>
+<li>2.4 Implementation of Adapter pattern</li>
+</ul>
+<p></p>
+<h2>Definition</h2>
+<p>An adapter helps two incompatible interfaces to work together. This is the real world definition for an adapter. Interfaces may be incompatible but the inner functionality should suit the need. The Adapter design pattern allows otherwise incompatible classes to work together by converting the interface of one class into an interface expected by the clients.</p>
+<h2>Structure</h2>
+<p>There are two types of adapter patterns:</p>
+<h3>Object Adapter pattern</h3>
+<p>In this type of adapter pattern, the adapter contains an instance of the class it wraps. In this situation, the adapter makes calls to the instance of the wrapped object.</p>
+<h3>Class Adapter pattern</h3>
+<p>This type of adapter uses multiple polymorphic interfaces to implementing or inheriting both the interface that is expected and the interface that is pre-existing. It is typical for the expected interface to be created as a pure interface class, especially in languages such as Java that do not support multiple inheritance.</p>
+<p>The adapter pattern is useful in situations where an already existing class provides some or all of the services you need but does not use the interface you need. A good real life example is an adapter that converts the interface of a Document Object Model of an XML document into a tree structure that can be displayed. A link to a tutorial that uses the adapter design pattern is listed in the links below.</p>
+<h3>A further form of runtime Adapter pattern</h3>
+<p>There is a further form of runtime adapter pattern as follows:</p>
+<p>It is desired for classA to supply classB with some data, let us suppose some String data. A compile time solution is:</p>
+<p>WHATSON? 1cb7d63c-85a2-47c6-98c6-34d2097c0c79</p>
+<pre>
+classB.setStringData(classA.getStringData());
+</pre>
+<p>However, suppose that the format of the string data must be varied. A compile time solution is to use inheritance:</p>
+<p>WHATSON? df4c4f72-d6d1-4fa6-9a33-ee7c2db38dac</p>
+<pre>
+Format1ClassA extends ClassA {
+   public String getStringData() {
+      return format(toString());
+   }
+}
+</pre>
+<p>and perhaps create the correctly "formatting" object at runtime by means of the Factory pattern.</p>
+<p>A solution using "adapters" proceeds as follows:</p>
+<p>(i) define an intermediary "Provider" interface, and write an implementation of that Provider interface that wraps the source of the data, ClassA in this example, and outputs the data formatted as appropriate:</p>
+<p>WHATSON? 4593d96c-c2eb-40dc-8398-61378eec4f05</p>
+<pre>
+public interface StringProvider {
+    public String getStringData();
+}
+ 
+public class ClassAFormat1 implements StringProvider {
+    private ClassA classA = null;
+ 
+    public ClassAFormat1(final ClassA A) {
+        classA = A;
+    }
+ 
+    public String getStringData() {
+        return format(classA.toString());
+    }
+ 
+    private String format(string sourceValue) {
+        //manipulate the source string into
+        //a format required by the object needing the source object's
+        //data
+        return sourceValue.trim();
+    }
+}
+</pre>
+<p>(ii) Write an Adapter class that returns the specific implementation of the Provider:</p>
+<p>WHATSON? a9bcbfa7-ec46-4fb3-ae01-c2fb994d558b</p>
+<pre>
+public class ClassAFormat1Adapter extends Adapter {
+   public Object adapt(final Object OBJECT) {
+      return new ClassAFormat1((ClassA) OBJECT);
+   }
+}
+</pre>
+<p>(iii) Register the Adapter with a global registry, so that the Adapter can be looked up at runtime:</p>
+<p>WHATSON? 0eaea10b-92ad-495c-8a3e-6c0df5e34d64</p>
+<pre>
+AdapterFactory.getInstance().registerAdapter(ClassA.class, ClassAFormat1Adapter.class, "format1");
+</pre>
+<p>(iv) In your code, when you wish to transfer data from ClassA to ClassB, write:</p>
+<p>WHATSON? 213227a0-98ed-41e3-98be-f6ba1e051f86</p>
+<pre>
+Adapter adapter = AdapterFactory.getInstance().getAdapterFromTo(ClassA.class,
+    StringProvider.class, "format1");
+StringProvider provider = (StringProvider) adapter.adapt(classA);
+String string = provider.getStringData();
+classB.setStringData(string);
+</pre>
+<p>or more concisely:</p>
+<p>WHATSON? ec3f3690-a6f9-48dc-a587-ac9fd5b1a441</p>
+<pre>
+classB.setStringData(((StringProvider) AdapterFactory.getInstance().getAdapterFromTo(ClassA.class,
+    StringProvider.class, "format1").adapt(classA)).getStringData());
+</pre>
+<p>(v) The advantage can be seen in that, if it is desired to transfer the data in a second format, then look up the different adapter/provider:</p>
+<p>WHATSON? 0025d299-2d55-443c-b5e3-6929a1e0ef98</p>
+<pre>
+Adapter adapter = AdapterFactory.getInstance().getAdapterFromTo(ClassA.class,
+    StringProvider.class, "format2");
+</pre>
+<p>(vi) And if it is desired to output the data from ClassA as, say, image data in Class C:</p>
+<p>WHATSON? 6fba3500-af64-46bf-8e1c-411b091da378</p>
+<pre>
+Adapter adapter = AdapterFactory.getInstance().getAdapterFromTo(ClassA.class, ImageProvider.class,
+    "format2");
+ImageProvider provider = (ImageProvider) adapter.adapt(classA);
+classC.setImage(provider.getImage());
+</pre>
+<p>(vii) In this way, the use of adapters and providers allows multiple "views" by ClassB and ClassC into ClassA without having to alter the class hierarchy. In general, it permits a mechanism for arbitrary data flows between objects that can be retrofitted to an existing object hierarchy.</p>
+<p><br></p>
+<h3>Implementation of Adapter pattern</h3>
+<p>When implementing the adapter pattern, for clarity one can apply the class name [AdapteeClassName]To[Interface]Adapter to the provider implementation, for example DAOToProviderAdapter. It should have a constructor method with an adaptee class variable as a parameter. This parameter will be passed to an instance member of [AdapteeClassName]To[Interface]Adapter. When the clientMethod is called it will have access to the adaptee instance which allows for accessing the required data of the adaptee and performing operations on that data that generates the desired output.</p>
+<p>WHATSON? 26866b3e-5690-47c6-a6e7-909a5d72349b</p>
+<pre>
+public class AdapteeToClientAdapter implements Client {
+ 
+    private final Adaptee instance;
+ 
+    public AdapteeToClientAdapter(final Adaptee instance) {
+         this.instance = instance;
+    }
+ 
+    @Override
+    public void clientMethod() {
+       // call Adaptee's method(s) to implement Client's clientMethod
+    }
+ 
+}
+</pre>
+<h2>See also</h2>
+<ul>
+<li>Delegation, strongly relevant to the object adapter pattern.</li>
+<li>Dependency inversion principle, which can be thought of as applying the Adapter pattern, when the high-level class defines their own (adapter) interface to the low-level module (implemented by an Adaptee class).</li>
+<li>Wrapper function</li>
+<li>Wrapper library</li>
+</ul>
+</body>
+</html>

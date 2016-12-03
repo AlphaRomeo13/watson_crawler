@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Mutator-method---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Mutator method</h1>
+<p>In computer science, a <b>mutator method</b> is a method used to control changes to a variable. They are also widely known as <i><b>setter</b></i> methods. Often a setter is accompanied by a <b>getter</b> (also known as an <i>accessor</i>), which returns the value of the private member variable.</p>
+<p>The mutator method is most often used in object-oriented programming, in keeping with the principle of encapsulation. According to this principle, member variables of a class are made private to hide and protect them from other code, and can only be modified by a public member function (the mutator method), which takes the desired new value as a parameter, optionally validates it, and modifies the private member variable.</p>
+<p>Mutator methods may also be used in non-object-oriented environments. In this case, a reference to the variable to be modified is passed to the mutator, along with the new value. In this scenario, the compiler cannot restrict code from bypassing the mutator method and changing the variable directly. The onus falls to the developers to ensure the variable is only modified through the mutator method and not modified directly.</p>
+<p>In programming languages that support them, properties offer a convenient alternative without giving up the utility of encapsulation.</p>
+<p>In the examples below, a fully implemented mutator method can also validate the input data or take further action such as triggering an event.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Implications</li>
+<li>2 Examples
+<ul>
+<li>2.1 Assembly example</li>
+<li>2.2 C example</li>
+<li>2.3 C++ example</li>
+<li>2.4 C# example</li>
+<li>2.5 Common Lisp example</li>
+<li>2.6 D example</li>
+<li>2.7 Delphi example</li>
+<li>2.8 Java example</li>
+<li>2.9 JavaScript example</li>
+<li>2.10 Actionscript 3.0 example</li>
+<li>2.11 Objective-C example</li>
+<li>2.12 Perl example</li>
+<li>2.13 PHP example</li>
+<li>2.14 Python example</li>
+<li>2.15 Racket</li>
+<li>2.16 Ruby example</li>
+<li>2.17 Smalltalk example</li>
+<li>2.18 Visual Basic .NET example</li>
+</ul>
+</li>
+<li>3 See also</li>
+<li>4 References</li>
+</ul>
+<ul>
+<li>2.1 Assembly example</li>
+<li>2.2 C example</li>
+<li>2.3 C++ example</li>
+<li>2.4 C# example</li>
+<li>2.5 Common Lisp example</li>
+<li>2.6 D example</li>
+<li>2.7 Delphi example</li>
+<li>2.8 Java example</li>
+<li>2.9 JavaScript example</li>
+<li>2.10 Actionscript 3.0 example</li>
+<li>2.11 Objective-C example</li>
+<li>2.12 Perl example</li>
+<li>2.13 PHP example</li>
+<li>2.14 Python example</li>
+<li>2.15 Racket</li>
+<li>2.16 Ruby example</li>
+<li>2.17 Smalltalk example</li>
+<li>2.18 Visual Basic .NET example</li>
+</ul>
+<p></p>
+<h2>Implications</h2>
+<p>The alternative to defining mutator and accessor methods, or property blocks, is to give the instance variable some visibility other than private and access it directly from outside the objects. Much finer control of access rights can be defined using mutators and accessors. For example, a parameter may be made read-only simply by defining an accessor but not a mutator. The visibility of the two methods may be different; it is often useful for the accessor to be public while the mutator remains protected, package-private or internal.</p>
+<p>The block where the mutator is defined provides an opportunity for validation or preprocessing of incoming data. If all external access is guaranteed to come through the mutator, then these steps cannot be bypassed. For example, if a date is represented by separate private <code>year</code>, <code>month</code> and <code>day</code> variables, then incoming dates can be split by the <code>setDate</code> mutator while for consistency the same private instance variables are accessed by <code>setYear</code> and <code>setMonth</code>. In all cases month values outside of 1 - 12 can be rejected by the same code.</p>
+<p>Accessors conversely allow for synthesis of useful data representations from internal variables while keeping their structure encapsulated and hidden from outside modules. A monetary <code>getAmount</code> accessor may build a string from a numeric variable with the number of decimal places defined by a hidden <code>currency</code> parameter.</p>
+<p>Modern programming languages often offer the ability to generate the boilerplate for mutators and accessors in a single line—as for example C#'s <code>public string Name { get; set; }</code> and Ruby's <code>attr_accessor :name</code>. In these cases, no code blocks are created for validation, preprocessing or synthesis. These simplified accessors still retain the advantage of encapsulation over simple public instance variables, but it is common that, as system designs progress, the software is maintained and requirements change, the demands on the data become more sophisticated. Many automatic mutators and accessors eventually get replaced by separate blocks of code. The benefit of automatically creating them in the early days of the implementation is that the public interface of the class remains identical whether or not greater sophistication is added, requiring no extensive refactoring if it is.</p>
+<p>Manipulation of parameters that have mutators and accessors from <i>inside</i> the class where they are defined often requires some additional thought. In the early days of an implementation, when there is little or no additional code in these blocks, it makes no difference if the private instance variable is accessed directly or not. As validation, cross-validation, data integrity checks, preprocessing or other sophistication is added, subtle bugs may appear where some internal access makes use of the newer code while in other places it is bypassed.</p>
+<p>Accessor functions can be less efficient than directly fetching or storing data fields due to the extra steps involved, however such functions are often inlined which eliminates the overhead of a function call.</p>
+<h2>Examples</h2>
+<h3>Assembly example</h3>
+<p>WHATSON? fd862dfe-ac8a-4df8-93dc-2aef3d3927fe</p>
+<pre>
+student                   struct
+    age         dd        ?
+student                   ends
+ 
+                     .code
+student_get_age       proc      object:DWORD
+                      mov       ebx, object
+                      mov       eax, student.age[ebx]
+                      ret
+student_get_age       endp
+ 
+student_set_age       proc      object:DWORD, age:DWORD
+                      mov       ebx, object
+                      mov       eax, age
+                      mov       student.age[ebx], eax
+                      ret
+student_set_age       endp
+</pre>
+<h3>C example</h3>
+<p>Note that it is perfectly possible to do object-oriented programming with guaranteed encapsulation in pure C.</p>
+<p>In file student.h:</p>
+<p>WHATSON? a14c4131-e592-49bf-b930-866af7f85bef</p>
+<pre>
+#ifndef STUDENT_H
+#define STUDENT_H
+ 
+typedef struct student *student_t;
+ 
+student_t student_new(int age, char *name);
+void student_delete(student_t s); 
+ 
+void student_set_age(student_t s, int age);
+int student_get_age(student_t s);
+ 
+#endif
+</pre>
+<p>In file student.c:</p>
+<p>WHATSON? 16b26d68-61b7-417c-862f-72ac4b54b08a</p>
+<pre>
+#include "student.h"
+ 
+struct student { int age; char *name; };
+ 
+student_t student_new(int age, char *name) {
+  student_t s = malloc(sizeof *s);
+  s-&gt;age = age; s-&gt;name = name;
+  return s;
+}
+ 
+void student_delete(student_t s) {
+  free(s);
+}
+ 
+void student_set_age(student_t s, int age) {
+  s-&gt;age = age;
+}
+ 
+int student_get_age(student_t s) {
+  return s-&gt;age;
+}
+</pre>
+<p>In file main.c:</p>
+<p>WHATSON? ec7e1cb6-2024-4b71-b978-071c427655fe</p>
+<pre>
+#include "student.h"
+ 
+int main(void) {
+  student_t s = student_new(19, "Maurice");
+  int old_age = student_get_age(s);
+  student_set_age(s, 21);
+  student_delete(s);
+  return 0;
+}
+</pre>
+<h3>C++ example</h3>
+<p>In file Student.h:</p>
+<p>WHATSON? d50cf76d-1bfb-429e-bb6d-8aafdbb9c848</p>
+<pre>
+#ifndef STUDENT_H
+#define STUDENT_H
+ 
+#include &lt;string&gt;
+ 
+class Student {
+public:
+    Student(const std::string&amp; name);
+ 
+    const std::string&amp; name() const;
+    void name(const std::string&amp; name);
+ 
+private:
+    std::string name_;
+};
+ 
+#endif
+</pre>
+<p>In file Student.cpp:</p>
+<p>WHATSON? 96ea1c87-89da-4059-84b7-c2a8350ad398</p>
+<pre>
+#include "Student.h"
+ 
+Student::Student(const std::string&amp; name) : name_(name) {
+}
+ 
+const std::string&amp; Student::name() const {
+    return name_;
+}
+ 
+void Student::name(const std::string&amp; name) {
+    name_ = name;
+}
+</pre>
+<h3>C# example</h3>
+<p>This example illustrates the C# idea of properties, which are a special type of class member. Unlike Java, no explicit methods are defined; a public 'property' contains the logic to handle the actions. Note use of the built-in (undeclared) variable <code>value</code>.</p>
+<p>WHATSON? b0ebdb1b-424d-48b3-a2ae-9cd17281dbaf</p>
+<pre>
+public class Student {
+    private string name;
+ 
+    /// &lt;summary&gt;
+    /// Gets or sets student's name
+    /// &lt;/summary&gt;
+    public string Name {
+        get { return name; }
+	set { name = value; }
+    }
+}
+</pre>
+<p>In later C# versions (.NET Framework 3.5 and above), this example may be abbreviated as follows, without declaring the private variable <code>name</code>.</p>
+<p>WHATSON? 6aa4bd3a-3c07-46aa-8396-7dde62faef3a</p>
+<pre>
+public class Student {
+    public string Name { get; set; }
+}
+</pre>
+<p>Using the abbreviated syntax means that the underlying variable is no longer available from inside the class. As a result, the <code>set</code> portion of the property must be present for assignment. Access can be restricted with a <code>set</code>-specific access modifier.</p>
+<p>WHATSON? 305c0d93-81a5-4ac4-b722-b364aa52a574</p>
+<pre>
+public class Student {
+    public string Name { get; private set; }
+}
+</pre>
+<h3>Common Lisp example</h3>
+<p>In Common Lisp Object System, slot specifications within class definitions may specify any of the <code>:reader</code>, <code>:writer</code> and <code>:accessor</code> options (even multiple times) to define reader methods, setter methods and accessor methods (a reader method and the respective <code>setf</code> method). Slots are always directly accessible through their names with the use of <code>with-slots</code> and <code>slot-value</code>, and the slot accessor options define specialized methods that use <code>slot-value</code>.</p>
+<p>CLOS itself has no notion of properties, although the MetaObject Protocol extension specifies means to access a slot's reader and writer function names, including the ones generated with the <code>:accessor</code> option.</p>
+<p>The following example shows a definition of a student class using these slot options and direct slot access:</p>
+<p>WHATSON? 039ada7c-da35-4026-b019-8c60f7aab488</p>
+<pre>
+(defclass student ()
+  ((name      :initarg :name      :initform "" :accessor student-name) ; student-name is setf'able
+   (birthdate :initarg :birthdate :initform 0  :reader student-birthdate)
+   (number    :initarg :number    :initform 0  :reader student-number :writer set-student-number)))
+ 
+;; Example of a calculated property getter (this is simply a method)
+(defmethod student-age ((self student))
+  (- (get-universal-time) (student-birthdate self)))
+ 
+;; Example of direct slot access within a calculated property setter
+(defmethod (setf student-age) (new-age (self student))
+  (with-slots (birthdate) self
+    (setf birthdate (- (get-universal-time) new-age))
+    new-age))
+ 
+;; The slot accessing options generate methods, thus allowing further method definitions
+(defmethod set-student-number :before (new-number (self student))
+  ;; You could also check if a student with the new-number already exists.
+  (check-type new-number (integer 1 *)))
+</pre>
+<h3>D example</h3>
+<p>D supports a getter and setter function syntax. In version 2 of the language getter and setter class/struct methods should have the <code>@property</code> attribute.</p>
+<p>WHATSON? 92434a4e-95d0-466f-ad6e-6f0761fa1118</p>
+<pre>
+class Student {
+    private char[] name_;
+    // Getter
+    @property char[] name() {
+        return this.name_;
+    }
+    // Setter
+    @property char[] name(char[] name_in) {
+        return this.name_ = name_in;
+    }
+}
+</pre>
+<p>A <code>Student</code> instance can be used like this:</p>
+<p>WHATSON? 85f572c9-d039-461a-9f74-5c6cac5746a6</p>
+<pre>
+auto student = new Student;
+student.name = "David";           // same effect as student.name("David")
+auto student_name = student.name; // same effect as student.name()
+</pre>
+<h3>Delphi example</h3>
+<p>This is a simple class in Delphi language that illustrates the concept of public property that access a private field.</p>
+<p>WHATSON? 08f1a07e-5174-4100-8025-8a17934281dd</p>
+<pre>
+interface
+ 
+type
+  TStudent = class
+  strict private
+    FName: string;
+    procedure SetName(const Value: string);
+  public
+    /// &lt;summary&gt;
+    /// Get or set the name of the student.
+    /// &lt;/summary&gt;
+    property Name: string read FName write SetName;
+  end;
+</pre>
+<h3>Java example</h3>
+<p>In this example of a simple class representing a student with only the name stored, one can see the variable <i>name</i> is private, i.e. only visible from the Student class, and the "setter" and "getter" are public, namely the "<code>getName()</code>" and "<code>setName(name)</code>" methods.</p>
+<p>WHATSON? 49d3a118-5d41-437e-a8c5-955d129cd28f</p>
+<pre>
+public class Student {
+    private String name;
+ 
+    public String getName() {
+        return name;
+    }
+ 
+    public void setName(String newName) {
+        name = newName;
+    }
+}
+</pre>
+<h3>JavaScript example</h3>
+<p>In this example constructor-function <code>Student</code> is used to create objects representing a student with only the name stored.</p>
+<p>WHATSON? 0383eab0-849c-4856-abd8-398fc2e089aa</p>
+<pre>
+function Student(name) {
+  var _name = name;
+ 
+  this.getName = function() {
+    return _name;
+  };
+ 
+  this.setName = function(value) {
+    _name = value;
+  };
+}
+</pre>
+<p>Or (non-standard):</p>
+<p>WHATSON? 1d44d4f1-fa13-4338-ae51-e7719bb23743</p>
+<pre>
+function Student(name){
+    var _name = name;
+ 
+    this.__defineGetter__('name', function() {
+        return _name;
+    });
+ 
+    this.__defineSetter__('name', function(value) {
+        _name = value;
+    });
+}
+</pre>
+<p>Or (if use prototypes for inheritance):</p>
+<p>WHATSON? a593eab9-b5ec-4362-8200-bae5136ab9c1</p>
+<pre>
+function Student(name){
+    this._name = name;
+}
+ 
+Student.prototype = {
+    get name() {
+        return this._name;
+    },
+    set name(value) {
+        this._name = value;
+    }
+};
+</pre>
+<p>Or (without using prototypes):</p>
+<p>WHATSON? 7bf65705-6161-4f80-8552-3d808e0c9c41</p>
+<pre>
+var Student = {
+    get name() {
+        return this._name;
+    },
+    set name(value) {
+        this._name = value;
+    }
+};
+</pre>
+<p>Or (if using defineProperty):</p>
+<p>WHATSON? 98a299b8-c4f2-4d3e-8c61-e2c8a5a4c7a6</p>
+<pre>
+function Student(name){
+    this._name = name;
+}
+Object.defineProperty(Student.prototype, 'name', {
+    get: function() {
+            return this._name;
+        },
+    set: function(value) {
+            this._name = value;
+        }
+});
+</pre>
+<h3>Actionscript 3.0 example</h3>
+<p>WHATSON? 42007e9e-ef3a-475a-b76c-aa9282f292bf</p>
+<pre>
+package
+{
+    public class Student
+    {
+        private var _name : String;
+ 
+        public function get name() : String
+        { 
+          return _name;
+        }
+ 
+        public function set name(value : String) : void
+        {
+          _name = value;
+        }
+    }
+}
+</pre>
+<h3>Objective-C example</h3>
+<p>Using traditional Objective-C 1.0 syntax, with manual reference counting as the one working on GNUstep on Ubuntu 12.04:</p>
+<p>WHATSON? 0e1c19e2-7f09-4c22-913e-c0a6bb6fe6fd</p>
+<pre>
+@interface Student : NSObject
+{
+    NSString *_name;
+}
+ 
+- (NSString *)name;
+- (void)setName:(NSString *)name;
+ 
+@end
+ 
+@implementation Student
+ 
+- (NSString *)name
+{
+    return _name;
+}
+ 
+- (void)setName:(NSString *)name
+{
+    [_name release];
+    _name = [name retain];
+}
+ 
+@end
+</pre>
+<p>Using newer Objective-C 2.0 syntax as used in Mac OS X 10.6, iOS 4 and Xcode 3.2, generating the same code as described above:</p>
+<p>WHATSON? b0ebb7bf-36a9-4767-b3ea-4a3c7d0380ed</p>
+<pre>
+@interface Student : NSObject
+ 
+@property (nonatomic, retain) NSString *name;
+ 
+@end
+ 
+@implementation Student
+ 
+@synthesize name = _name;
+ 
+@end
+</pre>
+<p>And starting with OS X 10.8 and iOS 6, while using Xcode 4.4 and up, syntax can be even simplified:</p>
+<p>WHATSON? 46a78429-4cbd-482a-8ae0-d4b71860302c</p>
+<pre>
+@interface Student : NSObject
+ 
+@property (nonatomic, strong) NSString *name;
+ 
+@end
+ 
+@implementation Student
+ 
+//Nothing goes here and it's OK.
+ 
+@end
+</pre>
+<h3>Perl example</h3>
+<p>WHATSON? 319c9f19-0981-446a-ba29-a2273cd6daaf</p>
+<pre>
+package Student;
+ 
+sub new {
+	bless {}, shift;
+}
+ 
+sub set_name {
+	my $self = shift;
+	$self-&gt;{name} = $_[0];
+}
+ 
+sub get_name {
+	my $self = shift;
+	return $self-&gt;{name};
+}
+ 
+1;
+</pre>
+<p>Or, using Class::Accessor</p>
+<p>WHATSON? 234a362a-9b62-4cc9-98a0-1e028a260f92</p>
+<pre>
+package Student;
+use base qw(Class::Accessor);
+__PACKAGE__-&gt;follow_best_practice;
+ 
+Student-&gt;mk_accessors(qw(name));
+ 
+1;
+</pre>
+<p>Or, using the Moose Object System:</p>
+<p>WHATSON? 3ad8dd2d-1278-4328-a831-afccc95b0fdd</p>
+<pre>
+package Student;
+use Moose;
+ 
+# Moose uses the attribute name as the setter and getter, the reader and writer properties
+# allow us to override that and provide our own names, in this case get_name and set_name
+has 'name' =&gt; (is =&gt; 'rw', isa =&gt; 'Str', reader =&gt; 'get_name', writer =&gt; 'set_name');
+ 
+1;
+</pre>
+<h3>PHP example</h3>
+<p>In this example of a simple class representing a student with only the name stored, one can see the variable <i>name</i> is private, i.e. only visible from the Student class, and the "setter" and "getter" is public, namely the <code>getName()</code> and <code>setName('name')</code> methods.</p>
+<p>WHATSON? a65edd01-63c4-420e-b919-8ac6d5dfca64</p>
+<pre>
+class Student {
+    private $name;
+ 
+    /**
+     * @return the $name
+     */
+    public function getName() {
+        return $this-&gt;name;
+    }
+ 
+    /**
+     * @param $newName
+     * the name to set
+     */
+    public function setName($newName) {
+        $this-&gt;name = $newName;
+    }
+}
+</pre>
+<h3>Python example</h3>
+<p>This example uses a Python class with one variable, a getter, and a setter.</p>
+<p>WHATSON? 9ce3ade1-d4bf-40e0-b287-3d429ff64444</p>
+<pre>
+class Student(object):
+    # Initializer
+    def __init__(self, name):
+        # An instance variable to hold the student's name
+        self._name = name
+ 
+    # Getter method
+    @property
+    def name(self):
+        return self._name
+ 
+    # Setter method
+    @name.setter
+    def name(self, new_name):
+        self._name = new_name
+</pre>
+<p>WHATSON? 283ad8af-9e42-4093-ae95-61e5f8d650f6</p>
+<pre>
+&gt;&gt;&gt; bob = Student("Bob")
+&gt;&gt;&gt; bob.name 
+Bob
+&gt;&gt;&gt; bob.name = "Alice"
+&gt;&gt;&gt; bob.name 
+Alice
+&gt;&gt;&gt; bob._name = "Charlie" # bypass the setter
+&gt;&gt;&gt; bob._name # bypass the getter
+Charlie
+</pre>
+<h3>Racket</h3>
+<p>In Racket, the object system is a way to organize code that comes in addition to modules and units. As in the rest of the language, the object system has first-class values and lexical scope is used to control access to objects and methods.</p>
+<p>WHATSON? 8fa06c78-2e40-4900-8f5a-89813f29200a</p>
+<pre>
+#lang racket
+(define student%
+  (class object%
+    (init-field name)
+    (define/public (get-name) name)
+    (define/public (set-name! new-name) (set! name new-name))
+    (super-new)))
+ 
+(define s (new student% [name "Alice"]))
+(send s get-name)                       ; =&gt; "Alice"
+(send s set-name! "Bob")
+(send s get-name)                       ; =&gt; "Bob"
+</pre>
+<p>Struct definitions are an alternative way to define new types of values, with mutators being present when explicitly required:</p>
+<p>WHATSON? 4fcdd097-cd8a-41a0-9422-cd01913836d2</p>
+<pre>
+#lang racket
+(struct student (name) #:mutable)
+(define s (student "Alice"))
+(set-student-name! s "Bob")
+(student-name s)                        ; =&gt; "Bob"
+</pre>
+<h3>Ruby example</h3>
+<p>In Ruby, individual accessor and mutator methods may be defined, or the metaprogramming constructs <code>attr_reader</code> or <code>attr_accessor</code> may be used both to declare a private variable in a class and to provide either read-only or read-write public access to it respectively.</p>
+<p>Defining individual accessor and mutator methods creates space for pre-processing or validation of the data</p>
+<p>WHATSON? fc8bbc03-e2d8-416c-bb9f-9a0464c39866</p>
+<pre>
+class Student
+  def name
+    @name
+  end
+ 
+  def name=(value)
+    @name=value
+  end
+end
+</pre>
+<p>Read-only simple public access to implied <code>@name</code> variable</p>
+<p>WHATSON? 777312a8-de3c-48b9-bc6b-d0d1f02b30a7</p>
+<pre>
+class Student
+  attr_reader :name
+end
+</pre>
+<p>Read-write simple public access to implied <code>@name</code> variable</p>
+<p>WHATSON? 437002f7-05d9-4152-af5d-401703783494</p>
+<pre>
+class Student
+  attr_accessor :name
+end
+</pre>
+<h3>Smalltalk example</h3>
+<p>WHATSON? 6129b802-6478-4c11-a1ea-afd2a11898eb</p>
+<pre>
+  age: aNumber
+     " Set the receiver age to be aNumber if is greater than 0 and less than 150 "
+    (aNumber between: 0 and: 150)
+       ifTrue: [ age := aNumber ]
+</pre>
+<h3>Visual Basic .NET example</h3>
+<p>This example illustrates the VB.NET idea of properties, which are used in classes. Similar to C#, there is an explicit use of the <code>Get</code> and <code>Set</code> methods.</p>
+<p>WHATSON? 2440ce61-3132-4fc2-80c8-7442537a296f</p>
+<pre>
+Public Class Student
+ 
+    Private _name As String
+ 
+    Public Property Name()
+        Get
+            Return _name
+        End Get
+        Set(ByVal value)
+            _name = value
+        End Set
+    End Property
+ 
+End Class
+</pre>
+<p>In VB.NET 2010, Auto Implemented properties can be utilized to create a property without having to use the Get and Set syntax. Note that a hidden variable is created by the compiler, called <code>_name</code>, to correspond with the Property <code>name</code>. Using another variable within the class named <code>_name</code> would result in an error. Privileged access to the underlying variable is available from within the class.</p>
+<p>WHATSON? db7c782c-a918-4db2-8fb1-e651cbae7819</p>
+<pre>
+Public Class Student
+    Public Property name As String
+End Class
+</pre>
+<h2>See also</h2>
+<ul>
+<li>Immutable object</li>
+</ul>
+</body>
+</html>

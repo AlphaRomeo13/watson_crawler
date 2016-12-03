@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Processes-and-Threads--Android-Developers.html</title></head>
+<body>
+<h1>Processes and Threads</h1>
+<h2>In this document</h2>
+<ol>
+<li>Processes
+  <ol>
+    <li>Process lifecycle</li>
+  </ol>
+</li>
+<li>Threads
+  <ol>
+    <li>Worker threads</li>
+    <li>Thread-safe methods</li>
+  </ol>
+</li>
+<li>Interprocess Communication</li>
+</ol>
+<ol>
+    <li>Process lifecycle</li>
+  </ol>
+<ol>
+    <li>Worker threads</li>
+    <li>Thread-safe methods</li>
+  </ol>
+<p>When an application component starts and the application does not have any other components
+running, the Android system starts a new Linux process for the application with a single thread of
+execution. By default, all components of the same application run in the same process and thread
+(called the "main" thread). If an application component starts and there already exists a process
+for that application (because another component from the application exists), then the component is
+started within that process and uses the same thread of execution. However, you can arrange for
+different components in your application to run in separate processes, and you can create additional
+threads for any process.</p>
+<p>This document discusses how processes and threads work in an Android application.</p>
+<h2>Processes</h2>
+<p>By default, all components of the same application run in the same process and most applications
+should not change this. However, if you find that you need to control which process a certain
+component belongs to, you can do so in the manifest file.</p>
+<p>The manifest entry for each type of component element—<code>&lt;activity&gt;</code>, <code>&lt;service&gt;</code>, <code>&lt;receiver&gt;</code>, and <code>&lt;provider&gt;</code>—supports an <code>android:process</code> attribute that can specify a
+process in which that component should run. You can set this attribute so that each component runs
+in its own process or so that some components share a process while others do not.  You can also set
+<code>android:process</code> so that components of different applications run in the same
+process—provided that the applications share the same Linux user ID and are signed with the
+same certificates.</p>
+<p>The <code>&lt;application&gt;</code> element also supports an <code>android:process</code> attribute, to set a
+default value that applies to all components.</p>
+<p>Android might decide to shut down a process at some point, when memory is low and required by
+other processes that are more immediately serving the user. Application
+components running in the process that's killed are consequently destroyed.  A process is started
+again for those components when there's again work for them to do.</p>
+<p>When deciding which processes to kill, the Android system weighs their relative importance to
+the user.  For example, it more readily shuts down a process hosting activities that are no longer
+visible on screen, compared to a process hosting visible activities. The decision whether to
+terminate a process, therefore, depends on the state of the components running in that process. The
+rules used to decide which processes to terminate is discussed below. </p>
+<h3>Process lifecycle</h3>
+<p>The Android system tries to maintain an application process for as long as possible, but
+eventually needs to remove old processes to reclaim memory for new or more important processes.  To
+determine which processes to keep
+and which to kill, the system places each process into an "importance hierarchy" based on the
+components running in the process and the state of those components.  Processes with the lowest
+importance are eliminated first, then those with the next lowest importance, and so on, as necessary
+to recover system resources.</p>
+<p>There are five levels in the importance hierarchy. The following list presents the different
+types of processes in order of importance (the first process is <em>most important</em> and is
+<em>killed last</em>):</p>
+<ol>
+  <li><b>Foreground process</b>
+    <p>A process that is required for what the user is currently doing.  A
+      process is considered to be in the foreground if any of the following conditions are true:</p>
+
+      <ul>
+        <li>It hosts an <code>Activity</code> that the user is interacting with (the <code>Activity</code>'s <code>onResume()</code> method has been
+called).</li>
+
+        <li>It hosts a <code>Service</code> that's bound to the activity that the user is
+interacting with.</li>
+
+        <li>It hosts a <code>Service</code> that's running "in the foreground"—the
+service has called <code>startForeground()</code>.
+
+        </li><li>It hosts a <code>Service</code> that's executing one of its lifecycle
+callbacks (<code>onCreate()</code>, <code>onStart()</code>, or <code>onDestroy()</code>).</li>
+
+        <li>It hosts a <code>BroadcastReceiver</code> that's executing its <code>onReceive()</code> method.</li>
+    </ul>
+
+    <p>Generally, only a few foreground processes exist at any given time.  They are killed only as
+a last resort—if memory is so low that they cannot all continue to run.  Generally, at that
+point, the device has reached a memory paging state, so killing some foreground processes is
+required to keep the user interface responsive.</p></li>
+
+  <li><b>Visible process</b>
+    <p>A process that doesn't have any foreground components, but still can
+      affect what the user sees on screen. A process is considered to be visible if either of the
+      following conditions are true:</p>
+
+      <ul>
+        <li>It hosts an <code>Activity</code> that is not in the foreground, but is still
+visible to the user (its <code>onPause()</code> method has been called). 
+This might occur, for example, if the foreground activity started a dialog, which allows the
+previous activity to be seen behind it.</li>
+
+        <li>It hosts a <code>Service</code> that's bound to a visible (or foreground)
+activity.</li>
+      </ul>
+
+      <p>A visible process is considered extremely important and will not be killed unless doing so
+is required to keep all foreground processes running. </p>
+    </li>
+
+  <li><b>Service process</b>
+    <p>A process that is running a service that has been started with the <code>startService()</code> method and does not fall into either of the two
+higher categories. Although service processes are not directly tied to anything the user sees, they
+are generally doing things that the user cares about (such as playing music in the background or
+downloading  data on the network), so the system keeps them running unless there's not enough memory
+to retain them along with all foreground and visible processes. </p>
+  </li>
+
+  <li><b>Background process</b>
+    <p>A process holding an activity that's not currently visible to the user  (the activity's
+<code>onStop()</code> method has been called). These processes have no direct
+impact on the user experience, and the system can kill them at any time to reclaim memory for a
+foreground,
+visible, or service process. Usually there are many background processes running, so they are kept
+in an LRU (least recently used) list to ensure that the process with the activity that was most
+recently seen by the user is the last to be killed. If an activity implements its lifecycle methods
+correctly, and saves its current state, killing its process will not have a visible effect on
+the user experience, because when the user navigates back to the activity, the activity restores
+all of its visible state. See the Activities
+document for information about saving and restoring state.</p>
+  </li>
+
+  <li><b>Empty process</b>
+    <p>A process that doesn't hold any active application components.  The only reason to keep this
+kind of process alive is for caching purposes, to improve startup time the next time a component
+needs to run in it.  The system often kills these processes in order to balance overall system
+resources between process caches and the underlying kernel caches.</p>
+  </li>
+</ol>
+<p>A process that is required for what the user is currently doing.  A
+      process is considered to be in the foreground if any of the following conditions are true:</p>
+<ul>
+        <li>It hosts an <code>Activity</code> that the user is interacting with (the <code>Activity</code>'s <code>onResume()</code> method has been
+called).</li>
+
+        <li>It hosts a <code>Service</code> that's bound to the activity that the user is
+interacting with.</li>
+
+        <li>It hosts a <code>Service</code> that's running "in the foreground"—the
+service has called <code>startForeground()</code>.
+
+        </li><li>It hosts a <code>Service</code> that's executing one of its lifecycle
+callbacks (<code>onCreate()</code>, <code>onStart()</code>, or <code>onDestroy()</code>).</li>
+
+        <li>It hosts a <code>BroadcastReceiver</code> that's executing its <code>onReceive()</code> method.</li>
+    </ul>
+<p>Generally, only a few foreground processes exist at any given time.  They are killed only as
+a last resort—if memory is so low that they cannot all continue to run.  Generally, at that
+point, the device has reached a memory paging state, so killing some foreground processes is
+required to keep the user interface responsive.</p>
+<p>A process that doesn't have any foreground components, but still can
+      affect what the user sees on screen. A process is considered to be visible if either of the
+      following conditions are true:</p>
+<ul>
+        <li>It hosts an <code>Activity</code> that is not in the foreground, but is still
+visible to the user (its <code>onPause()</code> method has been called). 
+This might occur, for example, if the foreground activity started a dialog, which allows the
+previous activity to be seen behind it.</li>
+
+        <li>It hosts a <code>Service</code> that's bound to a visible (or foreground)
+activity.</li>
+      </ul>
+<p>A visible process is considered extremely important and will not be killed unless doing so
+is required to keep all foreground processes running. </p>
+<p>A process that is running a service that has been started with the <code>startService()</code> method and does not fall into either of the two
+higher categories. Although service processes are not directly tied to anything the user sees, they
+are generally doing things that the user cares about (such as playing music in the background or
+downloading  data on the network), so the system keeps them running unless there's not enough memory
+to retain them along with all foreground and visible processes. </p>
+<p>A process holding an activity that's not currently visible to the user  (the activity's
+<code>onStop()</code> method has been called). These processes have no direct
+impact on the user experience, and the system can kill them at any time to reclaim memory for a
+foreground,
+visible, or service process. Usually there are many background processes running, so they are kept
+in an LRU (least recently used) list to ensure that the process with the activity that was most
+recently seen by the user is the last to be killed. If an activity implements its lifecycle methods
+correctly, and saves its current state, killing its process will not have a visible effect on
+the user experience, because when the user navigates back to the activity, the activity restores
+all of its visible state. See the Activities
+document for information about saving and restoring state.</p>
+<p>A process that doesn't hold any active application components.  The only reason to keep this
+kind of process alive is for caching purposes, to improve startup time the next time a component
+needs to run in it.  The system often kills these processes in order to balance overall system
+resources between process caches and the underlying kernel caches.</p>
+<p>Android ranks a process at the highest level it can, based upon the importance of the
+components currently active in the process.  For example, if a process hosts a service and a visible
+activity, the process is ranked as a visible process, not a service process.</p>
+<p>In addition, a process's ranking might be increased because other processes are dependent on
+it—a process that is serving another process can never be ranked lower than the process it is
+serving. For example, if a content provider in process A is serving a client in process B, or if a
+service in process A is bound to a component in process B, process A is always considered at least
+as important as process B.</p>
+<p>Because a process running a service is ranked higher than a process with background activities,
+an activity that initiates a long-running operation might do well to start a service for that operation, rather than
+simply create a worker thread—particularly if the operation will likely outlast the activity.
+For example, an activity that's uploading a picture to a web site should start a service to perform
+the upload so that the upload can continue in the background even if the user leaves the activity.
+Using a service guarantees that the operation will have at least "service process" priority,
+regardless of what happens to the activity. This is the same reason that broadcast receivers should
+employ services rather than simply put time-consuming operations in a thread.</p>
+<h2>Threads</h2>
+<p>When an application is launched, the system creates a thread of execution for the application,
+called "main." This thread is very important because it is in charge of dispatching events to
+the appropriate user interface widgets, including drawing events. It is also the thread in which
+your application interacts with components from the Android UI toolkit (components from the <code>android.widget</code> and <code>android.view</code> packages). As such, the main thread is also sometimes
+called the UI thread.</p>
+<p>The system does <em>not</em> create a separate thread for each instance of a component. All
+components that run in the same process are instantiated in the UI thread, and system calls to
+each component are dispatched from that thread. Consequently, methods that respond to system
+callbacks (such as <code>onKeyDown()</code> to report user actions
+or a lifecycle callback method) always run in the UI thread of the process.</p>
+<p>For instance, when the user touches a button on the screen, your app's UI thread dispatches the
+touch event to the widget, which in turn sets its pressed state and posts an invalidate request to
+the event queue. The UI thread dequeues the request and notifies the widget that it should redraw
+itself.</p>
+<p>When your app performs intensive work in response to user interaction, this single thread model
+can yield poor performance unless you implement your application properly. Specifically, if
+everything is happening in the UI thread, performing long operations such as network access or
+database queries will block the whole UI. When the thread is blocked, no events can be dispatched,
+including drawing events. From the user's perspective, the
+application appears to hang. Even worse, if the UI thread is blocked for more than a few seconds
+(about 5 seconds currently) the user is presented with the infamous "application not
+responding" (ANR) dialog. The user might then decide to quit your application and uninstall it
+if they are unhappy.</p>
+<p>Additionally, the Andoid UI toolkit is <em>not</em> thread-safe. So, you must not manipulate
+your UI from a worker thread—you must do all manipulation to your user interface from the UI
+thread. Thus, there are simply two rules to Android's single thread model:</p>
+<ol>
+<li>Do not block the UI thread
+</li><li>Do not access the Android UI toolkit from outside the UI thread
+</li></ol>
+<h3>Worker threads</h3>
+<p>Because of the single thread model described above, it's vital to the responsiveness of your
+application's UI that you do not block the UI thread. If you have operations to perform
+that are not instantaneous, you should make sure to do them in separate threads ("background" or
+"worker" threads).</p>
+<p>For example, below is some code for a click listener that downloads an image from a separate
+thread and displays it in an <code>ImageView</code>:</p>
+<p>WHATSON? 9f40badb-389f-4042-927f-23242d61c214</p>
+<pre>
+public void onClick(View v) {
+    new Thread(new Runnable() {
+        public void run() {
+            Bitmap b = loadImageFromNetwork("http://example.com/image.png");
+            mImageView.setImageBitmap(b);
+        }
+    }).start();
+}
+</pre>
+<p>At first, this seems to work fine, because it creates a new thread to handle the network
+operation. However, it violates the second rule of the single-threaded model: <em>do not access the
+Android UI toolkit from outside the UI thread</em>—this sample modifies the <code>ImageView</code> from the worker thread instead of the UI thread. This can result in
+undefined and unexpected behavior, which can be difficult and time-consuming to track down.</p>
+<p>To fix this problem, Android offers several ways to access the UI thread from other
+threads. Here is a list of methods that can help:</p>
+<ul>
+<li><code>Activity.runOnUiThread(Runnable)</code></li>
+<li><code>View.post(Runnable)</code></li>
+<li><code>View.postDelayed(Runnable,
+long)</code></li>
+</ul>
+<p>For example, you can fix the above code by using the <code>View.post(Runnable)</code> method:</p>
+<p>WHATSON? 293acd2d-dedd-4772-a08e-968f437f2c96</p>
+<pre>
+public void onClick(View v) {
+    new Thread(new Runnable() {
+        public void run() {
+            final Bitmap bitmap = loadImageFromNetwork("http://example.com/image.png");
+            mImageView.post(new Runnable() {
+                public void run() {
+                    mImageView.setImageBitmap(bitmap);
+                }
+            });
+        }
+    }).start();
+}
+</pre>
+<p>Now this implementation is thread-safe: the network operation is done from a separate thread
+while the <code>ImageView</code> is manipulated from the UI thread.</p>
+<p>However, as the complexity of the operation grows, this kind of code can get complicated and
+difficult to maintain. To handle more complex interactions with a worker thread, you might consider
+using a <code>Handler</code> in your worker thread, to process messages delivered from the UI
+thread. Perhaps the best solution, though, is to extend the <code>AsyncTask</code> class,
+which simplifies the execution of worker thread tasks that need to interact with the UI.</p>
+<h4>Using AsyncTask</h4>
+<p><code>AsyncTask</code> allows you to perform asynchronous work on your user
+interface. It performs the blocking operations in a worker thread and then publishes the results on
+the UI thread, without requiring you to handle threads and/or handlers yourself.</p>
+<p>To use it, you must subclass <code>AsyncTask</code> and implement the <code>doInBackground()</code> callback method, which runs in a pool of
+background threads. To update your UI, you should implement <code>onPostExecute()</code>, which delivers the result from <code>doInBackground()</code> and runs in the UI thread, so you can safely
+update your UI. You can then run the task by calling <code>execute()</code>
+from the UI thread.</p>
+<p>For example, you can implement the previous example using <code>AsyncTask</code> this
+way:</p>
+<p>WHATSON? 40b67b97-4f09-427d-b4bd-a0f2fc82905f</p>
+<pre>
+public void onClick(View v) {
+    new DownloadImageTask().execute("http://example.com/image.png");
+}
+
+private class DownloadImageTask extends AsyncTask&lt;String, Void, Bitmap&gt; {
+    /** The system calls this to perform work in a worker thread and
+      * delivers it the parameters given to AsyncTask.execute() */
+    protected Bitmap doInBackground(String... urls) {
+        return loadImageFromNetwork(urls[0]);
+    }
+    
+    /** The system calls this to perform work in the UI thread and delivers
+      * the result from doInBackground() */
+    protected void onPostExecute(Bitmap result) {
+        mImageView.setImageBitmap(result);
+    }
+}
+</pre>
+<p>Now the UI is safe and the code is simpler, because it separates the work into the
+part that should be done on a worker thread and the part that should be done on the UI thread.</p>
+<p>You should read the <code>AsyncTask</code> reference for a full understanding on
+how to use this class, but here is a quick overview of how it works:</p>
+<ul>
+<li>You can specify the type of the parameters, the progress values, and the final
+value of the task, using generics</li>
+<li>The method <code>doInBackground()</code> executes automatically
+on a worker thread</li>
+<li><code>onPreExecute()</code>, <code>onPostExecute()</code>, and <code>onProgressUpdate()</code> are all invoked on the UI thread</li>
+<li>The value returned by <code>doInBackground()</code> is sent to
+<code>onPostExecute()</code></li>
+<li>You can call <code>publishProgress()</code> at anytime in <code>doInBackground()</code> to execute <code>onProgressUpdate()</code> on the UI thread</li>
+<li>You can cancel the task at any time, from any thread</li>
+</ul>
+<p><strong>Caution:</strong> Another problem you might encounter when using a worker
+thread is unexpected restarts in your activity due to a runtime configuration change
+(such as when the user changes the screen orientation), which may destroy your worker thread. To
+see how you can persist your task during one of these restarts and how to properly cancel the task
+when the activity is destroyed, see the source code for the Shelves sample application.</p>
+<h3>Thread-safe methods</h3>
+<p> In some situations, the methods you implement might be called from more than one thread, and
+therefore must be written to be thread-safe. </p>
+<p>This is primarily true for methods that can be called remotely—such as methods in a bound service. When a call on a
+method implemented in an <code>IBinder</code> originates in the same process in which the
+<code>IBinder</code> is running, the method is executed in the caller's thread.
+However, when the call originates in another process, the method is executed in a thread chosen from
+a pool of threads that the system maintains in the same process as the <code>IBinder</code> (it's not executed in the UI thread of the process).  For example, whereas a service's
+<code>onBind()</code> method would be called from the UI thread of the
+service's process, methods implemented in the object that <code>onBind()</code> returns (for example, a subclass that implements RPC methods) would be called from threads
+in the pool. Because a service can have more than one client, more than one pool thread can engage
+the same <code>IBinder</code> method at the same time.  <code>IBinder</code> methods must, therefore, be implemented to be thread-safe.</p>
+<p> Similarly, a content provider can receive data requests that originate in other processes.
+Although the <code>ContentResolver</code> and <code>ContentProvider</code>
+classes hide the details of how the interprocess communication is managed, <code>ContentProvider</code> methods that respond to those requests—the methods <code>query()</code>, <code>insert()</code>, <code>delete()</code>, <code>update()</code>, and <code>getType()</code>—are called from a pool of threads in the content provider's process, not the UI
+thread for the process.  Because these methods might be called from any number of threads at the
+same time, they too must be implemented to be thread-safe. </p>
+<h2>Interprocess Communication</h2>
+<p>Android offers a mechanism for interprocess communication (IPC) using remote procedure calls
+(RPCs), in which a method is called by an activity or other application component, but executed
+remotely (in another process), with any result returned back to the
+caller. This entails decomposing a method call and its data to a level the operating system can
+understand, transmitting it from the local process and address space to the remote process and
+address space, then reassembling and reenacting the call there.  Return values are then
+transmitted in the opposite direction.  Android provides all the code to perform these IPC
+transactions, so you can focus on defining and implementing the RPC programming interface. </p>
+<p>To perform IPC, your application must bind to a service, using <code>bindService()</code>. For more information, see the Services developer guide.</p>
+<h1>Processes and Threads</h1>
+<h2>In this document</h2>
+<ol>
+<li>Processes
+  <ol>
+    <li>Process lifecycle</li>
+  </ol>
+</li>
+<li>Threads
+  <ol>
+    <li>Worker threads</li>
+    <li>Thread-safe methods</li>
+  </ol>
+</li>
+<li>Interprocess Communication</li>
+</ol>
+<ol>
+    <li>Process lifecycle</li>
+  </ol>
+<ol>
+    <li>Worker threads</li>
+    <li>Thread-safe methods</li>
+  </ol>
+<p>When an application component starts and the application does not have any other components
+running, the Android system starts a new Linux process for the application with a single thread of
+execution. By default, all components of the same application run in the same process and thread
+(called the "main" thread). If an application component starts and there already exists a process
+for that application (because another component from the application exists), then the component is
+started within that process and uses the same thread of execution. However, you can arrange for
+different components in your application to run in separate processes, and you can create additional
+threads for any process.</p>
+<p>This document discusses how processes and threads work in an Android application.</p>
+<h2>Processes</h2>
+<p>By default, all components of the same application run in the same process and most applications
+should not change this. However, if you find that you need to control which process a certain
+component belongs to, you can do so in the manifest file.</p>
+<p>The manifest entry for each type of component element—<code>&lt;activity&gt;</code>, <code>&lt;service&gt;</code>, <code>&lt;receiver&gt;</code>, and <code>&lt;provider&gt;</code>—supports an <code>android:process</code> attribute that can specify a
+process in which that component should run. You can set this attribute so that each component runs
+in its own process or so that some components share a process while others do not.  You can also set
+<code>android:process</code> so that components of different applications run in the same
+process—provided that the applications share the same Linux user ID and are signed with the
+same certificates.</p>
+<p>The <code>&lt;application&gt;</code> element also supports an <code>android:process</code> attribute, to set a
+default value that applies to all components.</p>
+<p>Android might decide to shut down a process at some point, when memory is low and required by
+other processes that are more immediately serving the user. Application
+components running in the process that's killed are consequently destroyed.  A process is started
+again for those components when there's again work for them to do.</p>
+<p>When deciding which processes to kill, the Android system weighs their relative importance to
+the user.  For example, it more readily shuts down a process hosting activities that are no longer
+visible on screen, compared to a process hosting visible activities. The decision whether to
+terminate a process, therefore, depends on the state of the components running in that process. The
+rules used to decide which processes to terminate is discussed below. </p>
+<h3>Process lifecycle</h3>
+<p>The Android system tries to maintain an application process for as long as possible, but
+eventually needs to remove old processes to reclaim memory for new or more important processes.  To
+determine which processes to keep
+and which to kill, the system places each process into an "importance hierarchy" based on the
+components running in the process and the state of those components.  Processes with the lowest
+importance are eliminated first, then those with the next lowest importance, and so on, as necessary
+to recover system resources.</p>
+<p>There are five levels in the importance hierarchy. The following list presents the different
+types of processes in order of importance (the first process is <em>most important</em> and is
+<em>killed last</em>):</p>
+<ol>
+  <li><b>Foreground process</b>
+    <p>A process that is required for what the user is currently doing.  A
+      process is considered to be in the foreground if any of the following conditions are true:</p>
+
+      <ul>
+        <li>It hosts an <code>Activity</code> that the user is interacting with (the <code>Activity</code>'s <code>onResume()</code> method has been
+called).</li>
+
+        <li>It hosts a <code>Service</code> that's bound to the activity that the user is
+interacting with.</li>
+
+        <li>It hosts a <code>Service</code> that's running "in the foreground"—the
+service has called <code>startForeground()</code>.
+
+        </li><li>It hosts a <code>Service</code> that's executing one of its lifecycle
+callbacks (<code>onCreate()</code>, <code>onStart()</code>, or <code>onDestroy()</code>).</li>
+
+        <li>It hosts a <code>BroadcastReceiver</code> that's executing its <code>onReceive()</code> method.</li>
+    </ul>
+
+    <p>Generally, only a few foreground processes exist at any given time.  They are killed only as
+a last resort—if memory is so low that they cannot all continue to run.  Generally, at that
+point, the device has reached a memory paging state, so killing some foreground processes is
+required to keep the user interface responsive.</p></li>
+
+  <li><b>Visible process</b>
+    <p>A process that doesn't have any foreground components, but still can
+      affect what the user sees on screen. A process is considered to be visible if either of the
+      following conditions are true:</p>
+
+      <ul>
+        <li>It hosts an <code>Activity</code> that is not in the foreground, but is still
+visible to the user (its <code>onPause()</code> method has been called). 
+This might occur, for example, if the foreground activity started a dialog, which allows the
+previous activity to be seen behind it.</li>
+
+        <li>It hosts a <code>Service</code> that's bound to a visible (or foreground)
+activity.</li>
+      </ul>
+
+      <p>A visible process is considered extremely important and will not be killed unless doing so
+is required to keep all foreground processes running. </p>
+    </li>
+
+  <li><b>Service process</b>
+    <p>A process that is running a service that has been started with the <code>startService()</code> method and does not fall into either of the two
+higher categories. Although service processes are not directly tied to anything the user sees, they
+are generally doing things that the user cares about (such as playing music in the background or
+downloading  data on the network), so the system keeps them running unless there's not enough memory
+to retain them along with all foreground and visible processes. </p>
+  </li>
+
+  <li><b>Background process</b>
+    <p>A process holding an activity that's not currently visible to the user  (the activity's
+<code>onStop()</code> method has been called). These processes have no direct
+impact on the user experience, and the system can kill them at any time to reclaim memory for a
+foreground,
+visible, or service process. Usually there are many background processes running, so they are kept
+in an LRU (least recently used) list to ensure that the process with the activity that was most
+recently seen by the user is the last to be killed. If an activity implements its lifecycle methods
+correctly, and saves its current state, killing its process will not have a visible effect on
+the user experience, because when the user navigates back to the activity, the activity restores
+all of its visible state. See the Activities
+document for information about saving and restoring state.</p>
+  </li>
+
+  <li><b>Empty process</b>
+    <p>A process that doesn't hold any active application components.  The only reason to keep this
+kind of process alive is for caching purposes, to improve startup time the next time a component
+needs to run in it.  The system often kills these processes in order to balance overall system
+resources between process caches and the underlying kernel caches.</p>
+  </li>
+</ol>
+<p>A process that is required for what the user is currently doing.  A
+      process is considered to be in the foreground if any of the following conditions are true:</p>
+<ul>
+        <li>It hosts an <code>Activity</code> that the user is interacting with (the <code>Activity</code>'s <code>onResume()</code> method has been
+called).</li>
+
+        <li>It hosts a <code>Service</code> that's bound to the activity that the user is
+interacting with.</li>
+
+        <li>It hosts a <code>Service</code> that's running "in the foreground"—the
+service has called <code>startForeground()</code>.
+
+        </li><li>It hosts a <code>Service</code> that's executing one of its lifecycle
+callbacks (<code>onCreate()</code>, <code>onStart()</code>, or <code>onDestroy()</code>).</li>
+
+        <li>It hosts a <code>BroadcastReceiver</code> that's executing its <code>onReceive()</code> method.</li>
+    </ul>
+<p>Generally, only a few foreground processes exist at any given time.  They are killed only as
+a last resort—if memory is so low that they cannot all continue to run.  Generally, at that
+point, the device has reached a memory paging state, so killing some foreground processes is
+required to keep the user interface responsive.</p>
+<p>A process that doesn't have any foreground components, but still can
+      affect what the user sees on screen. A process is considered to be visible if either of the
+      following conditions are true:</p>
+<ul>
+        <li>It hosts an <code>Activity</code> that is not in the foreground, but is still
+visible to the user (its <code>onPause()</code> method has been called). 
+This might occur, for example, if the foreground activity started a dialog, which allows the
+previous activity to be seen behind it.</li>
+
+        <li>It hosts a <code>Service</code> that's bound to a visible (or foreground)
+activity.</li>
+      </ul>
+<p>A visible process is considered extremely important and will not be killed unless doing so
+is required to keep all foreground processes running. </p>
+<p>A process that is running a service that has been started with the <code>startService()</code> method and does not fall into either of the two
+higher categories. Although service processes are not directly tied to anything the user sees, they
+are generally doing things that the user cares about (such as playing music in the background or
+downloading  data on the network), so the system keeps them running unless there's not enough memory
+to retain them along with all foreground and visible processes. </p>
+<p>A process holding an activity that's not currently visible to the user  (the activity's
+<code>onStop()</code> method has been called). These processes have no direct
+impact on the user experience, and the system can kill them at any time to reclaim memory for a
+foreground,
+visible, or service process. Usually there are many background processes running, so they are kept
+in an LRU (least recently used) list to ensure that the process with the activity that was most
+recently seen by the user is the last to be killed. If an activity implements its lifecycle methods
+correctly, and saves its current state, killing its process will not have a visible effect on
+the user experience, because when the user navigates back to the activity, the activity restores
+all of its visible state. See the Activities
+document for information about saving and restoring state.</p>
+<p>A process that doesn't hold any active application components.  The only reason to keep this
+kind of process alive is for caching purposes, to improve startup time the next time a component
+needs to run in it.  The system often kills these processes in order to balance overall system
+resources between process caches and the underlying kernel caches.</p>
+<p>Android ranks a process at the highest level it can, based upon the importance of the
+components currently active in the process.  For example, if a process hosts a service and a visible
+activity, the process is ranked as a visible process, not a service process.</p>
+<p>In addition, a process's ranking might be increased because other processes are dependent on
+it—a process that is serving another process can never be ranked lower than the process it is
+serving. For example, if a content provider in process A is serving a client in process B, or if a
+service in process A is bound to a component in process B, process A is always considered at least
+as important as process B.</p>
+<p>Because a process running a service is ranked higher than a process with background activities,
+an activity that initiates a long-running operation might do well to start a service for that operation, rather than
+simply create a worker thread—particularly if the operation will likely outlast the activity.
+For example, an activity that's uploading a picture to a web site should start a service to perform
+the upload so that the upload can continue in the background even if the user leaves the activity.
+Using a service guarantees that the operation will have at least "service process" priority,
+regardless of what happens to the activity. This is the same reason that broadcast receivers should
+employ services rather than simply put time-consuming operations in a thread.</p>
+<h2>Threads</h2>
+<p>When an application is launched, the system creates a thread of execution for the application,
+called "main." This thread is very important because it is in charge of dispatching events to
+the appropriate user interface widgets, including drawing events. It is also the thread in which
+your application interacts with components from the Android UI toolkit (components from the <code>android.widget</code> and <code>android.view</code> packages). As such, the main thread is also sometimes
+called the UI thread.</p>
+<p>The system does <em>not</em> create a separate thread for each instance of a component. All
+components that run in the same process are instantiated in the UI thread, and system calls to
+each component are dispatched from that thread. Consequently, methods that respond to system
+callbacks (such as <code>onKeyDown()</code> to report user actions
+or a lifecycle callback method) always run in the UI thread of the process.</p>
+<p>For instance, when the user touches a button on the screen, your app's UI thread dispatches the
+touch event to the widget, which in turn sets its pressed state and posts an invalidate request to
+the event queue. The UI thread dequeues the request and notifies the widget that it should redraw
+itself.</p>
+<p>When your app performs intensive work in response to user interaction, this single thread model
+can yield poor performance unless you implement your application properly. Specifically, if
+everything is happening in the UI thread, performing long operations such as network access or
+database queries will block the whole UI. When the thread is blocked, no events can be dispatched,
+including drawing events. From the user's perspective, the
+application appears to hang. Even worse, if the UI thread is blocked for more than a few seconds
+(about 5 seconds currently) the user is presented with the infamous "application not
+responding" (ANR) dialog. The user might then decide to quit your application and uninstall it
+if they are unhappy.</p>
+<p>Additionally, the Andoid UI toolkit is <em>not</em> thread-safe. So, you must not manipulate
+your UI from a worker thread—you must do all manipulation to your user interface from the UI
+thread. Thus, there are simply two rules to Android's single thread model:</p>
+<ol>
+<li>Do not block the UI thread
+</li><li>Do not access the Android UI toolkit from outside the UI thread
+</li></ol>
+<h3>Worker threads</h3>
+<p>Because of the single thread model described above, it's vital to the responsiveness of your
+application's UI that you do not block the UI thread. If you have operations to perform
+that are not instantaneous, you should make sure to do them in separate threads ("background" or
+"worker" threads).</p>
+<p>For example, below is some code for a click listener that downloads an image from a separate
+thread and displays it in an <code>ImageView</code>:</p>
+<p>WHATSON? 486256e8-9380-4be7-ac90-469a0c571a34</p>
+<pre>
+public void onClick(View v) {
+    new Thread(new Runnable() {
+        public void run() {
+            Bitmap b = loadImageFromNetwork("http://example.com/image.png");
+            mImageView.setImageBitmap(b);
+        }
+    }).start();
+}
+</pre>
+<p>At first, this seems to work fine, because it creates a new thread to handle the network
+operation. However, it violates the second rule of the single-threaded model: <em>do not access the
+Android UI toolkit from outside the UI thread</em>—this sample modifies the <code>ImageView</code> from the worker thread instead of the UI thread. This can result in
+undefined and unexpected behavior, which can be difficult and time-consuming to track down.</p>
+<p>To fix this problem, Android offers several ways to access the UI thread from other
+threads. Here is a list of methods that can help:</p>
+<ul>
+<li><code>Activity.runOnUiThread(Runnable)</code></li>
+<li><code>View.post(Runnable)</code></li>
+<li><code>View.postDelayed(Runnable,
+long)</code></li>
+</ul>
+<p>For example, you can fix the above code by using the <code>View.post(Runnable)</code> method:</p>
+<p>WHATSON? bb89f546-ff04-4770-8b40-40587692690d</p>
+<pre>
+public void onClick(View v) {
+    new Thread(new Runnable() {
+        public void run() {
+            final Bitmap bitmap = loadImageFromNetwork("http://example.com/image.png");
+            mImageView.post(new Runnable() {
+                public void run() {
+                    mImageView.setImageBitmap(bitmap);
+                }
+            });
+        }
+    }).start();
+}
+</pre>
+<p>Now this implementation is thread-safe: the network operation is done from a separate thread
+while the <code>ImageView</code> is manipulated from the UI thread.</p>
+<p>However, as the complexity of the operation grows, this kind of code can get complicated and
+difficult to maintain. To handle more complex interactions with a worker thread, you might consider
+using a <code>Handler</code> in your worker thread, to process messages delivered from the UI
+thread. Perhaps the best solution, though, is to extend the <code>AsyncTask</code> class,
+which simplifies the execution of worker thread tasks that need to interact with the UI.</p>
+<h4>Using AsyncTask</h4>
+<p><code>AsyncTask</code> allows you to perform asynchronous work on your user
+interface. It performs the blocking operations in a worker thread and then publishes the results on
+the UI thread, without requiring you to handle threads and/or handlers yourself.</p>
+<p>To use it, you must subclass <code>AsyncTask</code> and implement the <code>doInBackground()</code> callback method, which runs in a pool of
+background threads. To update your UI, you should implement <code>onPostExecute()</code>, which delivers the result from <code>doInBackground()</code> and runs in the UI thread, so you can safely
+update your UI. You can then run the task by calling <code>execute()</code>
+from the UI thread.</p>
+<p>For example, you can implement the previous example using <code>AsyncTask</code> this
+way:</p>
+<p>WHATSON? b3df9da3-ee62-40f2-91c4-b99d51ee8207</p>
+<pre>
+public void onClick(View v) {
+    new DownloadImageTask().execute("http://example.com/image.png");
+}
+
+private class DownloadImageTask extends AsyncTask&lt;String, Void, Bitmap&gt; {
+    /** The system calls this to perform work in a worker thread and
+      * delivers it the parameters given to AsyncTask.execute() */
+    protected Bitmap doInBackground(String... urls) {
+        return loadImageFromNetwork(urls[0]);
+    }
+    
+    /** The system calls this to perform work in the UI thread and delivers
+      * the result from doInBackground() */
+    protected void onPostExecute(Bitmap result) {
+        mImageView.setImageBitmap(result);
+    }
+}
+</pre>
+<p>Now the UI is safe and the code is simpler, because it separates the work into the
+part that should be done on a worker thread and the part that should be done on the UI thread.</p>
+<p>You should read the <code>AsyncTask</code> reference for a full understanding on
+how to use this class, but here is a quick overview of how it works:</p>
+<ul>
+<li>You can specify the type of the parameters, the progress values, and the final
+value of the task, using generics</li>
+<li>The method <code>doInBackground()</code> executes automatically
+on a worker thread</li>
+<li><code>onPreExecute()</code>, <code>onPostExecute()</code>, and <code>onProgressUpdate()</code> are all invoked on the UI thread</li>
+<li>The value returned by <code>doInBackground()</code> is sent to
+<code>onPostExecute()</code></li>
+<li>You can call <code>publishProgress()</code> at anytime in <code>doInBackground()</code> to execute <code>onProgressUpdate()</code> on the UI thread</li>
+<li>You can cancel the task at any time, from any thread</li>
+</ul>
+<p><strong>Caution:</strong> Another problem you might encounter when using a worker
+thread is unexpected restarts in your activity due to a runtime configuration change
+(such as when the user changes the screen orientation), which may destroy your worker thread. To
+see how you can persist your task during one of these restarts and how to properly cancel the task
+when the activity is destroyed, see the source code for the Shelves sample application.</p>
+<h3>Thread-safe methods</h3>
+<p> In some situations, the methods you implement might be called from more than one thread, and
+therefore must be written to be thread-safe. </p>
+<p>This is primarily true for methods that can be called remotely—such as methods in a bound service. When a call on a
+method implemented in an <code>IBinder</code> originates in the same process in which the
+<code>IBinder</code> is running, the method is executed in the caller's thread.
+However, when the call originates in another process, the method is executed in a thread chosen from
+a pool of threads that the system maintains in the same process as the <code>IBinder</code> (it's not executed in the UI thread of the process).  For example, whereas a service's
+<code>onBind()</code> method would be called from the UI thread of the
+service's process, methods implemented in the object that <code>onBind()</code> returns (for example, a subclass that implements RPC methods) would be called from threads
+in the pool. Because a service can have more than one client, more than one pool thread can engage
+the same <code>IBinder</code> method at the same time.  <code>IBinder</code> methods must, therefore, be implemented to be thread-safe.</p>
+<p> Similarly, a content provider can receive data requests that originate in other processes.
+Although the <code>ContentResolver</code> and <code>ContentProvider</code>
+classes hide the details of how the interprocess communication is managed, <code>ContentProvider</code> methods that respond to those requests—the methods <code>query()</code>, <code>insert()</code>, <code>delete()</code>, <code>update()</code>, and <code>getType()</code>—are called from a pool of threads in the content provider's process, not the UI
+thread for the process.  Because these methods might be called from any number of threads at the
+same time, they too must be implemented to be thread-safe. </p>
+<h2>Interprocess Communication</h2>
+<p>Android offers a mechanism for interprocess communication (IPC) using remote procedure calls
+(RPCs), in which a method is called by an activity or other application component, but executed
+remotely (in another process), with any result returned back to the
+caller. This entails decomposing a method call and its data to a level the operating system can
+understand, transmitting it from the local process and address space to the remote process and
+address space, then reassembling and reenacting the call there.  Return values are then
+transmitted in the opposite direction.  Android provides all the code to perform these IPC
+transactions, so you can focus on defining and implementing the RPC programming interface. </p>
+<p>To perform IPC, your application must bind to a service, using <code>bindService()</code>. For more information, see the Services developer guide.</p>
+</body>
+</html>

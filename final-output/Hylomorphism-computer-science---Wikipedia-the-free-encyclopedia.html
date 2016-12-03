@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Hylomorphism-computer-science---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Hylomorphism (computer science)</h1>
+<p>In computer science, and in particular functional programming, a <b>hylomorphism</b> is a recursive function, corresponding to the composition of an anamorphism (which first builds a set of results; also known as 'unfolding') and a catamorphism (which then folds these results into a final return value). Fusion of these two recursive computations into a single recursive pattern then avoids building the intermediate data structure. This is a particular form of the optimizing program transformation techniques collectively known as deforestation. A related type of function is a <b>metamorphism</b>, which is a catamorphism followed by an anamorphism.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Formal definition
+<ul>
+<li>1.1 Notation</li>
+</ul>
+</li>
+<li>2 Hylomorphisms in practice
+<ul>
+<li>2.1 Lists</li>
+<li>2.2 Trees</li>
+</ul>
+</li>
+<li>3 See also</li>
+<li>4 References</li>
+<li>5 External links</li>
+</ul>
+<ul>
+<li>1.1 Notation</li>
+</ul>
+<ul>
+<li>2.1 Lists</li>
+<li>2.2 Trees</li>
+</ul>
+<p></p>
+<h2>Formal definition</h2>
+<p>A hylomorphism <img class="mwe-math-fallback-image-inline tex" alt="h : A \rightarrow C" src="//upload.wikimedia.org/math/5/7/a/57a5acaa77b11cd1769afd42770baca4.png"> can be defined in terms of its separate anamorphic and catamorphic parts.</p>
+<p>The anamorphic part can be defined in terms of a unary function <img class="mwe-math-fallback-image-inline tex" alt="g : A \rightarrow B \times A" src="//upload.wikimedia.org/math/5/4/c/54c9cb4eab98815dce5d09861702c32e.png"> defining the list of elements in <img class="mwe-math-fallback-image-inline tex" alt="B" src="//upload.wikimedia.org/math/9/d/5/9d5ed678fe57bcca610140957afab571.png"> by repeated application (<i>"unfolding"</i>), and a predicate <img class="mwe-math-fallback-image-inline tex" alt="p : A \rightarrow \text{Boolean}" src="//upload.wikimedia.org/math/9/9/f/99fe310c34acb17f2295960e1e0b8134.png"> providing the terminating condition.</p>
+<p>The catamorphic part can be defined as a combination of an initial value <img class="mwe-math-fallback-image-inline tex" alt="c \in C" src="//upload.wikimedia.org/math/d/a/c/dac3bbd0caf8370389cce23922be1be0.png"> for the fold and a binary operator <img class="mwe-math-fallback-image-inline tex" alt="\oplus : B \times C \rightarrow C" src="//upload.wikimedia.org/math/7/e/b/7eb54aee06d822fb0adfe7dea341e83a.png"> used to perform the fold.</p>
+<p>Thus a hylomorphism</p>
+<p>(where <img class="mwe-math-fallback-image-inline tex" alt="(b, a') = ga" src="//upload.wikimedia.org/math/6/2/f/62f3bf53ccdbe5a18b77f5096132902d.png">) may be defined (assuming appropriate definitions of <img class="mwe-math-fallback-image-inline tex" alt="p" src="//upload.wikimedia.org/math/8/3/8/83878c91171338902e0fe0fb97a8c47a.png"> &amp; <img class="mwe-math-fallback-image-inline tex" alt="g" src="//upload.wikimedia.org/math/b/2/f/b2f5ff47436671b6e533d8dc3614845d.png">).</p>
+<h3>Notation</h3>
+<p>An abbreviated notation for the above hylomorphism is <img class="mwe-math-fallback-image-inline tex" alt="h = [\![(c, \oplus),(g, p)]\!]" src="//upload.wikimedia.org/math/7/8/b/78bb0df139cf159d31584f873e712c4b.png">.</p>
+<h2>Hylomorphisms in practice</h2>
+<h3>Lists</h3>
+<p>Lists are common data structures as they naturally reflect linear computational processes. These processes arise in repeated (iterative) function calls. Therefore it is sometimes necessary to generate a temporary list of intermediate results before reducing this list to a single result.</p>
+<p>One example of a commonly encountered hylomorphism is the canonical factorial function.</p>
+<p>WHATSON? 8cd06901-f1f8-41d6-bbca-833a63f65176</p>
+<pre>
+factorial :: Integer -&gt; Integer
+factorial n
+  | n == 0 = 1
+  | n &gt; 0 = n * factorial (n - 1)
+</pre>
+<p>In the previous example (written in Haskell, a purely functional programming language) it can be seen that this function, applied to any given valid input, will generate a linear call tree isomorphic to a list. For example, given <i>n</i> = 5 it will produce the following:</p>
+<p>WHATSON? 3467e431-d570-4b98-9f18-595d859fa16d</p>
+<pre>
+factorial 5 = 5 * (factorial 4) = 120
+factorial 4 = 4 * (factorial 3) = 24
+factorial 3 = 3 * (factorial 2) = 6
+factorial 2 = 2 * (factorial 1) = 2
+factorial 1 = 1 * (factorial 0) = 1
+factorial 0 = 1
+</pre>
+<p>In this example, the anamorphic part of the process is the generation of the call tree which is isomorphic to the list <code>[1, 1, 2, 3, 4, 5]</code>. The catamorphism, then, is the calculation of the product of the elements of this list. Thus, in the notation given above, the factorial function may be written <img class="mwe-math-fallback-image-inline tex" alt="\text{factorial} = [\![(1,\times),(g, p)]\!]" src="//upload.wikimedia.org/math/d/0/a/d0af47ab3f0b9db0edf4798ee12c3132.png"> where <img class="mwe-math-fallback-image-inline tex" alt="g\ n = (n, n - 1)" src="//upload.wikimedia.org/math/0/d/0/0d0a543e37ca5831884c69da7e48f8f9.png"> and <img class="mwe-math-fallback-image-inline tex" alt="p\ n = (n = 0)" src="//upload.wikimedia.org/math/1/6/4/164c475dba7dabb1ed247540ed1b5924.png">.</p>
+<h3>Trees</h3>
+<p>However, the term 'hylomorphism' does not apply solely to functions acting upon isomorphisms of lists. For example, a hylomorphism may also be defined by generating a non-linear call tree which is then collapsed. An example of such a function is the function to generate the <i>n</i> term of the Fibonacci sequence.</p>
+<p>WHATSON? 0961f26e-a549-4bfd-aa10-b94a55a8d4b2</p>
+<pre>
+ fibonacci :: Integer -&gt; Integer
+ fibonacci n
+   | n == 0 = 0
+   | n == 1 = 1
+   | n &gt; 1 = fibonacci (n - 2) + fibonacci (n - 1)
+</pre>
+<p>This function, again applied to any valid input, will generate a call tree which is non-linear. In the example on the right, the call tree generated by applying the <code>fibonacci</code> function to the input <code>4</code>.</p>
+<p>This time, the anamorphism is the generation of the call tree isomorphic to the tree with leaf nodes <code>0, 1, 1, 0, 1</code> and the catamorphism the summation of these leaf nodes.</p>
+<h2>See also</h2>
+<ul>
+<li>Apomorphism</li>
+<li>Paramorphism</li>
+<li>Morphism</li>
+</ul>
+</body>
+</html>

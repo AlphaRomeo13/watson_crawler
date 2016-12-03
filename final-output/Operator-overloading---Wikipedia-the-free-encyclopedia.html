@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Operator-overloading---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Operator overloading</h1>
+<ul>
+<li>Ad hoc polymorphism</li>
+<li>Function overloading</li>
+<li><strong class="selflink">Operator overloading</strong></li>
+<li>Parametric polymorphism</li>
+<li>Double dispatch</li>
+<li>Multiple dispatch</li>
+<li>Single &amp; dynamic dispatch</li>
+<li>Subtyping</li>
+<li>Virtual function</li>
+</ul>
+<ul>
+<li>v</li>
+<li>t</li>
+<li>e</li>
+</ul>
+<p>In programming, <b>operator overloading</b>—less commonly known as operator ad hoc polymorphism—is a specific case of polymorphism, where different operators have different implementations depending on their arguments. Operator overloading is generally defined by the language, the programmer, or both.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Motivation</li>
+<li>2 Examples</li>
+<li>3 Criticisms</li>
+<li>4 Catalog</li>
+<li>5 Timeline of operator overloading
+<ul>
+<li>5.1 1960s</li>
+<li>5.2 1980s</li>
+<li>5.3 1990s</li>
+<li>5.4 2000s</li>
+</ul>
+</li>
+<li>6 References</li>
+<li>7 See also</li>
+</ul>
+<ul>
+<li>5.1 1960s</li>
+<li>5.2 1980s</li>
+<li>5.3 1990s</li>
+<li>5.4 2000s</li>
+</ul>
+<p></p>
+<h2>Motivation</h2>
+<p>The Operator overloading is syntactic sugar, and is used because it allows the developer to program using notation closer to the target domain and allows user-defined types a similar level of syntactic support as types built into the language. It is common, for example, in scientific computing, where it allows computational representations of mathematical objects to be manipulated with the same syntax as on paper.</p>
+<p>Object overloading does not change the expressive power of a language (with functions), as it can be emulated using function calls; for example, consider variables <code>a, b, c</code> of some user-defined type, such as matrices:</p>
+<p>WHATSON? 767b83c0-29e3-43c2-98ab-cfca4d529d60</p>
+<pre>
+a + b * c
+</pre>
+<p>In a language that supports operator overloading, and with the usual assumption that the '*' operator has higher precedence than '+' operator, this is a concise way of writing:</p>
+<p>WHATSON? e622af17-a9a1-4f90-98af-bc365c39833b</p>
+<pre>
+add (a, multiply (b,c))
+</pre>
+<p>However, the former syntax reflects common mathematical usage.</p>
+<h2>Examples</h2>
+<p>In this case, the addition operator is overloaded to allow addition on a user-defined type "Time" (in C++):</p>
+<p>WHATSON? 787f5698-5e20-4a75-a900-8a3268417889</p>
+<pre>
+Time operator+(const Time&amp; lhs, const Time&amp; rhs) 
+{
+    Time temp = lhs;
+    temp.seconds += rhs.seconds;
+    temp.minutes += temp.seconds / 60;
+    temp.seconds %= 60;
+    temp.minutes += rhs.minutes;
+    temp.hours += temp.minutes / 60;
+    temp.minutes %= 60;
+    temp.hours += rhs.hours;
+    return temp;
+}
+</pre>
+<p>Addition is a binary operation, which means it has two operands. In C++, the arguments being passed are the operands, and the <code>temp</code> object is the returned value.</p>
+<p>The operation could also be defined as a class method, replacing <code>lhs</code> by the hidden <code>this</code> argument; however this forces the left operand to be of type <code>Time</code> and supposes <code>this</code> to be a potentially modifiable <i>lvalue</i>:</p>
+<p>WHATSON? 806d4ec4-c954-467f-b9fa-2358613c063d</p>
+<pre>
+Time Time::operator+(const Time&amp; rhs) const /* const means that 'this' is not to be modified */
+{
+    Time temp = *this;  /* Copy 'this' which is not to be modified */
+    temp.seconds += rhs.seconds;
+    temp.minutes += temp.seconds / 60;
+    temp.seconds %= 60;
+    temp.minutes += rhs.minutes;
+    temp.hours += temp.minutes / 60;
+    temp.minutes %= 60;
+    temp.hours += rhs.hours;
+    return temp;
+}
+</pre>
+<p>Note that a unary operator defined as a class method would receive no apparent argument (it only works from <code>this</code>):</p>
+<p>WHATSON? 7a77843c-7883-4145-9315-54448d61d340</p>
+<pre>
+bool Time::operator!() const 
+{
+    return ((hours == 0) &amp;&amp; (minutes == 0) &amp;&amp; (seconds == 0));
+}
+</pre>
+<p>Less than(&lt;) operator is often overloaded to sort a structure or class.</p>
+<p>WHATSON? 15cde64f-ade3-402e-bf21-9c98ba6f45cb</p>
+<pre>
+class pair
+{
+	public:
+	int x,y;
+	bool operator &lt; ( const pair&amp; p ) const 
+	{      
+		if(x==p.x) return y&lt;p.y;
+		return x&lt;p.x;
+	}
+};
+</pre>
+<p>Note that in last example operator overloading is done within the class which is same as previous examples. In C++ after overloading less than operator(&lt;), builtin sort functions can be used to sort some classes.</p>
+<h2>Criticisms</h2>
+<p>Operator overloading has often been criticized because it allows programmers to give operators completely different semantics depending on the types of their operands. For example, the use of the <code>&lt;&lt;</code> in C++'s:</p>
+<p>WHATSON? 68c42d33-8367-455b-a82c-881f4303b0c3</p>
+<pre>
+a &lt;&lt; 1
+</pre>
+<p>shifts the bits in the variable <tt>a</tt> left by 1 bit if <tt>a</tt> is of an integer type, but if <tt>a</tt> is an output stream then the above code will attempt to write a "1" to the stream. Because operator overloading allows the original programmer to change the usual semantics of an operator and to catch any subsequent programmers by surprise, it is considered good practice to use operator overloading with care (Java developers decided not to use this feature.).</p>
+<p>The common reply to this criticism is that the same argument applies to function overloading as well. Furthermore, even in the absence of overloading, a programmer can define a function to do something totally different from what would be expected from its name. An issue that remains is that languages such as C++ provide a limited set of operator symbols, thus removing from programmers the option of choosing a more suitable operator symbol for their new operation.</p>
+<p>Another, more subtle, issue with operators is that certain rules from mathematics can be wrongly expected or unintentionally assumed. For example, the commutativity of + (i.e. that <code>a + b == b + a</code>) does not always apply; an example of this occurs when the operands are strings, since + is commonly overloaded to perform a concatenation of strings (i.e. <code>"school" + "bag"</code> yields <code>"schoolbag"</code>, which is different from <code>"bag" + "school"</code> yields <code>"bagschool"</code>). A typical counter to this argument comes directly from mathematics: While + is commutative on integers (and most generally any complex numbers), it is not commutative for other "types" of variable. It can be further noted that + is, in practice, not associative even with floating-point values, due to rounding errors. Another example: binary * (multiplication) is commutative for integers but not commutative in matrix multiplication.</p>
+<h2>Catalog</h2>
+<p>A classification of some common programming languages is made according to whether their operators are overloadable by the programmer and whether the operators are limited to a predefined set.</p>
+<ul>
+<li>ML</li>
+<li>Pico</li>
+<li>Prolog</li>
+</ul>
+<ul>
+<li>ALGOL 68</li>
+<li>Clojure</li>
+<li>Eiffel</li>
+<li>Fortran</li>
+<li>F#</li>
+<li>Haskell</li>
+<li>Io</li>
+<li>Perl 6</li>
+<li>R</li>
+<li>Scala</li>
+<li>Seed7</li>
+<li>Smalltalk</li>
+<li>Swift</li>
+</ul>
+<ul>
+<li>BASIC</li>
+<li>C</li>
+<li>Go</li>
+<li>Java</li>
+<li>JavaScript</li>
+<li>Modula-2</li>
+<li>Objective-C</li>
+<li>Pascal</li>
+</ul>
+<ul>
+<li>Ada</li>
+<li>C#</li>
+<li>C++</li>
+<li>Ceylon</li>
+<li>D</li>
+<li>Dart</li>
+<li>Delphi (since 2005)</li>
+<li>FreeBASIC</li>
+<li>Groovy</li>
+<li>Lua</li>
+<li>MATLAB</li>
+<li>Object Pascal (Free Pascal)</li>
+<li>PHP (using magic methods or ArrayAccess interface or Operator extension)</li>
+<li>Perl</li>
+<li>Python</li>
+<li>Ruby</li>
+<li>Rust</li>
+<li>Visual Basic .NET</li>
+</ul>
+<h2>Timeline of operator overloading</h2>
+<h3>1960s</h3>
+<p>The ALGOL 68 specification allowed operator overloading.</p>
+<p>Extract from the <b>ALGOL 68</b> language specification (page 177) where the overloaded operators ¬, =, ≠ and <b>abs</b> are defined:</p>
+<p>WHATSON? db3cd57e-e483-4b11-9adc-fa843ce09fee</p>
+<pre>
+10.2.2. Operations on Boolean Operands
+a) <b>op</b> ∨ = (<b>bool</b> a, b) <b>bool</b>:( a | <b>true</b> | b );
+b) <b>op</b> ∧ = (<b>bool</b> a, b) <b>bool</b>: ( a | b | <b>false</b> );
+c) <b>op</b> ¬ = (<b>bool</b> a) <b>bool</b>: ( a | <b>false</b> | <b>true</b> );
+d) <b>op</b> = = (<b>bool</b> a, b) <b>bool</b>:( a∧b ) ∨ ( ¬b∧¬a );
+e) <b>op</b> ≠ = (<b>bool</b> a, b) <b>bool</b>: ¬(a=b);
+f) <b>op</b> <b>abs</b> = (<b>bool</b> a)<b>int</b>: ( a | 1 | 0 );
+</pre>
+<p>Note that no special declaration is required to <i>overload</i> an operator, and the programmer is free to create new operators.</p>
+<h3>1980s</h3>
+<p>Ada supports overloading of operators from its inception, with the publication of the Ada 83 language standard. However, the designers of the language chose not to permit the definition of new operators: only the existing operators in the language may be overloaded (by defining new functions with identifiers such as "+", "*", "and" etc.). Subsequent revisions of the language (in 1995 and 2005) maintain the restriction to overloading of existing operators.</p>
+<p>C++'s operator overloading is further refined from that of ALGOL 68's.</p>
+<h3>1990s</h3>
+<p>Sun chooses not to include operator overloading in the Java language.</p>
+<p>Ruby allows operator overloading as syntactic sugar for simple method calls.</p>
+<p>Lua allows operator overloading as syntactic sugar for method calls with the added feature that if the first operand doesn't define that operator, the method for the second operand will be used.</p>
+<h3>2000s</h3>
+<p>Microsoft includes operator overloading for C# in 2001.</p>
+<p>Scala treats all operators as methods and thus allows operator overloading by proxy.</p>
+<p>In Perl 6, the definition of all operators is delegated to lexical functions, and so, using function definitions, operators can be overloaded or new operators added. For example, the function defined in the Rakudo source for incrementing a Date object with "+" is:</p>
+<p>WHATSON? 4c2b0993-49c6-47d9-b468-cb5ba6de365f</p>
+<pre>
+multi infix:&lt;+&gt;(Date:D $d, Int:D $x) {
+    Date.new-from-daycount($d.daycount + $x)
+}
+</pre>
+<p>Since "multi" was used, the function gets added to the list of multidispatch candidates, and "+" is only overloaded for the case where the type constraints in the function signature are met. While the capacity for overloading includes <b>+</b>, <b>*</b>, <b>&gt;=</b>, the postfix and term <b>i</b>, and so on, it also allows for overloading various brace operators: "<b>[</b>x, y<b>]</b>", "x<b>[</b> y <b>]</b>", "x<b>{</b> y <b>}</b>", and "x<b>(</b> y <b>)</b>".</p>
+</body>
+</html>

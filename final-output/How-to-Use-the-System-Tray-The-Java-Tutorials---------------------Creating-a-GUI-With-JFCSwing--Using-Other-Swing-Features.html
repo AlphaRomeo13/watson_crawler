@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>How-to-Use-the-System-Tray-The-Java-Tutorials---------------------Creating-a-GUI-With-JFCSwing--Using-Other-Swing-Features.html</title></head>
+<body>
+<h1>How to Use the System Tray</h1>
+<p>The system tray is a specialized area of the desktop where users can access currently running programs. This area may be referred to differently on various operating systems. On Microsoft Windows, the system tray is referred to as the Taskbar Status Area, while on the GNU Network Object Model Environment (GNOME) Desktop it is referred to as the Notification Area. On K Desktop Environment (KDE) this area is referred to as the System Tray. However, on each system the tray area is shared by all applications running on the desktop.</p>
+<p>The 
+<code>java.awt.SystemTray</code> class introduced in Java™ SE version 6 represents the system tray for a desktop. The system tray can be accessed by calling the static <code>SystemTray.getSystemTray()</code> method. Before calling this method, use the static method 
+<code>isSupported()</code> to check that the system tray is supported. If the system tray is not supported on this platform, the <code>isSupported()</code> method returns false. If the application attempts to call the <code>getSystemTray()</code> method in such a case, the method will throw a <code>java.lang.UnsupportedOperationException</code>.</p>
+<p>An application cannot create an instance of the <code>SystemTray</code> class. Only a single instance created within this class can exist, and this instance can be obtained using the 
+<code>getSystemTray()</code> method.</p>
+<p>The system tray contains one or more tray icons which are added to the tray using the 
+<code>add(java.awt.TrayIcon)</code> method. They can be removed when they are no longer needed with the 
+<code>remove(java.awt.TrayIcon)</code> method.</p>
+<p>The 
+<code>TrayIcon</code> class functionality goes beyond the icon that is displayed in the tray. It also includes a text tooltip, a pop-up menu, ballon messages, and a set of listeners associated with it. A <code>TrayIcon</code> object generates various mouse events and supports the addition of corresponding listeners to receive notification of these events. The <code>TrayIcon</code> class processes some of the events itself. For example, by default, when a right-click is performed on the tray icon, it displays the specified pop-up menu. When a double-click is performed, the <code>TrayIcon</code> object generates an <code>ActionEvent</code> to launch an application. When the mouse pointer hovers over the tray icon, the tooltip is displayed. The icon image is automatically resized to fit the space allocated for the image on the tray.</p>
+<p>The following demo, developed using the AWT package, demonstrates the features of SystemTray and TrayIcon classes.</p>
+<p>Unfortunately, the current implementation of the <code>TrayIcon</code> class provides limited support of the Swing pop-up menu (the <code>JPopupMenu</code> class) and does not enable an application to use all of the capabilities of the <code>javax.swing</code> package. The workaround proposal for this issue is described in the Bug Database, see Bug ID 6285881.</p>
+<ol>
+<li>Place the 
+<code>bulb.gif</code> image file in the <code>image</code> directory. Compile and run the example, consult the example index.</li>
+<li>The tray icon will appear in the system tray.
+<center><img src="../../figures/uiswing/misc/bulb32x32.gif" width="219" height="27" align="bottom" alt="Tray icon image"></center></li>
+<li>Double-click the tray icon to launch the corresponding application. The dialog box will be displayed.</li>
+<li>Hover the mouse pointer over the tray icon and click the right mouse button. The pop-up menu appears.</li>
+<li>Select the Set auto size checkbox menu item. Notice that the icon appearance is changed as follows.
+<center><img src="../../figures/uiswing/misc/bulb16x16.gif" width="16" height="16" align="bottom" alt="Tray icon image is resized"></center></li>
+<li>Select the Set tooltip checkbox menu item. Hover the mouse pointer over the tray icon. The tooltip appears.</li>
+<li>Choose the About menu item. The dialog box appears. Close the dialog box.</li>
+<li>Choose any of the Display submenu items. Each of these items displays a message dialog box of a particular type: error, warning, info, or standard.</li>
+<li>Use the Exit menu item to quit the application.
+<hr></li></ol>
+<p>The following code snippet shows how to add a tray icon to the system tray and apply a pop-up menu:</p>
+<p>WHATSON? fdd43e4c-7bb5-4d92-ba41-4ee97ce5ec64</p>
+<pre>
+...
+        //Check the SystemTray is supported
+        if (!SystemTray.isSupported()) {
+            System.out.println("SystemTray is not supported");
+            return;
+        }
+        final PopupMenu popup = new PopupMenu();
+        final TrayIcon trayIcon =
+                new TrayIcon(createImage("images/bulb.gif", "tray icon"));
+        final SystemTray tray = SystemTray.getSystemTray();
+       
+        // Create a pop-up menu components
+        MenuItem aboutItem = new MenuItem("About");
+        CheckboxMenuItem cb1 = new CheckboxMenuItem("Set auto size");
+        CheckboxMenuItem cb2 = new CheckboxMenuItem("Set tooltip");
+        Menu displayMenu = new Menu("Display");
+        MenuItem errorItem = new MenuItem("Error");
+        MenuItem warningItem = new MenuItem("Warning");
+        MenuItem infoItem = new MenuItem("Info");
+        MenuItem noneItem = new MenuItem("None");
+        MenuItem exitItem = new MenuItem("Exit");
+       
+        //Add components to pop-up menu
+        popup.add(aboutItem);
+        popup.addSeparator();
+        popup.add(cb1);
+        popup.add(cb2);
+        popup.addSeparator();
+        popup.add(displayMenu);
+        displayMenu.add(errorItem);
+        displayMenu.add(warningItem);
+        displayMenu.add(infoItem);
+        displayMenu.add(noneItem);
+        popup.add(exitItem);
+       
+        trayIcon.setPopupMenu(popup);
+       
+        try {
+            tray.add(trayIcon);
+        } catch (AWTException e) {
+            System.out.println("TrayIcon could not be added.");
+        }
+...
+</pre>
+<p>The complete code for this demo is available in the 
+<code>TrayIconDemo.java</code> file. This demo also uses the 
+<code>bulb.gif</code> image file.</p>
+<p>Removing the current limitations on applying Swing components will enable developers to add such components as <code>JMenuItem</code> (with image), <code>JRadioButtonMenuItem</code>, and <code>JCheckBoxMenuItem</code>.</p>
+<h2>The SystemTray API</h2>
+<p>Only a single instance created within <code>SystemTray</code> class can exist.</p>
+<h2>The TrayIcon API</h2>
+<p>A <code>TrayIcon</code> object represents a tray icon that can be added to the system tray. A <code>TrayIcon</code> object can have a tooltip (text), an image, a pop-up menu, and a set of listeners associated with it.</p>
+<h2>Examples That Use the SystemTray API</h2>
+</body>
+</html>

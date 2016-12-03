@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>The-Queue-Interface-The-Java-Tutorials---------------------Collections--Interfaces.html</title></head>
+<body>
+<h1>The Queue Interface</h1>
+<p>A 
+<code>Queue</code> is a collection for holding elements prior to processing. Besides basic <code>Collection</code> operations, queues provide additional insertion, removal, and inspection operations. The <code>Queue</code> interface follows.</p>
+<p>WHATSON? 022925f0-b7a2-4ba6-9751-fffc63a4b10a</p>
+<pre>
+public interface Queue&lt;E&gt; extends Collection&lt;E&gt; {
+    E element();
+    boolean offer(E e);
+    E peek();
+    E poll();
+    E remove();
+}
+</pre>
+<p>Each <code>Queue</code> method exists in two forms: (1) one throws an exception if the operation fails, and (2) the other returns a special value if the operation fails (either <code>null</code> or <code>false</code>, depending on the operation). The regular structure of the interface is illustrated in 
+the following table.</p>
+<p>Queues typically, but not necessarily, order elements in a FIFO (first-in-first-out) manner. Among the exceptions are priority queues, which order elements according to their values  see the 
+Object Ordering section for details). Whatever ordering is used, the head of the queue is the element that would be removed by a call to <code>remove</code> or <code>poll</code>. In a FIFO queue, all new elements are inserted at the tail of the queue. Other kinds of queues may use different placement rules. Every <code>Queue</code> implementation must specify its ordering properties.</p>
+<p>It is possible for a <code>Queue</code> implementation to restrict the number of elements that it holds; such queues are known as <i>bounded</i>. Some <code>Queue</code> implementations in <code>java.util.concurrent</code> are bounded, but the implementations in <code>java.util</code> are not.</p>
+<p>The <code>add</code> method, which <code>Queue</code> inherits from <code>Collection</code>, inserts an element unless it would violate the queue's capacity restrictions, in which case it throws <code>IllegalStateException</code>. The <code>offer</code> method, which is intended solely for use on bounded queues, differs from <code>add</code> only in that it indicates failure to insert an element by returning <code>false</code>.</p>
+<p>The <code>remove</code> and <code>poll</code> methods both remove and return the head of the queue. Exactly which element gets removed is a function of the queue's ordering policy. The <code>remove</code> and <code>poll</code> methods differ in their behavior only when the queue is empty. Under these circumstances, <code>remove</code> throws <code>NoSuchElementException</code>, while <code>poll</code> returns <code>null</code>.</p>
+<p>The <code>element</code> and <code>peek</code> methods return, but do not remove, the head of the queue. They differ from one another in precisely the same fashion as <code>remove</code> and <code>poll</code>: If the queue is empty, <code>element</code> throws <code>NoSuchElementException</code>, while <code>peek</code> returns <code>null</code>.</p>
+<p><code>Queue</code> implementations generally do not allow insertion of <code>null</code> elements. The <code>LinkedList</code> implementation, which was retrofitted to implement <code>Queue</code>, is an exception. For historical reasons, it permits <code>null</code> elements, but you should refrain from taking advantage of this, because <code>null</code> is used as a special return value by the <code>poll</code> and <code>peek</code> methods.</p>
+<p>Queue implementations generally do not define element-based versions of the <code>equals</code> and <code>hashCode</code> methods but instead inherit the identity-based versions from <code>Object</code>.</p>
+<p>The <code>Queue</code> interface does not define the blocking queue methods, which are common in concurrent programming. These methods, which wait for elements to appear or for space to become available, are defined in the interface 
+<code>java.util.concurrent.BlockingQueue</code>, which extends <code>Queue</code>.</p>
+<p>In the following example program, a queue is used to implement a countdown timer. The queue is preloaded with all the integer values from a number specified on the command line to zero, in descending order. Then, the values are removed from the queue and printed at one-second intervals. The program is artificial in that it would be more natural to do the same thing without using a queue, but it illustrates the use of a queue to store elements prior to subsequent processing.</p>
+<p>WHATSON? 766eb92d-7519-4734-924b-dd8131c9dfa7</p>
+<pre>
+import java.util.*;
+
+public class Countdown {
+    public static void main(String[] args) throws InterruptedException {
+        int time = Integer.parseInt(args[0]);
+        Queue&lt;Integer&gt; queue = new LinkedList&lt;Integer&gt;();
+
+        for (int i = time; i &gt;= 0; i--)
+            queue.add(i);
+
+        while (!queue.isEmpty()) {
+            System.out.println(queue.remove());
+            Thread.sleep(1000);
+        }
+    }
+}
+</pre>
+<p>In the following example, a priority queue is used to sort a collection of elements. Again this program is artificial in that there is no reason to use it in favor of the <code>sort</code> method provided in <code>Collections</code>, but it illustrates the behavior of priority queues.</p>
+<p>WHATSON? 06aff8e5-b6f7-4887-b0ac-85a055e98327</p>
+<pre>
+static &lt;E&gt; List&lt;E&gt; heapSort(Collection&lt;E&gt; c) {
+    Queue&lt;E&gt; queue = new PriorityQueue&lt;E&gt;(c);
+    List&lt;E&gt; result = new ArrayList&lt;E&gt;();
+
+    while (!queue.isEmpty())
+        result.add(queue.remove());
+
+    return result;
+}
+</pre>
+</body>
+</html>

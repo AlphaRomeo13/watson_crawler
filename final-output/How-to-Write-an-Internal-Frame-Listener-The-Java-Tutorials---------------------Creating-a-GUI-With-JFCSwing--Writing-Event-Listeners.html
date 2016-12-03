@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>How-to-Write-an-Internal-Frame-Listener-The-Java-Tutorials---------------------Creating-a-GUI-With-JFCSwing--Writing-Event-Listeners.html</title></head>
+<body>
+<h1>How to Write an Internal Frame Listener</h1>
+<p>An <code>InternalFrameListener</code> is similar to a <code>WindowListener</code>. Like the window listener, the internal frame listener listens for events that occur when the "window" has been shown for the first time, disposed of, iconified, deiconified, activated, or deactivated. Before using an internal frame listener, please familiarize yourself with the <code>WindowListener</code> interface in How to Write Window Listeners.</p>
+<p>The application shown in the following figure demonstrates internal frame events. The application listens for internal frame events from the Event Generator frame, displaying a message that describes each event.</p>
+<ol>
+<li>Click the Launch button to run InternalFrameEventDemo using 
+Java™ Web Start (download JDK 7 or later). Alternatively, to compile and run the example yourself, consult the example index.<img src="../../images/jws-launch-button.png" width="88" height="23" align="bottom" alt="Launches the InternalFrameEventDemo example"><br></li>
+<li>Bring up the Event Generator internal frame by clicking the <b>Show internal frame</b> button.<br>
+You should see an "Internal frame opened" message in the display area.</li>
+<li>Try various operations to see what happens. For example, click the Event Generator so that it gets activated. Click the Event Watcher so that the Event Generator gets deactivated. Click the Event Generator's decorations to iconify, maximize, minimize, and close the window.<br>
+See How to Write Window Listeners for information on what kinds of events you will see.</li>
+</ol>
+<p>Here is the internal frame event handling code:</p>
+<p>WHATSON? 6b61a8cf-1147-47c4-acbd-4ffbf57eed9a</p>
+<pre>
+public class InternalFrameEventDemo ...
+                     implements InternalFrameListener ... {
+    ...
+
+    public void internalFrameClosing(InternalFrameEvent e) {
+        displayMessage("Internal frame closing", e);
+    }
+
+    public void internalFrameClosed(InternalFrameEvent e) {
+        displayMessage("Internal frame closed", e);
+        listenedToWindow = null;
+    }
+
+    public void internalFrameOpened(InternalFrameEvent e) {
+        displayMessage("Internal frame opened", e);
+    }
+
+    public void internalFrameIconified(InternalFrameEvent e) {
+        displayMessage("Internal frame iconified", e);
+    }
+
+    public void internalFrameDeiconified(InternalFrameEvent e) {
+        displayMessage("Internal frame deiconified", e);
+    }
+
+    public void internalFrameActivated(InternalFrameEvent e) {
+        displayMessage("Internal frame activated", e);
+    }
+
+    public void internalFrameDeactivated(InternalFrameEvent e) {
+        displayMessage("Internal frame deactivated", e);
+    }
+
+    void displayMessage(String prefix, InternalFrameEvent e) {
+        String s = prefix + ": " + e.getSource(); 
+        display.append(s + newline);
+    }
+
+    public void actionPerformed(ActionEvent e) {
+        if (SHOW.equals(e.getActionCommand())) {
+            ...
+            if (listenedToWindow == null) {
+                listenedToWindow = new JInternalFrame("Event Generator",
+                                                      true,  //resizable
+                                                      true,  //closable
+                                                      true,  //maximizable
+                                                      true); //iconifiable
+                //We want to reuse the internal frame, so we need to
+                //make it hide (instead of being disposed of, which is
+                //the default) when the user closes it.
+                listenedToWindow.setDefaultCloseOperation(
+                                        WindowConstants.HIDE_ON_CLOSE);
+
+                listenedToWindow.addInternalFrameListener(this);
+                ...
+            }
+        } 
+        ...
+    }
+}
+</pre>
+<h2>The Internal Frame Listener API</h2>
+<p>The InternalFrameListener Interface</p>
+<p><em>The corresponding adapter class is 
+<code>InternalFrameAdapter</code>.</em></p>
+<p>Each internal frame event method has a single parameter: an 
+<code>InternalFrameEvent</code> object. The <code>InternalFrameEvent</code> class defines no generally useful methods. To get the internal frame that fired the event, use the <code>getSource</code> method, which <code>InternalFrameEvent</code> inherits from <code>java.util.EventObject</code>.</p>
+<h2>Examples that Use Internal Frame Listeners</h2>
+<p>No other source files currently contain internal frame listeners. However, internal frame listeners are very similar to <code>WindowListener</code>s and several Swing programs have window listeners:</p>
+</body>
+</html>

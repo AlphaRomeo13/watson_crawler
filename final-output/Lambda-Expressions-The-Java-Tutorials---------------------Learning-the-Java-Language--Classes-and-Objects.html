@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Lambda-Expressions-The-Java-Tutorials---------------------Learning-the-Java-Language--Classes-and-Objects.html</title></head>
+<body>
+<h1>Lambda Expressions</h1>
+<p>One issue with anonymous classes is that if the implementation of your anonymous class is very simple, such as an interface that contains only one method, then the syntax of anonymous classes may seem unwieldy and unclear. In these cases, you're usually trying to pass functionality as an argument to another method, such as what action should be taken when someone clicks a button. Lambda expressions enable you to do this, to treat functionality as method argument, or code as data.</p>
+<p>The previous section,
+Anonymous Classes, shows you how to implement a base class without giving it a name.
+Although this is often more concise than a named class, for classes
+with only one method, even an anonymous class seems a bit
+excessive and cumbersome. Lambda expressions let you express instances of
+single-method classes more compactly.</p>
+<p>This section covers the following topics:</p>
+<ul>
+  <li>Ideal Use Case for Lambda Expressions
+    <ul>
+      <li>Approach 1: Create Methods That Search for Members That Match One Characteristic</li>
+      <li>Approach 2: Create More Generalized Search Methods</li>
+      <li>Approach 3: Specify Search Criteria Code in a Local Class</li>
+      <li>Approach 4: Specify Search Criteria Code in an Anonymous Class</li>
+      <li>Approach 5: Specify Search Criteria Code with a Lambda Expression</li>
+      <li>Approach 6: Use Standard Functional Interfaces with Lambda Expressions</li>
+      <li>Approach 7: Use Lambda Expressions Throughout Your Application</li>
+      <li>Approach 8: Use Generics More Extensively</li>
+      <li>Approach 9: Use Aggregate Operations That Accept Lambda Expressions as Parameters</li>
+    </ul>
+  </li>
+  <li>Lambda Expressions in GUI Applications</li>
+  <li>Syntax of Lambda Expressions</li>
+  <li>Accessing Local Variables of the Enclosing Scope</li>
+  <li>Target Typing
+    <ul>
+      <li>Target Types and Method Arguments</li>
+    </ul>
+  </li>
+  <li>Serialization</li>
+</ul>
+<ul>
+      <li>Approach 1: Create Methods That Search for Members That Match One Characteristic</li>
+      <li>Approach 2: Create More Generalized Search Methods</li>
+      <li>Approach 3: Specify Search Criteria Code in a Local Class</li>
+      <li>Approach 4: Specify Search Criteria Code in an Anonymous Class</li>
+      <li>Approach 5: Specify Search Criteria Code with a Lambda Expression</li>
+      <li>Approach 6: Use Standard Functional Interfaces with Lambda Expressions</li>
+      <li>Approach 7: Use Lambda Expressions Throughout Your Application</li>
+      <li>Approach 8: Use Generics More Extensively</li>
+      <li>Approach 9: Use Aggregate Operations That Accept Lambda Expressions as Parameters</li>
+    </ul>
+<ul>
+      <li>Target Types and Method Arguments</li>
+    </ul>
+<h2>Ideal Use Case for Lambda Expressions</h2>
+<p>Suppose that you are creating a social networking application. You
+want to create a feature that enables an administrator to perform
+any kind of action, such as sending a message, on members of the
+social networking application that satisfy certain criteria. The following table describes this use case in detail:</p>
+<ol>
+        <li>Administrator specifies criteria of members on which to perform a certain action.</li>
+        <li>Administrator specifies an action to perform on those selected members.</li>
+        <li>Administrator selects the <strong>Submit</strong> button.</li>
+        <li>The system finds all members that match the specified criteria.</li>
+        <li>The system performs the specified action on all matching members.</li>
+      </ol>
+<p>1a. Administrator has an option to preview those members who match the specified criteria before he or she specifies the action to be performed or before selecting the <strong>Submit</strong> button.</p>
+<p>Suppose that members of this social networking application are
+represented by the following
+<code>Person</code> class:</p>
+<p>WHATSON? 147dc043-e115-4707-bea8-94f50d6a9deb</p>
+<pre>public class Person {
+
+    public enum Sex {
+        MALE, FEMALE
+    }
+
+    String name;
+    LocalDate birthday;
+    Sex gender;
+    String emailAddress;
+
+    public int getAge() {
+        // ...
+    }
+
+    public void printPerson() {
+        // ...
+    }
+}</pre>
+<p>Suppose that the members of your social networking application
+are stored in a <code>List&lt;Person&gt;</code> instance.</p>
+<p>This section begins with a naive approach to this use case. It improves upon this approach with local and anonymous classes, and then finishes with an efficient and concise approach using lambda expressions. Find the code excerpts described in this section in the example
+<code>RosterTest</code>.
+</p>
+<h3>Approach 1: Create Methods That Search for Members That Match One Characteristic</h3>
+<p>One simplistic approach is to create several methods; each method searches for members that match one characteristic, such as gender or age. The following method prints members that are older than a specified
+age:</p>
+<p>WHATSON? 76167213-2e3b-459d-a9ff-4f9659782d97</p>
+<pre>public static void printPersonsOlderThan(List&lt;Person&gt; roster, int age) {
+    for (Person p : roster) {
+        if (p.getAge() &gt;= age) {
+            p.printPerson();
+        }
+    }
+}</pre>
+<p><b>Note</b>: A
+<code>List</code> is an ordered
+<code>Collection</code>. A <em>collection</em> is an object
+that groups multiple elements into a single unit. Collections are
+used to store, retrieve, manipulate, and communicate aggregate
+data. For more information about collections, see the
+Collections trail.</p>
+<p>This approach can potentially make your application <em>brittle</em>, which is the likelihood of an application not working because of the introduction of updates (such as newer data types). Suppose that you upgrade your application and change the structure of the <code>Person</code> class such that it contains different member variables; perhaps the class records and measures ages with a different data type or algorithm. You would have to rewrite a lot of your API to accommodate this change. In addition, this approach is unnecessarily restrictive; what if you
+wanted to print members younger than a certain age, for example?</p>
+<h3>Approach 2: Create More Generalized Search Methods</h3>
+<p>The following method is more generic than <code>printPersonsOlderThan</code>; it prints members within a specified range of ages:</p>
+<p>WHATSON? 5b4ca2ff-e251-460a-896a-90e935a75ea8</p>
+<pre>public static void printPersonsWithinAgeRange(
+    List&lt;Person&gt; roster, int low, int high) {
+    for (Person p : roster) {
+        if (low &lt;= p.getAge() &amp;&amp; p.getAge() &lt; high) {
+            p.printPerson();
+        }
+    }
+}</pre>
+<p>What if you want to print members of a specified sex, or a combination of a specified gender and age range? What if you decide to change the <code>Person</code> class and add other attributes such as relationship status or geographical location? Although this method is more generic than <code>printPersonsOlderThan</code>, trying to create a separate method for each possible search query can still lead to brittle code. You can instead separate the code that specifies the criteria for which you want to search in a different class.</p>
+<h3>Approach 3: Specify Search Criteria Code in a Local Class</h3>
+<p>The following method prints members that match search criteria that you specify:</p>
+<p>WHATSON? a4330db1-9bad-4e3b-bf36-9015f3a820cc</p>
+<pre>public static void printPersons(
+    List&lt;Person&gt; roster, CheckPerson tester) {
+    for (Person p : roster) {
+        if (tester.test(p)) {
+            p.printPerson();
+        }
+    }
+}</pre>
+<p>This method checks each <code>Person</code> instance contained in the <code>List</code> parameter <code>roster</code> whether it satisfies the search criteria specified in the <code>CheckPerson</code> parameter <code>tester</code> by invoking the method <code>tester.test</code>. If the method <code>tester.test</code> returns a <code>true</code> value, then the method <code>printPersons</code> is invoked on the <code>Person</code> instance.</p>
+<p>To specify the search criteria, you implement the
+<code>CheckPerson</code> interface:</p>
+<p>WHATSON? 2e026259-1876-4b5c-95fa-8a4b9c481d3f</p>
+<pre>interface CheckPerson {
+    boolean test(Person p);
+}</pre>
+<p>The following class implements the <code>CheckPerson</code> interface by specifying an implementation for the method <code>test</code>. This method filters members that are eligible for Selective Service in the United States: it returns a <code>true</code> value if its <code>Person</code> parameter is male and between the ages of 18 and 25:</p>
+<p>WHATSON? 0cb42e04-e7e4-437a-ad89-4bfbd9e51ac2</p>
+<pre>class CheckPersonEligibleForSelectiveService implements CheckPerson {
+    public boolean test(Person p) {
+        return p.gender == Person.Sex.MALE &amp;&amp;
+            p.getAge() &gt;= 18 &amp;&amp;
+            p.getAge() &lt;= 25;
+    }
+}</pre>
+<p>To use this class, you create a new
+instance of it and invoke the <code>printPersons</code> method:</p>
+<p>WHATSON? b1ae2e8d-d4c5-465e-86d6-3aa6e93cefa1</p>
+<pre>printPersons(
+    roster, new CheckPersonEligibleForSelectiveService());</pre>
+<p>Although this approach is less brittle—you don't have to rewrite methods if you change the structure of the <code>Person</code>—you still have additional code: a new interface and a local class for each search you plan to perform in your application. Because <code>CheckPersonEligibleForSelectiveService</code>
+implements an interface, you can use an anonymous class
+instead of a local class and bypass the need to declare a new class for each search.</p>
+<h3>Approach 4: Specify Search Criteria Code in an Anonymous Class</h3>
+<p>One of the arguments of the following invocation of the method <code>printPersons</code> is an anonymous class that filters members that are eligible for Selective Service in the United States: those who are male and between the ages of 18 and 25:</p>
+<p>WHATSON? 4f820742-94d1-4ec9-92c0-42f979dfd93d</p>
+<pre>printPersons(
+    roster,
+    new CheckPerson() {
+        public boolean test(Person p) {
+            return p.getGender() == Person.Sex.MALE
+                &amp;&amp; p.getAge() &gt;= 18
+                &amp;&amp; p.getAge() &lt;= 25;
+        }
+    }
+);</pre>
+<p>This approach reduces the amount of code required because you don't have to create a new class for each search that you want to perform. However, the syntax of anonymous classes is bulky considering that the <code>CheckPerson</code> interface contains only one method. In this
+case, you can use a lambda expression instead of an anonymous class, as
+described in the next section.</p>
+<h3>Approach 5: Specify Search Criteria Code with a Lambda Expression</h3>
+<p>The <code>CheckPerson</code>
+interface is a <i>functional interface</i>. A functional
+interface is any interface that contains only one
+abstract method. (A functional interface may contain one or more 
+default methods or
+static methods.) Because
+a functional interface contains only one abstract method, you can
+omit the name of that method
+when you implement it. To do this, instead of using an anonymous
+class expression, you use a <i>lambda
+expression</i>, which is
+highlighted in the following method invocation:</p>
+<p>WHATSON? 50872597-e8b8-4afe-8362-d1ad90504dd8</p>
+<pre>printPersons(
+    roster,
+    <strong>(Person p) -&gt; p.getGender() == Person.Sex.MALE
+        &amp;&amp; p.getAge() &gt;= 18
+        &amp;&amp; p.getAge() &lt;= 25</strong>
+);</pre>
+<p>See Syntax of Lambda Expressions for information about how to define lambda expressions.</p>
+<p>You can use a standard functional interface in place of the interface <code>CheckPerson</code>, which reduces even further the amount of code required.</p>
+<h3>Approach 6: Use Standard Functional Interfaces with Lambda Expressions</h3>
+<p>Reconsider the <code>CheckPerson</code> interface:</p>
+<p>WHATSON? 0b1aba66-87ef-4452-8155-4ee84efea736</p>
+<pre>interface CheckPerson {
+    boolean test(Person p);
+}</pre>
+<p>This is a very
+simple interface. It's a functional interface because it contains
+only one abstract method. This method takes one parameter and returns a
+<code>boolean</code> value. The method is so simple that it might not be worth
+it to define one in your application. Consequently, the JDK
+defines several standard functional interfaces, which you can
+find in the package <code>java.util.function</code>.</p>
+<p>For example, you can use the
+<code>Predicate&lt;T&gt;</code>
+
+ interface in place of <code>CheckPerson</code>. This
+interface contains the method <code>boolean
+test(T t)</code>:</p>
+<p>WHATSON? bf2d2010-707f-4960-816f-090ec1256815</p>
+<pre>interface Predicate&lt;T&gt; {
+    boolean test(T t);
+}</pre>
+<p>The interface <code>Predicate&lt;T&gt;</code> is an example of a generic interface. (For more information about generics, see the
+Generics (Updated) lesson.) Generic types (such as generic interfaces) specify one or more type parameters within angle brackets (<code>&lt;&gt;</code>). This interface contains only one type parameter, <code>T</code>. When you declare or instantiate a generic type with actual type arguments, you have a parameterized type. For example, the parameterized type <code>Predicate&lt;Person&gt;</code> is the following:</p>
+<p>WHATSON? 04cd271f-8b42-4900-8295-315dac5669c5</p>
+<pre>interface Predicate&lt;<code>Person</code>&gt; {
+    boolean test(<code>Person</code> t);
+}</pre>
+<p>This parameterized type contains a method that has the same return type and parameters as <code>CheckPerson.boolean test(Person p)</code>. Consequently, you can use <code>Predicate&lt;T&gt;</code> in place of <code>CheckPerson</code> as the following method demonstrates:</p>
+<p>WHATSON? 234de1d7-5a77-4cef-97b9-54bb9996dac4</p>
+<pre>public static void printPersonsWithPredicate(
+    List&lt;Person&gt; roster, Predicate&lt;Person&gt; tester) {
+    for (Person p : roster) {
+        if (tester.test(p)) {
+            p.printPerson();
+        }
+    }
+}</pre>
+<p>As a result,
+the following method invocation is the same as when you invoked
+<code>printPersons</code> in Approach 3: Specify Search Criteria Code in a Local Class to obtain members who are eligible for Selective Service:</p>
+<p>WHATSON? 92ca7eec-df1d-4061-801b-f2aa2d9d4975</p>
+<pre>printPersonsWithPredicate(
+    roster,
+    p -&gt; p.getGender() == Person.Sex.MALE
+        &amp;&amp; p.getAge() &gt;= 18
+        &amp;&amp; p.getAge() &lt;= 25
+);</pre>
+<p>This is not the only possible place in this method to use a lambda expression. The following approach suggests other ways to use lambda expressions.</p>
+<h3>Approach 7: Use Lambda Expressions Throughout Your Application</h3>
+<p>Reconsider the method <code>printPersonsWithPredicate</code>
+to see where else you could use lambda expressions:</p>
+<p>WHATSON? 7482dc2b-9138-413d-a527-e5fd77670e20</p>
+<pre>public static void printPersonsWithPredicate(
+    List&lt;Person&gt; roster, Predicate&lt;Person&gt; tester) {
+    for (Person p : roster) {
+        if (tester.test(p)) {
+            p.printPerson();
+        }
+    }
+}</pre>
+<p>This method checks each <code>Person</code> instance contained in the <code>List</code> parameter <code>roster</code> whether it satisfies the criteria specified in the <code>Predicate</code> parameter <code>tester</code>. If the <code>Person</code> instance does satisfy the criteria specified by <code>tester</code>, the method <code>printPersron</code> is invoked on the <code>Person</code> instance.</p>
+<p>Instead of invoking the method <code>printPerson</code>, you can specify a different action to perform on those <code>Person</code> instances that satisfy the criteria specified by <code>tester</code>. You can specify this action with a lambda expression. Suppose you want a lambda expression similar to <code>printPerson</code>, one that takes one argument (an object of type <code>Person</code>) and returns void. Remember, to use a lambda expression, you need to implement a functional interface. In this case, you need a functional interface that contains an abstract method that can take one argument of type <code>Person</code> and returns void. The
+<code>Consumer&lt;T&gt;</code>
+ interface contains the method
+<code>void accept(T t)</code>, which has these characteristics. The
+following method replaces the invocation
+<code>p.printPerson()</code> with an
+instance of <code>Consumer&lt;Person&gt;</code> that invokes the method <code>accept</code>:</p>
+<p>WHATSON? 6a4620fd-6811-4fd5-9259-63481c3502a6</p>
+<pre>public static void processPersons(
+    List&lt;Person&gt; roster,
+    Predicate&lt;Person&gt; tester,
+    <strong>Consumer&lt;Person&gt; block</strong>) {
+        for (Person p : roster) {
+            if (tester.test(p)) {
+                <strong>block.accept(p);</strong>
+            }
+        }
+}</pre>
+<p>As a
+result, the following method invocation is the same as when you invoked <code>printPersons</code> in Approach 3: Specify Search Criteria Code in a Local Class to obtain members who are eligible for Selective Service. The lambda expression used to
+print members is highlighted:</p>
+<p>WHATSON? aa38d75a-84c2-4482-9c51-4cd32ac152a8</p>
+<pre>processPersons(
+     roster,
+     p -&gt; p.getGender() == Person.Sex.MALE
+         &amp;&amp; p.getAge() &gt;= 18
+         &amp;&amp; p.getAge() &lt;= 25,
+     <strong>p -&gt; p.printPerson()</strong>
+);</pre>
+<p>What if you want to do more with your members' profiles than printing them out. Suppose that you want to validate the members' profiles or retrieve
+their contact information? In this case, you need a functional
+interface that contains an abstract method that returns a value.
+The
+<code>Function&lt;T,R&gt;</code>
+ interface contains the
+method <code>R apply(T
+t)</code>. The following method retrieves the data
+specified by the parameter <code>mapper</code>, and
+then performs an action on it specified by the
+parameter <code>block</code>:</p>
+<p>WHATSON? 90d84cbd-7ab3-4846-aa96-8bb28f940633</p>
+<pre>public static void processPersonsWithFunction(
+    List&lt;Person&gt; roster,
+    Predicate&lt;Person&gt; tester,
+    Function&lt;Person, String&gt; mapper,
+    Consumer&lt;String&gt; block) {
+    for (Person p : roster) {
+        if (tester.test(p)) {
+            String data = mapper.apply(p);
+            block.accept(data);
+        }
+    }
+}</pre>
+<p>The following method retrieves the email address from each member
+contained in <code>roster</code> who is eligible for Selective Service and
+then prints it:</p>
+<p>WHATSON? 7e43396a-a411-4cd0-b944-89d16c6c6d5d</p>
+<pre>processPersonsWithFunction(
+    roster,
+    p -&gt; p.getGender() == Person.Sex.MALE
+        &amp;&amp; p.getAge() &gt;= 18
+        &amp;&amp; p.getAge() &lt;= 25,
+    p -&gt; p.getEmailAddress(),
+    email -&gt; System.out.println(email)
+);</pre>
+<h3>Approach 8: Use Generics More Extensively</h3>
+<p>Reconsider the method <code>processPersonsWithFunction</code>. The following is a generic version of it that accepts, as a parameter, a collection that contains elements of any data type:</p>
+<p>WHATSON? 0796c6d5-773e-42f8-b117-5609486b0b9e</p>
+<pre>public static &lt;X, Y&gt; void processElements(
+    Iterable&lt;X&gt; source,
+    Predicate&lt;X&gt; tester,
+    Function &lt;X, Y&gt; mapper,
+    Consumer&lt;Y&gt; block) {
+    for (X p : source) {
+        if (tester.test(p)) {
+            Y data = mapper.apply(p);
+            block.accept(data);
+        }
+    }
+}</pre>
+<p>To print the e-mail address of members who are eligible for Selective Service, invoke the <code>processElements</code> method as follows:</p>
+<p>WHATSON? 8adfab1f-db4a-4fa6-9411-6d958ae86641</p>
+<pre>processElements(
+    roster,
+    p -&gt; p.getGender() == Person.Sex.MALE
+        &amp;&amp; p.getAge() &gt;= 18
+        &amp;&amp; p.getAge() &lt;= 25,
+    p -&gt; p.getEmailAddress(),
+    email -&gt; System.out.println(email)
+);</pre>
+<p>This method invocation performs the following actions:</p>
+<ol>
+  <li>Obtains a source of objects from the collection <code>source</code>. In this example, it obtains a source of <code>Person</code> objects from the collection <code>roster</code>. Notice that the collection <code>roster</code>, which is a collection of type <code>List</code>, is also an object of type <code>Iterable</code>.</li>
+  
+  <li>Filters objects that match the <code>Predicate</code> object <code>tester</code>. In this example, the <code>Predicate</code> object is a lambda expression that specifies which members would be eligible for Selective Service.</li>
+  
+  <li>Maps each filtered object to a value as specified by the <code>Function</code> object <code>mapper</code>. In this example, the <code>Function</code> object is a lambda expression that returns the e-mail address of a member.</li>
+  
+  <li>Performs an action on each mapped object as specified by the <code>Consumer</code> object <code>block</code>. In this example, the <code>Consumer</code> object is a lambda expression that prints a string, which is the e-mail address returned by the <code>Function</code> object.</li>
+  
+</ol>
+<p>You can replace each of these actions with an aggregate operation.</p>
+<h3>Approach 9: Use Aggregate Operations That Accept Lambda Expressions as Parameters</h3>
+<p>The following example uses aggregate operations to print the e-mail addresses of those members contained in the collection <code>roster</code> who are eligible for Selective Service:</p>
+<p>WHATSON? 0d08ad96-87f5-462c-b6e9-d520ae71dffa</p>
+<pre>roster
+    .stream()
+    .filter(
+        p -&gt; p.getGender() == Person.Sex.MALE
+            &amp;&amp; p.getAge() &gt;= 18
+            &amp;&amp; p.getAge() &lt;= 25)
+    .map(p -&gt; p.getEmailAddress())
+    .forEach(email -&gt; System.out.println(email));</pre>
+<p>The following table maps each of the operations the method <code>processElements</code> performs with the corresponding aggregate operation:</p>
+<p>The operations <code>filter</code>, <code>map</code>, and <code>forEach</code> are <em>aggregate operations</em>. Aggregate operations process elements from a stream, not directly from a collection (which is the reason why the first method invoked in this example is <code>stream</code>). A <em>stream</em> is a sequence of elements. Unlike a collection, it is not a data structure that stores elements. Instead, a stream carries values from a source, such as collection, through a pipeline. A <em>pipeline</em> is a sequence of stream operations, which in this example is <code>filter</code>- <code>map</code>-<code>forEach</code>. In addition, aggregate operations typically accept lambda expressions as parameters, enabling you to customize how they behave.</p>
+<p>For a more thorough discussion of aggregate operations, see the
+Aggregate Operations lesson.</p>
+<h2>Lambda Expressions in GUI Applications</h2>
+<p>To process events in a graphical user interface (GUI) application, such as keyboard
+actions, mouse actions, and scroll actions, you typically create
+event handlers, which usually involves implementing a particular
+interface. Often, event handler interfaces are functional
+interfaces; they tend to have only one method.</p>
+<p>In the JavaFX example 
+<code>HelloWorld.java</code> (discussed in the previous section
+Anonymous Classes), you can
+replace the highlighted anonymous class with a lambda expression in this
+statement:</p>
+<p>WHATSON? c36165b7-c777-44bb-9fc9-498e48cbf2c8</p>
+<pre>        btn.setOnAction(<b>new EventHandler&lt;ActionEvent&gt;() {</b>
+
+            <b>@Override</b>
+            <b>public void handle(ActionEvent event) {</b>
+                <b>System.out.println("Hello World!");</b>
+            <b>}</b>
+        <b>}</b>);</pre>
+<p>The method invocation <code>btn.setOnAction</code> specifies what
+happens when you select the button represented by the <code>btn</code> object. This method requires
+an object of type <code>EventHandler&lt;ActionEvent&gt;</code>. The <code>EventHandler&lt;ActionEvent&gt;</code>
+interface contains only one method, <code>void handle(T event)</code>.
+This interface is a functional interface, so you could use the following highlighted lambda expression to replace it:</p>
+<p>WHATSON? 02f96538-366e-47e9-b2d7-7a58914eef37</p>
+<pre>        btn.setOnAction(
+          <b>event -&gt; System.out.println("Hello World!")</b>
+        );</pre>
+<h2>Syntax of Lambda Expressions</h2>
+<p>A lambda expression consists of the following:</p>
+<ul>
+  <li><p>A
+comma-separated list of formal parameters enclosed in
+parentheses. The <code>CheckPerson.test</code> method contains one parameter,
+<code>p</code>, which represents an instance of the
+<code>Person</code> class.</p>
+  <p><b>Note</b>: You can
+omit the data type of the parameters in a lambda expression. In
+addition, you can omit the parentheses if there is only one
+parameter. For example, the following lambda expression is also
+valid:</p>
+
+<pre>p -&gt; p.getGender() == Person.Sex.MALE 
+    &amp;&amp; p.getAge() &gt;= 18
+    &amp;&amp; p.getAge() &lt;= 25</pre></li>
+
+  <li><p>The arrow token, <code>-&gt;</code></p></li>
+  <li><p>A
+body, which consists of a single expression or a statement block. This example uses the following expression:</p>
+
+<pre>p.getGender() == Person.Sex.MALE 
+    &amp;&amp; p.getAge() &gt;= 18
+    &amp;&amp; p.getAge() &lt;= 25</pre>
+
+<p>If you
+specify a single expression, then the Java runtime evaluates the
+expression and then returns its value. Alternatively, you can use
+a return statement:</p>
+
+<pre>p -&gt; {
+    return p.getGender() == Person.Sex.MALE
+        &amp;&amp; p.getAge() &gt;= 18
+        &amp;&amp; p.getAge() &lt;= 25;
+}</pre>
+
+  <p>A return statement is not an expression; in a lambda expression,
+you must enclose statements in braces (<code>{}</code>). However, you do not have to enclose a void method invocation in braces. For example, the following is a valid lambda expression:</p>
+
+<pre>email -&gt; System.out.println(email)</pre>
+</li>
+
+</ul>
+<p>A
+comma-separated list of formal parameters enclosed in
+parentheses. The <code>CheckPerson.test</code> method contains one parameter,
+<code>p</code>, which represents an instance of the
+<code>Person</code> class.</p>
+<p><b>Note</b>: You can
+omit the data type of the parameters in a lambda expression. In
+addition, you can omit the parentheses if there is only one
+parameter. For example, the following lambda expression is also
+valid:</p>
+<p>WHATSON? ce5d40a7-6ef6-40a5-a92f-a1574c244a4d</p>
+<pre>p -&gt; p.getGender() == Person.Sex.MALE 
+    &amp;&amp; p.getAge() &gt;= 18
+    &amp;&amp; p.getAge() &lt;= 25</pre>
+<p>The arrow token, <code>-&gt;</code></p>
+<p>A
+body, which consists of a single expression or a statement block. This example uses the following expression:</p>
+<p>WHATSON? 0a2b2c80-1dcf-4942-89d6-7d11b00360e0</p>
+<pre>p.getGender() == Person.Sex.MALE 
+    &amp;&amp; p.getAge() &gt;= 18
+    &amp;&amp; p.getAge() &lt;= 25</pre>
+<p>If you
+specify a single expression, then the Java runtime evaluates the
+expression and then returns its value. Alternatively, you can use
+a return statement:</p>
+<p>WHATSON? 61241050-015e-4e61-8311-69907d3b802b</p>
+<pre>p -&gt; {
+    return p.getGender() == Person.Sex.MALE
+        &amp;&amp; p.getAge() &gt;= 18
+        &amp;&amp; p.getAge() &lt;= 25;
+}</pre>
+<p>A return statement is not an expression; in a lambda expression,
+you must enclose statements in braces (<code>{}</code>). However, you do not have to enclose a void method invocation in braces. For example, the following is a valid lambda expression:</p>
+<p>WHATSON? 5f088fbf-bf89-4648-a23c-7525a547bdf8</p>
+<pre>email -&gt; System.out.println(email)</pre>
+<p>Note that a lambda expression looks a lot like a method
+declaration; you can consider lambda expressions as anonymous
+methods—methods without a name.</p>
+<p>The following example,
+<code>Calculator</code>, is an example of lambda expressions that take
+more than one formal parameter:</p>
+<p>WHATSON? 24d29bcd-5dde-4993-af81-7f9c7175b487</p>
+<pre>
+
+public class Calculator {
+  
+    interface IntegerMath {
+        int operation(int a, int b);   
+    }
+  
+    public int operateBinary(int a, int b, IntegerMath op) {
+        return op.operation(a, b);
+    }
+ 
+    public static void main(String... args) {
+    
+        Calculator myApp = new Calculator();
+        IntegerMath addition = (a, b) -&gt; a + b;
+        IntegerMath subtraction = (a, b) -&gt; a - b;
+        System.out.println("40 + 2 = " +
+            myApp.operateBinary(40, 2, addition));
+        System.out.println("20 - 10 = " +
+            myApp.operateBinary(20, 10, subtraction));    
+    }
+}
+
+</pre>
+<p>The method <code>operateBinary</code> performs a
+mathematical operation on two integer operands. The operation
+itself is specified by an instance of <code>IntegerMath</code>. The example defines two operations with lambda expressions, <code>addition</code> and <code>subtraction</code>. The example prints
+the following:</p>
+<p>WHATSON? 780616f2-d847-433b-a308-3d6025b7fe47</p>
+<pre>40 + 2 = 42
+20 - 10 = 10</pre>
+<h2>Accessing Local Variables of the Enclosing Scope</h2>
+<p>Like local and anonymous classes, lambda expressions can
+capture variables; they have the same access to local variables of the enclosing scope. However, unlike local and anonymous classes, lambda expressions do not have any shadowing issues (see
+Shadowing for more information). Lambda expressions are lexically scoped. This means that they do not inherit any names from a supertype or introduce a new level of scoping. Declarations in a lambda expression are interpreted just as they are in the enclosing environment. The following example,
+<code>LambdaScopeTest</code>, demonstrates this:</p>
+<p>WHATSON? 4a07b49a-b437-4068-8f01-fc2a8698e03b</p>
+<pre>
+
+import java.util.function.Consumer;
+
+public class LambdaScopeTest {
+
+    public int x = 0;
+
+    class FirstLevel {
+
+        public int x = 1;
+
+        void methodInFirstLevel(int x) {
+            
+            // The following statement causes the compiler to generate
+            // the error "local variables referenced from a lambda expression
+            // must be final or effectively final" in statement A:
+            //
+            // x = 99;
+            
+            Consumer&lt;Integer&gt; myConsumer = (y) -&gt; 
+            {
+                System.out.println("x = " + x); // Statement A
+                System.out.println("y = " + y);
+                System.out.println("this.x = " + this.x);
+                System.out.println("LambdaScopeTest.this.x = " +
+                    LambdaScopeTest.this.x);
+            };
+
+            myConsumer.accept(x);
+
+        }
+    }
+
+    public static void main(String... args) {
+        LambdaScopeTest st = new LambdaScopeTest();
+        LambdaScopeTest.FirstLevel fl = st.new FirstLevel();
+        fl.methodInFirstLevel(23);
+    }
+}
+</pre>
+<p>This example generates the following output:</p>
+<p>WHATSON? d81186fa-ba3f-47ed-b8c4-bae759ef4845</p>
+<pre>
+x = 23
+y = 23
+this.x = 1
+LambdaScopeTest.this.x = 0</pre>
+<p>If you substitute the parameter <code>x</code> in place of <code>y</code> in the declaration of the lambda expression <code>myConsumer</code>, then the compiler generates an error:</p>
+<p>WHATSON? ee77d031-f5fd-4fd9-9af5-53b7579691a4</p>
+<pre>Consumer&lt;Integer&gt; myConsumer = (x) -&gt; {
+    // ...
+}</pre>
+<p>The compiler generates the error "variable x is already defined in method methodInFirstLevel(int)" because the lambda expression does not introduce a new level of scoping. Consequently, you can directly access fields, methods, and local variables of the enclosing scope. For example, the lambda expression directly accesses the parameter <code>x</code> of the method <code>methodInFirstLevel</code>. To access variables in the enclosing class, use the keyword <code>this</code>. In this example, <code>this.x</code> refers to the member variable <code>FirstLevel.x</code>.</p>
+<p>However, like local and anonymous classes, a lambda expression can only access local variables and parameters of the enclosing block that are final or
+effectively final. For example, suppose that you add
+the following assignment statement immediately after the <code>methodInFirstLevel</code> definition statement:</p>
+<p>WHATSON? 72bb63f3-2ac7-48ca-b5af-0b91ddd10b05</p>
+<pre>void methodInFirstLevel(int x) {
+    <strong>x = 99;</strong>
+    // ...
+}</pre>
+<p>Because of this assignment
+statement, the variable <code>FirstLevel.x</code> is not effectively final anymore. As a result, the Java compiler generates an error message similar to
+"local variables referenced from a lambda expression must be final or effectively final" where the lambda expression <code>myConsumer</code> tries to access the <code>FirstLevel.x</code> variable:</p>
+<p>WHATSON? 1852fa1c-30ba-4606-93e0-619ddc89ab54</p>
+<pre>System.out.println("x = " + x);</pre>
+<h2>Target Typing</h2>
+<p>How do you determine the type of a lambda expression? Recall
+the lambda expression that selected members who are male and
+between the ages 18 and 25 years:</p>
+<p>WHATSON? dc1274ee-b196-462d-9b5b-2398f255cd45</p>
+<pre>p -&gt; p.getGender() == Person.Sex.MALE
+    &amp;&amp; p.getAge() &gt;= 18
+    &amp;&amp; p.getAge() &lt;= 25</pre>
+<p>This lambda expression was used in the following two methods:</p>
+<ul>
+
+<li><p><code>public static void printPersons(List&lt;Person&gt; roster, CheckPerson tester)</code> in Approach 3: Specify Search Criteria Code in a Local Class</p></li>
+
+<li><p><code>public void printPersonsWithPredicate(List&lt;Person&gt; roster, Predicate&lt;Person&gt; tester)</code> in Approach 6: Use Standard Functional Interfaces with Lambda Expressions</p></li>
+
+</ul>
+<p><code>public static void printPersons(List&lt;Person&gt; roster, CheckPerson tester)</code> in Approach 3: Specify Search Criteria Code in a Local Class</p>
+<p><code>public void printPersonsWithPredicate(List&lt;Person&gt; roster, Predicate&lt;Person&gt; tester)</code> in Approach 6: Use Standard Functional Interfaces with Lambda Expressions</p>
+<p>When the Java runtime invokes the method <code>printPersons</code>, it's expecting a data type of <code>CheckPerson</code>, so the
+lambda expression is of this type. However,
+when the Java runtime invokes the method <code>printPersonsWithPredicate</code>,
+it's expecting a data type of <code>Predicate&lt;Person&gt;</code>,
+so the lambda expression is of this type. The data type that
+these methods expect is called the <em>target type</em>. To determine the type of a lambda
+expression, the Java compiler uses the target type of the context
+or situation in which the lambda expression was found. It follows
+that you can only use lambda expressions in situations in which
+the Java compiler can determine a target type:</p>
+<ul>
+  <li><p>Variable declarations</p></li>
+  <li><p>Assignments</p></li>
+  <li><p>Return statements</p></li>
+  <li><p>Array initializers</p></li>
+  <li><p>Method or constructor arguments</p></li>
+  <li><p>Lambda expression bodies</p></li>
+  <li><p>Conditional expressions, <code>?:</code></p></li>
+  <li><p>Cast expressions</p></li>
+</ul>
+<p>Variable declarations</p>
+<p>Assignments</p>
+<p>Return statements</p>
+<p>Array initializers</p>
+<p>Method or constructor arguments</p>
+<p>Lambda expression bodies</p>
+<p>Conditional expressions, <code>?:</code></p>
+<p>Cast expressions</p>
+<h3>Target Types and Method Arguments</h3>
+<p>For method arguments, the Java compiler determines the target
+type with two other language features: overload resolution and
+type argument inference.</p>
+<p>Consider the following two functional interfaces (
+<code>java.lang.Runnable</code> and
+<code>java.util.concurrent.Callable&lt;V&gt;</code>):</p>
+<p>WHATSON? a99ef5e8-135a-41be-8fff-2fcf39e1c0a1</p>
+<pre>public interface Runnable {
+    void run();
+}
+
+public interface Callable&lt;V&gt; {
+    V call();
+}</pre>
+<p>The method <code>Runnable.run</code> does not return a value, whereas <code>Callable&lt;V&gt;.call</code> does.</p>
+<p>Suppose that you have overloaded the method <code>invoke</code> as follows
+(see
+Defining Methods for more information about overloading methods):</p>
+<p>WHATSON? e3a7c2f8-6258-4134-97da-8016080adadd</p>
+<pre>void invoke(Runnable r) {
+    r.run();
+}
+
+&lt;T&gt; T invoke(Callable&lt;T&gt; c) {
+    return c.call();
+}</pre>
+<p>Which method will be invoked in the following statement?</p>
+<p>WHATSON? 12994447-c279-44f5-89a2-c7fe030b947a</p>
+<pre>String s = invoke(() -&gt; "done");</pre>
+<p>The method <code>invoke(Callable&lt;T&gt;)</code> will be
+invoked because that method returns a value; the method
+<code>invoke(Runnable)</code> does not. In this case, the type of the lambda expression <code>() -&gt; "done"</code> is <code>Callable&lt;T&gt;</code>.</p>
+<h2>Serialization</h2>
+<p>You can 
+serialize a lambda expression if its target type and its captured arguments are serializable. However, like
+inner classes, the serialization of lambda expressions is strongly discouraged.</p>
+</body>
+</html>

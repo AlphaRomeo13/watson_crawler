@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Random-Access-Files-The-Java-Tutorials---------------------Essential-Classes--Basic-IO.html</title></head>
+<body>
+<h1>Random Access Files</h1>
+<p><em>Random access files</em> permit nonsequential, or random, access to a file's contents. To access a file randomly, you open the file, seek a particular location, and read from or write to that file.</p>
+<p>This functionality is possible with the 
+<code>SeekableByteChannel</code> interface. The <code>SeekableByteChannel</code> interface extends channel I/O with the notion of a current position. Methods enable you to set or query the position, and you can then read the data from, or write the data to, that location. The API consists of a few, easy to use, methods:</p>
+<ul>
+<li>
+<code>position</code> – Returns the channel's current position</li>
+<li>
+<code>position(long)</code> – Sets the channel's position</li>
+<li>
+<code>read(ByteBuffer)</code> – Reads bytes into the buffer from the channel</li>
+<li>
+<code>write(ByteBuffer)</code> – Writes bytes from the buffer to the channel</li>
+<li>
+<code>truncate(long)</code> – Truncates the file (or other entity) connected to the channel</li>
+</ul>
+<p>
+Reading and Writing Files With Channel I/O shows that the <code>Path.newByteChannel</code> methods return an instance of a <code>SeekableByteChannel</code>. On the default file system, you can use that channel as is, or you can cast it to a 
+<code>FileChannel</code> giving you access to more advanced features, such as mapping a region of the file directly into memory for faster access, locking a region of the file, or reading and writing bytes from an absolute location without affecting the channel's current position.</p>
+<p>The following code snippet opens a file for both reading and writing by using one of the <code>newByteChannel</code> methods. The <code>SeekableByteChannel</code> that is returned is cast to a <code>FileChannel</code>. Then, 12 bytes are read from the beginning of the file, and the string "I was here!" is written at that location. The current position in the file is moved to the end, and the 12 bytes from the beginning are appended. Finally, the string, "I was here!" is appended, and the channel on the file is closed.</p>
+<p>WHATSON? a97be337-fc2f-4582-a610-9568763fada3</p>
+<pre>
+String s = "I was here!\n";
+byte data[] = s.getBytes();
+ByteBuffer out = ByteBuffer.wrap(data);
+
+ByteBuffer copy = ByteBuffer.allocate(12);
+
+try (FileChannel fc = (FileChannel.open(file, READ, WRITE))) {
+    // Read the first 12
+    // bytes of the file.
+    int nread;
+    do {
+        nread = fc.read(copy);
+    } while (nread != -1 &amp;&amp; copy.hasRemaining());
+
+    // Write "I was here!" at the beginning of the file.
+    fc.position(0);
+    while (out.hasRemaining())
+        fc.write(out);
+    out.rewind();
+
+    // Move to the end of the file.  Copy the first 12 bytes to
+    // the end of the file.  Then write "I was here!" again.
+    long length = fc.size();
+    fc.position(length-1);
+    copy.flip();
+    while (copy.hasRemaining())
+        fc.write(copy);
+    while (out.hasRemaining())
+        fc.write(out);
+} catch (IOException x) {
+    System.out.println("I/O Exception: " + x);
+}
+</pre>
+</body>
+</html>

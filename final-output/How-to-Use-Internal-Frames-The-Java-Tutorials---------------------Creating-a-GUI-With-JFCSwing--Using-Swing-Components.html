@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>How-to-Use-Internal-Frames-The-Java-Tutorials---------------------Creating-a-GUI-With-JFCSwing--Using-Swing-Components.html</title></head>
+<body>
+<h1>How to Use Internal Frames</h1>
+<p>With the
+<code>JInternalFrame</code> class you can display a <code>JFrame</code>-like window within another window. Usually, you add internal frames to a desktop pane. The desktop pane, in turn, might be used as the content pane of a <code>JFrame</code>. The desktop pane is an instance of
+<code>JDesktopPane</code>, which is a subclass of <code>JLayeredPane</code> that has added API for managing multiple overlapping internal frames.</p>
+<p>You should consider carefully whether to base your program's GUI around frames or internal frames. Switching from internal frames to frames or vice versa is not necessarily a simple task. By experimenting with both frames and internal frames, you can get an idea of the tradeoffs involved in choosing one over the other.</p>
+<p>Here is a picture of an application that has two internal frames (one of which is iconified) inside a regular frame:</p>
+<ol>
+<li>Click the Launch button to run InternalFrameDemo using
+Java™ Web Start (download JDK 7 or later). Alternatively, to compile and run the example yourself, consult the example index.<img src="../../images/jws-launch-button.png" width="88" height="23" align="bottom" alt="Launches the InternalFrameDemo example"><br></li>
+<li>Create new internal frames using the Create item in the Document menu.<br>
+Each internal frame comes up 30 pixels lower and to the right of the place where the previous internal frame first appeared. This functionality is implemented in the <code>MyInternalFrame</code> class, which is the custom subclass of <code>JInternalFrame</code>.</li>
+</ol>
+<p>The following code, taken from
+<code>InternalFrameDemo.java</code>, creates the desktop and internal frames in the previous example.</p>
+<p>WHATSON? 37d54402-02d5-4dd6-b6b9-25b1518dae84</p>
+<pre>
+<em>...//In the constructor of InternalFrameDemo, a JFrame subclass:</em>
+    desktop = new JDesktopPane();
+    createFrame(); //Create first window
+    setContentPane(desktop);
+    ...
+    //Make dragging a little faster but perhaps uglier.
+    desktop.setDragMode(JDesktopPane.OUTLINE_DRAG_MODE);
+...
+protected void createFrame() {
+    MyInternalFrame frame = new MyInternalFrame();
+    frame.setVisible(true);
+    desktop.add(frame);
+    try {
+        frame.setSelected(true);
+    } catch (java.beans.PropertyVetoException e) {}
+}
+
+<em>...//In the constructor of MyInternalFrame, a JInternalFrame subclass:</em>
+static int openFrameCount = 0;
+static final int xOffset = 30, yOffset = 30;
+
+public MyInternalFrame() {
+    super("Document #" + (++openFrameCount),
+          true, //resizable
+          true, //closable
+          true, //maximizable
+          true);//iconifiable
+    //...Create the GUI and put it in the window...
+    //...Then set the window size or call pack...
+    ...
+    //Set the window's location.
+    setLocation(xOffset*openFrameCount, yOffset*openFrameCount);
+}
+</pre>
+<h2>Internal Frames vs. Regular Frames</h2>
+<p>The code for using internal frames is similar in many ways to the code for using regular Swing frames. Because internal frames have root panes, setting up the GUI for a <code>JInternalFrame</code> is very similar to setting up the GUI for a <code>JFrame</code>. <code>JInternalFrame</code> also provides other API, such as <code>pack</code>, that makes it similar to <code>JFrame</code>.</p>
+<p>Just as for a regular frame, you must invoke <code>setVisible(true)</code> or <code>show()</code> on an internal frame to display it. The internal frame does not appear until you explicitly make it visible.</p>
+<p>Internal frames are not windows or top-level containers, however, which makes them different from frames. For example, you must add an internal frame to a container (usually a <code>JDesktopPane</code>); an internal frame cannot be the root of a containment hierarchy. Also, internal frames do not generate window events. Instead, the user actions that would cause a frame to fire window events cause an internal frame to fire internal frame events.</p>
+<p>Because internal frames are implemented with platform-independent code, they add some features that frames cannot give you. One such feature is that internal frames give you more control over their state and capabilities than frames do. You can programatically iconify or maximize an internal frame. You can also specify what icon goes in the internal frame's title bar. You can even specify whether the internal frame has the window decorations to support resizing, iconifying, closing, and maximizing.</p>
+<p>Another feature is that internal frames are designed to work within desktop panes. The <code>JInternalFrame</code> API contains methods such as <code>moveToFront</code> that work only if the internal frame's container is a layered pane such as a <code>JDesktopPane</code>.</p>
+<h2>Rules of Using Internal Frames</h2>
+<p>If you have built any programs using <code>JFrame</code> and the other Swing components, then you already know a lot about how to use internal frames. The following list summarizes the rules for using internal frames. For additional information, see How to Make Frames and The JComponent Class.</p>
+<p></p>
+<p>When a desktop has many internal frames, the user might notice that moving them seems slow. Outline dragging is one way to avoid this problem. With outline dragging, only the outline of the internal frame is painted at the current mouse position while the internal frame's being dragged. The internal frame's innards are not repainted at a new position until dragging stops. The default behavior (called <em>live</em> dragging) is to reposition and repaint some or all of internal frame continuously while it is being moved; this can be slow if the desktop has many internal frames.</p>
+<p>Use the <code>JDesktopPane</code> method <code>setDragMode</code>* to specify outline dragging. For example:</p>
+<p>WHATSON? d4bf3494-7520-42bd-802c-cbfcddbab7f1</p>
+<pre>
+desktop.setDragMode(JDesktopPane.OUTLINE_DRAG_MODE);
+</pre>
+<h2>The Internal Frame API</h2>
+<p>The following tables list the commonly used <code>JInternalFrame</code> constructors and methods, as well as a few methods that <code>JDesktopPane</code> provides. Besides the API listed in this section, <code>JInternalFrame</code> inherits useful API from its superclasses, <code>JComponent</code>, <code>Component</code>, and <code>Container</code>. See The JComponent Class for lists of methods from those classes.</p>
+<p>Like <code>JInternalFrame</code>, <code>JDesktopPane</code> descends from <code>JComponent</code>, and thus provides the methods described in The JComponent Class. Because <code>JDesktopPane</code> extends <code>JLayeredPane</code>, it also supports the methods described in The Layered Pane API.</p>
+<p>The API for using internal frames falls into these categories:</p>
+<ul>
+<li>Creating the internal frame</li>
+<li>Adding components to the internal frame</li>
+<li>Specifying the internal frame's visibility, size, and location</li>
+<li>Performing window operations on the internal frame</li>
+<li>Controlling window decorations and capabilities</li>
+<li>Using the JDesktopPane API</li>
+</ul>
+<h2>Examples that Use Internal Frames</h2>
+<p>The following examples use internal frames. Because internal frames are similar to regular frames, you should also look at Examples that Use Frames.</p>
+</body>
+</html>

@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>How-to-Use-Menus-The-Java-Tutorials---------------------Creating-a-GUI-With-JFCSwing--Using-Swing-Components.html</title></head>
+<body>
+<h1>How to Use Menus</h1>
+<p>A menu provides a space-saving way to let the user choose one of several options. Other components with which the user can make a one-of-many choice include combo boxes, lists, radio buttons, spinners, and tool bars. If any of your menu items performs an action that is duplicated by another menu item or by a tool-bar button, then in addition to this section you should read 
+How to Use Actions.</p>
+<p>Menus are unique in that, by convention, they aren't placed with the other components in the UI. Instead, a menu usually appears either in a <em>menu bar</em> or as a <em>popup menu</em>. A menu bar contains one or more menus and has a customary, platform-dependent location  usually along the top of a window. A popup menu is a menu that is invisible until the user makes a platform-specific mouse action, such as pressing the right mouse button, over a popup-enabled component. The popup menu then appears under the cursor.</p>
+<p>The following figure shows many menu-related components: a menu bar, menus, menu items, radio button menu items, check box menu items, and separators. As you can see, a menu item can have either an image or text, or both. You can also specify other properties, such as font and color.</p>
+<p><!--
+<font color=gray>
+[PENDING: This figure will be updated.
+We may also add callouts for each component type.]
+</font>
+</p> 
+
+--></p>
+<p>The rest of this section teaches you about the menu components and tells you how to use various menu features:</p>
+<ul>
+<li>The menu component hierarchy</li>
+<li>Creating menus</li>
+<li>Handling events from menu items</li>
+<li>Enabling keyboard operation</li>
+<li>Bringing up a popup menu</li>
+<li>Customizing menu layout</li>
+<li>The Menu API</li>
+<li>Examples that use menus</li>
+</ul>
+<h2>The Menu Component Hierarchy</h2>
+<p>Here is a picture of the inheritance hierarchy for the menu-related classes:</p>
+<p>As the figure shows, menu items (including menus) are simply buttons. You might be wondering how a menu, if it's only a button, shows its menu items. The answer is that when a menu is activated, it automatically brings up a popup menu that displays the menu items.</p>
+<h2>Creating Menus</h2>
+<p>The following code creates the menus shown near the beginning of this menu section. The bold lines of code create and connect the menu objects; the other code sets up or customizes the menu objects. You can find the entire program in 
+<code>MenuLookDemo.java</code>. Other required files are listed in the example index. <!-- *******  boilerplate stuff ******* --></p>
+<ul>
+<li>Click the Launch button to run the MenuLook Demo using 
+Java™ Web Start (download JDK 7 or later). Alternatively, to compile and run the example yourself, consult the example index.<img src="../../images/jws-launch-button.png" width="88" height="23" align="bottom" alt="Launches the ButtonDemo example"><br></li>
+</ul>
+<p>Because this code has no event handling, the menus do nothing useful except to look as they should. If you run the example, you'll notice that despite the lack of custom event handling, menus and submenus appear when they should, and the check boxes and radio buttons respond appropriately when the user chooses them.</p>
+<p>WHATSON? a8d55ba8-30f2-45de-a304-d17dadf8da95</p>
+<pre>
+<em>//Where the GUI is created:</em>
+JMenuBar menuBar;
+JMenu menu, submenu;
+JMenuItem menuItem;
+JRadioButtonMenuItem rbMenuItem;
+JCheckBoxMenuItem cbMenuItem;
+
+//Create the menu bar.
+<b>menuBar = new JMenuBar();</b>
+
+//Build the first menu.
+<b>menu = new JMenu("A Menu");</b>
+menu.setMnemonic(KeyEvent.VK_A);
+menu.getAccessibleContext().setAccessibleDescription(
+        "The only menu in this program that has menu items");
+<b>menuBar.add(menu);</b>
+
+//a group of JMenuItems
+<b>menuItem = new JMenuItem("A text-only menu item"</b>,
+                         KeyEvent.VK_T<b>);</b>
+menuItem.setAccelerator(KeyStroke.getKeyStroke(
+        KeyEvent.VK_1, ActionEvent.ALT_MASK));
+menuItem.getAccessibleContext().setAccessibleDescription(
+        "This doesn't really do anything");
+<b>menu.add(menuItem);</b>
+
+<b>menuItem = new JMenuItem("Both text and icon",
+                         new ImageIcon("images/middle.gif"));</b>
+menuItem.setMnemonic(KeyEvent.VK_B);
+<b>menu.add(menuItem);</b>
+
+<b>menuItem = new JMenuItem(new ImageIcon("images/middle.gif"));</b>
+menuItem.setMnemonic(KeyEvent.VK_D);
+<b>menu.add(menuItem);</b>
+
+//a group of radio button menu items
+<b>menu.addSeparator();</b>
+ButtonGroup group = new ButtonGroup();
+<b>rbMenuItem = new JRadioButtonMenuItem("A radio button menu item");</b>
+rbMenuItem.setSelected(true);
+rbMenuItem.setMnemonic(KeyEvent.VK_R);
+group.add(rbMenuItem);
+<b>menu.add(rbMenuItem);</b>
+
+<b>rbMenuItem = new JRadioButtonMenuItem("Another one");</b>
+rbMenuItem.setMnemonic(KeyEvent.VK_O);
+group.add(rbMenuItem);
+<b>menu.add(rbMenuItem);</b>
+
+//a group of check box menu items
+<b>menu.addSeparator();</b>
+<b>cbMenuItem = new JCheckBoxMenuItem("A check box menu item");</b>
+cbMenuItem.setMnemonic(KeyEvent.VK_C);
+<b>menu.add(cbMenuItem);</b>
+
+<b>cbMenuItem = new JCheckBoxMenuItem("Another one");</b>
+cbMenuItem.setMnemonic(KeyEvent.VK_H);
+<b>menu.add(cbMenuItem);</b>
+
+//a submenu
+<b>menu.addSeparator();</b>
+<b>submenu = new JMenu("A submenu");</b>
+submenu.setMnemonic(KeyEvent.VK_S);
+
+<b>menuItem = new JMenuItem("An item in the submenu");</b>
+menuItem.setAccelerator(KeyStroke.getKeyStroke(
+        KeyEvent.VK_2, ActionEvent.ALT_MASK));
+<b>submenu.add(menuItem);</b>
+
+<b>menuItem = new JMenuItem("Another item");</b>
+<b>submenu.add(menuItem);</b>
+<b>menu.add(submenu);</b>
+
+//Build second menu in the menu bar.
+<b>menu = new JMenu("Another Menu");</b>
+menu.setMnemonic(KeyEvent.VK_N);
+menu.getAccessibleContext().setAccessibleDescription(
+        "This menu does nothing");
+<b>menuBar.add(menu);</b>
+
+...
+<b>frame.setJMenuBar(<em>theJMenuBar</em>);</b>
+</pre>
+<p>As the code shows, to set the menu bar for a <code>JFrame</code>, you use the <code>setJMenuBar</code> method. To add a <code>JMenu</code> to a <code>JMenuBar</code>, you use the <code>add(JMenu)</code> method. To add menu items and submenus to a <code>JMenu</code>, you use the <code>add(JMenuItem)</code> method.</p>
+<p>Menu items, like other components, can be in at most one container. If you try to add a menu item to a second menu, the menu item will be removed from the first menu before being added to the second. For a way of implementing multiple components that do the same thing, see 
+How to Use Actions.</p>
+<p>Other methods in the preceding code include <code>setAccelerator</code> and <code>setMnemonic</code>, which are discussed a little later in Enabling Keyboard Operation. The <code>setAccessibleDescription</code> method is discussed in 
+How to Support Assistive Technologies.</p>
+<h2>Handling Events from Menu Items</h2>
+<p>To detect when the user chooses a <code>JMenuItem</code>, you can listen for action events (just as you would for a <code>JButton</code>). To detect when the user chooses a <code>JRadioButtonMenuItem</code>, you can listen for either action events or item events, as described in How to Use Radio Buttons. For <code>JCheckBoxMenuItem</code>s, you generally listen for item events, as described in How to Use Check Boxes.</p>
+<p><!-- *******  boilerplate stuff ******* --></p>
+<ul>
+<li>Click the Launch button to run the Menu Demo using 
+Java™ Web Start (download JDK 7 or later). Alternatively, to compile and run the example yourself, consult the example index.<img src="../../images/jws-launch-button.png" width="88" height="23" align="bottom" alt="Launches the ButtonDemo example"><br></li>
+</ul>
+<p>Here is the code that implements the event handling:</p>
+<p>WHATSON? 3b9753ae-75e2-4f5e-a3a5-284230f92d84</p>
+<pre>
+public class MenuDemo ... implements ActionListener,
+                                     ItemListener {
+    ...
+    public MenuDemo() {
+        <em>//...for each JMenuItem instance:</em>
+        menuItem.addActionListener(this);
+        ...
+        <em>//for each JRadioButtonMenuItem: </em>
+        rbMenuItem.addActionListener(this);
+        ...
+        <em>//for each JCheckBoxMenuItem: </em>
+        cbMenuItem.addItemListener(this);
+        ...
+    }
+
+    public void actionPerformed(ActionEvent e) {
+        <em>//...Get information from the action event...
+        //...Display it in the text area...</em>
+    }
+
+    public void itemStateChanged(ItemEvent e) {
+        <em>//...Get information from the item event...
+        //...Display it in the text area...</em>
+    }
+</pre>
+<p>For examples of handling action and item events, see the button, radio button, and check box sections, as well as the list of examples at the end of this section.</p>
+<h2>Enabling Keyboard Operation</h2>
+<p>Menus support two kinds of keyboard alternatives: mnemonics and accelerators. <em>Mnemonics</em> offer a way to use the keyboard to navigate the menu hierarchy, increasing the accessibility of programs. <em>Accelerators</em>, on the other hand, offer keyboard shortcuts to <em>bypass</em> navigating the menu hierarchy. Mnemonics are for all users; accelerators are for power users.</p>
+<p>A mnemonic is a key that makes an already visible menu item be chosen. For example, in <code>MenuDemo</code> the first menu has the mnemonic A, and its second menu item has the mnemonic B. This means that, when you run <code>MenuDemo</code> with the Java look and feel, pressing the Alt and A keys makes the first menu appear. While the first menu is visible, pressing the B key (with or without Alt) makes the second menu item be chosen. A menu item generally displays its mnemonic by underlining the first occurrence of the mnemonic character in the menu item's text, as the following snapshot shows.</p>
+<p>An accelerator is a key combination that causes a menu item to be chosen, whether or not it's visible. For example, pressing the Alt and 2 keys in <code>MenuDemo</code> makes the first item in the first menu's submenu be chosen, without bringing up any menus. Only leaf menu items  menus that don't bring up other menus  can have accelerators. The following snapshot shows how the Java look and feel displays a menu item that has an accelerator.</p>
+<p>You can specify a mnemonic either when constructing the menu item or with the <code>setMnemonic</code> method. To specify an accelerator, use the <code>setAccelerator</code> method. Here are examples of setting mnemonics and accelerators:</p>
+<p>WHATSON? a24c8736-a599-4a57-bd0c-105ad12b7d3c</p>
+<pre>
+//Setting the mnemonic when constructing a menu item:
+menuItem = new JMenuItem("A text-only menu item",
+                         KeyEvent.VK_T);
+
+//Setting the mnemonic after creation time:
+menuItem.setMnemonic(KeyEvent.VK_T);
+
+//Setting the accelerator:
+menuItem.setAccelerator(KeyStroke.getKeyStroke(
+        KeyEvent.VK_T, ActionEvent.ALT_MASK));
+</pre>
+<p>As you can see, you set a mnemonic by specifying the 
+<code>KeyEvent</code> constant corresponding to the key the user should press. To specify an accelerator you must use a 
+<code>KeyStroke</code> object, which combines a key (specified by a <code>KeyEvent</code> constant) and a modifier-key mask (specified by an 
+<code>ActionEvent</code> constant).</p>
+<p>Because popup menus, unlike regular menus, aren't always contained by a component, accelerators in popup menu items don't work unless the popup menu is visible.</p>
+<h2>Bringing Up a Popup Menu</h2>
+<p>To bring up a popup menu ( 
+<code>JPopupMenu</code>), you must register a mouse listener on each component that the popup menu should be associated with. The mouse listener must detect user requests that the popup menu be brought up.</p>
+<p>The exact gesture that should bring up a popup menu varies by look and feel. In Microsoft Windows, the user by convention brings up a popup menu by releasing the right mouse button while the cursor is over a component that is popup-enabled. In the Java look and feel, the customary trigger is either pressing the right mouse button (for a popup that goes away when the button is released) or clicking it (for a popup that stays up). <!-- 
+In a future release,
+a new mechanism for automatically triggering popup menus
+in the appropriate way for the look and feel
+might be added; see
+bug #4634626--></p>
+<p><!-- *******  boilerplate stuff ******* --></p>
+<ul>
+<li>Click the Launch button to run the PopupMenu Demo using 
+Java™ Web Start (download JDK 7 or later). Alternatively, to compile and run the example yourself, consult the example index.<img src="../../images/jws-launch-button.png" width="88" height="23" align="bottom" alt="Launches the PopupMenuDemo example"><br></li>
+</ul>
+<p>WHATSON? e6c3addc-3955-4091-951e-f44b95698048</p>
+<pre>
+<em>//...where instance variables are declared:</em>
+JPopupMenu popup;
+
+    <em>//...where the GUI is constructed:</em>
+    //Create the popup menu.
+    popup = new JPopupMenu();
+    menuItem = new JMenuItem("A popup menu item");
+    menuItem.addActionListener(this);
+    popup.add(menuItem);
+    menuItem = new JMenuItem("Another popup menu item");
+    menuItem.addActionListener(this);
+    popup.add(menuItem);
+
+    //Add listener to components that can bring up popup menus.
+    MouseListener popupListener = new PopupListener();
+    output.addMouseListener(popupListener);
+    menuBar.addMouseListener(popupListener);
+...
+class PopupListener extends MouseAdapter {
+    public void mousePressed(MouseEvent e) {
+        maybeShowPopup(e);
+    }
+
+    public void mouseReleased(MouseEvent e) {
+        maybeShowPopup(e);
+    }
+
+    private void maybeShowPopup(MouseEvent e) {
+        if (e.isPopupTrigger()) {
+            popup.show(e.getComponent(),
+                       e.getX(), e.getY());
+        }
+    }
+}
+</pre>
+<p>Popup menus have a few interesting implementation details. One is that every menu has an associated popup menu. When the menu is activated, it uses its associated popup menu to show its menu items.</p>
+<p>Another detail is that a popup menu itself uses another component to implement the window containing the menu items. Depending on the circumstances under which the popup menu is displayed, the popup menu might implement its "window" using a lightweight component (such as a <code>JPanel</code>), a "mediumweight" component (such as a 
+<code>Panel</code>), or a heavyweight window (something that inherits from 
+<code>Window</code>).</p>
+<p>Lightweight popup windows are more efficient than heavyweight windows but, prior to the Java SE Platform 6 Update 12 release, they didn't work well if you had any heavyweight components inside your GUI. Specifically, when the lightweight popup's display area intersects the heavyweight component's display area, the heavyweight component is drawn on top. This is one of the reasons that, prior to the 6u12 release, we recommended against mixing heavyweight and lightweight components. If you are using an older release and absolutely need to use a heavyweight component in your GUI, then you can invoke <code>JPopupMenu.setLightWeightPopupEnabled(false)</code> to disable lightweight popup windows. For information on mixing components in the 6u12 release and later, please see 
+Mixing Heavyweight and Lightweight Components.</p>
+<h2>Customizing Menu Layout</h2>
+<p>Because menus are made up of ordinary Swing components, you can easily customize them. For example, you can add any lightweight component to a <code>JMenu</code> or <code>JMenuBar</code>. And because <code>JMenuBar</code> uses <code>BoxLayout</code>, you can customize a menu bar's layout just by adding invisible components to it. Here is an example of adding a glue component to a menu bar, so that the last menu is at the right edge of the menu bar:</p>
+<p>WHATSON? 2d4dd9b2-33d6-4c9f-a20b-1c8e9daedc39</p>
+<pre>
+<em>//...create and add some menus...</em>
+menuBar.add(Box.createHorizontalGlue());
+<em>//...create the rightmost menu...</em>
+menuBar.add(rightMenu);
+</pre>
+<ul>
+<li>Click the Launch button to run the MenuGlue Demo using 
+Java™ Web Start (download JDK 7 or later). Alternatively, to compile and run the example yourself, consult the example index.<img src="../../images/jws-launch-button.png" width="88" height="23" align="bottom" alt="Launches the ButtonDemo example"><br></li>
+</ul>
+<p>Here's the modified menu layout that MenuGlueDemo displays:</p>
+<p>Another way of changing the look of menus is to change the layout managers used to control them. For example, you can change a menu bar's layout manager from the default left-to-right <code>BoxLayout</code> to something such as <code>GridLayout</code>. <!-- *******  boilerplate stuff ******* --></p>
+<ul>
+<li>Click the Launch button to run the MenuLayout Demo using 
+Java™ Web Start (download JDK 7 or later). Alternatively, to compile and run the example yourself, consult the example index.<img src="../../images/jws-launch-button.png" width="88" height="23" align="bottom" alt="Launches the MenuLayoutDemo example"><br></li>
+</ul>
+<p>Here's a picture of the menu layout that <code>MenuLayoutDemo</code> creates:</p>
+<h2>The Menu API</h2>
+<p>The following tables list the commonly used menu constructors and methods. The API for using menus falls into these categories:</p>
+<ul>
+<li>Creating and Setting Up Menu Bars</li>
+<li>Creating and Populating Menus</li>
+<li>Creating, Populating, and Controlling Popup Menus</li>
+<li>Implementing Menu Items</li>
+</ul>
+<p>The constructor with the <code>Action</code> parameter sets the menu item's <code>Action</code>, causing the menu item's properties to be initialized from the <code>Action</code>. See 
+How to Use Actions for details.</p>
+<h2>Examples that Use Menus</h2>
+<p>Menus are used in a few of our examples.</p>
+<p>See the
+Using JavaFX UI Controls: Menu tutorial to learn how to create menus in JavaFX.</p>
+</body>
+</html>

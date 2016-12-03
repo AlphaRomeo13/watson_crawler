@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Styles-and-Themes--Android-Developers.html</title></head>
+<body>
+<h1>Styles and Themes</h1>
+<h2>In this document</h2>
+<ol>
+    <li>Defining Styles
+      <ol>
+        <li>Inheritance</li>
+        <li>Style Properties</li>
+      </ol>
+    </li>
+    <li>Applying Styles and Themes to the UI
+      <ol>
+        <li>Apply a style to a View</li>
+        <li>Apply a theme to an Activity or application</li>
+        <li>Select a theme based on platform version</li>
+      </ol>
+    </li>
+    <li>Using Platform Styles and Themes</li>
+  </ol>
+<ol>
+        <li>Inheritance</li>
+        <li>Style Properties</li>
+      </ol>
+<ol>
+        <li>Apply a style to a View</li>
+        <li>Apply a theme to an Activity or application</li>
+        <li>Select a theme based on platform version</li>
+      </ol>
+<h2>See also</h2>
+<ol>
+    <li>Style
+    and Theme Resources</li>
+    <li><code>R.style</code> for Android styles and themes</li>
+    <li><code>R.attr</code> for all style attributes</li>
+  </ol>
+<p>A <strong>style</strong> is a collection of properties that
+specify the look and format for a <code>View</code> or window.
+A style can specify properties such as height, padding, font color, font size,
+background color, and much more. A style is defined in an XML resource that is
+separate from the XML that specifies the layout.</p>
+<p>Styles in Android share a similar philosophy to cascading stylesheets in web
+design—they allow you to separate the design from the
+content.</p>
+<p>For example, by using a style, you can take this layout XML:</p>
+<p>WHATSON? df72a8dc-cb37-42c2-843b-15553fad3ff0</p>
+<pre>
+&lt;TextView
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:textColor="#00FF00"
+    android:typeface="monospace"
+    android:text="@string/hello" /&gt;
+</pre>
+<p>And turn it into this:</p>
+<p>WHATSON? 62b59aac-48bc-408b-afb9-16a0127b16e2</p>
+<pre>
+&lt;TextView
+    style="@style/CodeFont"
+    android:text="@string/hello" /&gt;
+</pre>
+<p>All of the attributes related to style have been removed from the layout XML and put into a
+style definition called <code>CodeFont</code>, which is then applied with the <code>style</code>
+attribute. You'll see the definition for this style in the following section.</p>
+<p>A <strong>theme</strong> is a style applied to an entire <code>Activity</code> or
+application, rather than an individual <code>View</code> (as in the example above). When a
+style is applied as a theme, every View in the Activity or application will apply each style
+property that it supports. For example, you can apply the same <code>CodeFont</code> style
+as a theme for an Activity and then all text inside that Activity will have green monospace
+font.</p>
+<h2>Defining Styles</h2>
+<p>To create a set of styles, save an XML file in the <code>res/values/</code>
+directory of your project. The name of the XML file is arbitrary, but it must use the
+<code>.xml</code> extension and be saved in the <code>res/values/</code> folder.</p>
+<p>The root node of the XML file must be <code>&lt;resources&gt;</code>.</p>
+<p>For each style you want to create, add a <code>&lt;style&gt;</code> element to the file
+with a <code>name</code> that uniquely identifies the style (this attribute is required).
+Then add an <code>&lt;item&gt;</code> element for each property of that style, with a
+<code>name</code> that declares the style property and a value to go with it (this attribute
+is required). The value for the <code>&lt;item&gt;</code> can
+be a keyword string, a hex color, a reference to another resource type, or other value
+depending on the style property.
+Here's an example file with a single style:</p>
+<p>WHATSON? d4e3c986-f42c-4293-b5cf-6b83adf1d65c</p>
+<pre>
+&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;resources&gt;
+    &lt;style name="CodeFont" parent="@android:style/TextAppearance.Medium"&gt;
+        &lt;item name="android:layout_width"&gt;fill_parent&lt;/item&gt;
+        &lt;item name="android:layout_height"&gt;wrap_content&lt;/item&gt;
+        &lt;item name="android:textColor"&gt;#00FF00&lt;/item&gt;
+        &lt;item name="android:typeface"&gt;monospace&lt;/item&gt;
+    &lt;/style&gt;
+&lt;/resources&gt;
+</pre>
+<p>Each child of the <code>&lt;resources&gt;</code> element is converted into an application resource
+object at compile-time, which can be referenced by the value in the <code>&lt;style&gt;</code> element's
+<code>name</code> attribute. This example style can be referenced from an XML layout as
+<code>@style/CodeFont</code> (as demonstrated in the introduction above).</p>
+<p>The <code>parent</code> attribute in the <code>&lt;style&gt;</code> element is optional and
+specifies the resource ID of another style from which this style should inherit
+properties. You can then override the inherited style properties if you want to.</p>
+<p>Remember, a style that you want to use as an Activity or application theme is defined in XML
+exactly the same as a style for a View. A style such as the one defined above can be applied as a
+style for a single View or as a theme for an entire Activity or application. How to apply a style
+for a single View or as an application theme is discussed later.</p>
+<h3>Inheritance</h3>
+<p>The <code>parent</code> attribute in the <code>&lt;style&gt;</code> element lets you specify a style
+from which your style should inherit properties.
+You can use this to inherit properties from an existing style and
+then define only the properties that you want to change or add. You can
+inherit from styles that you've created yourself or from styles that are built into the
+platform. (See Using Platform Styles and Themes, below, for
+information about inheriting from styles defined by the Android platform.) For example, you can
+inherit the Android platform's default text appearance and then modify it:</p>
+<p>WHATSON? 309b3fa9-ae0b-425c-8ae8-2ff3421749ab</p>
+<pre>
+    &lt;style name="GreenText" parent="@android:style/TextAppearance"&gt;
+        &lt;item name="android:textColor"&gt;#00FF00&lt;/item&gt;
+    &lt;/style&gt;
+</pre>
+<p>If you want to inherit from styles that you've defined yourself, you <em>do not</em> have to use
+the <code>parent</code> attribute. Instead, just prefix the name of the style you want to
+inherit to the name of your new style, separated by a period. For example, to create a new style
+that inherits the <code>CodeFont</code> style defined above, but make the color red,
+you can author the new style like this:</p>
+<p>WHATSON? b556cf21-6fdf-43d5-bc94-99ae5f1217ec</p>
+<pre>
+    &lt;style name="CodeFont.Red"&gt;
+        &lt;item name="android:textColor"&gt;#FF0000&lt;/item&gt;
+    &lt;/style&gt;
+</pre>
+<p>Notice that there is no <code>parent</code> attribute in the <code>&lt;style&gt;</code> tag, but because
+the <code>name</code> attribute begins with the <code>CodeFont</code> style name (which
+is a style that you have created), this style inherits all style properties from that style. This
+style then overrides the <code>android:textColor</code> property to make the text red. You can
+reference this new style as <code>@style/CodeFont.Red</code>.</p>
+<p>You can continue inheriting like
+this as many times as you'd like, by chaining names with periods. For example, you can
+extend <code>CodeFont.Red</code> to be bigger, with:</p>
+<p>WHATSON? 1722bd68-63bc-43b4-b710-6808ca2a5773</p>
+<pre>
+    &lt;style name="CodeFont.Red.Big"&gt;
+        &lt;item name="android:textSize"&gt;30sp&lt;/item&gt;
+    &lt;/style&gt;
+</pre>
+<p>This inherits from both <code>CodeFont</code> and <code>CodeFont.Red</code> styles, then adds the
+<code>android:textSize</code> property.</p>
+<p><strong>Note:</strong> This technique for inheritance by chaining together
+names only works for styles defined by your own resources. You can't inherit Android built-in styles
+this way. To reference a built-in style, such as <code>TextAppearance</code>, you must
+use the <code>parent</code> attribute.</p>
+<h3>Style Properties</h3>
+<p>Now that you understand how a style is defined, you need to learn what kind
+of style properties—defined by the <code>&lt;item&gt;</code> element—are available.
+You're probably familiar with some already, such as <code>layout_width</code> and
+<code>textColor</code>. Of course, there are many more style properties you can use.</p>
+<p>The best place to find properties that apply to a specific <code>View</code> is the
+corresponding class reference, which lists all of the supported XML attributes. For example, all of the
+attributes listed in the table of
+TextView XML 
+attributes can be used in a style definition for a <code>TextView</code> element (or one of
+its subclasses). One of the attributes listed in the reference is <code>android:inputType</code>, so where you might normally place the <code>android:inputType</code>
+attribute in an <code>&lt;EditText&gt;</code> element, like this:</p>
+<p>WHATSON? 9068323a-19a9-4636-9783-81772ff64069</p>
+<pre>
+&lt;EditText
+    android:inputType="number"
+    ... /&gt;
+</pre>
+<p>You can instead create a style for the <code>EditText</code> element that includes this property:</p>
+<p>WHATSON? e1d8c996-12a5-4a9e-9414-8e2f5c3de5e5</p>
+<pre>
+&lt;style name="Numbers"&gt;
+  &lt;item name="android:inputType"&gt;number&lt;/item&gt;
+  ...
+&lt;/style&gt;
+</pre>
+<p>So your XML for the layout can now implement this style:</p>
+<p>WHATSON? 13cc8a6b-ed07-4d2c-a6ec-6d97ce14ed81</p>
+<pre>
+&lt;EditText
+    style="@style/Numbers"
+    ... /&gt;
+</pre>
+<p>This simple example may look like more work, but when you add more style properties and
+factor-in the ability to re-use the style in various places, the pay-off can be huge.</p>
+<p>For a reference of all available style properties, see the <code>R.attr</code>
+reference. Keep in mind that all View objects don't accept all the same style attributes, so you
+should normally refer to the specific <code>View</code> class for supported style
+properties. However, if you
+apply a style to a View that does not support all of the style properties, the View will
+apply only those properties that are supported and simply ignore the others.</p>
+<p>Some style properties, however, are not supported by any View element and can only be applied
+as a theme. These style properties apply to the entire window and not to any type of View.
+For example, style properties for a theme can hide the application title, hide the status bar,
+or change the window's background. These kind of style properties do not belong to any View object.
+To discover these theme-only style properties, look at the <code>R.attr</code> reference for
+attributes that begin with <code>window</code>. For instance, <code>windowNoTitle</code> and <code>windowBackground</code> are style properties that are effective only when the style is applied as
+a theme to an Activity or application. See the next section for information about applying a
+style as a theme.</p>
+<p><strong>Note:</strong> Don't forget to prefix the property names in each
+<code>&lt;item&gt;</code> element with the <code>android:</code> namespace. For example:
+<code>&lt;item name="android:inputType"&gt;</code>.</p>
+<h2>Applying Styles and Themes to the UI</h2>
+<p>There are two ways to set a style:</p>
+<ul>
+  <li>To an individual View, by adding the <code>style</code> attribute to a View
+  element in the XML for your layout.</li>
+  <li>Or, to an entire Activity or application, by adding the <code>android:theme</code>
+  attribute to the <code>&lt;activity&gt;</code> or <code>&lt;application&gt;</code> element
+  in the Android manifest.</li>
+</ul>
+<p>When you apply a style to a single <code>View</code> in the layout, the properties
+defined by the style are applied only to that <code>View</code>. If a style is applied to a
+<code>ViewGroup</code>, the child <code>View</code> elements will
+<strong>not</strong> inherit the style properties—only the element to which you directly apply
+the style will apply its properties. However, you <em>can</em> apply a style so that it
+applies to all <code>View</code> elements—by applying the style as a theme.</p>
+<p>To apply a style definition as a theme, you must apply the style to an
+<code>Activity</code> or application in the Android manifest. When you do so,
+every <code>View</code> within the Activity or
+application will apply each property that it supports. For example, if you apply the <code>CodeFont</code> style from the previous examples to an Activity, then all View elements
+that support the text style properties will apply them. Any View that does not support
+the properties will ignore them. If a View supports only some of the properties, then
+it will apply only those properties.</p>
+<h3>Apply a style to a View</h3>
+<p>Here's how to set a style for a View in the XML layout:</p>
+<p>WHATSON? 72a25edb-aae1-4a78-bf58-eb1ff7a1519a</p>
+<pre>
+&lt;TextView
+    style="@style/CodeFont"
+    android:text="@string/hello" /&gt;
+</pre>
+<p>Now this TextView will be styled as defined by the style named <code>CodeFont</code>.
+(See the sample above, in Defining Styles.)</p>
+<p><strong>Note:</strong> The <code>style</code> attribute
+does <em>not</em> use the <code>android:</code> namespace prefix.</p>
+<h3>Apply a theme to an Activity or application</h3>
+<p>To set a theme for all the activities of your application, open the <code>AndroidManifest.xml</code> file and
+edit the <code>&lt;application&gt;</code> tag to include the <code>android:theme</code> attribute with the 
+style name. For example:</p>
+<p>WHATSON? 7ec645e5-6d18-430a-8df2-6aa3c07b8da8</p>
+<pre>
+&lt;application android:theme="@style/CustomTheme"&gt;
+</pre>
+<p>If you want a theme applied to just one Activity in your application, then add the 
+<code>android:theme</code> attribute to the <code>&lt;activity&gt;</code> tag instead.</p>
+<p>Just as Android provides other built-in resources, there are many pre-defined themes that you can use, to avoid
+writing them yourself. For example, you can use the <code>Dialog</code> theme and make your Activity
+appear like a dialog box:</p>
+<p>WHATSON? 68909a0a-de72-4296-80ac-392750d8a153</p>
+<pre>
+&lt;activity android:theme="@android:style/Theme.Dialog"&gt;
+</pre>
+<p>Or if you want the background to be transparent, use the Translucent theme:</p>
+<p>WHATSON? 70b9a319-8b46-40e0-b16a-b157dfaddbfb</p>
+<pre>
+&lt;activity android:theme="@android:style/Theme.Translucent"&gt;
+</pre>
+<p>If you like a theme, but want to tweak it, just add the theme as the <code>parent</code>
+of your custom theme. For example, you can modify the traditional light theme to use your own
+color like this:</p>
+<p>WHATSON? 3e0b84f9-5988-43dd-877f-cfa17f4aca07</p>
+<pre>
+&lt;color name="custom_theme_color"&gt;#b0b0ff&lt;/color&gt;
+&lt;style name="CustomTheme" parent="android:Theme.Light"&gt;
+    &lt;item name="android:windowBackground"&gt;@color/custom_theme_color&lt;/item&gt;
+    &lt;item name="android:colorBackground"&gt;@color/custom_theme_color&lt;/item&gt;
+&lt;/style&gt;
+</pre>
+<p>(Note that the color needs to supplied as a separate resource here because
+the <code>android:windowBackground</code> attribute only supports a reference to
+another resource; unlike <code>android:colorBackground</code>, it can not be given
+a color literal.)</p>
+<p>Now use <code>CustomTheme</code> instead of <code>Theme.Light</code> inside the Android
+Manifest:</p>
+<p>WHATSON? 1fe84db8-17de-4fd6-9961-b9e241584ae0</p>
+<pre>
+&lt;activity android:theme="@style/CustomTheme"&gt;
+</pre>
+<h3>Select a theme based on platform version</h3>
+<p>Newer versions of Android have additional themes available to applications,
+and you might want to use these while running on those platforms while still being
+compatible with older versions.  You can accomplish this through a custom theme
+that uses resource selection to switch between different parent themes, based on the platform
+version.</p>
+<p>For example, here is the declaration for a custom theme which is simply
+the standard platforms default light theme.  It would go in an XML file under
+<code>res/values</code> (typically <code>res/values/styles.xml</code>):
+</p>
+<p>WHATSON? e1e501ed-7243-446d-bc3b-0838ed782fab</p>
+<pre>
+&lt;style name="LightThemeSelector" parent="android:Theme.Light"&gt;
+    ...
+&lt;/style&gt;
+</pre>
+<p>To have this theme use the newer holographic theme when the application is running
+on Android 3.0 (API Level 11) or higher, you can place an alternative
+declaration for the theme in an XML file in <code>res/values-v11</code>, but make the parent theme
+the holographic theme:</p>
+<p>WHATSON? 029a8880-df04-44ce-a58a-5979e9ba34cd</p>
+<pre>
+&lt;style name="LightThemeSelector" parent="android:Theme.Holo.Light"&gt;
+    ...
+&lt;/style&gt;
+</pre>
+<p>Now use this theme like you would any other, and your application will
+automatically switch to the holographic theme if running on Android 3.0 or higher.</p>
+<p>A list of the standard attributes that you can use in themes can be
+found at <code>R.styleable.Theme</code>.</p>
+<p>For more information about providing alternative resources, such as themes and layouts, based
+on the platform version or other device configurations, see the Providing Resources
+document.</p>
+<h2>Using Platform Styles and Themes</h2>
+<p>The Android platform provides a large collection of styles and themes that you can
+use in your applications. You can find a reference of all available styles in the
+<code>R.style</code> class. To use the styles listed here, replace all underscores in
+the style name with a period. For example, you can apply the
+<code>Theme_NoTitleBar</code> theme with
+<code>"@android:style/Theme.NoTitleBar"</code>.</p>
+<p>The <code>R.style</code> reference, however, is not well documented and does not
+thoroughly describe the styles, so viewing the actual source code for these styles and
+themes will give you a better understanding of what style properties each one provides.
+For a better reference to the Android styles and themes, see the following source code:</p>
+<ul>
+	<li>Android Styles (styles.xml)</li>
+	<li>Android Themes (themes.xml)</li>
+</ul>
+<p>These files will help you learn through example. For instance, in the Android themes source code,
+you'll find a declaration for <code>&lt;style name="Theme.Dialog"&gt;</code>. In this definition,
+you'll see all of the properties that are used to style dialogs that are used by the Android
+framework.</p>
+<p>For more information about the syntax for styles and themes in XML, see the
+Style Resource document.</p>
+<p>For a reference of available style attributes that you can use to define a style or theme
+(e.g., "windowBackground" or "textAppearance"), see <code>R.attr</code> or the respective
+View class for which you are creating a style.</p>
+<h1>Styles and Themes</h1>
+<h2>In this document</h2>
+<ol>
+    <li>Defining Styles
+      <ol>
+        <li>Inheritance</li>
+        <li>Style Properties</li>
+      </ol>
+    </li>
+    <li>Applying Styles and Themes to the UI
+      <ol>
+        <li>Apply a style to a View</li>
+        <li>Apply a theme to an Activity or application</li>
+        <li>Select a theme based on platform version</li>
+      </ol>
+    </li>
+    <li>Using Platform Styles and Themes</li>
+  </ol>
+<ol>
+        <li>Inheritance</li>
+        <li>Style Properties</li>
+      </ol>
+<ol>
+        <li>Apply a style to a View</li>
+        <li>Apply a theme to an Activity or application</li>
+        <li>Select a theme based on platform version</li>
+      </ol>
+<h2>See also</h2>
+<ol>
+    <li>Style
+    and Theme Resources</li>
+    <li><code>R.style</code> for Android styles and themes</li>
+    <li><code>R.attr</code> for all style attributes</li>
+  </ol>
+<p>A <strong>style</strong> is a collection of properties that
+specify the look and format for a <code>View</code> or window.
+A style can specify properties such as height, padding, font color, font size,
+background color, and much more. A style is defined in an XML resource that is
+separate from the XML that specifies the layout.</p>
+<p>Styles in Android share a similar philosophy to cascading stylesheets in web
+design—they allow you to separate the design from the
+content.</p>
+<p>For example, by using a style, you can take this layout XML:</p>
+<p>WHATSON? 8c38127a-3b5a-4b9c-9b20-47f348bbd6cf</p>
+<pre>
+&lt;TextView
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:textColor="#00FF00"
+    android:typeface="monospace"
+    android:text="@string/hello" /&gt;
+</pre>
+<p>And turn it into this:</p>
+<p>WHATSON? 14f54db8-12b5-42c9-bbe6-e2c00e4b6a63</p>
+<pre>
+&lt;TextView
+    style="@style/CodeFont"
+    android:text="@string/hello" /&gt;
+</pre>
+<p>All of the attributes related to style have been removed from the layout XML and put into a
+style definition called <code>CodeFont</code>, which is then applied with the <code>style</code>
+attribute. You'll see the definition for this style in the following section.</p>
+<p>A <strong>theme</strong> is a style applied to an entire <code>Activity</code> or
+application, rather than an individual <code>View</code> (as in the example above). When a
+style is applied as a theme, every View in the Activity or application will apply each style
+property that it supports. For example, you can apply the same <code>CodeFont</code> style
+as a theme for an Activity and then all text inside that Activity will have green monospace
+font.</p>
+<h2>Defining Styles</h2>
+<p>To create a set of styles, save an XML file in the <code>res/values/</code>
+directory of your project. The name of the XML file is arbitrary, but it must use the
+<code>.xml</code> extension and be saved in the <code>res/values/</code> folder.</p>
+<p>The root node of the XML file must be <code>&lt;resources&gt;</code>.</p>
+<p>For each style you want to create, add a <code>&lt;style&gt;</code> element to the file
+with a <code>name</code> that uniquely identifies the style (this attribute is required).
+Then add an <code>&lt;item&gt;</code> element for each property of that style, with a
+<code>name</code> that declares the style property and a value to go with it (this attribute
+is required). The value for the <code>&lt;item&gt;</code> can
+be a keyword string, a hex color, a reference to another resource type, or other value
+depending on the style property.
+Here's an example file with a single style:</p>
+<p>WHATSON? db8d20d1-7c7e-4d39-a6e7-ccabf7cfdf70</p>
+<pre>
+&lt;?xml version="1.0" encoding="utf-8"?&gt;
+&lt;resources&gt;
+    &lt;style name="CodeFont" parent="@android:style/TextAppearance.Medium"&gt;
+        &lt;item name="android:layout_width"&gt;fill_parent&lt;/item&gt;
+        &lt;item name="android:layout_height"&gt;wrap_content&lt;/item&gt;
+        &lt;item name="android:textColor"&gt;#00FF00&lt;/item&gt;
+        &lt;item name="android:typeface"&gt;monospace&lt;/item&gt;
+    &lt;/style&gt;
+&lt;/resources&gt;
+</pre>
+<p>Each child of the <code>&lt;resources&gt;</code> element is converted into an application resource
+object at compile-time, which can be referenced by the value in the <code>&lt;style&gt;</code> element's
+<code>name</code> attribute. This example style can be referenced from an XML layout as
+<code>@style/CodeFont</code> (as demonstrated in the introduction above).</p>
+<p>The <code>parent</code> attribute in the <code>&lt;style&gt;</code> element is optional and
+specifies the resource ID of another style from which this style should inherit
+properties. You can then override the inherited style properties if you want to.</p>
+<p>Remember, a style that you want to use as an Activity or application theme is defined in XML
+exactly the same as a style for a View. A style such as the one defined above can be applied as a
+style for a single View or as a theme for an entire Activity or application. How to apply a style
+for a single View or as an application theme is discussed later.</p>
+<h3>Inheritance</h3>
+<p>The <code>parent</code> attribute in the <code>&lt;style&gt;</code> element lets you specify a style
+from which your style should inherit properties.
+You can use this to inherit properties from an existing style and
+then define only the properties that you want to change or add. You can
+inherit from styles that you've created yourself or from styles that are built into the
+platform. (See Using Platform Styles and Themes, below, for
+information about inheriting from styles defined by the Android platform.) For example, you can
+inherit the Android platform's default text appearance and then modify it:</p>
+<p>WHATSON? 3c094ba7-6cb3-4454-a54a-575566d6f3a4</p>
+<pre>
+    &lt;style name="GreenText" parent="@android:style/TextAppearance"&gt;
+        &lt;item name="android:textColor"&gt;#00FF00&lt;/item&gt;
+    &lt;/style&gt;
+</pre>
+<p>If you want to inherit from styles that you've defined yourself, you <em>do not</em> have to use
+the <code>parent</code> attribute. Instead, just prefix the name of the style you want to
+inherit to the name of your new style, separated by a period. For example, to create a new style
+that inherits the <code>CodeFont</code> style defined above, but make the color red,
+you can author the new style like this:</p>
+<p>WHATSON? 70e946a8-f79c-4a12-ab0a-7a08d389baff</p>
+<pre>
+    &lt;style name="CodeFont.Red"&gt;
+        &lt;item name="android:textColor"&gt;#FF0000&lt;/item&gt;
+    &lt;/style&gt;
+</pre>
+<p>Notice that there is no <code>parent</code> attribute in the <code>&lt;style&gt;</code> tag, but because
+the <code>name</code> attribute begins with the <code>CodeFont</code> style name (which
+is a style that you have created), this style inherits all style properties from that style. This
+style then overrides the <code>android:textColor</code> property to make the text red. You can
+reference this new style as <code>@style/CodeFont.Red</code>.</p>
+<p>You can continue inheriting like
+this as many times as you'd like, by chaining names with periods. For example, you can
+extend <code>CodeFont.Red</code> to be bigger, with:</p>
+<p>WHATSON? 9e502d77-95b0-4130-bfc3-e5c8f61dba07</p>
+<pre>
+    &lt;style name="CodeFont.Red.Big"&gt;
+        &lt;item name="android:textSize"&gt;30sp&lt;/item&gt;
+    &lt;/style&gt;
+</pre>
+<p>This inherits from both <code>CodeFont</code> and <code>CodeFont.Red</code> styles, then adds the
+<code>android:textSize</code> property.</p>
+<p><strong>Note:</strong> This technique for inheritance by chaining together
+names only works for styles defined by your own resources. You can't inherit Android built-in styles
+this way. To reference a built-in style, such as <code>TextAppearance</code>, you must
+use the <code>parent</code> attribute.</p>
+<h3>Style Properties</h3>
+<p>Now that you understand how a style is defined, you need to learn what kind
+of style properties—defined by the <code>&lt;item&gt;</code> element—are available.
+You're probably familiar with some already, such as <code>layout_width</code> and
+<code>textColor</code>. Of course, there are many more style properties you can use.</p>
+<p>The best place to find properties that apply to a specific <code>View</code> is the
+corresponding class reference, which lists all of the supported XML attributes. For example, all of the
+attributes listed in the table of
+TextView XML 
+attributes can be used in a style definition for a <code>TextView</code> element (or one of
+its subclasses). One of the attributes listed in the reference is <code>android:inputType</code>, so where you might normally place the <code>android:inputType</code>
+attribute in an <code>&lt;EditText&gt;</code> element, like this:</p>
+<p>WHATSON? 5f074389-7367-4ee8-b06b-6acef30f8e75</p>
+<pre>
+&lt;EditText
+    android:inputType="number"
+    ... /&gt;
+</pre>
+<p>You can instead create a style for the <code>EditText</code> element that includes this property:</p>
+<p>WHATSON? 213b270e-fe69-4e44-9806-853cee045c58</p>
+<pre>
+&lt;style name="Numbers"&gt;
+  &lt;item name="android:inputType"&gt;number&lt;/item&gt;
+  ...
+&lt;/style&gt;
+</pre>
+<p>So your XML for the layout can now implement this style:</p>
+<p>WHATSON? 1a0ee8a2-d4df-416e-8dba-05e2c594effc</p>
+<pre>
+&lt;EditText
+    style="@style/Numbers"
+    ... /&gt;
+</pre>
+<p>This simple example may look like more work, but when you add more style properties and
+factor-in the ability to re-use the style in various places, the pay-off can be huge.</p>
+<p>For a reference of all available style properties, see the <code>R.attr</code>
+reference. Keep in mind that all View objects don't accept all the same style attributes, so you
+should normally refer to the specific <code>View</code> class for supported style
+properties. However, if you
+apply a style to a View that does not support all of the style properties, the View will
+apply only those properties that are supported and simply ignore the others.</p>
+<p>Some style properties, however, are not supported by any View element and can only be applied
+as a theme. These style properties apply to the entire window and not to any type of View.
+For example, style properties for a theme can hide the application title, hide the status bar,
+or change the window's background. These kind of style properties do not belong to any View object.
+To discover these theme-only style properties, look at the <code>R.attr</code> reference for
+attributes that begin with <code>window</code>. For instance, <code>windowNoTitle</code> and <code>windowBackground</code> are style properties that are effective only when the style is applied as
+a theme to an Activity or application. See the next section for information about applying a
+style as a theme.</p>
+<p><strong>Note:</strong> Don't forget to prefix the property names in each
+<code>&lt;item&gt;</code> element with the <code>android:</code> namespace. For example:
+<code>&lt;item name="android:inputType"&gt;</code>.</p>
+<h2>Applying Styles and Themes to the UI</h2>
+<p>There are two ways to set a style:</p>
+<ul>
+  <li>To an individual View, by adding the <code>style</code> attribute to a View
+  element in the XML for your layout.</li>
+  <li>Or, to an entire Activity or application, by adding the <code>android:theme</code>
+  attribute to the <code>&lt;activity&gt;</code> or <code>&lt;application&gt;</code> element
+  in the Android manifest.</li>
+</ul>
+<p>When you apply a style to a single <code>View</code> in the layout, the properties
+defined by the style are applied only to that <code>View</code>. If a style is applied to a
+<code>ViewGroup</code>, the child <code>View</code> elements will
+<strong>not</strong> inherit the style properties—only the element to which you directly apply
+the style will apply its properties. However, you <em>can</em> apply a style so that it
+applies to all <code>View</code> elements—by applying the style as a theme.</p>
+<p>To apply a style definition as a theme, you must apply the style to an
+<code>Activity</code> or application in the Android manifest. When you do so,
+every <code>View</code> within the Activity or
+application will apply each property that it supports. For example, if you apply the <code>CodeFont</code> style from the previous examples to an Activity, then all View elements
+that support the text style properties will apply them. Any View that does not support
+the properties will ignore them. If a View supports only some of the properties, then
+it will apply only those properties.</p>
+<h3>Apply a style to a View</h3>
+<p>Here's how to set a style for a View in the XML layout:</p>
+<p>WHATSON? 6f2262a8-9041-4130-87e8-40acea75fd66</p>
+<pre>
+&lt;TextView
+    style="@style/CodeFont"
+    android:text="@string/hello" /&gt;
+</pre>
+<p>Now this TextView will be styled as defined by the style named <code>CodeFont</code>.
+(See the sample above, in Defining Styles.)</p>
+<p><strong>Note:</strong> The <code>style</code> attribute
+does <em>not</em> use the <code>android:</code> namespace prefix.</p>
+<h3>Apply a theme to an Activity or application</h3>
+<p>To set a theme for all the activities of your application, open the <code>AndroidManifest.xml</code> file and
+edit the <code>&lt;application&gt;</code> tag to include the <code>android:theme</code> attribute with the 
+style name. For example:</p>
+<p>WHATSON? 5a0c41a7-5f1c-41f2-8323-d7024c23ab0d</p>
+<pre>
+&lt;application android:theme="@style/CustomTheme"&gt;
+</pre>
+<p>If you want a theme applied to just one Activity in your application, then add the 
+<code>android:theme</code> attribute to the <code>&lt;activity&gt;</code> tag instead.</p>
+<p>Just as Android provides other built-in resources, there are many pre-defined themes that you can use, to avoid
+writing them yourself. For example, you can use the <code>Dialog</code> theme and make your Activity
+appear like a dialog box:</p>
+<p>WHATSON? c6e1b2e7-5e49-436a-9835-5958779d69fa</p>
+<pre>
+&lt;activity android:theme="@android:style/Theme.Dialog"&gt;
+</pre>
+<p>Or if you want the background to be transparent, use the Translucent theme:</p>
+<p>WHATSON? 79682602-32c2-4203-b8ed-19ebb4ad5d89</p>
+<pre>
+&lt;activity android:theme="@android:style/Theme.Translucent"&gt;
+</pre>
+<p>If you like a theme, but want to tweak it, just add the theme as the <code>parent</code>
+of your custom theme. For example, you can modify the traditional light theme to use your own
+color like this:</p>
+<p>WHATSON? fdcb751b-3cf5-43c5-b667-e3774bd5fd9d</p>
+<pre>
+&lt;color name="custom_theme_color"&gt;#b0b0ff&lt;/color&gt;
+&lt;style name="CustomTheme" parent="android:Theme.Light"&gt;
+    &lt;item name="android:windowBackground"&gt;@color/custom_theme_color&lt;/item&gt;
+    &lt;item name="android:colorBackground"&gt;@color/custom_theme_color&lt;/item&gt;
+&lt;/style&gt;
+</pre>
+<p>(Note that the color needs to supplied as a separate resource here because
+the <code>android:windowBackground</code> attribute only supports a reference to
+another resource; unlike <code>android:colorBackground</code>, it can not be given
+a color literal.)</p>
+<p>Now use <code>CustomTheme</code> instead of <code>Theme.Light</code> inside the Android
+Manifest:</p>
+<p>WHATSON? a5b9edae-2b1f-4e7b-9478-6df98a394bf4</p>
+<pre>
+&lt;activity android:theme="@style/CustomTheme"&gt;
+</pre>
+<h3>Select a theme based on platform version</h3>
+<p>Newer versions of Android have additional themes available to applications,
+and you might want to use these while running on those platforms while still being
+compatible with older versions.  You can accomplish this through a custom theme
+that uses resource selection to switch between different parent themes, based on the platform
+version.</p>
+<p>For example, here is the declaration for a custom theme which is simply
+the standard platforms default light theme.  It would go in an XML file under
+<code>res/values</code> (typically <code>res/values/styles.xml</code>):
+</p>
+<p>WHATSON? 8956f033-f42f-43ec-aab0-31a883ada57a</p>
+<pre>
+&lt;style name="LightThemeSelector" parent="android:Theme.Light"&gt;
+    ...
+&lt;/style&gt;
+</pre>
+<p>To have this theme use the newer holographic theme when the application is running
+on Android 3.0 (API Level 11) or higher, you can place an alternative
+declaration for the theme in an XML file in <code>res/values-v11</code>, but make the parent theme
+the holographic theme:</p>
+<p>WHATSON? 907d51c3-593c-4fed-ade7-f176d949661b</p>
+<pre>
+&lt;style name="LightThemeSelector" parent="android:Theme.Holo.Light"&gt;
+    ...
+&lt;/style&gt;
+</pre>
+<p>Now use this theme like you would any other, and your application will
+automatically switch to the holographic theme if running on Android 3.0 or higher.</p>
+<p>A list of the standard attributes that you can use in themes can be
+found at <code>R.styleable.Theme</code>.</p>
+<p>For more information about providing alternative resources, such as themes and layouts, based
+on the platform version or other device configurations, see the Providing Resources
+document.</p>
+<h2>Using Platform Styles and Themes</h2>
+<p>The Android platform provides a large collection of styles and themes that you can
+use in your applications. You can find a reference of all available styles in the
+<code>R.style</code> class. To use the styles listed here, replace all underscores in
+the style name with a period. For example, you can apply the
+<code>Theme_NoTitleBar</code> theme with
+<code>"@android:style/Theme.NoTitleBar"</code>.</p>
+<p>The <code>R.style</code> reference, however, is not well documented and does not
+thoroughly describe the styles, so viewing the actual source code for these styles and
+themes will give you a better understanding of what style properties each one provides.
+For a better reference to the Android styles and themes, see the following source code:</p>
+<ul>
+	<li>Android Styles (styles.xml)</li>
+	<li>Android Themes (themes.xml)</li>
+</ul>
+<p>These files will help you learn through example. For instance, in the Android themes source code,
+you'll find a declaration for <code>&lt;style name="Theme.Dialog"&gt;</code>. In this definition,
+you'll see all of the properties that are used to style dialogs that are used by the Android
+framework.</p>
+<p>For more information about the syntax for styles and themes in XML, see the
+Style Resource document.</p>
+<p>For a reference of available style attributes that you can use to define a style or theme
+(e.g., "windowBackground" or "textAppearance"), see <code>R.attr</code> or the respective
+View class for which you are creating a style.</p>
+</body>
+</html>

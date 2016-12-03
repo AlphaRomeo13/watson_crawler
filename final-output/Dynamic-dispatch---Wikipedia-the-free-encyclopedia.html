@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Dynamic-dispatch---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Dynamic dispatch</h1>
+<ul>
+<li>Ad hoc polymorphism</li>
+<li>Function overloading</li>
+<li>Operator overloading</li>
+<li>Parametric polymorphism</li>
+<li>Double dispatch</li>
+<li>Multiple dispatch</li>
+<li><strong class="selflink">Single &amp; dynamic dispatch</strong></li>
+<li>Subtyping</li>
+<li>Virtual function</li>
+</ul>
+<ul>
+<li>v</li>
+<li>t</li>
+<li>e</li>
+</ul>
+<p>In computer science, <b>dynamic dispatch</b> is the process of selecting which implementation of a polymorphic operation (method or function) to call at run time. Dynamic dispatch contrasts with static dispatch in which the implementation of a polymorphic operation is selected at compile-time. The purpose of dynamic dispatch is to support cases where the appropriate implementation of a polymorphic operation can't be determined at compile time because it depends on the runtime type of one or more actual parameters to the operation.</p>
+<p>Dynamic dispatch is different from late binding (also known as dynamic binding). In the context of selecting an operation, binding associates a name to an operation. Dispatching chooses an implementation for the operation after you have decided which operation a name refers to. With dynamic dispatch, the name may be bound to a polymorphic operation at compile time, but the implementation not be chosen until run time. However, late binding does imply dynamic dispatching since the binding is what determines the set of available dispatches.</p>
+<p>Dynamic dispatch is often used in object-oriented languages when different classes contain different implementations of the same method due to common inheritance. For example, suppose you have classes <tt>A</tt>, <tt>B</tt>, and <tt>C</tt>, where <tt>B</tt> and <tt>C</tt> both inherit the method <tt>foo()</tt> from <tt>A</tt>. Now suppose <tt>x</tt> is a variable of class <tt>A</tt>. At run time, <tt>x</tt> may actually have a value of type <tt>B</tt> or <tt>C</tt> and in general you can't know what it is at compile time.</p>
+<p>With static dispatch, a method call <tt>x.foo()</tt> will always refer to the implementation of <tt>foo()</tt> for class <tt>A</tt> because static binding only looks at the declared type of the object. With dynamic dispatch the language will determine the type of the value of <tt>x</tt> at run-time and call the version of <tt>foo()</tt> that is associated with whatever type the value has, whether <tt>A</tt>, <tt>B</tt>, or <tt>C</tt>.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Single and multiple dispatch</li>
+<li>2 Dynamic dispatch mechanisms
+<ul>
+<li>2.1 C++ implementation</li>
+<li>2.2 Smalltalk implementation</li>
+</ul>
+</li>
+<li>3 See also</li>
+<li>4 Bibliography</li>
+</ul>
+<ul>
+<li>2.1 C++ implementation</li>
+<li>2.2 Smalltalk implementation</li>
+</ul>
+<p></p>
+<h2>Single and multiple dispatch</h2>
+<p>If the decision of which version of a method to call is based entirely on the class of the object <tt>x</tt>, then this is known as <b>single dispatch</b> because an implementation is chosen based on a single type –  the type of the instance. Single dispatch is supported by many object-oriented languages, including statically typed languages such as C++ and Java, and dynamically typed languages such as Smalltalk, Objective-C, JavaScript, and Python.</p>
+<p>In some languages, such as Common Lisp or Dylan, methods or functions can also be dispatched based on the runtime types of arguments. Expressed in pseudocode, the code <tt>manager.handle(y)</tt> could call different implementations depending on the types of both objects <tt>manager</tt> <i>and</i> <tt>y</tt>. This is known as <b>multiple dispatch</b>.</p>
+<h2>Dynamic dispatch mechanisms</h2>
+<p>A language may be implemented with different dynamic dispatch mechanisms. The choices of the dynamic dispatch mechanism offered by a language to a large extent alter the programming paradigms that are available or are most natural to use within a given language.</p>
+<p>Normally, in a typed language, the dispatch mechanism will be performed based on the type of the arguments (most commonly based on the type of the receiver of a message). This might be dubbed 'per type dynamic dispatch'. Languages with weak or no typing systems often carry a dispatch table as part of the object data for each object. This allows <b>instance behaviour</b> as each instance may map a given message to a separate method.</p>
+<p>Some languages offer a hybrid approach.</p>
+<p>Dynamic dispatch will always incur an overhead so some languages offer static dispatch for particular methods.</p>
+<h3>C++ implementation</h3>
+<p>C++ uses early binding and offers both dynamic and static dispatch. The default form of dispatch is static. To get dynamic dispatch you must declare a method as <tt>virtual</tt>.</p>
+<p>C++ compilers typically implement dynamic dispatch with a data structure called a virtual table that defines the message to method mapping for a given class (C++ as such has no notion of a vtable). Instances of that type will then store a pointer to this table as part of their instance data. This is complicated when multiple inheritance is used. Since C++ does not support late binding, the virtual table in a C++ object cannot be modified at run-time, which limits the potential set of dispatch targets to a finite set chosen at compile-time.</p>
+<p>Type overloading does not produce dynamic dispatch in C++ as the language considers the types of the message parameters part of the formal message name. This means that the message name the programmer sees is not the formal name used for binding.</p>
+<h3>Smalltalk implementation</h3>
+<p>Smalltalk uses a type based message dispatcher. Each instance has a single type whose definition contains the methods. When an instance receives a message, the dispatcher looks up the corresponding method in the message-to-method map for the type and then invokes the method.</p>
+<p>A naive implementation of Smalltalk's mechanism would seem to have a significantly higher overhead than that of C++ and this overhead would be incurred for each and every message that an object receives.</p>
+<p>In real Smalltalk implementations, a technique known as inline caching is often used that makes method dispatch very fast. Inline caching basically stores the previous destination method address and object class of this call site (or multiple pairs for multi-way caching). The cache method is initialized with the most common target method (or just the cache miss handler), based on the method selector. When the method call site is reached during execution, it just calls the address in the cache (in a dynamic code generator, this call is a direct call as the direct address is back patched by cache miss logic). Prologue code in the called method then compares the cached class with the actual object class, and if they don't match, execution branches to a cache miss handler to find the correct method in the class. A fast implementation may have multiple cache entries and it often only takes a couple of instructions to get execution to the correct method on an initial cache miss. The common case will be a cached class match, and execution will just continue in the method.</p>
+<p>Out-of-line caching can also be used in the method invocation logic, using the object class and method selector. In one design, the class and method selector are hashed, and used as an index into a method dispatch cache table.</p>
+<p>As Smalltalk is a reflective language, many implementations allow mutating individual objects into objects with dynamically generated method lookup tables. This allows altering object behavior on a per object basis. A whole category of languages known as prototype based languages has grown from this, the most famous of which are Self and JavaScript. Careful design of the method dispatch caching allows even prototype based languages to have high performance method dispatch.</p>
+<p>Many other dynamically typed languages, including Python, Ruby, Objective-C and Groovy use similar approaches.</p>
+<h2>See also</h2>
+<ul>
+<li>Function overloading</li>
+<li>Message passing</li>
+<li>Method overriding</li>
+<li>Name binding</li>
+</ul>
+<h2>Bibliography</h2>
+<ul>
+<li>Lippman, Stanley B. (1996). <i>Inside the C++ Object Model</i>. Addison-Wesley. ISBN 0-201-83454-5. </li>
+</ul>
+</body>
+</html>

@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Reduction-The-Java-Tutorials---------------------Collections--Aggregate-Operations.html</title></head>
+<body>
+<h1>Reduction</h1>
+<p>The section
+Aggregate Operations describes the following pipeline of operations, which calculates the average age of all male members in the collection <code>roster</code>:</p>
+<p>WHATSON? ad722e62-ffa7-4df1-a49d-679097ed34ce</p>
+<pre>double average = roster
+    .stream()
+    .filter(p -&gt; p.getGender() == Person.Sex.MALE)
+    .mapToInt(Person::getAge)
+    .average()
+    .getAsDouble();</pre>
+<p>The JDK contains many terminal operations (such as
+<code>average</code>,
+<code>sum</code>,
+<code>min</code>,
+<code>max</code>, and
+<code>count</code>) that return one value by combining the contents of a stream. These operations are called <em>reduction operations</em>. The JDK also contains reduction operations that return a collection instead of a single value. Many reduction operations perform a specific task, such as finding the average of values or grouping elements into categories. However, the JDK provides you with the general-purpose reduction operations
+<code>reduce</code> and
+<code>collect</code>, which this section describes in detail.</p>
+<p>This section covers the following topics:</p>
+<ul>
+  <li>The Stream.reduce Method</li>
+  <li>The Stream.collect Method</li>
+</ul>
+<p>You can find the code excerpts described in this section in the example
+<code>ReductionExamples</code>.</p>
+<h2>The Stream.reduce Method</h2>
+<p>The
+<code>Stream.reduce</code> method is a general-purpose reduction operation. Consider the following pipeline, which calculates the sum of the male members' ages in the collection <code>roster</code>. It uses the
+<code>Stream.sum</code> reduction operation:</p>
+<p>WHATSON? faf7cfb0-ba9a-46fa-b491-38c730d75ea0</p>
+<pre>Integer totalAge = roster
+    .stream()
+    .mapToInt(Person::getAge)
+    .sum();</pre>
+<p>Compare this with the following pipeline, which uses the <code>Stream.reduce</code> operation to calculate the same value:</p>
+<p>WHATSON? 46b67daa-3d5e-40e0-88ec-9b91c88f31ae</p>
+<pre>Integer totalAgeReduce = roster
+   .stream()
+   .map(Person::getAge)
+   .reduce(
+       0,
+       (a, b) -&gt; a + b);</pre>
+<p>The <code>reduce</code> operation in this example takes two arguments:</p>
+<ul>
+  <li><p><code>identity</code>: The identity element is both the initial value of the reduction and the default result if there are no elements in the stream. In this example, the identity element is <code>0</code>; this is the initial value of the sum of ages and the default value if no members exist in the collection <code>roster</code>.</p></li>
+  
+  <li><p><code>accumulator</code>: The accumulator function takes two parameters: a partial result of the reduction (in this example, the sum of all processed integers so far) and the next element of the stream (in this example, an integer). It returns a new partial result. In this example, the accumulator function is a lambda expression that adds two <code>Integer</code> values and returns an <code>Integer</code> value:</p>
+  
+  <pre>(a, b) -&gt; a + b</pre></li>
+
+</ul>
+<p><code>identity</code>: The identity element is both the initial value of the reduction and the default result if there are no elements in the stream. In this example, the identity element is <code>0</code>; this is the initial value of the sum of ages and the default value if no members exist in the collection <code>roster</code>.</p>
+<p><code>accumulator</code>: The accumulator function takes two parameters: a partial result of the reduction (in this example, the sum of all processed integers so far) and the next element of the stream (in this example, an integer). It returns a new partial result. In this example, the accumulator function is a lambda expression that adds two <code>Integer</code> values and returns an <code>Integer</code> value:</p>
+<p>WHATSON? 869ad15e-7527-491e-98aa-8cb9bd3fe0df</p>
+<pre>(a, b) -&gt; a + b</pre>
+<p>The <code>reduce</code> operation always returns a new value. However, the accumulator function also returns a new value every time it processes an element of a stream. Suppose that you want to reduce the elements of a stream to a more complex object, such as a collection. This might hinder the performance of your application. If your <code>reduce</code> operation involves adding elements to a collection, then every time your accumulator function processes an element, it creates a new collection that includes the element, which is inefficient. It would be more efficient for you to update an existing collection instead. You can do this with the
+<code>Stream.collect</code> method, which the next section describes.</p>
+<h2>The Stream.collect Method</h2>
+<p>Unlike the <code>reduce</code> method, which always creates a new value when it processes an element, the
+<code>collect</code> method modifies, or mutates, an existing value.</p>
+<p>Consider how to find the average of values in a stream. You require two pieces of data: the total number of values and the sum of those values. However, like the <code>reduce</code> method and all other reduction methods, the <code>collect</code> method returns only one value. You can create a new data type that contains member variables that keep track of the total number of values and the sum of those values, such as the following class,
+<code>Averager</code>:</p>
+<p>WHATSON? 393651b5-dce4-4b38-8ecd-afebd45171dd</p>
+<pre>class Averager implements IntConsumer
+{
+    private int total = 0;
+    private int count = 0;
+        
+    public double average() {
+        return count &gt; 0 ? ((double) total)/count : 0;
+    }
+        
+    public void accept(int i) { total += i; count++; }
+    public void combine(Averager other) {
+        total += other.total;
+        count += other.count;
+    }
+}</pre>
+<p>The following pipeline uses the <code>Averager</code> class and the <code>collect</code> method to calculate the average age of all male members:</p>
+<p>WHATSON? 84cf7de5-366c-47b8-a701-1a4670671da4</p>
+<pre>Averager averageCollect = roster.stream()
+    .filter(p -&gt; p.getGender() == Person.Sex.MALE)
+    .map(Person::getAge)
+    .collect(Averager::new, Averager::accept, Averager::combine);
+                   
+System.out.println("Average age of male members: " +
+    averageCollect.average());</pre>
+<p>The <code>collect</code> operation in this example takes three arguments:</p>
+<ul>
+  <li><code>supplier</code>: The supplier is a factory function; it constructs new instances. For the <code>collect</code> operation, it creates instances of the result container. In this example, it is a new instance of the <code>Averager</code> class.</li>
+  
+  <li><code>accumulator</code>: The accumulator function incorporates a stream element into a result container. In this example, it modifies the <code>Averager</code> result container by incrementing the <code>count</code> variable by one and adding to the <code>total</code> member variable the value of the stream element, which is an integer representing the age of a male member.</li>
+  
+  <li><code>combiner</code>: The combiner function takes two result containers and merges their contents. In this example, it modifies an  <code>Averager</code> result container by incrementing the <code>count</code> variable by the <code>count</code> member variable of the other <code>Averager</code> instance and adding to the <code>total</code> member variable the value of the other <code>Averager</code> instance's <code>total</code> member variable.</li></ul>
+<p>Note the following:</p>
+<ul>
+  <li>The supplier is a lambda expression (or a method reference) as opposed to a value like the identity element in the <code>reduce</code> operation.</li>
+  
+  <li>The accumulator and combiner functions do not return a value.</li>
+  
+  <li>You can use the <code>collect</code> operations with parallel streams; see the section
+Parallelism for more information. (If you run the <code>collect</code> method with a parallel stream, then the JDK creates a new thread whenever the combiner function creates a new object, such as an <code>Averager</code> object in this example. Consequently, you do not have to worry about synchronization.)</li>  
+  
+</ul>
+<p>Although the JDK provides you with the <code>average</code> operation to calculate the average value of elements in a stream, you can use the <code>collect</code> operation and a custom class if you need to calculate several values from the elements of a stream.</p>
+<p>The <code>collect</code> operation is best suited for collections. The following example puts the names of the male members in a collection with the <code>collect</code> operation:</p>
+<p>WHATSON? 63b3a658-8769-4c2d-8f3c-f34f34b96ea7</p>
+<pre>List&lt;String&gt; namesOfMaleMembersCollect = roster
+    .stream()
+    .filter(p -&gt; p.getGender() == Person.Sex.MALE)
+    .map(p -&gt; p.getName())
+    .collect(Collectors.toList());</pre>
+<p>This version of the <code>collect</code> operation takes one parameter of type
+<code>Collector</code>. This class encapsulates the functions used as arguments in the <code>collect</code> operation that requires three arguments (supplier, accumulator, and combiner functions).</p>
+<p>The
+<code>Collectors</code> class contains many useful reduction operations, such as accumulating elements into collections and summarizing elements according to various criteria. These reduction operations return instances of the class <code>Collector</code>, so you can use them as a parameter for the <code>collect</code> operation.</p>
+<p>This example uses the
+<code>Collectors.toList</code> operation, which accumulates the stream elements into a new instance of <code>List</code>. As with most operations in the <code>Collectors</code> class, the <code>toList</code> operator returns an instance of <code>Collector</code>, not a collection.</p>
+<p>The following example groups members of the collection <code>roster</code> by gender:</p>
+<p>WHATSON? 3474b44c-df14-4f5e-bf5c-77d91249501c</p>
+<pre>Map&lt;Person.Sex, List&lt;Person&gt;&gt; byGender =
+    roster
+        .stream()
+        .collect(
+            Collectors.groupingBy(Person::getGender));</pre>
+<p>The
+<code>groupingBy</code> operation returns a map whose keys are the values that result from applying the lambda expression specified as its parameter (which is called a <em>classification function</em>). In this example, the returned map contains two keys, <code>Person.Sex.MALE</code> and <code>Person.Sex.FEMALE</code>. The keys' corresponding values are instances of <code>List</code> that contain the stream elements that, when processed by the classification function, correspond to the key value. For example, the value that corresponds to key <code>Person.Sex.MALE</code> is an instance of <code>List</code> that contains all male members.</p>
+<p>The following example retrieves the names of each member in the collection <code>roster</code> and groups them by gender:</p>
+<p>WHATSON? 6dcf7dc4-b8ee-4ec4-b6e8-cccb49046c06</p>
+<pre>Map&lt;Person.Sex, List&lt;String&gt;&gt; namesByGender =
+    roster
+        .stream()
+        .collect(
+            Collectors.groupingBy(
+                Person::getGender,                      
+                Collectors.mapping(
+                    Person::getName,
+                    Collectors.toList())));</pre>
+<p>The
+<code>groupingBy</code> operation in this example takes two parameters, a classification function and an instance of <code>Collector</code>. The <code>Collector</code> parameter is called a <em>downstream collector</em>. This is a collector that the Java runtime applies to the results of another collector. Consequently, this <code>groupingBy</code> operation enables you to apply a <code>collect</code> method to the <code>List</code> values created by the <code>groupingBy</code> operator. This example applies the collector 
+<code>mapping</code>, which applies the mapping function <code>Person::getName</code> to each element of the stream. Consequently, the resulting stream consists of only the names of members. A pipeline that contains one or more downstream collectors, like this example, is called a <em>multilevel reduction</em>.</p>
+<p>The following example retrieves the total age of members of each gender:</p>
+<p>WHATSON? e69c0d8b-4d13-428a-903a-5c1dc828645e</p>
+<pre>Map&lt;Person.Sex, Integer&gt; totalAgeByGender =
+    roster
+        .stream()
+        .collect(
+            Collectors.groupingBy(
+                Person::getGender,                      
+                Collectors.reducing(
+                    0,
+                    Person::getAge,
+                    Integer::sum)));</pre>
+<p>The 
+<code>reducing</code> operation takes three parameters:</p>
+<ul>
+  <li><code>identity</code>: Like the <code>Stream.reduce</code> operation, the identity element is both the initial value of the reduction and the default result if there are no elements in the stream. In this example, the identity element is <code>0</code>; this is the initial value of the sum of ages and the default value if no members exist.</li>
+  
+  <li><code>mapper</code>: The <code>reducing</code> operation applies this mapper function to all stream elements. In this example, the mapper retrieves the age of each member.</li>
+  
+  <li><code>operation</code>: The operation function is used to reduce the mapped values. In this example, the operation function adds <code>Integer</code> values.</li>
+</ul>
+<p>The following example retrieves the average age of members of each gender:</p>
+<p>WHATSON? 8030c655-91e1-4ea1-800f-603b67250449</p>
+<pre>Map&lt;Person.Sex, Double&gt; averageAgeByGender = roster
+    .stream()
+    .collect(
+        Collectors.groupingBy(
+            Person::getGender,                      
+            Collectors.averagingInt(Person::getAge)));</pre>
+</body>
+</html>

@@ -1,0 +1,2720 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Copy-and-Paste--Android-Developers.html</title></head>
+<body>
+<h1>Copy and Paste</h1>
+<h2>Quickview</h2>
+<ul>
+                <li>
+                    A clipboard-based framework for copying and pasting data.
+                </li>
+                <li>
+                    Supports both simple and complex data, including text strings, complex data
+                    structures, text and binary stream data, and application assets.
+                </li>
+                <li>
+                    Copies and pastes simple text directly to and from the clipboard.
+                </li>
+                <li>
+                    Copies and pastes complex data using a content provider.
+                </li>
+                <li>
+                    Requires API 11.
+                </li>
+            </ul>
+<h2>In this document</h2>
+<ol>
+            <li>
+                The Clipboard Framework
+            </li>
+            <li>
+                Clipboard Classes
+                <ol>
+                    <li>
+                        ClipboardManager
+                    </li>
+                    <li>
+                        
+                            ClipData, ClipDescription, and ClipData.Item
+                        
+                    </li>
+                    <li>
+                        ClipData convenience methods
+                    </li>
+                    <li>
+                        Coercing the clipboard data to text
+                    </li>
+                </ol>
+            </li>
+            <li>
+                Copying to the Clipboard
+            </li>
+            <li>
+                Pasting from the Clipboard
+                <ol>
+                    <li>
+                        Pasting plain text
+                    </li>
+                    <li>
+                        Pasting data from a content URI
+                    </li>
+                    <li>
+                        Pasting an Intent
+                    </li>
+                </ol>
+            </li>
+            <li>
+                Using Content Providers to Copy Complex Data
+                <ol>
+                    <li>
+                        Encoding an identifier on the URI
+                    </li>
+                    <li>
+                        Copying data structures
+                    </li>
+                    <li>
+                        Copying data streams
+                    </li>
+                </ol>
+            </li>
+            <li>
+                Designing Effective Copy/Paste Functionality
+            </li>
+        </ol>
+<ol>
+                    <li>
+                        ClipboardManager
+                    </li>
+                    <li>
+                        
+                            ClipData, ClipDescription, and ClipData.Item
+                        
+                    </li>
+                    <li>
+                        ClipData convenience methods
+                    </li>
+                    <li>
+                        Coercing the clipboard data to text
+                    </li>
+                </ol>
+<ol>
+                    <li>
+                        Pasting plain text
+                    </li>
+                    <li>
+                        Pasting data from a content URI
+                    </li>
+                    <li>
+                        Pasting an Intent
+                    </li>
+                </ol>
+<ol>
+                    <li>
+                        Encoding an identifier on the URI
+                    </li>
+                    <li>
+                        Copying data structures
+                    </li>
+                    <li>
+                        Copying data streams
+                    </li>
+                </ol>
+<h2>Key classes</h2>
+<ol>
+            <li>
+                <code>ClipboardManager</code>
+            </li>
+            <li>
+                <code>ClipData</code>
+            </li>
+            <li>
+                <code>ClipData.Item</code>
+            </li>
+            <li>
+                <code>ClipDescription</code>
+            </li>
+            <li>
+                <code>Uri</code>
+            </li>
+            <li>
+                <code>ContentProvider</code>
+            </li>
+            <li>
+                <code>Intent</code>
+            </li>
+        </ol>
+<h2>Related Samples</h2>
+<ol>
+            <li>
+                
+                Note Pad sample application
+            </li>
+        </ol>
+<h2>See also</h2>
+<ol>
+            <li>
+            Content Providers
+            </li>
+        </ol>
+<p>
+    Android provides a powerful clipboard-based framework for copying and pasting. It
+    supports both simple and complex data types, including text strings, complex data
+    structures, text and binary stream data, and even application assets. Simple text data is stored
+    directly in the clipboard, while complex data is stored as a reference that the pasting
+    application resolves with a content provider. Copying and pasting works both within an
+    application and between applications that implement the framework.
+</p>
+<p>
+    Since a part of the framework uses content providers, this topic assumes some
+    familiarity with the Android Content Provider API, which is described in the topic
+    Content Providers.
+</p>
+<h2>The Clipboard Framework</h2>
+<p>
+    When you use the clipboard framework, you put data into a clip object, and then
+    put the clip object on the system-wide clipboard. The clip object can take one of three forms:
+</p>
+<p>
+    The clipboard holds only one clip object at a time. When an application puts a clip object on
+    the clipboard, the previous clip object disappears.
+</p>
+<p>
+    If you want to allow users to paste data into your application, you don't have to handle all
+    types of data. You can examine the data on the clipboard before you give users the option to
+    paste it. Besides having a certain data form, the clip object also contains metadata that tells
+    you what MIME type or types are available. This metadata helps you decide if your application
+    can do something useful with the clipboard data. For example, if you have an application that
+    primarily handles text you may want to ignore clip objects that contain a URI or Intent.
+</p>
+<p>
+    You may also want to allow users to paste text regardless of the form of data on the
+    clipboard. To do this, you can force the clipboard data into a text representation, and then
+    paste this text. This is described in the section Coercing the
+    clipboard to text.
+</p>
+<h2>Clipboard Classes</h2>
+<p>
+    This section describes the classes used by the clipboard framework.
+</p>
+<h3>ClipboardManager</h3>
+<p>
+    In the Android system, the system clipboard is represented by the global
+    <code>ClipboardManager</code> class. You do not instantiate this
+    class directly; instead, you get a reference to it by invoking
+    <code>getSystemService(CLIPBOARD_SERVICE)</code>.
+</p>
+<h3>ClipData, ClipData.Item, and ClipDescription</h3>
+<p>
+    To add data to the clipboard, you create a <code>ClipData</code> object that
+    contains both a description of the data and the data itself. The clipboard holds only one
+    <code>ClipData</code> at a time. A <code>ClipData</code> contains a
+    <code>ClipDescription</code> object and one or more
+    <code>ClipData.Item</code> objects.
+</p>
+<p>
+    A <code>ClipDescription</code> object contains metadata about the clip. In
+    particular, it contains an array of available MIME types for the clip's data. When you put a
+    clip on the clipboard, this array is available to pasting applications, which can examine it to
+    see if they can handle any of available the MIME types.
+</p>
+<p>
+    A <code>ClipData.Item</code> object contains the text, URI, or Intent data:
+</p>
+<p>
+    You can add more than one <code>ClipData.Item</code> object to a clip. This allows
+    users to copy and paste multiple selections as a single clip. For example, if you have a list
+    widget that allows the user to select more than one item at a time, you can copy all the items
+    to the clipboard at once. To do this, you create a separate
+    <code>ClipData.Item</code> for each list item, and then you add the
+    <code>ClipData.Item</code> objects to the <code>ClipData</code> object.
+</p>
+<h3>ClipData convenience methods</h3>
+<p>
+    The <code>ClipData</code> class provides static convenience methods for creating
+    a <code>ClipData</code> object with a single <code>ClipData.Item</code>
+    object and a simple <code>ClipDescription</code> object:
+</p>
+<p>
+            Use
+<code>newPlainText()</code>
+            to create a clip from a text string.
+    </p>
+<p>
+            Use
+<code>newUri()</code>
+            to create a clip from a URI, particularly a <code>content:</code> URI.
+        </p>
+<p>
+            Use
+<code>newIntent()</code>
+            to create a clip from an Intent object.
+    </p>
+<h3>Coercing the clipboard data to text</h3>
+<p>
+    Even if your application only handles text, you can copy non-text data from the
+    clipboard by converting it with the method
+    <code>ClipData.Item.coerceToText()</code>.
+</p>
+<p>
+    This method converts the data in <code>ClipData.Item</code> to text and
+    returns a <code>CharSequence</code>. The value that
+    <code>ClipData.Item.coerceToText()</code>
+    returns is based on the form of data in <code>ClipData.Item</code>:
+</p>
+<ul>
+        <li>
+                If the URI is a content URI and the provider can return a text stream,
+                <code>coerceToText()</code> returns
+                a text stream.
+            </li>
+            <li>
+                If the URI is a content URI but the provider does not offer a text stream,
+                <code>coerceToText()</code> returns
+                a representation of the URI. The representation is the same as that returned by
+                <code>Uri.toString()</code>.
+            </li>
+            <li>
+                If the URI is not a content URI,
+                <code>coerceToText()</code> returns
+                a representation of the URI. The representation is the same as that returned by
+                <code>Uri.toString()</code>.
+            </li>
+        </ul>
+<p>
+    The clipboard framework is summarized in Figure 1. To copy data, an application puts a
+    <code>ClipData</code> object on the <code>ClipboardManager</code> global
+    clipboard. The <code>ClipData</code> contains one or more
+    <code>ClipData.Item</code> objects and one
+    <code>ClipDescription</code> object. To paste data, an application gets the
+    <code>ClipData</code>, gets its MIME type from the
+    <code>ClipDescription</code>, and gets the data either from
+    the <code>ClipData.Item</code> or from the content provider referred to by
+    <code>ClipData.Item</code>.
+</p>
+<p>
+    <strong>Figure 1.</strong> The Android clipboard framework
+</p>
+<h2>Copying to the Clipboard</h2>
+<p>
+    As described previously, to copy data to the clipboard you get a handle to the global
+    <code>ClipboardManager</code> object, create a <code>ClipData</code>
+    object, add a <code>ClipDescription</code> and one or more
+    <code>ClipData.Item</code> objects to it, and add the finished
+    <code>ClipData</code> object to the <code>ClipboardManager</code> object.
+    This is described in detail in the following procedure:
+</p>
+<ol>
+    <li>
+        If you are copying data using a content URI, set up a content
+        provider.
+        <p>
+            The 
+            Note Pad sample application is an example of using a content provider for
+            copying and pasting. The
+
+            NotePadProvider class implements the content provider. The
+
+            NotePad class defines a contract between the provider and other applications,
+            including the supported MIME types.
+        </p>
+    </li>
+    <li>
+        Get the system clipboard:
+<pre>
+
+...
+
+// if the user selects copy
+case R.id.menu_copy:
+
+// Gets a handle to the clipboard service.
+ClipboardManager clipboard = (ClipboardManager)
+        getSystemService(Context.CLIPBOARD_SERVICE);
+</pre>
+    </li>
+    <li>
+        <p>
+            Copy the data to a new <code>ClipData</code> object:
+        </p>
+        <ul>
+            <li>
+                <h4>For text</h4>
+<pre>
+// Creates a new text clip to put on the clipboard
+ClipData clip = ClipData.newPlainText("simple text","Hello, World!");
+</pre>
+            </li>
+            <li>
+                <h4>For a URI</h4>
+                <p>
+                    This snippet constructs a URI by encoding a record ID onto the content URI
+                    for the provider. This technique is covered in more detail
+                    in the section Encoding an identifier on the URI:
+                </p>
+<pre>
+// Creates a Uri based on a base Uri and a record ID based on the contact's last name
+// Declares the base URI string
+private static final String CONTACTS = "content://com.example.contacts";
+
+// Declares a path string for URIs that you use to copy data
+private static final String COPY_PATH = "/copy";
+
+// Declares the Uri to paste to the clipboard
+Uri copyUri = Uri.parse(CONTACTS + COPY_PATH + "/" + lastName);
+
+...
+
+// Creates a new URI clip object. The system uses the anonymous getContentResolver() object to
+// get MIME types from provider. The clip object's label is "URI", and its data is
+// the Uri previously created.
+ClipData clip = ClipData.newUri(getContentResolver(),"URI",copyUri);
+</pre>
+            </li>
+            <li>
+                <h4>For an Intent</h4>
+                <p>
+                    This snippet constructs an Intent for an application
+                    and then puts it in the clip object:
+                </p>
+<pre>
+// Creates the Intent
+Intent appIntent = new Intent(this, com.example.demo.myapplication.class);
+
+...
+
+// Creates a clip object with the Intent in it. Its label is "Intent" and its data is
+// the Intent object created previously
+ClipData clip = ClipData.newIntent("Intent",appIntent);
+</pre>
+            </li>
+        </ul>
+    </li>
+    <li>
+        Put the new clip object on the clipboard:
+<pre>
+// Set the clipboard's primary clip.
+clipboard.setPrimaryClip(clip);
+</pre>
+    </li>
+</ol>
+<p>
+            The 
+            Note Pad sample application is an example of using a content provider for
+            copying and pasting. The
+
+            NotePadProvider class implements the content provider. The
+
+            NotePad class defines a contract between the provider and other applications,
+            including the supported MIME types.
+        </p>
+<p>WHATSON? e334cafc-fcc1-4f9e-80ce-a06e426b0b46</p>
+<pre>
+
+...
+
+// if the user selects copy
+case R.id.menu_copy:
+
+// Gets a handle to the clipboard service.
+ClipboardManager clipboard = (ClipboardManager)
+        getSystemService(Context.CLIPBOARD_SERVICE);
+</pre>
+<p>
+            Copy the data to a new <code>ClipData</code> object:
+        </p>
+<ul>
+            <li>
+                <h4>For text</h4>
+<pre>
+// Creates a new text clip to put on the clipboard
+ClipData clip = ClipData.newPlainText("simple text","Hello, World!");
+</pre>
+            </li>
+            <li>
+                <h4>For a URI</h4>
+                <p>
+                    This snippet constructs a URI by encoding a record ID onto the content URI
+                    for the provider. This technique is covered in more detail
+                    in the section Encoding an identifier on the URI:
+                </p>
+<pre>
+// Creates a Uri based on a base Uri and a record ID based on the contact's last name
+// Declares the base URI string
+private static final String CONTACTS = "content://com.example.contacts";
+
+// Declares a path string for URIs that you use to copy data
+private static final String COPY_PATH = "/copy";
+
+// Declares the Uri to paste to the clipboard
+Uri copyUri = Uri.parse(CONTACTS + COPY_PATH + "/" + lastName);
+
+...
+
+// Creates a new URI clip object. The system uses the anonymous getContentResolver() object to
+// get MIME types from provider. The clip object's label is "URI", and its data is
+// the Uri previously created.
+ClipData clip = ClipData.newUri(getContentResolver(),"URI",copyUri);
+</pre>
+            </li>
+            <li>
+                <h4>For an Intent</h4>
+                <p>
+                    This snippet constructs an Intent for an application
+                    and then puts it in the clip object:
+                </p>
+<pre>
+// Creates the Intent
+Intent appIntent = new Intent(this, com.example.demo.myapplication.class);
+
+...
+
+// Creates a clip object with the Intent in it. Its label is "Intent" and its data is
+// the Intent object created previously
+ClipData clip = ClipData.newIntent("Intent",appIntent);
+</pre>
+            </li>
+        </ul>
+<h4>For text</h4>
+<p>WHATSON? 1c88976b-6998-4560-8889-b4a3773708bf</p>
+<pre>
+// Creates a new text clip to put on the clipboard
+ClipData clip = ClipData.newPlainText("simple text","Hello, World!");
+</pre>
+<h4>For a URI</h4>
+<p>
+                    This snippet constructs a URI by encoding a record ID onto the content URI
+                    for the provider. This technique is covered in more detail
+                    in the section Encoding an identifier on the URI:
+                </p>
+<p>WHATSON? f81f4079-84fb-48a6-9af7-6131543cea92</p>
+<pre>
+// Creates a Uri based on a base Uri and a record ID based on the contact's last name
+// Declares the base URI string
+private static final String CONTACTS = "content://com.example.contacts";
+
+// Declares a path string for URIs that you use to copy data
+private static final String COPY_PATH = "/copy";
+
+// Declares the Uri to paste to the clipboard
+Uri copyUri = Uri.parse(CONTACTS + COPY_PATH + "/" + lastName);
+
+...
+
+// Creates a new URI clip object. The system uses the anonymous getContentResolver() object to
+// get MIME types from provider. The clip object's label is "URI", and its data is
+// the Uri previously created.
+ClipData clip = ClipData.newUri(getContentResolver(),"URI",copyUri);
+</pre>
+<h4>For an Intent</h4>
+<p>
+                    This snippet constructs an Intent for an application
+                    and then puts it in the clip object:
+                </p>
+<p>WHATSON? 5127638d-a1f0-4b0b-a080-445de6f62ae0</p>
+<pre>
+// Creates the Intent
+Intent appIntent = new Intent(this, com.example.demo.myapplication.class);
+
+...
+
+// Creates a clip object with the Intent in it. Its label is "Intent" and its data is
+// the Intent object created previously
+ClipData clip = ClipData.newIntent("Intent",appIntent);
+</pre>
+<p>WHATSON? 584beb6d-2f33-4a62-b7b1-6b1308bb0c05</p>
+<pre>
+// Set the clipboard's primary clip.
+clipboard.setPrimaryClip(clip);
+</pre>
+<h2>Pasting from the Clipboard</h2>
+<p>
+    As described previously, you paste data from the clipboard by getting the global clipboard
+    object, getting the clip object, looking at its data, and if possible copying the data from
+    the clip object to your own storage. This section describes in detail how to do this for
+    the three forms of clipboard data.
+</p>
+<h3>Pasting plain text</h3>
+<p>
+    To paste plain text, first get the global clipboard and verify that it can return plain text.
+    Then get the clip object and copy its text to your own storage using
+    <code>getText()</code>, as described in the following procedure:
+</p>
+<ol>
+    <li>
+        Get the global <code>ClipboardManager</code> object using
+ <code>getSystemService(CLIPBOARD_SERVICE)</code>. Also
+        declare a global variable to contain the pasted text:
+<pre>
+ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+
+String pasteData = "";
+
+</pre>
+    </li>
+    <li>
+        Next, determine if you should enable or disable the "paste" option in the
+        current Activity. You should verify that the clipboard contains a clip and that you
+        can handle the type of data represented by the clip:
+<pre>
+// Gets the ID of the "paste" menu item
+MenuItem mPasteItem = menu.findItem(R.id.menu_paste);
+
+// If the clipboard doesn't contain data, disable the paste menu item.
+// If it does contain data, decide if you can handle the data.
+if (!(clipboard.hasPrimaryClip())) {
+
+    mPasteItem.setEnabled(false);
+
+    } else if (!(clipboard.getPrimaryClipDescription().hasMimeType(MIMETYPE_TEXT_PLAIN))) {
+
+        // This disables the paste menu item, since the clipboard has data but it is not plain text
+        mPasteItem.setEnabled(false);
+    } else {
+
+        // This enables the paste menu item, since the clipboard contains plain text.
+        mPasteItem.setEnabled(true);
+    }
+}
+</pre>
+    </li>
+    <li>
+        Copy the data from the clipboard. This point in the program is only reachable if the
+        "paste" menu item is enabled, so you can assume that the clipboard contains
+        plain text. You do not yet know if it contains a text string or a URI that points to plain
+        text. The following snippet tests this, but it only shows the code for handling plain text:
+<pre>
+// Responds to the user selecting "paste"
+case R.id.menu_paste:
+
+// Examines the item on the clipboard. If getText() does not return null, the clip item contains the
+// text. Assumes that this application can only handle one item at a time.
+ ClipData.Item item = clipboard.getPrimaryClip().getItemAt(0);
+
+// Gets the clipboard as text.
+pasteData = item.getText();
+
+// If the string contains data, then the paste operation is done
+if (pasteData != null) {
+    return;
+
+// The clipboard does not contain text. If it contains a URI, attempts to get data from it
+} else {
+    Uri pasteUri = item.getUri();
+
+    // If the URI contains something, try to get text from it
+    if (pasteUri != null) {
+
+        // calls a routine to resolve the URI and get data from it. This routine is not
+        // presented here.
+        pasteData = resolveUri(Uri);
+        return;
+    } else {
+
+    // Something is wrong. The MIME type was plain text, but the clipboard does not contain either
+    // text or a Uri. Report an error.
+    Log.e("Clipboard contains an invalid data type");
+    return;
+    }
+}
+</pre>
+    </li>
+</ol>
+<p>WHATSON? 58c7de4c-8b9b-440a-8b99-a30f59900857</p>
+<pre>
+ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+
+String pasteData = "";
+
+</pre>
+<p>WHATSON? b23caeec-159b-4f39-86bc-17edc569df6e</p>
+<pre>
+// Gets the ID of the "paste" menu item
+MenuItem mPasteItem = menu.findItem(R.id.menu_paste);
+
+// If the clipboard doesn't contain data, disable the paste menu item.
+// If it does contain data, decide if you can handle the data.
+if (!(clipboard.hasPrimaryClip())) {
+
+    mPasteItem.setEnabled(false);
+
+    } else if (!(clipboard.getPrimaryClipDescription().hasMimeType(MIMETYPE_TEXT_PLAIN))) {
+
+        // This disables the paste menu item, since the clipboard has data but it is not plain text
+        mPasteItem.setEnabled(false);
+    } else {
+
+        // This enables the paste menu item, since the clipboard contains plain text.
+        mPasteItem.setEnabled(true);
+    }
+}
+</pre>
+<p>WHATSON? 58a0c0e5-4889-4b47-b24a-92b8ce05ed33</p>
+<pre>
+// Responds to the user selecting "paste"
+case R.id.menu_paste:
+
+// Examines the item on the clipboard. If getText() does not return null, the clip item contains the
+// text. Assumes that this application can only handle one item at a time.
+ ClipData.Item item = clipboard.getPrimaryClip().getItemAt(0);
+
+// Gets the clipboard as text.
+pasteData = item.getText();
+
+// If the string contains data, then the paste operation is done
+if (pasteData != null) {
+    return;
+
+// The clipboard does not contain text. If it contains a URI, attempts to get data from it
+} else {
+    Uri pasteUri = item.getUri();
+
+    // If the URI contains something, try to get text from it
+    if (pasteUri != null) {
+
+        // calls a routine to resolve the URI and get data from it. This routine is not
+        // presented here.
+        pasteData = resolveUri(Uri);
+        return;
+    } else {
+
+    // Something is wrong. The MIME type was plain text, but the clipboard does not contain either
+    // text or a Uri. Report an error.
+    Log.e("Clipboard contains an invalid data type");
+    return;
+    }
+}
+</pre>
+<h3>Pasting data from a content URI</h3>
+<p>
+    If the <code>ClipData.Item</code> object contains a content URI and you
+    have determined that you can handle one of its MIME types, create a
+    <code>ContentResolver</code> and then call the appropriate content provider
+    method to retrieve the data.
+</p>
+<p>
+    The following procedure describes how to get data from a content provider based on a
+    content URI on the clipboard. It checks that a MIME type that the application can use
+    is available from the provider:
+</p>
+<ol>
+    <li>
+        Declare a global variable to contain the MIME type:
+<pre>
+// Declares a MIME type constant to match against the MIME types offered by the provider
+public static final String MIME_TYPE_CONTACT = "vnd.android.cursor.item/vnd.example.contact"
+</pre>
+    </li>
+    <li>
+        Get the global clipboard. Also get a content resolver so you can access the content
+        provider:
+<pre>
+// Gets a handle to the Clipboard Manager
+ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+
+// Gets a content resolver instance
+ContentResolver cr = getContentResolver();
+</pre>
+    </li>
+    <li>
+        Get the primary clip from the clipboard, and get its contents as a URI:
+<pre>
+// Gets the clipboard data from the clipboard
+ClipData clip = clipboard.getPrimaryClip();
+
+if (clip != null) {
+
+    // Gets the first item from the clipboard data
+    ClipData.Item item = clip.getItemAt(0);
+
+    // Tries to get the item's contents as a URI
+    Uri pasteUri = item.getUri();
+</pre>
+    </li>
+    <li>
+        Test to see if the URI is a content URI by calling
+        <code>getType(Uri)</code>. This method returns
+        null if <code>Uri</code> does not point to a valid content provider:
+<pre>
+    // If the clipboard contains a URI reference
+    if (pasteUri != null) {
+
+        // Is this a content URI?
+        String uriMimeType = cr.getType(pasteUri);
+</pre>
+    </li>
+    <li>
+        Test to see if the content provider supports a MIME type that the current application
+        understands. If it does, call
+        <code>ContentResolver.query()</code> to get the data. The return value is a
+        <code>Cursor</code>:
+<pre>
+        // If the return value is not null, the Uri is a content Uri
+        if (uriMimeType != null) {
+
+            // Does the content provider offer a MIME type that the current application can use?
+            if (uriMimeType.equals(MIME_TYPE_CONTACT)) {
+
+                // Get the data from the content provider.
+                Cursor pasteCursor = cr.query(uri, null, null, null, null);
+
+                // If the Cursor contains data, move to the first record
+                if (pasteCursor != null) {
+                    if (pasteCursor.moveToFirst()) {
+
+                    // get the data from the Cursor here. The code will vary according to the
+                    // format of the data model.
+                    }
+                }
+
+                // close the Cursor
+                pasteCursor.close();
+             }
+         }
+     }
+}
+</pre>
+    </li>
+</ol>
+<p>WHATSON? e8abd7e8-c67f-43ee-b92e-64df5660f87a</p>
+<pre>
+// Declares a MIME type constant to match against the MIME types offered by the provider
+public static final String MIME_TYPE_CONTACT = "vnd.android.cursor.item/vnd.example.contact"
+</pre>
+<p>WHATSON? bf16e718-db91-487d-8f99-aa5d0309719b</p>
+<pre>
+// Gets a handle to the Clipboard Manager
+ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+
+// Gets a content resolver instance
+ContentResolver cr = getContentResolver();
+</pre>
+<p>WHATSON? 970e8ab2-1a4b-43fd-b5ad-27ac5e1d88b2</p>
+<pre>
+// Gets the clipboard data from the clipboard
+ClipData clip = clipboard.getPrimaryClip();
+
+if (clip != null) {
+
+    // Gets the first item from the clipboard data
+    ClipData.Item item = clip.getItemAt(0);
+
+    // Tries to get the item's contents as a URI
+    Uri pasteUri = item.getUri();
+</pre>
+<p>WHATSON? 83dba338-216a-4684-a8d3-5c6f04036c32</p>
+<pre>
+    // If the clipboard contains a URI reference
+    if (pasteUri != null) {
+
+        // Is this a content URI?
+        String uriMimeType = cr.getType(pasteUri);
+</pre>
+<p>WHATSON? cd7d3c88-42b7-4b8a-b196-c7479cdfc9d0</p>
+<pre>
+        // If the return value is not null, the Uri is a content Uri
+        if (uriMimeType != null) {
+
+            // Does the content provider offer a MIME type that the current application can use?
+            if (uriMimeType.equals(MIME_TYPE_CONTACT)) {
+
+                // Get the data from the content provider.
+                Cursor pasteCursor = cr.query(uri, null, null, null, null);
+
+                // If the Cursor contains data, move to the first record
+                if (pasteCursor != null) {
+                    if (pasteCursor.moveToFirst()) {
+
+                    // get the data from the Cursor here. The code will vary according to the
+                    // format of the data model.
+                    }
+                }
+
+                // close the Cursor
+                pasteCursor.close();
+             }
+         }
+     }
+}
+</pre>
+<h3>Pasting an Intent</h3>
+<p>
+    To paste an Intent, first get the global clipboard. Examine the
+    <code>ClipData.Item</code> object to see if it contains an Intent. Then call
+    <code>getIntent()</code> to copy the Intent to your own storage.
+    The following snippet demonstrates this:
+</p>
+<p>WHATSON? 72cb55a7-24b5-44a7-bc4d-d05a9eb41a24</p>
+<pre>
+// Gets a handle to the Clipboard Manager
+ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+
+// Checks to see if the clip item contains an Intent, by testing to see if getIntent() returns null
+Intent pasteIntent = clipboard.getPrimaryClip().getItemAt(0).getIntent();
+
+if (pasteIntent != null) {
+
+    // handle the Intent
+
+} else {
+
+    // ignore the clipboard, or issue an error if your application was expecting an Intent to be
+    // on the clipboard
+}
+</pre>
+<h2>Using Content Providers to Copy Complex Data</h2>
+<p>
+    Content providers support copying complex data such as database records or file streams.
+    To copy the data, you put a content URI on the clipboard. Pasting applications then get this
+    URI from the clipboard and use it to retrieve database data or file stream descriptors.
+</p>
+<p>
+    Since the pasting application only has the content URI for your data, it needs to know which
+    piece of data to retrieve. You can provide this information by encoding an identifier for the
+    data on the URI itself, or you can provide a unique URI that will return the data you want to
+    copy. Which technique you choose depends on the organization of your data.
+</p>
+<p>
+    The following sections describe how to set up URIs, how to provide complex data, and how to
+    provide file streams. The descriptions assume that you are familiar with the general principles
+    of content provider design.
+</p>
+<h3>Encoding an identifier on the URI</h3>
+<p>
+    A useful technique for copying data to the clipboard with a URI is to encode an identifier for
+    the data on the URI itself. Your content provider can then get the identifier from the URI and
+    use it to retrieve the data. The pasting application doesn't have to know that the identifier
+    exists; all it has to do is get your "reference" (the URI plus the identifier) from
+    the clipboard, give it your content provider, and get back the data.
+</p>
+<p>
+    You usually encode an identifier onto a content URI by concatenating it to the end of the URI.
+    For example, suppose you define your provider URI as the following string:
+</p>
+<p>WHATSON? 43b1ba2e-9d7a-4da1-b6bb-d31d124e2628</p>
+<pre>
+"content://com.example.contacts"
+</pre>
+<p>
+   If you want to encode a name onto this URI, you would use the following snippet:
+</p>
+<p>WHATSON? 0d57b561-db4d-42b0-bf6c-cce14baa84c0</p>
+<pre>
+String uriString = "content://com.example.contacts" + "/" + "Smith"
+
+// uriString now contains content://com.example.contacts/Smith.
+
+// Generates a uri object from the string representation
+Uri copyUri = Uri.parse(uriString);
+</pre>
+<p>
+    If you are already using a content provider, you may want to add a new URI path that indicates
+    the URI is for copying. For example, suppose you already have the following URI paths:
+</p>
+<p>WHATSON? 8db5b712-1a91-41ad-9c3b-d85a24f9b279</p>
+<pre>
+"content://com.example.contacts"/people
+"content://com.example.contacts"/people/detail
+"content://com.example.contacts"/people/images
+</pre>
+<p>
+   You could add another path that is specific to copy URIs:
+</p>
+<p>WHATSON? f78864cf-a4bc-44b8-8f72-8ec1fce1fc55</p>
+<pre>
+"content://com.example.contacts/copying"
+</pre>
+<p>
+    You could then detect a "copy" URI by pattern-matching and handle it with code that
+    is specific for copying and pasting.
+</p>
+<p>
+    You normally use the encoding technique if you're already using a content provider, internal
+    database, or internal table to organize your data. In these cases, you have multiple pieces of
+    data you want to copy, and presumably a unique identifier for each piece. In response to a
+    query from the pasting application, you can look up the data by its identifier and return it.
+</p>
+<p>
+    If you don't have multiple pieces of data, then you probably don't need to encode an identifier.
+    You can simply use a URI that is unique to your provider. In response to a query, your provider
+    would return the data it currently contains.
+</p>
+<p>
+    Getting a single record by ID is used in the
+    Note Pad sample application to
+    open a note from the notes list. The sample uses the <code>_id</code> field from an SQL
+    database, but you can have any numeric or character identifier you want.
+</p>
+<h3>Copying data structures</h3>
+<p>
+    You set up a content provider for copying and pasting complex data as a subclass of the
+    <code>ContentProvider</code> component. You should also encode the URI you put on
+    the clipboard so that it points to the exact record you want to provide. In addition, you
+    have to consider the existing state of your application:
+</p>
+<ul>
+    <li>
+        If you already have a content provider, you can add to its functionality. You may only
+        need to modify its
+<code>query()</code>
+        method to handle URIs coming from applications that want to paste data. You will
+        probably want to modify the method to handle a "copy" URI pattern.
+    </li>
+    <li>
+        If your application maintains an internal database, you may
+        want to move this database into a content provider to facilitate copying from it.
+    </li>
+    <li>
+        If you are not currently using a database, you can implement a simple content provider
+        whose sole purpose is to offer data to applications that are pasting from the
+        clipboard.
+    </li>
+</ul>
+<p>
+In the content provider, you will want to override at least the following methods:
+</p>
+<p>
+            MIME types for complex data are described in the topic
+            Content Providers.
+        </p>
+<p>
+    Notice that you don't have to have any of the other content provider methods such as
+    <code>insert()</code> or
+    <code>update()</code>.
+    A pasting application only needs to get your supported MIME types and copy data from your
+    provider. If you already have these methods, they won't interfere with copy operations.
+</p>
+<p>
+    The following snippets demonsrate how to set up your application to copy complex data:
+</p>
+<ol>
+    <li>
+        <p>
+            In the global constants for your application,
+            declare a base URI string and a path that identifies URI strings you are
+            using to copy data. Also declare a MIME type for the copied data:
+        </p>
+<pre>
+// Declares the base URI string
+private static final String CONTACTS = "content://com.example.contacts";
+
+// Declares a path string for URIs that you use to copy data
+private static final String COPY_PATH = "/copy";
+
+// Declares a MIME type for the copied data
+public static final String MIME_TYPE_CONTACT = "vnd.android.cursor.item/vnd.example.contact"
+</pre>
+    </li>
+    <li>
+        In the Activity from which users copy data,
+        set up the code to copy data to the clipboard. In response to a copy request, put
+        the URI on the clipboard:
+<pre>
+public class MyCopyActivity extends Activity {
+
+    ...
+
+// The user has selected a name and is requesting a copy.
+case R.id.menu_copy:
+
+    // Appends the last name to the base URI
+    // The name is stored in "lastName"
+    uriString = CONTACTS + COPY_PATH + "/" + lastName;
+
+    // Parses the string into a URI
+    Uri copyUri = Uri.parse(uriString);
+
+    // Gets a handle to the clipboard service.
+    ClipboardManager clipboard = (ClipboardManager)
+        getSystemService(Context.CLIPBOARD_SERVICE);
+
+    ClipData clip = ClipData.newUri(getContentResolver(), "URI", copyUri);
+
+    // Set the clipboard's primary clip.
+    clipboard.setPrimaryClip(clip);
+</pre>
+    </li>
+
+    <li>
+    <p>
+        In the global scope of your content provider, create a URI matcher and add a URI
+        pattern that will match URIs you put on the clipboard:
+    </p>
+<pre>
+public class MyCopyProvider extends ContentProvider {
+
+    ...
+
+// A Uri Match object that simplifies matching content URIs to patterns.
+private static final UriMatcher sURIMatcher = new UriMatcher(UriMatcher.NO_MATCH);
+
+// An integer to use in switching based on the incoming URI pattern
+private static final int GET_SINGLE_CONTACT = 0;
+
+...
+
+// Adds a matcher for the content URI. It matches
+// "content://com.example.contacts/copy/*"
+sUriMatcher.addURI(CONTACTS, "names/*", GET_SINGLE_CONTACT);
+</pre>
+    </li>
+    <li>
+    <p>
+        Set up the
+     <code>query()</code>
+        method. This method can handle different URI patterns, depending on how you code it, but
+        only the pattern for the clipboard copying operation is shown:
+    </p>
+<pre>
+// Sets up your provider's query() method.
+public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs,
+    String sortOrder) {
+
+    ...
+
+    // Switch based on the incoming content URI
+    switch (sUriMatcher.match(uri)) {
+
+    case GET_SINGLE_CONTACT:
+
+        // query and return the contact for the requested name. Here you would decode
+        // the incoming URI, query the data model based on the last name, and return the result
+        // as a Cursor.
+
+    ...
+
+}
+</pre>
+    </li>
+    <li>
+        <p>
+            Set up the <code>getType()</code> method to
+            return an appropriate MIME type for copied data:
+        </p>
+<pre>
+// Sets up your provider's getType() method.
+public String getType(Uri uri) {
+
+    ...
+
+    switch (sUriMatcher.match(uri)) {
+
+    case GET_SINGLE_CONTACT:
+
+            return (MIME_TYPE_CONTACT);
+</pre>
+    </li>
+</ol>
+<p>
+            In the global constants for your application,
+            declare a base URI string and a path that identifies URI strings you are
+            using to copy data. Also declare a MIME type for the copied data:
+        </p>
+<p>WHATSON? 67cf75ae-cdbf-41c8-8a8e-ea82dae5884c</p>
+<pre>
+// Declares the base URI string
+private static final String CONTACTS = "content://com.example.contacts";
+
+// Declares a path string for URIs that you use to copy data
+private static final String COPY_PATH = "/copy";
+
+// Declares a MIME type for the copied data
+public static final String MIME_TYPE_CONTACT = "vnd.android.cursor.item/vnd.example.contact"
+</pre>
+<p>WHATSON? cf497f18-84cd-415c-bba1-c859c6fb25b4</p>
+<pre>
+public class MyCopyActivity extends Activity {
+
+    ...
+
+// The user has selected a name and is requesting a copy.
+case R.id.menu_copy:
+
+    // Appends the last name to the base URI
+    // The name is stored in "lastName"
+    uriString = CONTACTS + COPY_PATH + "/" + lastName;
+
+    // Parses the string into a URI
+    Uri copyUri = Uri.parse(uriString);
+
+    // Gets a handle to the clipboard service.
+    ClipboardManager clipboard = (ClipboardManager)
+        getSystemService(Context.CLIPBOARD_SERVICE);
+
+    ClipData clip = ClipData.newUri(getContentResolver(), "URI", copyUri);
+
+    // Set the clipboard's primary clip.
+    clipboard.setPrimaryClip(clip);
+</pre>
+<p>
+        In the global scope of your content provider, create a URI matcher and add a URI
+        pattern that will match URIs you put on the clipboard:
+    </p>
+<p>WHATSON? a48d7d97-3516-447d-8076-88333396d56e</p>
+<pre>
+public class MyCopyProvider extends ContentProvider {
+
+    ...
+
+// A Uri Match object that simplifies matching content URIs to patterns.
+private static final UriMatcher sURIMatcher = new UriMatcher(UriMatcher.NO_MATCH);
+
+// An integer to use in switching based on the incoming URI pattern
+private static final int GET_SINGLE_CONTACT = 0;
+
+...
+
+// Adds a matcher for the content URI. It matches
+// "content://com.example.contacts/copy/*"
+sUriMatcher.addURI(CONTACTS, "names/*", GET_SINGLE_CONTACT);
+</pre>
+<p>
+        Set up the
+     <code>query()</code>
+        method. This method can handle different URI patterns, depending on how you code it, but
+        only the pattern for the clipboard copying operation is shown:
+    </p>
+<p>WHATSON? f43cb296-ef2f-4cdc-bf53-e957cba4c2b1</p>
+<pre>
+// Sets up your provider's query() method.
+public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs,
+    String sortOrder) {
+
+    ...
+
+    // Switch based on the incoming content URI
+    switch (sUriMatcher.match(uri)) {
+
+    case GET_SINGLE_CONTACT:
+
+        // query and return the contact for the requested name. Here you would decode
+        // the incoming URI, query the data model based on the last name, and return the result
+        // as a Cursor.
+
+    ...
+
+}
+</pre>
+<p>
+            Set up the <code>getType()</code> method to
+            return an appropriate MIME type for copied data:
+        </p>
+<p>WHATSON? 6152bba6-edfc-429b-9430-993143ad0a81</p>
+<pre>
+// Sets up your provider's getType() method.
+public String getType(Uri uri) {
+
+    ...
+
+    switch (sUriMatcher.match(uri)) {
+
+    case GET_SINGLE_CONTACT:
+
+            return (MIME_TYPE_CONTACT);
+</pre>
+<p>
+    The section Pasting data from a content URI
+    describes how to get a content URI from the clipboard and use it to get and paste data.
+</p>
+<h3>Copying data streams</h3>
+<p>
+    You can copy and paste large amounts of text and binary data as streams. The data can have
+    forms such as the following:
+</p>
+<ul>
+        <li>
+            Files stored on the actual device.
+        </li>
+        <li>
+            Streams from sockets.
+        </li>
+        <li>
+            Large amounts of data stored in a provider's underlying database system.
+        </li>
+    </ul>
+<p>
+    A content provider for data streams provides access to its data with a file descriptor object
+    such as <code>AssetFileDescriptor</code> instead of a
+    <code>Cursor</code> object. The pasting application reads the data stream using
+    this file descriptor.
+</p>
+<p>
+    To set up your application to copy a data stream with a provider, follow these steps:
+</p>
+<ol>
+    <li>
+        Set up a content URI for the data stream you are putting on the clipboard. Options
+        for doing this include the following:
+        <ul>
+            <li>
+                Encode an identifier for the data stream onto the URI,
+                as described in the section
+                Encoding an identifier on the URI, and then maintain a
+                table in your provider that contains identifiers and the corresponding stream name.
+            </li>
+            <li>
+                Encode the stream name directly on the URI.
+            </li>
+            <li>
+                Use a unique URI that always returns the current stream from the provider. If you
+                use this option, you have to remember to update your provider to point to a
+                different stream whenever you copy the stream to the clipboard via the URI.
+            </li>
+        </ul>
+    </li>
+    <li>
+        Provide a MIME type for each type of data stream you plan to offer. Pasting applications
+        need this information to determine if they can paste the data on the clipboard.
+    </li>
+    <li>
+        Implement one of the <code>ContentProvider</code> methods that returns
+        a file descriptor for a stream. If you encode identifiers on the content URI, use this
+        method to determine which stream to open.
+    </li>
+    <li>
+        To copy the data stream to the clipboard, construct the content URI and place it
+        on the clipboard.
+    </li>
+</ol>
+<ul>
+            <li>
+                Encode an identifier for the data stream onto the URI,
+                as described in the section
+                Encoding an identifier on the URI, and then maintain a
+                table in your provider that contains identifiers and the corresponding stream name.
+            </li>
+            <li>
+                Encode the stream name directly on the URI.
+            </li>
+            <li>
+                Use a unique URI that always returns the current stream from the provider. If you
+                use this option, you have to remember to update your provider to point to a
+                different stream whenever you copy the stream to the clipboard via the URI.
+            </li>
+        </ul>
+<p>
+    To paste a data stream, an application gets the clip from the clipboard, gets the URI, and
+    uses it in a call to a <code>ContentResolver</code> file descriptor method that
+    opens the stream. The <code>ContentResolver</code> method calls the corresponding
+    <code>ContentProvider</code> method, passing it the content URI. Your provider
+    returns the file descriptor to <code>ContentResolver</code> method. The pasting
+    application then has the responsibility to read the data from the stream.
+</p>
+<p>
+    The following list shows the most important file descriptor methods for a content provider.
+    Each of these has a corresponding <code>ContentResolver</code> method with the
+    string "Descriptor" appended to the method name; for example, the
+    <code>ContentResolver</code> analog of
+    <code>openAssetFile()</code> is
+<code>openAssetFileDescriptor()</code>:
+</p>
+<p>
+            This method handles subsections of files. You can use it to read assets that the
+            content provider has copied to the clipboard.
+        </p>
+<p>
+    You can optionally use the
+<code>openPipeHelper()</code>
+    method with your file descriptor method. This allows the pasting application to read the
+    stream data in a background thread using a pipe. To use this method, you need to implement the
+    <code>ContentProvider.PipeDataWriter</code> interface. An example of doing this is
+    given in the Note Pad sample
+    application, in the <code>openTypedAssetFile()</code> method of
+    <code>NotePadProvider.java</code>.
+</p>
+<h2>Designing Effective Copy/Paste Functionality</h2>
+<p>
+    To design effective copy and paste functionality for your application, remember these
+    points:
+</p>
+<ul>
+        <li>
+            At any time, there is only one clip on the clipboard. A new copy operation by
+            any application in the system overwrites the previous clip. Since the user may
+            navigate away from your application and do a copy before returning, you can't assume
+            that the clipboard contains the clip that the user previously copied in <em>your</em>
+            application.
+        </li>
+        <li>
+            The intended purpose of multiple <code>ClipData.Item</code>
+            objects per clip is to support copying and pasting of multiple selections rather than
+            different forms of reference to a single selection. You usually want all of the
+           <code>ClipData.Item</code> objects in a clip to have the same form, that is,
+           they should all be simple text, content URI, or <code>Intent</code>, but not
+           a mixture.
+        </li>
+        <li>
+            When you provide data, you can offer different MIME representations. Add the MIME types
+            you support to the <code>ClipDescription</code>, and then
+            implement the MIME types in your content provider.
+        </li>
+        <li>
+            When you get data from the clipboard, your application is responsible for checking the
+            available MIME types and then deciding which one, if any, to use. Even if there is a
+            clip on the clipboard and the user requests a paste, your application is not required
+            to do the paste. You <em>should</em> do the paste if the MIME type is compatible. You
+            may choose to coerce the data on the clipboard to text using
+            <code>coerceToText()</code> if you
+            choose. If your application supports more than one of the available MIME types, you can
+            allow the user to choose which one to use.
+        </li>
+    </ul>
+<h1>Copy and Paste</h1>
+<h2>Quickview</h2>
+<ul>
+                <li>
+                    A clipboard-based framework for copying and pasting data.
+                </li>
+                <li>
+                    Supports both simple and complex data, including text strings, complex data
+                    structures, text and binary stream data, and application assets.
+                </li>
+                <li>
+                    Copies and pastes simple text directly to and from the clipboard.
+                </li>
+                <li>
+                    Copies and pastes complex data using a content provider.
+                </li>
+                <li>
+                    Requires API 11.
+                </li>
+            </ul>
+<h2>In this document</h2>
+<ol>
+            <li>
+                The Clipboard Framework
+            </li>
+            <li>
+                Clipboard Classes
+                <ol>
+                    <li>
+                        ClipboardManager
+                    </li>
+                    <li>
+                        
+                            ClipData, ClipDescription, and ClipData.Item
+                        
+                    </li>
+                    <li>
+                        ClipData convenience methods
+                    </li>
+                    <li>
+                        Coercing the clipboard data to text
+                    </li>
+                </ol>
+            </li>
+            <li>
+                Copying to the Clipboard
+            </li>
+            <li>
+                Pasting from the Clipboard
+                <ol>
+                    <li>
+                        Pasting plain text
+                    </li>
+                    <li>
+                        Pasting data from a content URI
+                    </li>
+                    <li>
+                        Pasting an Intent
+                    </li>
+                </ol>
+            </li>
+            <li>
+                Using Content Providers to Copy Complex Data
+                <ol>
+                    <li>
+                        Encoding an identifier on the URI
+                    </li>
+                    <li>
+                        Copying data structures
+                    </li>
+                    <li>
+                        Copying data streams
+                    </li>
+                </ol>
+            </li>
+            <li>
+                Designing Effective Copy/Paste Functionality
+            </li>
+        </ol>
+<ol>
+                    <li>
+                        ClipboardManager
+                    </li>
+                    <li>
+                        
+                            ClipData, ClipDescription, and ClipData.Item
+                        
+                    </li>
+                    <li>
+                        ClipData convenience methods
+                    </li>
+                    <li>
+                        Coercing the clipboard data to text
+                    </li>
+                </ol>
+<ol>
+                    <li>
+                        Pasting plain text
+                    </li>
+                    <li>
+                        Pasting data from a content URI
+                    </li>
+                    <li>
+                        Pasting an Intent
+                    </li>
+                </ol>
+<ol>
+                    <li>
+                        Encoding an identifier on the URI
+                    </li>
+                    <li>
+                        Copying data structures
+                    </li>
+                    <li>
+                        Copying data streams
+                    </li>
+                </ol>
+<h2>Key classes</h2>
+<ol>
+            <li>
+                <code>ClipboardManager</code>
+            </li>
+            <li>
+                <code>ClipData</code>
+            </li>
+            <li>
+                <code>ClipData.Item</code>
+            </li>
+            <li>
+                <code>ClipDescription</code>
+            </li>
+            <li>
+                <code>Uri</code>
+            </li>
+            <li>
+                <code>ContentProvider</code>
+            </li>
+            <li>
+                <code>Intent</code>
+            </li>
+        </ol>
+<h2>Related Samples</h2>
+<ol>
+            <li>
+                
+                Note Pad sample application
+            </li>
+        </ol>
+<h2>See also</h2>
+<ol>
+            <li>
+            Content Providers
+            </li>
+        </ol>
+<p>
+    Android provides a powerful clipboard-based framework for copying and pasting. It
+    supports both simple and complex data types, including text strings, complex data
+    structures, text and binary stream data, and even application assets. Simple text data is stored
+    directly in the clipboard, while complex data is stored as a reference that the pasting
+    application resolves with a content provider. Copying and pasting works both within an
+    application and between applications that implement the framework.
+</p>
+<p>
+    Since a part of the framework uses content providers, this topic assumes some
+    familiarity with the Android Content Provider API, which is described in the topic
+    Content Providers.
+</p>
+<h2>The Clipboard Framework</h2>
+<p>
+    When you use the clipboard framework, you put data into a clip object, and then
+    put the clip object on the system-wide clipboard. The clip object can take one of three forms:
+</p>
+<p>
+    The clipboard holds only one clip object at a time. When an application puts a clip object on
+    the clipboard, the previous clip object disappears.
+</p>
+<p>
+    If you want to allow users to paste data into your application, you don't have to handle all
+    types of data. You can examine the data on the clipboard before you give users the option to
+    paste it. Besides having a certain data form, the clip object also contains metadata that tells
+    you what MIME type or types are available. This metadata helps you decide if your application
+    can do something useful with the clipboard data. For example, if you have an application that
+    primarily handles text you may want to ignore clip objects that contain a URI or Intent.
+</p>
+<p>
+    You may also want to allow users to paste text regardless of the form of data on the
+    clipboard. To do this, you can force the clipboard data into a text representation, and then
+    paste this text. This is described in the section Coercing the
+    clipboard to text.
+</p>
+<h2>Clipboard Classes</h2>
+<p>
+    This section describes the classes used by the clipboard framework.
+</p>
+<h3>ClipboardManager</h3>
+<p>
+    In the Android system, the system clipboard is represented by the global
+    <code>ClipboardManager</code> class. You do not instantiate this
+    class directly; instead, you get a reference to it by invoking
+    <code>getSystemService(CLIPBOARD_SERVICE)</code>.
+</p>
+<h3>ClipData, ClipData.Item, and ClipDescription</h3>
+<p>
+    To add data to the clipboard, you create a <code>ClipData</code> object that
+    contains both a description of the data and the data itself. The clipboard holds only one
+    <code>ClipData</code> at a time. A <code>ClipData</code> contains a
+    <code>ClipDescription</code> object and one or more
+    <code>ClipData.Item</code> objects.
+</p>
+<p>
+    A <code>ClipDescription</code> object contains metadata about the clip. In
+    particular, it contains an array of available MIME types for the clip's data. When you put a
+    clip on the clipboard, this array is available to pasting applications, which can examine it to
+    see if they can handle any of available the MIME types.
+</p>
+<p>
+    A <code>ClipData.Item</code> object contains the text, URI, or Intent data:
+</p>
+<p>
+    You can add more than one <code>ClipData.Item</code> object to a clip. This allows
+    users to copy and paste multiple selections as a single clip. For example, if you have a list
+    widget that allows the user to select more than one item at a time, you can copy all the items
+    to the clipboard at once. To do this, you create a separate
+    <code>ClipData.Item</code> for each list item, and then you add the
+    <code>ClipData.Item</code> objects to the <code>ClipData</code> object.
+</p>
+<h3>ClipData convenience methods</h3>
+<p>
+    The <code>ClipData</code> class provides static convenience methods for creating
+    a <code>ClipData</code> object with a single <code>ClipData.Item</code>
+    object and a simple <code>ClipDescription</code> object:
+</p>
+<p>
+            Use
+<code>newPlainText()</code>
+            to create a clip from a text string.
+    </p>
+<p>
+            Use
+<code>newUri()</code>
+            to create a clip from a URI, particularly a <code>content:</code> URI.
+        </p>
+<p>
+            Use
+<code>newIntent()</code>
+            to create a clip from an Intent object.
+    </p>
+<h3>Coercing the clipboard data to text</h3>
+<p>
+    Even if your application only handles text, you can copy non-text data from the
+    clipboard by converting it with the method
+    <code>ClipData.Item.coerceToText()</code>.
+</p>
+<p>
+    This method converts the data in <code>ClipData.Item</code> to text and
+    returns a <code>CharSequence</code>. The value that
+    <code>ClipData.Item.coerceToText()</code>
+    returns is based on the form of data in <code>ClipData.Item</code>:
+</p>
+<ul>
+        <li>
+                If the URI is a content URI and the provider can return a text stream,
+                <code>coerceToText()</code> returns
+                a text stream.
+            </li>
+            <li>
+                If the URI is a content URI but the provider does not offer a text stream,
+                <code>coerceToText()</code> returns
+                a representation of the URI. The representation is the same as that returned by
+                <code>Uri.toString()</code>.
+            </li>
+            <li>
+                If the URI is not a content URI,
+                <code>coerceToText()</code> returns
+                a representation of the URI. The representation is the same as that returned by
+                <code>Uri.toString()</code>.
+            </li>
+        </ul>
+<p>
+    The clipboard framework is summarized in Figure 1. To copy data, an application puts a
+    <code>ClipData</code> object on the <code>ClipboardManager</code> global
+    clipboard. The <code>ClipData</code> contains one or more
+    <code>ClipData.Item</code> objects and one
+    <code>ClipDescription</code> object. To paste data, an application gets the
+    <code>ClipData</code>, gets its MIME type from the
+    <code>ClipDescription</code>, and gets the data either from
+    the <code>ClipData.Item</code> or from the content provider referred to by
+    <code>ClipData.Item</code>.
+</p>
+<p>
+    <strong>Figure 1.</strong> The Android clipboard framework
+</p>
+<h2>Copying to the Clipboard</h2>
+<p>
+    As described previously, to copy data to the clipboard you get a handle to the global
+    <code>ClipboardManager</code> object, create a <code>ClipData</code>
+    object, add a <code>ClipDescription</code> and one or more
+    <code>ClipData.Item</code> objects to it, and add the finished
+    <code>ClipData</code> object to the <code>ClipboardManager</code> object.
+    This is described in detail in the following procedure:
+</p>
+<ol>
+    <li>
+        If you are copying data using a content URI, set up a content
+        provider.
+        <p>
+            The 
+            Note Pad sample application is an example of using a content provider for
+            copying and pasting. The
+
+            NotePadProvider class implements the content provider. The
+
+            NotePad class defines a contract between the provider and other applications,
+            including the supported MIME types.
+        </p>
+    </li>
+    <li>
+        Get the system clipboard:
+<pre>
+
+...
+
+// if the user selects copy
+case R.id.menu_copy:
+
+// Gets a handle to the clipboard service.
+ClipboardManager clipboard = (ClipboardManager)
+        getSystemService(Context.CLIPBOARD_SERVICE);
+</pre>
+    </li>
+    <li>
+        <p>
+            Copy the data to a new <code>ClipData</code> object:
+        </p>
+        <ul>
+            <li>
+                <h4>For text</h4>
+<pre>
+// Creates a new text clip to put on the clipboard
+ClipData clip = ClipData.newPlainText("simple text","Hello, World!");
+</pre>
+            </li>
+            <li>
+                <h4>For a URI</h4>
+                <p>
+                    This snippet constructs a URI by encoding a record ID onto the content URI
+                    for the provider. This technique is covered in more detail
+                    in the section Encoding an identifier on the URI:
+                </p>
+<pre>
+// Creates a Uri based on a base Uri and a record ID based on the contact's last name
+// Declares the base URI string
+private static final String CONTACTS = "content://com.example.contacts";
+
+// Declares a path string for URIs that you use to copy data
+private static final String COPY_PATH = "/copy";
+
+// Declares the Uri to paste to the clipboard
+Uri copyUri = Uri.parse(CONTACTS + COPY_PATH + "/" + lastName);
+
+...
+
+// Creates a new URI clip object. The system uses the anonymous getContentResolver() object to
+// get MIME types from provider. The clip object's label is "URI", and its data is
+// the Uri previously created.
+ClipData clip = ClipData.newUri(getContentResolver(),"URI",copyUri);
+</pre>
+            </li>
+            <li>
+                <h4>For an Intent</h4>
+                <p>
+                    This snippet constructs an Intent for an application
+                    and then puts it in the clip object:
+                </p>
+<pre>
+// Creates the Intent
+Intent appIntent = new Intent(this, com.example.demo.myapplication.class);
+
+...
+
+// Creates a clip object with the Intent in it. Its label is "Intent" and its data is
+// the Intent object created previously
+ClipData clip = ClipData.newIntent("Intent",appIntent);
+</pre>
+            </li>
+        </ul>
+    </li>
+    <li>
+        Put the new clip object on the clipboard:
+<pre>
+// Set the clipboard's primary clip.
+clipboard.setPrimaryClip(clip);
+</pre>
+    </li>
+</ol>
+<p>
+            The 
+            Note Pad sample application is an example of using a content provider for
+            copying and pasting. The
+
+            NotePadProvider class implements the content provider. The
+
+            NotePad class defines a contract between the provider and other applications,
+            including the supported MIME types.
+        </p>
+<p>WHATSON? a8a8aca6-79b4-4e35-9887-baca8cbfa82c</p>
+<pre>
+
+...
+
+// if the user selects copy
+case R.id.menu_copy:
+
+// Gets a handle to the clipboard service.
+ClipboardManager clipboard = (ClipboardManager)
+        getSystemService(Context.CLIPBOARD_SERVICE);
+</pre>
+<p>
+            Copy the data to a new <code>ClipData</code> object:
+        </p>
+<ul>
+            <li>
+                <h4>For text</h4>
+<pre>
+// Creates a new text clip to put on the clipboard
+ClipData clip = ClipData.newPlainText("simple text","Hello, World!");
+</pre>
+            </li>
+            <li>
+                <h4>For a URI</h4>
+                <p>
+                    This snippet constructs a URI by encoding a record ID onto the content URI
+                    for the provider. This technique is covered in more detail
+                    in the section Encoding an identifier on the URI:
+                </p>
+<pre>
+// Creates a Uri based on a base Uri and a record ID based on the contact's last name
+// Declares the base URI string
+private static final String CONTACTS = "content://com.example.contacts";
+
+// Declares a path string for URIs that you use to copy data
+private static final String COPY_PATH = "/copy";
+
+// Declares the Uri to paste to the clipboard
+Uri copyUri = Uri.parse(CONTACTS + COPY_PATH + "/" + lastName);
+
+...
+
+// Creates a new URI clip object. The system uses the anonymous getContentResolver() object to
+// get MIME types from provider. The clip object's label is "URI", and its data is
+// the Uri previously created.
+ClipData clip = ClipData.newUri(getContentResolver(),"URI",copyUri);
+</pre>
+            </li>
+            <li>
+                <h4>For an Intent</h4>
+                <p>
+                    This snippet constructs an Intent for an application
+                    and then puts it in the clip object:
+                </p>
+<pre>
+// Creates the Intent
+Intent appIntent = new Intent(this, com.example.demo.myapplication.class);
+
+...
+
+// Creates a clip object with the Intent in it. Its label is "Intent" and its data is
+// the Intent object created previously
+ClipData clip = ClipData.newIntent("Intent",appIntent);
+</pre>
+            </li>
+        </ul>
+<h4>For text</h4>
+<p>WHATSON? 24aafeb1-44d8-41c1-a714-20777e17668d</p>
+<pre>
+// Creates a new text clip to put on the clipboard
+ClipData clip = ClipData.newPlainText("simple text","Hello, World!");
+</pre>
+<h4>For a URI</h4>
+<p>
+                    This snippet constructs a URI by encoding a record ID onto the content URI
+                    for the provider. This technique is covered in more detail
+                    in the section Encoding an identifier on the URI:
+                </p>
+<p>WHATSON? ef544f79-f136-4403-a7ef-0d812aa218ba</p>
+<pre>
+// Creates a Uri based on a base Uri and a record ID based on the contact's last name
+// Declares the base URI string
+private static final String CONTACTS = "content://com.example.contacts";
+
+// Declares a path string for URIs that you use to copy data
+private static final String COPY_PATH = "/copy";
+
+// Declares the Uri to paste to the clipboard
+Uri copyUri = Uri.parse(CONTACTS + COPY_PATH + "/" + lastName);
+
+...
+
+// Creates a new URI clip object. The system uses the anonymous getContentResolver() object to
+// get MIME types from provider. The clip object's label is "URI", and its data is
+// the Uri previously created.
+ClipData clip = ClipData.newUri(getContentResolver(),"URI",copyUri);
+</pre>
+<h4>For an Intent</h4>
+<p>
+                    This snippet constructs an Intent for an application
+                    and then puts it in the clip object:
+                </p>
+<p>WHATSON? 603a6ed9-c53d-4ef2-982b-cec1e7d83dcd</p>
+<pre>
+// Creates the Intent
+Intent appIntent = new Intent(this, com.example.demo.myapplication.class);
+
+...
+
+// Creates a clip object with the Intent in it. Its label is "Intent" and its data is
+// the Intent object created previously
+ClipData clip = ClipData.newIntent("Intent",appIntent);
+</pre>
+<p>WHATSON? 6dbad4b3-6390-43c5-acd9-ca32fa207f21</p>
+<pre>
+// Set the clipboard's primary clip.
+clipboard.setPrimaryClip(clip);
+</pre>
+<h2>Pasting from the Clipboard</h2>
+<p>
+    As described previously, you paste data from the clipboard by getting the global clipboard
+    object, getting the clip object, looking at its data, and if possible copying the data from
+    the clip object to your own storage. This section describes in detail how to do this for
+    the three forms of clipboard data.
+</p>
+<h3>Pasting plain text</h3>
+<p>
+    To paste plain text, first get the global clipboard and verify that it can return plain text.
+    Then get the clip object and copy its text to your own storage using
+    <code>getText()</code>, as described in the following procedure:
+</p>
+<ol>
+    <li>
+        Get the global <code>ClipboardManager</code> object using
+ <code>getSystemService(CLIPBOARD_SERVICE)</code>. Also
+        declare a global variable to contain the pasted text:
+<pre>
+ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+
+String pasteData = "";
+
+</pre>
+    </li>
+    <li>
+        Next, determine if you should enable or disable the "paste" option in the
+        current Activity. You should verify that the clipboard contains a clip and that you
+        can handle the type of data represented by the clip:
+<pre>
+// Gets the ID of the "paste" menu item
+MenuItem mPasteItem = menu.findItem(R.id.menu_paste);
+
+// If the clipboard doesn't contain data, disable the paste menu item.
+// If it does contain data, decide if you can handle the data.
+if (!(clipboard.hasPrimaryClip())) {
+
+    mPasteItem.setEnabled(false);
+
+    } else if (!(clipboard.getPrimaryClipDescription().hasMimeType(MIMETYPE_TEXT_PLAIN))) {
+
+        // This disables the paste menu item, since the clipboard has data but it is not plain text
+        mPasteItem.setEnabled(false);
+    } else {
+
+        // This enables the paste menu item, since the clipboard contains plain text.
+        mPasteItem.setEnabled(true);
+    }
+}
+</pre>
+    </li>
+    <li>
+        Copy the data from the clipboard. This point in the program is only reachable if the
+        "paste" menu item is enabled, so you can assume that the clipboard contains
+        plain text. You do not yet know if it contains a text string or a URI that points to plain
+        text. The following snippet tests this, but it only shows the code for handling plain text:
+<pre>
+// Responds to the user selecting "paste"
+case R.id.menu_paste:
+
+// Examines the item on the clipboard. If getText() does not return null, the clip item contains the
+// text. Assumes that this application can only handle one item at a time.
+ ClipData.Item item = clipboard.getPrimaryClip().getItemAt(0);
+
+// Gets the clipboard as text.
+pasteData = item.getText();
+
+// If the string contains data, then the paste operation is done
+if (pasteData != null) {
+    return;
+
+// The clipboard does not contain text. If it contains a URI, attempts to get data from it
+} else {
+    Uri pasteUri = item.getUri();
+
+    // If the URI contains something, try to get text from it
+    if (pasteUri != null) {
+
+        // calls a routine to resolve the URI and get data from it. This routine is not
+        // presented here.
+        pasteData = resolveUri(Uri);
+        return;
+    } else {
+
+    // Something is wrong. The MIME type was plain text, but the clipboard does not contain either
+    // text or a Uri. Report an error.
+    Log.e("Clipboard contains an invalid data type");
+    return;
+    }
+}
+</pre>
+    </li>
+</ol>
+<p>WHATSON? 35d2d307-51c4-476d-92e8-a06c100128e9</p>
+<pre>
+ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+
+String pasteData = "";
+
+</pre>
+<p>WHATSON? 964955b6-e231-45a2-8e92-369e0fc13f3b</p>
+<pre>
+// Gets the ID of the "paste" menu item
+MenuItem mPasteItem = menu.findItem(R.id.menu_paste);
+
+// If the clipboard doesn't contain data, disable the paste menu item.
+// If it does contain data, decide if you can handle the data.
+if (!(clipboard.hasPrimaryClip())) {
+
+    mPasteItem.setEnabled(false);
+
+    } else if (!(clipboard.getPrimaryClipDescription().hasMimeType(MIMETYPE_TEXT_PLAIN))) {
+
+        // This disables the paste menu item, since the clipboard has data but it is not plain text
+        mPasteItem.setEnabled(false);
+    } else {
+
+        // This enables the paste menu item, since the clipboard contains plain text.
+        mPasteItem.setEnabled(true);
+    }
+}
+</pre>
+<p>WHATSON? c7e45d43-2531-4bf7-89c8-28d1a6fcc5ad</p>
+<pre>
+// Responds to the user selecting "paste"
+case R.id.menu_paste:
+
+// Examines the item on the clipboard. If getText() does not return null, the clip item contains the
+// text. Assumes that this application can only handle one item at a time.
+ ClipData.Item item = clipboard.getPrimaryClip().getItemAt(0);
+
+// Gets the clipboard as text.
+pasteData = item.getText();
+
+// If the string contains data, then the paste operation is done
+if (pasteData != null) {
+    return;
+
+// The clipboard does not contain text. If it contains a URI, attempts to get data from it
+} else {
+    Uri pasteUri = item.getUri();
+
+    // If the URI contains something, try to get text from it
+    if (pasteUri != null) {
+
+        // calls a routine to resolve the URI and get data from it. This routine is not
+        // presented here.
+        pasteData = resolveUri(Uri);
+        return;
+    } else {
+
+    // Something is wrong. The MIME type was plain text, but the clipboard does not contain either
+    // text or a Uri. Report an error.
+    Log.e("Clipboard contains an invalid data type");
+    return;
+    }
+}
+</pre>
+<h3>Pasting data from a content URI</h3>
+<p>
+    If the <code>ClipData.Item</code> object contains a content URI and you
+    have determined that you can handle one of its MIME types, create a
+    <code>ContentResolver</code> and then call the appropriate content provider
+    method to retrieve the data.
+</p>
+<p>
+    The following procedure describes how to get data from a content provider based on a
+    content URI on the clipboard. It checks that a MIME type that the application can use
+    is available from the provider:
+</p>
+<ol>
+    <li>
+        Declare a global variable to contain the MIME type:
+<pre>
+// Declares a MIME type constant to match against the MIME types offered by the provider
+public static final String MIME_TYPE_CONTACT = "vnd.android.cursor.item/vnd.example.contact"
+</pre>
+    </li>
+    <li>
+        Get the global clipboard. Also get a content resolver so you can access the content
+        provider:
+<pre>
+// Gets a handle to the Clipboard Manager
+ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+
+// Gets a content resolver instance
+ContentResolver cr = getContentResolver();
+</pre>
+    </li>
+    <li>
+        Get the primary clip from the clipboard, and get its contents as a URI:
+<pre>
+// Gets the clipboard data from the clipboard
+ClipData clip = clipboard.getPrimaryClip();
+
+if (clip != null) {
+
+    // Gets the first item from the clipboard data
+    ClipData.Item item = clip.getItemAt(0);
+
+    // Tries to get the item's contents as a URI
+    Uri pasteUri = item.getUri();
+</pre>
+    </li>
+    <li>
+        Test to see if the URI is a content URI by calling
+        <code>getType(Uri)</code>. This method returns
+        null if <code>Uri</code> does not point to a valid content provider:
+<pre>
+    // If the clipboard contains a URI reference
+    if (pasteUri != null) {
+
+        // Is this a content URI?
+        String uriMimeType = cr.getType(pasteUri);
+</pre>
+    </li>
+    <li>
+        Test to see if the content provider supports a MIME type that the current application
+        understands. If it does, call
+        <code>ContentResolver.query()</code> to get the data. The return value is a
+        <code>Cursor</code>:
+<pre>
+        // If the return value is not null, the Uri is a content Uri
+        if (uriMimeType != null) {
+
+            // Does the content provider offer a MIME type that the current application can use?
+            if (uriMimeType.equals(MIME_TYPE_CONTACT)) {
+
+                // Get the data from the content provider.
+                Cursor pasteCursor = cr.query(uri, null, null, null, null);
+
+                // If the Cursor contains data, move to the first record
+                if (pasteCursor != null) {
+                    if (pasteCursor.moveToFirst()) {
+
+                    // get the data from the Cursor here. The code will vary according to the
+                    // format of the data model.
+                    }
+                }
+
+                // close the Cursor
+                pasteCursor.close();
+             }
+         }
+     }
+}
+</pre>
+    </li>
+</ol>
+<p>WHATSON? 8aca8b5b-c154-4e8f-864c-bc9fc15be535</p>
+<pre>
+// Declares a MIME type constant to match against the MIME types offered by the provider
+public static final String MIME_TYPE_CONTACT = "vnd.android.cursor.item/vnd.example.contact"
+</pre>
+<p>WHATSON? 082151de-2370-432a-b096-be88dff1bf2d</p>
+<pre>
+// Gets a handle to the Clipboard Manager
+ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+
+// Gets a content resolver instance
+ContentResolver cr = getContentResolver();
+</pre>
+<p>WHATSON? 9bdb62c7-b4f6-4bfc-8c7c-33b44b258d5a</p>
+<pre>
+// Gets the clipboard data from the clipboard
+ClipData clip = clipboard.getPrimaryClip();
+
+if (clip != null) {
+
+    // Gets the first item from the clipboard data
+    ClipData.Item item = clip.getItemAt(0);
+
+    // Tries to get the item's contents as a URI
+    Uri pasteUri = item.getUri();
+</pre>
+<p>WHATSON? f10dc980-a17d-415a-a59b-85c1106971cb</p>
+<pre>
+    // If the clipboard contains a URI reference
+    if (pasteUri != null) {
+
+        // Is this a content URI?
+        String uriMimeType = cr.getType(pasteUri);
+</pre>
+<p>WHATSON? 1ca7b7df-6601-4862-93b5-e17beaf007be</p>
+<pre>
+        // If the return value is not null, the Uri is a content Uri
+        if (uriMimeType != null) {
+
+            // Does the content provider offer a MIME type that the current application can use?
+            if (uriMimeType.equals(MIME_TYPE_CONTACT)) {
+
+                // Get the data from the content provider.
+                Cursor pasteCursor = cr.query(uri, null, null, null, null);
+
+                // If the Cursor contains data, move to the first record
+                if (pasteCursor != null) {
+                    if (pasteCursor.moveToFirst()) {
+
+                    // get the data from the Cursor here. The code will vary according to the
+                    // format of the data model.
+                    }
+                }
+
+                // close the Cursor
+                pasteCursor.close();
+             }
+         }
+     }
+}
+</pre>
+<h3>Pasting an Intent</h3>
+<p>
+    To paste an Intent, first get the global clipboard. Examine the
+    <code>ClipData.Item</code> object to see if it contains an Intent. Then call
+    <code>getIntent()</code> to copy the Intent to your own storage.
+    The following snippet demonstrates this:
+</p>
+<p>WHATSON? 6d18704f-530c-476b-a9e7-b84d0d1cf9f1</p>
+<pre>
+// Gets a handle to the Clipboard Manager
+ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+
+// Checks to see if the clip item contains an Intent, by testing to see if getIntent() returns null
+Intent pasteIntent = clipboard.getPrimaryClip().getItemAt(0).getIntent();
+
+if (pasteIntent != null) {
+
+    // handle the Intent
+
+} else {
+
+    // ignore the clipboard, or issue an error if your application was expecting an Intent to be
+    // on the clipboard
+}
+</pre>
+<h2>Using Content Providers to Copy Complex Data</h2>
+<p>
+    Content providers support copying complex data such as database records or file streams.
+    To copy the data, you put a content URI on the clipboard. Pasting applications then get this
+    URI from the clipboard and use it to retrieve database data or file stream descriptors.
+</p>
+<p>
+    Since the pasting application only has the content URI for your data, it needs to know which
+    piece of data to retrieve. You can provide this information by encoding an identifier for the
+    data on the URI itself, or you can provide a unique URI that will return the data you want to
+    copy. Which technique you choose depends on the organization of your data.
+</p>
+<p>
+    The following sections describe how to set up URIs, how to provide complex data, and how to
+    provide file streams. The descriptions assume that you are familiar with the general principles
+    of content provider design.
+</p>
+<h3>Encoding an identifier on the URI</h3>
+<p>
+    A useful technique for copying data to the clipboard with a URI is to encode an identifier for
+    the data on the URI itself. Your content provider can then get the identifier from the URI and
+    use it to retrieve the data. The pasting application doesn't have to know that the identifier
+    exists; all it has to do is get your "reference" (the URI plus the identifier) from
+    the clipboard, give it your content provider, and get back the data.
+</p>
+<p>
+    You usually encode an identifier onto a content URI by concatenating it to the end of the URI.
+    For example, suppose you define your provider URI as the following string:
+</p>
+<p>WHATSON? 66600baa-3362-4052-a263-e815acb18dfe</p>
+<pre>
+"content://com.example.contacts"
+</pre>
+<p>
+   If you want to encode a name onto this URI, you would use the following snippet:
+</p>
+<p>WHATSON? b708d7c3-bcb8-4965-89d7-11bfe986df19</p>
+<pre>
+String uriString = "content://com.example.contacts" + "/" + "Smith"
+
+// uriString now contains content://com.example.contacts/Smith.
+
+// Generates a uri object from the string representation
+Uri copyUri = Uri.parse(uriString);
+</pre>
+<p>
+    If you are already using a content provider, you may want to add a new URI path that indicates
+    the URI is for copying. For example, suppose you already have the following URI paths:
+</p>
+<p>WHATSON? d105c263-1258-4a51-a40b-3d6b839bae5d</p>
+<pre>
+"content://com.example.contacts"/people
+"content://com.example.contacts"/people/detail
+"content://com.example.contacts"/people/images
+</pre>
+<p>
+   You could add another path that is specific to copy URIs:
+</p>
+<p>WHATSON? cd398bb2-e2ad-4628-8483-0d4b040a3cd9</p>
+<pre>
+"content://com.example.contacts/copying"
+</pre>
+<p>
+    You could then detect a "copy" URI by pattern-matching and handle it with code that
+    is specific for copying and pasting.
+</p>
+<p>
+    You normally use the encoding technique if you're already using a content provider, internal
+    database, or internal table to organize your data. In these cases, you have multiple pieces of
+    data you want to copy, and presumably a unique identifier for each piece. In response to a
+    query from the pasting application, you can look up the data by its identifier and return it.
+</p>
+<p>
+    If you don't have multiple pieces of data, then you probably don't need to encode an identifier.
+    You can simply use a URI that is unique to your provider. In response to a query, your provider
+    would return the data it currently contains.
+</p>
+<p>
+    Getting a single record by ID is used in the
+    Note Pad sample application to
+    open a note from the notes list. The sample uses the <code>_id</code> field from an SQL
+    database, but you can have any numeric or character identifier you want.
+</p>
+<h3>Copying data structures</h3>
+<p>
+    You set up a content provider for copying and pasting complex data as a subclass of the
+    <code>ContentProvider</code> component. You should also encode the URI you put on
+    the clipboard so that it points to the exact record you want to provide. In addition, you
+    have to consider the existing state of your application:
+</p>
+<ul>
+    <li>
+        If you already have a content provider, you can add to its functionality. You may only
+        need to modify its
+<code>query()</code>
+        method to handle URIs coming from applications that want to paste data. You will
+        probably want to modify the method to handle a "copy" URI pattern.
+    </li>
+    <li>
+        If your application maintains an internal database, you may
+        want to move this database into a content provider to facilitate copying from it.
+    </li>
+    <li>
+        If you are not currently using a database, you can implement a simple content provider
+        whose sole purpose is to offer data to applications that are pasting from the
+        clipboard.
+    </li>
+</ul>
+<p>
+In the content provider, you will want to override at least the following methods:
+</p>
+<p>
+            MIME types for complex data are described in the topic
+            Content Providers.
+        </p>
+<p>
+    Notice that you don't have to have any of the other content provider methods such as
+    <code>insert()</code> or
+    <code>update()</code>.
+    A pasting application only needs to get your supported MIME types and copy data from your
+    provider. If you already have these methods, they won't interfere with copy operations.
+</p>
+<p>
+    The following snippets demonsrate how to set up your application to copy complex data:
+</p>
+<ol>
+    <li>
+        <p>
+            In the global constants for your application,
+            declare a base URI string and a path that identifies URI strings you are
+            using to copy data. Also declare a MIME type for the copied data:
+        </p>
+<pre>
+// Declares the base URI string
+private static final String CONTACTS = "content://com.example.contacts";
+
+// Declares a path string for URIs that you use to copy data
+private static final String COPY_PATH = "/copy";
+
+// Declares a MIME type for the copied data
+public static final String MIME_TYPE_CONTACT = "vnd.android.cursor.item/vnd.example.contact"
+</pre>
+    </li>
+    <li>
+        In the Activity from which users copy data,
+        set up the code to copy data to the clipboard. In response to a copy request, put
+        the URI on the clipboard:
+<pre>
+public class MyCopyActivity extends Activity {
+
+    ...
+
+// The user has selected a name and is requesting a copy.
+case R.id.menu_copy:
+
+    // Appends the last name to the base URI
+    // The name is stored in "lastName"
+    uriString = CONTACTS + COPY_PATH + "/" + lastName;
+
+    // Parses the string into a URI
+    Uri copyUri = Uri.parse(uriString);
+
+    // Gets a handle to the clipboard service.
+    ClipboardManager clipboard = (ClipboardManager)
+        getSystemService(Context.CLIPBOARD_SERVICE);
+
+    ClipData clip = ClipData.newUri(getContentResolver(), "URI", copyUri);
+
+    // Set the clipboard's primary clip.
+    clipboard.setPrimaryClip(clip);
+</pre>
+    </li>
+
+    <li>
+    <p>
+        In the global scope of your content provider, create a URI matcher and add a URI
+        pattern that will match URIs you put on the clipboard:
+    </p>
+<pre>
+public class MyCopyProvider extends ContentProvider {
+
+    ...
+
+// A Uri Match object that simplifies matching content URIs to patterns.
+private static final UriMatcher sURIMatcher = new UriMatcher(UriMatcher.NO_MATCH);
+
+// An integer to use in switching based on the incoming URI pattern
+private static final int GET_SINGLE_CONTACT = 0;
+
+...
+
+// Adds a matcher for the content URI. It matches
+// "content://com.example.contacts/copy/*"
+sUriMatcher.addURI(CONTACTS, "names/*", GET_SINGLE_CONTACT);
+</pre>
+    </li>
+    <li>
+    <p>
+        Set up the
+     <code>query()</code>
+        method. This method can handle different URI patterns, depending on how you code it, but
+        only the pattern for the clipboard copying operation is shown:
+    </p>
+<pre>
+// Sets up your provider's query() method.
+public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs,
+    String sortOrder) {
+
+    ...
+
+    // Switch based on the incoming content URI
+    switch (sUriMatcher.match(uri)) {
+
+    case GET_SINGLE_CONTACT:
+
+        // query and return the contact for the requested name. Here you would decode
+        // the incoming URI, query the data model based on the last name, and return the result
+        // as a Cursor.
+
+    ...
+
+}
+</pre>
+    </li>
+    <li>
+        <p>
+            Set up the <code>getType()</code> method to
+            return an appropriate MIME type for copied data:
+        </p>
+<pre>
+// Sets up your provider's getType() method.
+public String getType(Uri uri) {
+
+    ...
+
+    switch (sUriMatcher.match(uri)) {
+
+    case GET_SINGLE_CONTACT:
+
+            return (MIME_TYPE_CONTACT);
+</pre>
+    </li>
+</ol>
+<p>
+            In the global constants for your application,
+            declare a base URI string and a path that identifies URI strings you are
+            using to copy data. Also declare a MIME type for the copied data:
+        </p>
+<p>WHATSON? 129cdbd3-d53d-4d78-8762-c71853f718b9</p>
+<pre>
+// Declares the base URI string
+private static final String CONTACTS = "content://com.example.contacts";
+
+// Declares a path string for URIs that you use to copy data
+private static final String COPY_PATH = "/copy";
+
+// Declares a MIME type for the copied data
+public static final String MIME_TYPE_CONTACT = "vnd.android.cursor.item/vnd.example.contact"
+</pre>
+<p>WHATSON? 554da533-f576-4aca-a9fd-a05c9d4448f8</p>
+<pre>
+public class MyCopyActivity extends Activity {
+
+    ...
+
+// The user has selected a name and is requesting a copy.
+case R.id.menu_copy:
+
+    // Appends the last name to the base URI
+    // The name is stored in "lastName"
+    uriString = CONTACTS + COPY_PATH + "/" + lastName;
+
+    // Parses the string into a URI
+    Uri copyUri = Uri.parse(uriString);
+
+    // Gets a handle to the clipboard service.
+    ClipboardManager clipboard = (ClipboardManager)
+        getSystemService(Context.CLIPBOARD_SERVICE);
+
+    ClipData clip = ClipData.newUri(getContentResolver(), "URI", copyUri);
+
+    // Set the clipboard's primary clip.
+    clipboard.setPrimaryClip(clip);
+</pre>
+<p>
+        In the global scope of your content provider, create a URI matcher and add a URI
+        pattern that will match URIs you put on the clipboard:
+    </p>
+<p>WHATSON? 5264828a-73ae-409b-b038-54e7e7e52795</p>
+<pre>
+public class MyCopyProvider extends ContentProvider {
+
+    ...
+
+// A Uri Match object that simplifies matching content URIs to patterns.
+private static final UriMatcher sURIMatcher = new UriMatcher(UriMatcher.NO_MATCH);
+
+// An integer to use in switching based on the incoming URI pattern
+private static final int GET_SINGLE_CONTACT = 0;
+
+...
+
+// Adds a matcher for the content URI. It matches
+// "content://com.example.contacts/copy/*"
+sUriMatcher.addURI(CONTACTS, "names/*", GET_SINGLE_CONTACT);
+</pre>
+<p>
+        Set up the
+     <code>query()</code>
+        method. This method can handle different URI patterns, depending on how you code it, but
+        only the pattern for the clipboard copying operation is shown:
+    </p>
+<p>WHATSON? 8157eeac-7171-4088-a4ec-3fcebef36b59</p>
+<pre>
+// Sets up your provider's query() method.
+public Cursor query(Uri uri, String[] projection, String selection, String[] selectionArgs,
+    String sortOrder) {
+
+    ...
+
+    // Switch based on the incoming content URI
+    switch (sUriMatcher.match(uri)) {
+
+    case GET_SINGLE_CONTACT:
+
+        // query and return the contact for the requested name. Here you would decode
+        // the incoming URI, query the data model based on the last name, and return the result
+        // as a Cursor.
+
+    ...
+
+}
+</pre>
+<p>
+            Set up the <code>getType()</code> method to
+            return an appropriate MIME type for copied data:
+        </p>
+<p>WHATSON? e498e14b-adcf-44e8-9884-649f2e201c55</p>
+<pre>
+// Sets up your provider's getType() method.
+public String getType(Uri uri) {
+
+    ...
+
+    switch (sUriMatcher.match(uri)) {
+
+    case GET_SINGLE_CONTACT:
+
+            return (MIME_TYPE_CONTACT);
+</pre>
+<p>
+    The section Pasting data from a content URI
+    describes how to get a content URI from the clipboard and use it to get and paste data.
+</p>
+<h3>Copying data streams</h3>
+<p>
+    You can copy and paste large amounts of text and binary data as streams. The data can have
+    forms such as the following:
+</p>
+<ul>
+        <li>
+            Files stored on the actual device.
+        </li>
+        <li>
+            Streams from sockets.
+        </li>
+        <li>
+            Large amounts of data stored in a provider's underlying database system.
+        </li>
+    </ul>
+<p>
+    A content provider for data streams provides access to its data with a file descriptor object
+    such as <code>AssetFileDescriptor</code> instead of a
+    <code>Cursor</code> object. The pasting application reads the data stream using
+    this file descriptor.
+</p>
+<p>
+    To set up your application to copy a data stream with a provider, follow these steps:
+</p>
+<ol>
+    <li>
+        Set up a content URI for the data stream you are putting on the clipboard. Options
+        for doing this include the following:
+        <ul>
+            <li>
+                Encode an identifier for the data stream onto the URI,
+                as described in the section
+                Encoding an identifier on the URI, and then maintain a
+                table in your provider that contains identifiers and the corresponding stream name.
+            </li>
+            <li>
+                Encode the stream name directly on the URI.
+            </li>
+            <li>
+                Use a unique URI that always returns the current stream from the provider. If you
+                use this option, you have to remember to update your provider to point to a
+                different stream whenever you copy the stream to the clipboard via the URI.
+            </li>
+        </ul>
+    </li>
+    <li>
+        Provide a MIME type for each type of data stream you plan to offer. Pasting applications
+        need this information to determine if they can paste the data on the clipboard.
+    </li>
+    <li>
+        Implement one of the <code>ContentProvider</code> methods that returns
+        a file descriptor for a stream. If you encode identifiers on the content URI, use this
+        method to determine which stream to open.
+    </li>
+    <li>
+        To copy the data stream to the clipboard, construct the content URI and place it
+        on the clipboard.
+    </li>
+</ol>
+<ul>
+            <li>
+                Encode an identifier for the data stream onto the URI,
+                as described in the section
+                Encoding an identifier on the URI, and then maintain a
+                table in your provider that contains identifiers and the corresponding stream name.
+            </li>
+            <li>
+                Encode the stream name directly on the URI.
+            </li>
+            <li>
+                Use a unique URI that always returns the current stream from the provider. If you
+                use this option, you have to remember to update your provider to point to a
+                different stream whenever you copy the stream to the clipboard via the URI.
+            </li>
+        </ul>
+<p>
+    To paste a data stream, an application gets the clip from the clipboard, gets the URI, and
+    uses it in a call to a <code>ContentResolver</code> file descriptor method that
+    opens the stream. The <code>ContentResolver</code> method calls the corresponding
+    <code>ContentProvider</code> method, passing it the content URI. Your provider
+    returns the file descriptor to <code>ContentResolver</code> method. The pasting
+    application then has the responsibility to read the data from the stream.
+</p>
+<p>
+    The following list shows the most important file descriptor methods for a content provider.
+    Each of these has a corresponding <code>ContentResolver</code> method with the
+    string "Descriptor" appended to the method name; for example, the
+    <code>ContentResolver</code> analog of
+    <code>openAssetFile()</code> is
+<code>openAssetFileDescriptor()</code>:
+</p>
+<p>
+            This method handles subsections of files. You can use it to read assets that the
+            content provider has copied to the clipboard.
+        </p>
+<p>
+    You can optionally use the
+<code>openPipeHelper()</code>
+    method with your file descriptor method. This allows the pasting application to read the
+    stream data in a background thread using a pipe. To use this method, you need to implement the
+    <code>ContentProvider.PipeDataWriter</code> interface. An example of doing this is
+    given in the Note Pad sample
+    application, in the <code>openTypedAssetFile()</code> method of
+    <code>NotePadProvider.java</code>.
+</p>
+<h2>Designing Effective Copy/Paste Functionality</h2>
+<p>
+    To design effective copy and paste functionality for your application, remember these
+    points:
+</p>
+<ul>
+        <li>
+            At any time, there is only one clip on the clipboard. A new copy operation by
+            any application in the system overwrites the previous clip. Since the user may
+            navigate away from your application and do a copy before returning, you can't assume
+            that the clipboard contains the clip that the user previously copied in <em>your</em>
+            application.
+        </li>
+        <li>
+            The intended purpose of multiple <code>ClipData.Item</code>
+            objects per clip is to support copying and pasting of multiple selections rather than
+            different forms of reference to a single selection. You usually want all of the
+           <code>ClipData.Item</code> objects in a clip to have the same form, that is,
+           they should all be simple text, content URI, or <code>Intent</code>, but not
+           a mixture.
+        </li>
+        <li>
+            When you provide data, you can offer different MIME representations. Add the MIME types
+            you support to the <code>ClipDescription</code>, and then
+            implement the MIME types in your content provider.
+        </li>
+        <li>
+            When you get data from the clipboard, your application is responsible for checking the
+            available MIME types and then deciding which one, if any, to use. Even if there is a
+            clip on the clipboard and the user requests a paste, your application is not required
+            to do the paste. You <em>should</em> do the paste if the MIME type is compatible. You
+            may choose to coerce the data on the clipboard to text using
+            <code>coerceToText()</code> if you
+            choose. If your application supports more than one of the available MIME types, you can
+            allow the user to choose which one to use.
+        </li>
+    </ul>
+</body>
+</html>

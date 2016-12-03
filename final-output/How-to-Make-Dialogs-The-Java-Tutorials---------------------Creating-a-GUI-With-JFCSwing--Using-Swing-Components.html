@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>How-to-Make-Dialogs-The-Java-Tutorials---------------------Creating-a-GUI-With-JFCSwing--Using-Swing-Components.html</title></head>
+<body>
+<h1>How to Make Dialogs</h1>
+<p>A Dialog window is an independent subwindow meant to carry temporary notice apart from the main Swing Application Window. Most Dialogs present an error message or warning to a user, but Dialogs can present images, directory trees, or just about anything compatible with the main Swing Application that manages them.</p>
+<p>For convenience, several Swing component classes can directly instantiate and display <em>dialogs</em>. To create simple, standard dialogs, you use the 
+<code>JOptionPane</code> class. The <code>ProgressMonitor</code> class can put up a dialog that shows the progress of an operation. Two other classes, <code>JColorChooser</code> and <code>JFileChooser</code>, also supply standard dialogs. To bring up a print dialog, you can use the 
+Printing API. To create a custom dialog, use the 
+<code>JDialog</code> class directly.</p>
+<p>The code for simple dialogs can be minimal. For example, here is an informational dialog:</p>
+<p>Here is the code that creates and shows it:</p>
+<p>WHATSON? fae9f90e-299d-4570-9c9b-d999af203c7a</p>
+<pre>
+JOptionPane.showMessageDialog(frame, "Eggs are not supposed to be green.");
+</pre>
+<p>The rest of this section covers the following topics:</p>
+<ul>
+<li>An Overview of Dialogs</li>
+<li>The DialogDemo Example</li>
+<li>JOptionPane Features</li>
+<li>Creating and Showing Simple Dialogs</li>
+<li>Customizing Button Text</li>
+<li>Getting the User's Input from a Dialog</li>
+<li>Stopping Automatic Dialog Closing</li>
+<li>The Dialog API</li>
+<li>Examples that Use Dialogs</li>
+</ul>
+<h2>An Overview of Dialogs</h2>
+<p>Every dialog is dependent on a Frame component. When that Frame is destroyed, so are its dependent Dialogs. When the frame is iconified, its dependent Dialogs also disappear from the screen. When the frame is deiconified, its dependent Dialogs return to the screen. A swing JDialog class inherits this behavior from the AWT <code>Dialog</code> class.</p>
+<p>A Dialog can be <em>modal</em>. When a modal Dialog is visible, it blocks user input to all other windows in the program. JOptionPane creates <code>JDialog</code>s that are modal. To create a non-modal Dialog, you must use the <code>JDialog</code> class directly.</p>
+<p>Starting with JDK 7, you can modify dialog window modality behavior using the new Modality API. See The New Modality API for details.</p>
+<p>The <code>JDialog</code> class is a subclass of the AWT 
+<code>java.awt.Dialog</code> class. It adds a root pane container and support for a default close operation to the <code>Dialog</code> object . These are the same features that <code>JFrame</code> has, and using <code>JDialog</code> directly is very similar to using <code>JFrame</code>. If you're going to use <code>JDialog</code> directly, then you should understand the material in Using Top-Level Containers and How to Make Frames, especially Responding to Window-Closing Events.</p>
+<p>Even when you use <code>JOptionPane</code> to implement a dialog, you're still using a <code>JDialog</code> behind the scenes. The reason is that <code>JOptionPane</code> is simply a container that can automatically create a <code>JDialog</code> and add itself to the <code>JDialog</code>'s content pane.</p>
+<h2>The DialogDemo Example</h2>
+<p>Here is a picture of an application that displays dialogs.</p>
+<ol>
+<li>Click the Launch button to run the Dialog Demo using 
+Java™ Web Start (download JDK 7 or later). Alternatively, to compile and run the example yourself, consult the example index.<img src="../../images/jws-launch-button.png" width="88" height="23" align="bottom" alt="Launches the DialogDemo example"><br>
+<p><!--  ******* end boilerplate stuff  *******  -->
+ <!--
+
+<div class="note"><hr /><strong>Try this:</strong>&nbsp;<ol>
+<li> Run DialogDemo (
+download JDK 7 or later).    Or, to compile and run the example yourself,
+     consult the
+     example index.
+--></p>
+</li>
+<li>Click the Show it! button.<br>
+A modal dialog will appear. Until you close it, the application will be unresponsive, although it will repaint itself if necessary. You can close the dialog either by clicking a button in the dialog or explicitly, such as by using the dialog window decorations.</li>
+<li>In the More Dialogs pane, click the bottom radio button and then the Show it! button.<br>
+A non-modal dialog will appear. Note that the DialogDemo window remains fully functional while the non-modal dialog is up.</li>
+<li>While the non-modal dialog is showing, iconify the DialogDemo window.<br>
+The dialog will disappear from the screen until you deiconify the DialogDemo window.</li>
+</ol>
+<p><!--  ******* end boilerplate stuff  *******  -->
+ <!--
+
+<div class="note"><hr /><strong>Try this:</strong>&nbsp;<ol>
+<li> Run DialogDemo (
+download JDK 7 or later).    Or, to compile and run the example yourself,
+     consult the
+     example index.
+--></p>
+<h2>JOptionPane Features</h2>
+<p>Using <code>JOptionPane</code>, you can quickly create and customize several different kinds of dialogs. <code>JOptionPane</code> provides support for laying out standard dialogs, providing icons, specifying the dialog title and text, and customizing the button text. Other features allow you to customize the components the dialog displays and specify where the dialog should appear onscreen. You can even specify that an option pane put itself into an internal frame (<code>JInternalFrame</code>) instead of a <code>JDialog</code>.</p>
+<p>When you create a <code>JOptionPane</code>, look-and-feel-specific code adds components to the <code>JOptionPane</code> and determines the layout of those components.</p>
+<p><code>JOptionPane</code>'s icon support lets you easily specify which icon the dialog displays. You can use a custom icon, no icon at all, or any one of four standard <code>JOptionPane</code> icons (question, information, warning, and error). Each look and feel has its own versions of the four standard icons. The following figure shows the icons used in the Java (and Windows) look and feel.</p>
+<h2>Creating and Showing Simple Dialogs</h2>
+<p>For most simple modal dialogs, you create and show the dialog using one of <code>JOptionPane</code>'s <code>show<em>Xxx</em>Dialog</code> methods. If your dialog should be an internal frame, then add <code>Internal</code> after <code>show</code>  for example, <code>showMessageDialog</code> changes to <code>showInternalMessageDialog</code>. If you need to control the dialog window-closing behavior or if you do not want the dialog to be modal, then you should directly instantiate <code>JOptionPane</code> and add it to a <code>JDialog</code> instance. Then invoke <code>setVisible(true)</code> on the <code>JDialog</code> to make it appear.</p>
+<p>The two most useful <code>show<em>Xxx</em>Dialog</code> methods are <code>showMessageDialog</code> and <code>showOptionDialog</code>. The <code>showMessageDialog</code> method displays a simple, one-button dialog. The <code>showOptionDialog</code> method displays a customized dialog  it can display a variety of buttons with customized button text, and can contain a standard text message or a collection of components.</p>
+<p>The other two <code>show<em>Xxx</em>Dialog</code> methods are used less often. The <code>showConfirmDialog</code> method asks the user to confirm something, but presents standard button text (Yes/No or the localized equivalent, for example) rather than button text customized to the user situation (Start/Cancel, for example). A fourth method, <code>showInputDialog</code>, is designed to display a modal dialog that gets a string from the user, using either a text field, an uneditable combo box or a list.</p>
+<p>Here are some examples, taken from 
+<code>DialogDemo.java</code>, of using <code>showMessageDialog</code>, <code>showOptionDialog</code>, and the <code>JOptionPane</code> constructor. For more example code, see 
+<code>DialogDemo.java</code> and the other programs listed in Examples that Use Dialogs.</p>
+<p>WHATSON? 400099de-9d59-4ac6-9e90-7241edd965c5</p>
+<pre>
+//default title and icon
+JOptionPane.showMessageDialog(frame,
+    "Eggs are not supposed to be green.");
+</pre>
+<p>WHATSON? 0d466ad5-ad5b-47f7-9df4-2ffeaf46e870</p>
+<pre>
+//custom title, warning icon
+JOptionPane.showMessageDialog(frame,
+    "Eggs are not supposed to be green.",
+    "Inane warning",
+    JOptionPane.WARNING_MESSAGE);
+</pre>
+<p>WHATSON? 881245c5-c1f0-4ddf-863d-b9fa1cc6a82f</p>
+<pre>
+//custom title, error icon
+JOptionPane.showMessageDialog(frame,
+    "Eggs are not supposed to be green.",
+    "Inane error",
+    JOptionPane.ERROR_MESSAGE);
+</pre>
+<p>WHATSON? 47faefc8-85c9-4618-b9f4-e5044e5551a5</p>
+<pre>
+//custom title, no icon
+JOptionPane.showMessageDialog(frame,
+    "Eggs are not supposed to be green.",
+    "A plain message",
+    JOptionPane.PLAIN_MESSAGE);
+</pre>
+<p>WHATSON? e5fa9acb-3d0d-4825-b96a-e5d5edb24a1e</p>
+<pre>
+//custom title, custom icon
+JOptionPane.showMessageDialog(frame,
+    "Eggs are not supposed to be green.",
+    "Inane custom dialog",
+    JOptionPane.INFORMATION_MESSAGE,
+    icon);
+</pre>
+<p>WHATSON? 7e8714c5-cbad-41d9-8caa-ab9d646e8f98</p>
+<pre>
+//Custom button text
+Object[] options = {"Yes, please",
+                    "No, thanks",
+                    "No eggs, no ham!"};
+int n = JOptionPane.showOptionDialog(frame,
+    "Would you like some green eggs to go "
+    + "with that ham?",
+    "A Silly Question",
+    JOptionPane.YES_NO_CANCEL_OPTION,
+    JOptionPane.QUESTION_MESSAGE,
+    null,
+    options,
+    options[2]);
+</pre>
+<p>WHATSON? 2f1cc80a-6f61-46e2-89a2-7156ee2c83f9</p>
+<pre>
+final JOptionPane optionPane = new JOptionPane(
+    "The only way to close this dialog is by\n"
+    + "pressing one of the following buttons.\n"
+    + "Do you understand?",
+    JOptionPane.QUESTION_MESSAGE,
+    JOptionPane.YES_NO_OPTION);
+</pre>
+<p>The arguments to all of the <code>show<em>Xxx</em>Dialog</code> methods and <code>JOptionPane</code> constructors are standardized, though the number of arguments for each method and constructor varies. The following list describes each argument. To see the exact list of arguments for a particular method, see The Dialog API.</p>
+<p>The <code>JOptionPane</code> constructors do not include this argument. Instead, you specify the parent frame when you create the <code>JDialog</code> that contains the <code>JOptionPane</code>, and you use the <code>JDialog</code> <code>setLocationRelativeTo</code> method to set the dialog position.</p>
+<p>WHATSON? 0c2fe02c-9cdc-4a33-9277-66db7ecc0882</p>
+<pre>
+"Complete the sentence:\n \"Green eggs and...\""
+</pre>
+<p>You can either let the option pane display its default icon or specify the icon using the message type or icon argument. By default, an option pane created with <code>showMessageDialog</code> displays the information icon, one created with <code>showConfirmDialog</code> or <code>showInputDialog</code> displays the question icon, and one created with a <code>JOptionPane</code> constructor displays no icon. To specify that the dialog display a standard icon or no icon, specify the message type corresponding to the icon you desire. To specify a custom icon, use the icon argument. The icon argument takes precedence over the message type; as long as the icon argument has a non-null value, the dialog displays the specified icon.</p>
+<h2>Customizing Button Text</h2>
+<p>When you use <code>JOptionPane</code> to create a dialog, you can either use the standard button text (which might vary by look and feel and locale) or specify different text. By default, the option pane type determines how many buttons appear. For example, <code>YES_NO_OPTION</code> dialogs have two buttons, and <code>YES_NO_CANCEL_OPTION</code> dialogs have three buttons.</p>
+<p>The following code, taken from 
+<code>DialogDemo.java</code>, creates two Yes/No dialogs. The first dialog is implemented with <code>showConfirmDialog</code>, which uses the look-and-feel wording for the two buttons. The second dialog uses <code>showOptionDialog</code> so it can customize the wording. With the exception of wording changes, the dialogs are identical.</p>
+<p>WHATSON? 9502ec12-c2df-4738-bb0a-a4b057cd084f</p>
+<pre>
+//default icon, custom title
+int n = JOptionPane.showConfirmDialog(
+    frame,
+    "Would you like green eggs and ham?",
+    "An Inane Question",
+    JOptionPane.YES_NO_OPTION);
+</pre>
+<p>WHATSON? b9fca4d7-628d-4db9-a30e-38ffee8d65cc</p>
+<pre>
+Object[] options = {"Yes, please",
+                    "No way!"};
+int n = JOptionPane.showOptionDialog(frame,
+    "Would you like green eggs and ham?",
+    "A Silly Question",
+    JOptionPane.YES_NO_OPTION,
+    JOptionPane.QUESTION_MESSAGE,
+    null,     //do not use a custom Icon
+    options,  //the titles of buttons
+    options[0]); //default button title
+</pre>
+<p>As the previous code snippets showed, the <code>showMessageDialog</code>, <code>showConfirmDialog</code>, and <code>showOptionDialog</code> methods return an integer indicating the user's choice. The values for this integer are <code>YES_OPTION</code>, <code>NO_OPTION</code>, <code>CANCEL_OPTION</code>, <code>OK_OPTION</code>, and <code>CLOSED_OPTION</code>. Except for <code>CLOSED_OPTION</code>, each option corresponds to the button the user pressed. When <code>CLOSED_OPTION</code> is returned, it indicates that the user closed the dialog window explicitly, rather than by choosing a button inside the option pane.</p>
+<p>Even if you change the strings that the standard dialog buttons display, the return value is still one of the pre-defined integers. For example, a <code>YES_NO_OPTION</code> dialog always returns one of the following values: <code>YES_OPTION</code>, <code>NO_OPTION</code>, or <code>CLOSED_OPTION</code>.</p>
+<h2>Getting the User's Input from a Dialog</h2>
+<p>The only form of <code>show<em>Xxx</em>Dialog</code> that does not return an integer is <code>showInputDialog</code>, which returns an <code>Object</code> instead. This <code>Object</code> is generally a <code>String</code> reflecting the user's choice. Here is an example of using <code>showInputDialog</code> to create a dialog that lets the user choose one of three strings:</p>
+<p>WHATSON? c99a70e5-fbf1-41dd-9d13-845d2f9101d9</p>
+<pre>
+Object[] possibilities = {"ham", "spam", "yam"};
+String s = (String)JOptionPane.showInputDialog(
+                    frame,
+                    "Complete the sentence:\n"
+                    + "\"Green eggs and...\"",
+                    "Customized Dialog",
+                    JOptionPane.PLAIN_MESSAGE,
+                    icon,
+                    possibilities,
+                    "ham");
+
+//If a string was returned, say so.
+if ((s != null) &amp;&amp; (s.length() &gt; 0)) {
+    setLabel("Green eggs and... " + s + "!");
+    return;
+}
+
+//If you're here, the return value was null/empty.
+setLabel("Come on, finish the sentence!");
+</pre>
+<p>If you do not care to limit the user's choices, you can either use a form of the <code>showInputDialog</code> method that takes fewer arguments or specify <code>null</code> for the array of objects. In the Java look and feel, substituting <code>null</code> for <code>possibilities</code> results in a dialog that has a text field and looks like this:</p>
+<p>Because the user can type anything into the text field, you might want to check the returned value and ask the user to try again if it is invalid. Another approach is to create a custom dialog that validates the user-entered data before it returns. See 
+<code>CustomDialog.java</code> for an example of validating data.</p>
+<p>If you're designing a custom dialog, you need to design your dialog's API so that you can query the dialog about what the user chose. For example, <code>CustomDialog</code> has a <code>getValidatedText</code> method that returns the text the user entered.</p>
+<h2>Stopping Automatic Dialog Closing</h2>
+<p>By default, when the user clicks a <code>JOptionPane</code>-created button, the dialog closes. But what if you want to check the user's answer before closing the dialog? In this case, you must implement your own property change listener so that when the user clicks a button, the dialog does not automatically close.</p>
+<p><code>DialogDemo</code> contains two dialogs that implement a property change listener. One of these dialogs is a custom modal dialog, implemented in 
+<code>CustomDialog</code>, that uses <code>JOptionPane</code> both to get the standard icon and to get layout assistance. The other dialog, whose code is below, uses a standard Yes/No <code>JOptionPane</code>. Though this dialog is rather useless as written, its code is simple enough that you can use it as a template for more complex dialogs.</p>
+<p>Besides setting the property change listener, the following code also calls the <code>JDialog</code>'s <code>setDefaultCloseOperation</code> method and implements a window listener that handles the window close attempt properly. If you do not care to be notified when the user closes the window explicitly, then ignore the bold code.</p>
+<p>WHATSON? 9ab22c3d-a492-4c30-a0b1-3f44feaa3f26</p>
+<pre>
+final JOptionPane optionPane = new JOptionPane(
+                "The only way to close this dialog is by\n"
+                + "pressing one of the following buttons.\n"
+                + "Do you understand?",
+                JOptionPane.QUESTION_MESSAGE,
+                JOptionPane.YES_NO_OPTION);
+
+final JDialog dialog = new JDialog(frame, 
+                             "Click a button",
+                             true);
+dialog.setContentPane(optionPane);
+<b>dialog.setDefaultCloseOperation(
+    JDialog.DO_NOTHING_ON_CLOSE);
+dialog.addWindowListener(new WindowAdapter() {
+    public void windowClosing(WindowEvent we) {
+        setLabel("Thwarted user attempt to close window.");
+    }
+});</b>
+optionPane.addPropertyChangeListener(
+    new PropertyChangeListener() {
+        public void propertyChange(PropertyChangeEvent e) {
+            String prop = e.getPropertyName();
+
+            if (dialog.isVisible() 
+             &amp;&amp; (e.getSource() == optionPane)
+             &amp;&amp; (prop.equals(JOptionPane.VALUE_PROPERTY))) {
+                //If you were going to check something
+                //before closing the window, you'd do
+                //it here.
+                dialog.setVisible(false);
+            }
+        }
+    });
+dialog.pack();
+dialog.setVisible(true);
+
+int value = ((Integer)optionPane.getValue()).intValue();
+if (value == JOptionPane.YES_OPTION) {
+    setLabel("Good.");
+} else if (value == JOptionPane.NO_OPTION) {
+    setLabel("Try using the window decorations "
+             + "to close the non-auto-closing dialog. "
+             + "You can't!");
+}
+</pre>
+<h2>The Dialog API</h2>
+<p>The following tables list the commonly used <code>JOptionPane</code> and <code>JDialog</code> constructors and methods. Other methods you're likely to call are defined by the 
+<code>Dialog</code>, 
+<code>Window</code> and 
+<code>Component</code> classes and include <code>pack</code>, <code>setSize</code>, and <code>setVisible</code>.</p>
+<p>The API is listed as follows:</p>
+<ul>
+<li>Showing Standard Modal Dialogs (using <code>JOptionPane</code> Class Methods)</li>
+<li>Methods for Using <code>JOptionPane</code>s Directly</li>
+<li>Frequently Used <code>JDialog</code> Constructors and Methods</li>
+</ul>
+<p>WHATSON? d3938a9a-ea02-4c31-93be-e8507486dbef</p>
+<pre>
+JOptionPane op = new JOptionPane("This is the text.") {
+    public int getMaxCharactersPerLineCount() {
+        return 5;
+    }
+};
+</pre>
+<p>
+</p>
+<p>
+</p>
+<h2>Examples that Use Dialogs</h2>
+<p>This table lists examples that use <code>JOptionPane</code> or <code>JDialog</code>. To find other examples that use dialogs, see the example lists for progress bars, color choosers, and file choosers.</p>
+</body>
+</html>

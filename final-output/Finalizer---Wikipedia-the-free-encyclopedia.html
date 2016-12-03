@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Finalizer---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Finalizer</h1>
+<p>In object-oriented programming, a <b>finalizer</b> or <b>finalize method</b> is a special method that performs finalization, generally some form of cleanup. A finalizer is executed during object destruction, prior to the object being deallocated, and is complementary to an initializer, which is executed during object creation, following allocation. Finalizers are strongly discouraged by many, due to difficulty in proper use and the complexity they add, and alternatives are suggested instead, primarily the dispose pattern – see problems with finalizers.</p>
+<p>The term "finalizer" is primarily used in object-oriented languages that use garbage collection, of which the archetype is Java. This is contrasted with a "destructor", which is a method called for finalization in languages with deterministic object lifetimes, archetypically C++. These are generally exclusive – a language will have either finalizers (if garbage collected) or destructors (if deterministic), but in rare cases a language may have both, as in C++/CLI, and in case of reference counting (instead of tracing garbage collection), terminology varies. In technical usage, "finalizer" may also be used to refer to destructors, as these also perform finalization, and some subtler distinctions are drawn – see terminology. For this article, "finalizer" refers only to a method used for finalization in a garbage-collected language; for discussion of finalization generally, see finalization.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Use</li>
+<li>2 Resource management</li>
+<li>3 Problems</li>
+<li>4 Syntax</li>
+<li>5 Implementation</li>
+<li>6 Terminology</li>
+<li>7 See also</li>
+<li>8 References</li>
+<li>9 External links</li>
+</ul>
+<p></p>
+<h2>Use</h2>
+<p>Finalizers are generally used to perform some form of cleanup, similar to destructors, but differ in that destructors are executed deterministically, while finalizers are executed at the discretion of the garbage collector, which is usually not deterministic. However, a finalizer can include arbitrary code; a particularly complex use is to automatic return the object to an object pool.</p>
+<p>Finalizers are generally both much less necessary and much less used than destructors. They are much less necessary because garbage collection automates memory management, and much less used because they are not generally executed deterministically – they may not be called in a timely manner, or even at all, and the execution environment cannot be predicted – and thus any cleanup that must be done in a deterministic way must instead be done by some other method, most frequently manually via the dispose pattern. Notably, both Java and Python do not guarantee that finalizers will ever be called, and thus they cannot be relied on for cleanup.</p>
+<p>Due to the lack of programmer control over their execution, it is usually recommended to avoid finalizers for any but the most trivial operations. In particular, operations often performed in destructors are not usually appropriate for finalizers. A common anti-pattern is to write finalizers as if they were destructors, which is both unnecessary and ineffectual, due to differences between finalizers and destructors. This is particularly common among C++ programmers, as destructors are heavily used in idiomatic C++, following the Resource Acquisition Is Initialization (RAII) idiom.</p>
+<h2>Resource management</h2>
+<p>A common anti-pattern is to use finalizers to release resources, by analogy with the Resource Acquisition Is Initialization (RAII) idiom of C++: acquire a resource in the initializer (constructor), and release it in the finalizer (destructor). This does not work, for a number of reasons. Most basically, finalizers may never be called, and even if called, may not be called in a timely manner – thus using finalizers to release resources will generally cause resource leaks. Further, finalizers are not called in a prescribed order, while resources often need to be released in a specific order, frequently the opposite order in which they were acquired. Also, as finalizers are called at the discretion of the garbage collector, they will often only be called under managed memory pressure (when there is little managed memory available), regardless of resource pressure – if scarce resources are held by garbage but there is plenty of managed memory available, garbage collection may not occur, thus not reclaiming these resources.</p>
+<p>Thus instead of using finalizers for automatic resource management, in garbage-collected languages one instead must manually manage resources, generally by using the dispose pattern. In this case resources may still be acquired in the initializer, which is called explicitly on object instantiation, but are released in the dispose method. The dispose method may be called explicitly, or implicitly by language constructs such as C#'s <code>using</code>, Java's <code>try</code>-with-resources, or Python's <code>with</code>.</p>
+<p>However, in certain cases both the dispose pattern and finalizers are used for releasing resources. This is primarily found in CLR languages such as C#, where finalization is used as a backup for disposal: when a resource is acquired, the acquiring object is queued for finalization so that the resource is released on object destruction, even if the resource is not released by manual disposal.</p>
+<h2>Problems</h2>
+<p>Finalizers can cause a significant number of problems, and are thus strongly discouraged by a number of authorities. These problems include:</p>
+<ul>
+<li>Finalizers may not be called in a timely manner, hence causing long-lasting resource leaks.</li>
+<li>Finalizers may never be called, hence they cannot be relied upon to persist state.</li>
+<li>Finalizers may result in object resurrection, which is often a programming error and whose very possibility significantly slows down and complicates garbage collection.</li>
+<li>Finalizers are run based on garbage collection, which is generally based on managed memory pressure – they are not run in case of other resource scarcity, and thus are not suited for managing other scarce resources.</li>
+<li>Finalizers do not run in a specified order, and cannot rely on class invariants (as they may refer to other objects that have already been finalized).</li>
+<li>Slow finalizers may delay other finalizers.</li>
+<li>Exceptions within finalizers generally cannot be handled, because the finalizer is run in an unspecified environment, and may be either ignored or cause uncontrolled program termination.</li>
+<li>Finalizers may reference and accidentally finalize live objects, violating program invariants.</li>
+<li>Finalizers may cause synchronization issue, even in otherwise sequential (single-threaded) programs, as finalization may be done concurrently (concretely, in one or more separate threads).</li>
+<li>Finalizers may cause deadlock if synchronization mechanisms such as locks are used, due to not being run in a specified order and possibly being run concurrently.</li>
+<li>Finalizers that are run during program termination cannot rely on the usual runtime environment, and thus may fail due to incorrect assumptions – for this reason finalizers are often not run during termination.</li>
+</ul>
+<p>Further, finalizers may fail to run due to object remaining reachable beyond when they are expected to be garbage, either due to programming errors or due to unexpected reachability. For example, when Python catches an exception (or an exception is not caught in interactive mode), it keeps a reference to the stack frame where the exception was raised, which keeps objects referenced from that stack frame alive.</p>
+<p>Finalizers in a superclass can also slow down garbage collection in a subclass, as the finalizer can potentially refer to fields in the subclass, and thus the field cannot be garbage collected until the following cycle, once the finalizer has run. This can be avoided by using composition over inheritance.</p>
+<h2>Syntax</h2>
+<p>Programming languages that use finalizers include C++/CLI, C#, Java, and Python. Syntax varies significantly by language.</p>
+<p>In Java a finalizer is a method called <code>finalize</code>, which overrides the <code>Object.finalize</code> method.</p>
+<p>In Python, a finalizer is a method called <code>__del__</code>.</p>
+<p>In C#, a finalizer (called "destructor" in earlier versions of the standard) is a method whose name is the class name with <code>~</code> prefixed, as in <code>~Foo</code> – this is the same syntax as C++, and these methods were originally called "destructors", by analogy with C++, despite having different behavior, but were renamed to "finalizers" due to the confusion this caused.</p>
+<p>In C++/CLI, which has both destructors and finalizers, a destructor is a method whose name is the class name with <code>~</code> prefixed, as in <code>~Foo</code> (as in C++), and a finalizer is a method whose name is the class name with <code>!</code> prefixed, as in <code>!Foo</code>.</p>
+<h2>Implementation</h2>
+<p>A finalizer is called when an object is garbage collected – after an object has become garbage (unreachable), but before its memory is deallocated. Finalization occurs non-deterministically, at the discretion of the garbage collector, and might never occur. This contrasts with destructors, which are called deterministically as soon as an object is no longer in use, and are always called, except in case of uncontrolled program termination. Finalizers are most frequently instance methods, due to needing to do object-specific operations.</p>
+<p>The garbage collector must also account for the possibility of object resurrection. Most commonly this is done by first executing finalizers, then checking whether any objects have been resurrected, and if so, aborting their destruction. This additional check is potentially expensive – a simple implementation re-checks all garbage if even a single object has a finalizer – and thus both slows down and complicates garbage collection. For this reason, objects with finalizers may be collected less frequently than objects without finalizers (only on certain cycles), exacerbating problems caused by relying on prompt finalization, such as resource leaks.</p>
+<p>If an object is resurrected, there is the further question of whether its finalizer is called again, when it is next destroyed – unlike destructors, finalizers are potentially called multiple times. If finalizers are called for resurrected objects, objects may repeatedly resurrect themselves and be indestructible; this occurs in the CPython implementation of Python prior to Python 3.4, and in CLR languages such as C#. To avoid this, in many languages, including Java, Objective-C (at least in recent Apple implementations), and Python from Python 3.4, objects are finalized at most once, which requires tracking if the object has been finalized yet.</p>
+<p>In other cases, notably CLR languages like C#, finalization is tracked separately from the objects themselves, and objects can be repeatedly registered or deregistered for finalization.</p>
+<h2>Terminology</h2>
+<p>The terminology of "finalizer" and "finalization" versus "destructor" and "destruction" varies between authors and is sometimes unclear.</p>
+<p>In common usage, a <i>destructor</i> is a method called deterministically on object destruction, and the archetype is C++ destructors; while a finalizer is called non-deterministically by the garbage collector, and the archetype is Java <code>finalize</code> methods.</p>
+<p>For languages that implement garbage collection via reference counting, terminology varies, with some languages such as Objective-C and Perl using "destructor", and other languages such as Python using "finalizer" (per spec, Python is garbage collected, but the reference CPython implementation uses reference counting). This reflects the fact that reference counting results in semi-deterministic object lifetime: for objects that are not part of a cycle, objects are destroyed deterministically when the reference count drops to zero, but objects that are part of a cycle are destroyed non-deterministically, as part of a separate form of garbage collection.</p>
+<p>In certain narrow technical usage, "constructor" and "destructor" are language-level terms, meaning "methods defined in a class", while "initializer" and "finalizer" are implementation-level terms, meaning "methods called during object creation or destruction". Thus for example the original specification for the C# language referred to "destructors", even though C# is garbage-collected, but the specification for the Common Language Infrastructure (CLI), and the implementation of its runtime environment as the Common Language Runtime (CLR), referred to "finalizers". This is reflected in the C# language committee's notes, which read in part: "The C# compiler compiles destructors to ... [probably] instance finalizer[s]". This terminology is confusing, and thus more recent versions of the C# spec refer to the language-level method as "finalizers".</p>
+<h2>See also</h2>
+<ul>
+<li>Garbage collection, specifically the section on Determinism</li>
+<li>Object lifetime</li>
+<li>Initialization Process &amp; related Initializer Pattern</li>
+</ul>
+</body>
+</html>

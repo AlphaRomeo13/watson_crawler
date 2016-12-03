@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Defining-and-Using-Applet-Parameters-The-Java-Tutorials---------------------Deployment--Java-Applets.html</title></head>
+<body>
+<h1>Defining and Using Applet Parameters</h1>
+<p>Parameters are to Java applets what command-line arguments are to applications. They enable the user to customize the applet's operation. By defining parameters, you can increase your applet's flexibility, making your applet work in multiple situations without recoding and recompiling it.</p>
+<h2>Specifying an Applet's Input Parameters</h2>
+<p>You can specify an applet's input parameters in the applet's Java Network Launch Protocol (JNLP) file or in the <code>&lt;parameter&gt;</code> element of the <code>&lt;applet&gt;</code> tag. It is usually better to specify the parameters in the applet's JNLP file so that the parameters can be supplied consistently even if the applet is deployed on multiple web pages. If the applet's parameters will vary by web page, then you should specify the parameters in the <code>&lt;parameter&gt;</code> element of the <code>&lt;applet&gt;</code> tag.</p>
+<p>If you are unfamiliar with JNLP, see the 
+Java Network Launch Protocol topic for more information.</p>
+<p>Consider an applet that takes three parameters. The <code>paramStr</code> and <code>paramInt</code> parameters are specified in the applet's JNLP file, 
+<code><code>applettakesparams.jnlp</code></code>.</p>
+<p>WHATSON? a495bd1d-cfb8-489d-bf45-4cc45a5409f3</p>
+<pre>
+&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;jnlp spec="1.0+" codebase="" href=""&gt;
+    &lt;!-- ... --&gt;
+    &lt;applet-desc
+         name="Applet Takes Params"
+         main-class="AppletTakesParams"
+         width="800"
+         height="50"&gt;
+             &lt;param name="paramStr"
+                 value="someString"/&gt;
+             &lt;param name="paramInt" value="22"/&gt;
+     &lt;/applet-desc&gt;
+     &lt;!-- ... --&gt;
+&lt;/jnlp&gt;
+</pre>
+<p>The <code>paramOutsideJNLPFile</code> parameter is specified in the <code>parameters</code> variable passed to the Deployment Toolkit script's <code>runApplet</code> function in 
+<code><code>AppletPage.html</code></code>.</p>
+<p>WHATSON? 87b09c06-0770-4894-9cc5-a138dbd680a8</p>
+<pre>
+&lt;html&gt;
+  &lt;head&gt;
+    &lt;title&gt;Applet Takes Params&lt;/title&gt;
+    &lt;meta http-equiv="Content-Type" content="text/html;
+        charset=windows-1252"&gt;
+  &lt;/head&gt;
+  &lt;body&gt;
+    &lt;h1&gt;Applet Takes Params&lt;/h1&gt;
+
+    &lt;script
+      src="https://www.java.com/js/deployJava.js"&gt;&lt;/script&gt;
+    &lt;script&gt;
+        var attributes = { code:'AppletTakesParams.class',
+            archive:'applet_AppletWithParameters.jar',
+            width:800, height:50 };
+        var parameters = {jnlp_href: 'applettakesparams.jnlp',
+            <b>paramOutsideJNLPFile: 'fooOutsideJNLP'</b> };
+        deployJava.runApplet(attributes, parameters, '1.7');
+    &lt;/script&gt;
+
+  &lt;/body&gt;
+&lt;/html&gt;
+</pre>
+<p>See 
+Deploying an Applet for more information about the <code>runApplet</code> function.</p>
+<h2>Retrieving the Applet's Input Parameters</h2>
+<p>You can retrieve the applet's input parameters by using the 
+<code>getParameter</code> method of the <code>Applet</code> class. The 
+<code><code>AppletTakesParams.java</code></code> applet retrieves and displays all its input parameters (<code>paramStr</code>, <code>paramInt</code>, and <code>paramOutsideJNLPFile</code>).</p>
+<p>WHATSON? 386b96cb-3a60-45ba-b270-b92e6948ab96</p>
+<pre>
+
+import javax.swing.JApplet;
+import javax.swing.SwingUtilities;
+import javax.swing.JLabel;
+
+public class AppletTakesParams extends JApplet {
+    public void init() {
+        final String  inputStr = getParameter("paramStr");        
+        final int inputInt = Integer.parseInt(getParameter("paramInt"));
+        final String inputOutsideJNLPFile = getParameter("paramOutsideJNLPFile");
+
+        try {
+            SwingUtilities.invokeAndWait(new Runnable() {
+                public void run() {
+                    createGUI(inputStr, inputInt, inputOutsideJNLPFile);
+                }
+            });
+        } catch (Exception e) {
+            System.err.println("createGUI didn't successfully complete");
+        }
+    }
+    private void createGUI(String inputStr, int inputInt, String inputOutsideJNLPFile) {
+        String text = "Applet's parameters are -- inputStr: " + inputStr +
+                ",   inputInt: " + inputInt +
+                ",   paramOutsideJNLPFile: " + inputOutsideJNLPFile;
+        JLabel lbl = new JLabel(text);
+        add(lbl);
+    }
+}
+</pre>
+<p>The <code>AppletTakesParams</code> applet is shown next.</p>
+<p>
+ for the <em>Applet With Parameters</em> example to experiment further.</p>
+</body>
+</html>

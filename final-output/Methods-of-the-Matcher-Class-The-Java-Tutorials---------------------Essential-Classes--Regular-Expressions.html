@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Methods-of-the-Matcher-Class-The-Java-Tutorials---------------------Essential-Classes--Regular-Expressions.html</title></head>
+<body>
+<h1>Methods of the Matcher Class</h1>
+<p>This section describes some additional useful methods of the <code>Matcher</code> class. For convenience, the methods listed below are grouped according to functionality.</p>
+<h2>Index Methods</h2>
+<p><i>Index methods</i> provide useful index values that show precisely where the match was found in the input string:</p>
+<ul>
+<li>
+<code>public int start()</code>: Returns the start index of the previous match.</li>
+<li>
+<code>public int start(int group)</code>: Returns the start index of the subsequence captured by the given group during the previous match operation.</li>
+<li>
+<code>public int end()</code>: Returns the offset after the last character matched.</li>
+<li>
+<code>public int end(int group)</code>: Returns the offset after the last character of the subsequence captured by the given group during the previous match operation.</li>
+</ul>
+<h2>Study Methods</h2>
+<p><i>Study methods</i> review the input string and return a boolean indicating whether or not the pattern is found.</p>
+<ul>
+<li>
+<code>public boolean lookingAt()</code>: Attempts to match the input sequence, starting at the beginning of the region, against the pattern.</li>
+<li>
+<code>public boolean find()</code>: Attempts to find the next subsequence of the input sequence that matches the pattern.</li>
+<li>
+<code>public boolean find(int start)</code>: Resets this matcher and then attempts to find the next subsequence of the input sequence that matches the pattern, starting at the specified index.</li>
+<li>
+<code>public boolean matches()</code>: Attempts to match the entire region against the pattern.</li>
+</ul>
+<h2>Replacement Methods</h2>
+<p><i>Replacement methods</i> are useful methods for replacing text in an input string.</p>
+<ul>
+<li>
+<code>public Matcher appendReplacement(StringBuffer sb, String replacement)</code>: Implements a non-terminal append-and-replace step.</li>
+<li>
+<code> public StringBuffer appendTail(StringBuffer sb)</code>: Implements a terminal append-and-replace step.</li>
+<li>
+<code>public String replaceAll(String replacement)</code>: Replaces every subsequence of the input sequence that matches the pattern with the given replacement string.</li>
+<li>
+<code>public String replaceFirst(String replacement)</code>: Replaces the first subsequence of the input sequence that matches the pattern with the given replacement string.</li>
+<li>
+<code>public static String quoteReplacement(String s)</code>: Returns a literal replacement <code>String</code> for the specified <code>String</code>. This method produces a <code>String</code> that will work as a literal replacement <code>s</code> in the <code>appendReplacement</code> method of the <code>Matcher</code> class. The <code>String</code> produced will match the sequence of characters in <code>s</code> treated as a literal sequence. Slashes (<code>'\'</code>) and dollar signs (<code>'$'</code>) will be given no special meaning.</li>
+</ul>
+<h2>Using the <code>start</code> and <code>end</code> Methods</h2>
+<p>Here's an example, 
+<code>MatcherDemo.java</code>, that counts the number of times the word "dog" appears in the input string.</p>
+<p>WHATSON? 2db4d7bc-1171-4033-b03a-902b347990a6</p>
+<pre>
+
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
+
+public class MatcherDemo {
+
+    private static final String REGEX =
+        "\\bdog\\b";
+    private static final String INPUT =
+        "dog dog dog doggie dogg";
+
+    public static void main(String[] args) {
+       Pattern p = Pattern.compile(REGEX);
+       //  get a matcher object
+       Matcher m = p.matcher(INPUT);
+       int count = 0;
+       while(m.find()) {
+           count++;
+           System.out.println("Match number "
+                              + count);
+           System.out.println("start(): "
+                              + m.start());
+           System.out.println("end(): "
+                              + m.end());
+      }
+   }
+}
+
+</pre>
+<p>WHATSON? cad2966e-8467-48f5-8f00-2ce9d4f06e6b</p>
+<pre>
+OUTPUT:
+
+Match number 1
+start(): 0
+end(): 3
+Match number 2
+start(): 4
+end(): 7
+Match number 3
+start(): 8
+end(): 11
+</pre>
+<p>You can see that this example uses word boundaries to ensure that the letters <code>"d" "o" "g"</code> are not merely a substring in a longer word. It also gives some useful information about where in the input string the match has occurred. The <code>start</code> method returns the start index of the subsequence captured by the given group during the previous match operation, and <code>end</code> returns the index of the last character matched, plus one.</p>
+<h2>Using the <code>matches</code> and <code>lookingAt</code> Methods</h2>
+<p>The <code>matches</code> and <code>lookingAt</code> methods both attempt to match an input sequence against a pattern. The difference, however, is that <code>matches</code> requires the entire input sequence to be matched, while <code>lookingAt</code> does not. Both methods always start at the beginning of the input string. Here's the full code, 
+<code>MatchesLooking.java</code>:</p>
+<p>WHATSON? 15224717-ea91-47db-a321-484c2d3f0f96</p>
+<pre>
+
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
+
+public class MatchesLooking {
+
+    private static final String REGEX = "foo";
+    private static final String INPUT =
+        "fooooooooooooooooo";
+    private static Pattern pattern;
+    private static Matcher matcher;
+
+    public static void main(String[] args) {
+   
+        // Initialize
+        pattern = Pattern.compile(REGEX);
+        matcher = pattern.matcher(INPUT);
+
+        System.out.println("Current REGEX is: "
+                           + REGEX);
+        System.out.println("Current INPUT is: "
+                           + INPUT);
+
+        System.out.println("lookingAt(): "
+            + matcher.lookingAt());
+        System.out.println("matches(): "
+            + matcher.matches());
+    }
+}
+
+</pre>
+<p>WHATSON? 3a18d0c6-b4dd-4bd0-899c-3e1067ed9aac</p>
+<pre>
+Current REGEX is: foo
+Current INPUT is: fooooooooooooooooo
+lookingAt(): true
+matches(): false
+</pre>
+<h2>Using <code>replaceFirst(String)</code> and <code>replaceAll(String)</code></h2>
+<p>The <code>replaceFirst</code> and <code>replaceAll</code> methods replace text that matches a given regular expression. As their names indicate, <code>replaceFirst</code> replaces the first occurrence, and <code>replaceAll</code> replaces all occurences. Here's the 
+<code>ReplaceDemo.java</code> code:</p>
+<p>WHATSON? 1ca6e17c-abae-4ce0-a2fa-d8f1b414aa68</p>
+<pre>
+
+import java.util.regex.Pattern; 
+import java.util.regex.Matcher;
+
+public class ReplaceDemo {
+ 
+    private static String REGEX = "dog";
+    private static String INPUT =
+        "The dog says meow. All dogs say meow.";
+    private static String REPLACE = "cat";
+ 
+    public static void main(String[] args) {
+        Pattern p = Pattern.compile(REGEX);
+        // get a matcher object
+        Matcher m = p.matcher(INPUT);
+        INPUT = m.replaceAll(REPLACE);
+        System.out.println(INPUT);
+    }
+}
+
+</pre>
+<p>WHATSON? 5f4a0361-6966-47ff-a9c6-ddb70b1c76eb</p>
+<pre>
+OUTPUT: The cat says meow. All cats say meow.
+</pre>
+<p>In this first version, all occurrences of <code>dog</code> are replaced with <code>cat</code>. But why stop here? Rather than replace a simple literal like <code>dog</code>, you can replace text that matches <i>any</i> regular expression. The API for this method states that "given the regular expression <code>a*b</code>, the input <code>aabfooaabfooabfoob</code>, and the replacement string <code>-</code>, an invocation of this method on a matcher for that expression would yield the string <code>-foo-foo-foo-</code>."</p>
+<p>Here's the 
+<code>ReplaceDemo2.java</code> code:</p>
+<p>WHATSON? b36726e6-66fa-4418-bfa4-40251b57c36e</p>
+<pre>
+
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
+ 
+public class ReplaceDemo2 {
+ 
+    private static String REGEX = "a*b";
+    private static String INPUT =
+        "aabfooaabfooabfoob";
+    private static String REPLACE = "-";
+ 
+    public static void main(String[] args) {
+        Pattern p = Pattern.compile(REGEX);
+        // get a matcher object
+        Matcher m = p.matcher(INPUT);
+        INPUT = m.replaceAll(REPLACE);
+        System.out.println(INPUT);
+    }
+}
+
+</pre>
+<p>WHATSON? 3fe6702a-c7f2-4d70-b869-e45c75104fe3</p>
+<pre>
+OUTPUT: -foo-foo-foo-
+</pre>
+<p>To replace only the first occurrence of the pattern, simply call <code>replaceFirst</code> instead of <code>replaceAll</code>. It accepts the same parameter.</p>
+<h2>Using <code>appendReplacement(StringBuffer,String)</code> and <code>appendTail(StringBuffer)</code></h2>
+<p>The <code>Matcher</code> class also provides <code>appendReplacement</code> and <code>appendTail</code> methods for text replacement. The following example, 
+<code>RegexDemo.java</code>, uses these two methods to achieve the same effect as <code>replaceAll</code>.</p>
+<p>WHATSON? 33ddf740-4c05-4ed9-a6d3-8f8f29d874a8</p>
+<pre>
+
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
+
+public class RegexDemo {
+ 
+    private static String REGEX = "a*b";
+    private static String INPUT = "aabfooaabfooabfoob";
+    private static String REPLACE = "-";
+ 
+    public static void main(String[] args) {
+        Pattern p = Pattern.compile(REGEX);
+        Matcher m = p.matcher(INPUT); // get a matcher object
+        StringBuffer sb = new StringBuffer();
+        while(m.find()){
+            m.appendReplacement(sb,REPLACE);
+        }
+        m.appendTail(sb);
+        System.out.println(sb.toString());
+    }
+}
+
+
+</pre>
+<p>WHATSON? b5ebe22e-687d-4ed8-a062-f5c0a737cc64</p>
+<pre>
+OUTPUT: -foo-foo-foo- 
+</pre>
+<h2>Matcher Method Equivalents in <code>java.lang.String</code></h2>
+<p>For convenience, the <code>String</code> class mimics a couple of <code>Matcher</code> methods as well:</p>
+<ul>
+<li>
+<code>public String replaceFirst(String regex, String replacement)</code>: Replaces the first substring of this string that matches the given regular expression with the given replacement. An invocation of this method of the form <code><i>str</i>.replaceFirst(<i>regex</i>, <i>repl</i>)</code> yields exactly the same result as the expression <code>Pattern.compile(<i>regex</i>).matcher(<i>str</i>).replaceFirst(<i>repl</i>)</code></li>
+<li>
+<code>public String replaceAll(String regex, String replacement)</code>: Replaces each substring of this string that matches the given regular expression with the given replacement. An invocation of this method of the form <code><i>str</i>.replaceAll(<i>regex</i>, <i>repl</i>)</code> yields exactly the same result as the expression <code>Pattern.compile(<i>regex</i>).matcher(<i>str</i>).replaceAll(<i>repl</i>)</code></li>
+</ul>
+</body>
+</html>

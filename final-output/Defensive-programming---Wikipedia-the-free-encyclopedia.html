@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Defensive-programming---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Defensive programming</h1>
+<p><b>Defensive programming</b> is a form of defensive design intended to ensure the continuing function of a piece of software under unforeseen circumstances. The idea can be viewed as reducing or eliminating the prospect of Finagle's law having effect. Defensive programming techniques are used especially when a piece of software could be misused.</p>
+<p>Defensive programming is an approach to improve software and source code, in terms of:</p>
+<ul>
+<li>General quality - reducing the number of software bugs and problems.</li>
+<li>Making the source code comprehensible - the source code should be readable and understandable so it is approved in a code audit.</li>
+<li>Making the software behave in a predictable manner despite unexpected inputs or user actions.</li>
+</ul>
+<p>Overly defensive programming however introduces code to prevent errors that can't happen, but needs to be executed on runtime and to be maintained by the developers, thus increasing the runtime and maintenance costs. There is also the risk that the code catches or prevents too many exceptions. In those cases, the error would be suppressed and go unnoticed, while the result would be still wrong.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Secure programming</li>
+<li>2 Techniques
+<ul>
+<li>2.1 Intelligent source code reuse
+<ul>
+<li>2.1.1 Legacy problems</li>
+</ul>
+</li>
+<li>2.2 Secure input and output handling</li>
+<li>2.3 Canonicalization</li>
+<li>2.4 Low tolerance against "potential" bugs</li>
+<li>2.5 Other techniques</li>
+</ul>
+</li>
+<li>3 See also</li>
+<li>4 Further reading</li>
+<li>5 External links</li>
+</ul>
+<ul>
+<li>2.1 Intelligent source code reuse
+<ul>
+<li>2.1.1 Legacy problems</li>
+</ul>
+</li>
+<li>2.2 Secure input and output handling</li>
+<li>2.3 Canonicalization</li>
+<li>2.4 Low tolerance against "potential" bugs</li>
+<li>2.5 Other techniques</li>
+</ul>
+<ul>
+<li>2.1.1 Legacy problems</li>
+</ul>
+<p></p>
+<h2>Secure programming</h2>
+<p>Defensive programming is sometimes referred to as <b>secure programming</b> by computer scientists who state this approach minimizes bugs. Software bugs can be potentially used by a cracker for a code injection, denial-of-service attack or other attack.</p>
+<p>A difference between defensive programming and normal practices is that few assumptions are made by the programmer, who attempts to handle all possible error states. In short, the programmer never assumes a particular function call or library will work as advertised, and so handles it in the code. An example follows:</p>
+<p>WHATSON? ccd0a150-1ccd-41fa-ba1d-87404f4a6b7d</p>
+<pre>
+int risky_programming(char *input){
+  char str[1000+1];     // one more for the null character
+  // ...
+  strcpy(str, input);   // copy input
+  // ...
+}
+</pre>
+<p>The function will crash when the input is over 1000 characters. Some novice programmers may not feel that this is a problem, supposing that no user will enter such a long input. A programmer practicing defensive programming would not allow the bug, because if the application contains a known bug, Murphy's Law dictates that the bug will occur in use. This particular bug demonstrates a vulnerability which enables buffer overflow exploits. Here is a solution to this example:</p>
+<p>WHATSON? 3ab23b83-e33e-4e32-8619-4ff036819c57</p>
+<pre>
+int secure_programming(char *input){
+  char str[1000];
+  // ...
+  strncpy(str, input, sizeof(str)); // copy input without exceeding the length of the destination
+  str[sizeof(str) - 1] = '\0'; // if strlen(input) == sizeof(str) then strncpy won't NUL terminate
+  // ...
+}
+</pre>
+<h2>Techniques</h2>
+<p>Here are some defensive programming techniques:</p>
+<h3>Intelligent source code reuse</h3>
+<p>If existing code is tested and known to work, reusing it may reduce the chance of bugs being introduced.</p>
+<p>However, reusing code is not <i>always</i> a good practice, particularly when business logic is involved. Reuse in this case may cause serious business process bugs.</p>
+<h4>Legacy problems</h4>
+<p>Before reusing old source code, libraries, APIs, configurations and so forth, it must be considered if the old work is valid for reuse, or if it is likely to be prone to legacy problems.</p>
+<p>Legacy problems are problems inherent when old designs are expected to work with today's requirements, especially when the old designs were not developed or tested with those requirements in mind.</p>
+<p>Many software products have experienced problems with old legacy source code, for example:</p>
+<ul>
+<li>Legacy code may not have been designed under a Defensive programming initiative, and might therefore be of much lower quality than newly designed source code.</li>
+<li>Legacy code may have been written and tested under conditions which no longer apply. The old quality assurance tests may have no validity any more.
+<ul>
+<li><b>Example 1</b>: legacy code may have been designed for ASCII input but now the input is UTF-8.</li>
+<li><b>Example 2</b>: legacy code may have been compiled and tested on 32-bit architectures, but when compiled on 64-bit architectures new arithmetic problems may occur (e.g. invalid signedness tests, invalid type casts, etc.).</li>
+<li><b>Example 3</b>: legacy code may have been targeted for offline machines, but becomes vulnerable once network connectivity is added.</li>
+</ul>
+</li>
+<li>Legacy code is not written with new problems in mind. For example, source code written about 1990 is likely to be prone to many code injection vulnerabilities, because most such problems were not widely understood at that time.</li>
+</ul>
+<ul>
+<li><b>Example 1</b>: legacy code may have been designed for ASCII input but now the input is UTF-8.</li>
+<li><b>Example 2</b>: legacy code may have been compiled and tested on 32-bit architectures, but when compiled on 64-bit architectures new arithmetic problems may occur (e.g. invalid signedness tests, invalid type casts, etc.).</li>
+<li><b>Example 3</b>: legacy code may have been targeted for offline machines, but becomes vulnerable once network connectivity is added.</li>
+</ul>
+<p>Notable examples of the legacy problem:</p>
+<ul>
+<li>BIND 9, presented by Paul Vixie and David Conrad as "BINDv9 is a complete rewrite", "Security was a key consideration in design" *, naming security, robustness, scalability and new protocols as key concerns for rewriting old legacy code.</li>
+<li>Microsoft Windows suffered from "the" Windows Metafile vulnerability and other exploits related to the WMF format. Microsoft Security Response Center describes the WMF-features as <i>"Around 1990, WMF support was added... This was a different time in the security landscape... were all completely trusted"</i> *, not being developed under the security initiatives at Microsoft.</li>
+<li>Oracle is combating legacy problems, such as old source code written without addressing concerns of SQL injection and privilege escalation, resulting in many security vulnerabilities which has taken time to fix and also generated incomplete fixes. This has given rise to heavy criticism from security experts such as David Litchfield, Alexander Kornbrust, Cesar Cerrudo (1, 2, 3). An additional criticism is that default installations (largely a legacy from old versions) are not aligned with their own security recommendations, such as Oracle Database Security Checklist, which is hard to amend as many applications require the less secure legacy settings to function correctly.</li>
+</ul>
+<h3>Secure input and output handling</h3>
+<h3>Canonicalization</h3>
+<p>Crackers are likely to invent new kinds of representations of incorrect data.</p>
+<p>For example, if you checked if a requested file is not "/etc/passwd", a cracker might pass another variant of this file name, like "/etc/./passwd".</p>
+<p>To avoid bugs due to non-canonical input, employ canonicalization libraries.</p>
+<h3>Low tolerance against "potential" bugs</h3>
+<p>Assume that code constructs that appear to be problem prone (similar to known vulnerabilities, etc.) are bugs and potential security flaws. The basic rule of thumb is: "I'm not aware of all types of security exploits. I must protect against those I <i>do</i> know of and then I must be proactive!".</p>
+<h3>Other techniques</h3>
+<ul>
+<li>One of the most common problems is unchecked use of constant-size structures and functions for dynamic-size data (the buffer overflow problem). This is especially common for string data in C. C library functions like <tt>gets</tt> should never be used since the maximum size of the input buffer is not passed as an argument. C library functions like <tt>scanf</tt> can be used safely, but require the programmer to take care with the selection of safe format strings, by sanitising it before using it.</li>
+<li>Encrypt/authenticate all important data transmitted over networks. Do not attempt to implement your own encryption scheme, but use a proven one instead.</li>
+<li>All data is important until proven otherwise.</li>
+<li>All data is tainted until proven otherwise.</li>
+<li>All code is insecure until proven otherwise.
+<ul>
+<li>You cannot prove the security of any code in userland, or, more canonically: <i>"never trust the client"</i>.</li>
+</ul>
+</li>
+<li>If data are to be checked for correctness, verify that they are correct, not that they are incorrect.</li>
+<li>Design by contract
+<ul>
+<li>Design by contract uses preconditions, postconditions and invariants to ensure that provided data (and the state of the program as a whole) is sanitized. This allows code to document its assumptions and make them safely. This may involve checking arguments to a function or method for validity before executing the body of the function. After the body of a function, doing a check of object state (in Object-oriented programming languages) or other held data and the return value before exits (break/return/throw/error code) is also wise.</li>
+</ul>
+</li>
+<li>Assertions
+<ul>
+<li>Within functions, you may want to check that you are not referencing something that is not valid (i.e., null) and that array lengths are valid before referencing elements, especially on all temporary/local instantiations. A good heuristic is to not trust the libraries you did not write either. So any time you call them, check what you get back from them. It often helps to create a small library of "asserting" and "checking" functions to do this along with a logger so you can trace your path and reduce the need for extensive debugging cycles in the first place. With the advent of logging libraries and Aspect Oriented Programming, many of the tedious aspects of defensive programming are mitigated.</li>
+</ul>
+</li>
+<li>Prefer exceptions to return codes
+<ul>
+<li>Generally speaking, it is preferable to throw intelligible exception messages that enforce part of your API contract and guide the client programmer instead of returning values that a client programmer is likely to be unprepared for and hence minimize their complaints and increase robustness and security of your software.</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li>You cannot prove the security of any code in userland, or, more canonically: <i>"never trust the client"</i>.</li>
+</ul>
+<ul>
+<li>Design by contract uses preconditions, postconditions and invariants to ensure that provided data (and the state of the program as a whole) is sanitized. This allows code to document its assumptions and make them safely. This may involve checking arguments to a function or method for validity before executing the body of the function. After the body of a function, doing a check of object state (in Object-oriented programming languages) or other held data and the return value before exits (break/return/throw/error code) is also wise.</li>
+</ul>
+<ul>
+<li>Within functions, you may want to check that you are not referencing something that is not valid (i.e., null) and that array lengths are valid before referencing elements, especially on all temporary/local instantiations. A good heuristic is to not trust the libraries you did not write either. So any time you call them, check what you get back from them. It often helps to create a small library of "asserting" and "checking" functions to do this along with a logger so you can trace your path and reduce the need for extensive debugging cycles in the first place. With the advent of logging libraries and Aspect Oriented Programming, many of the tedious aspects of defensive programming are mitigated.</li>
+</ul>
+<ul>
+<li>Generally speaking, it is preferable to throw intelligible exception messages that enforce part of your API contract and guide the client programmer instead of returning values that a client programmer is likely to be unprepared for and hence minimize their complaints and increase robustness and security of your software.</li>
+</ul>
+<h2>See also</h2>
+<ul>
+<li>Computer security</li>
+</ul>
+<h2>Further reading</h2>
+<ul>
+<li>William R. Cheswick and Steven M. Bellovin, <i>Firewalls and Internet Security: Repelling the Wily Hacker</i> ISBN 0-201-63357-4 http://www.wilyhacker.com/</li>
+</ul>
+<h2>External links</h2>
+<ul>
+<li>"Rules for Defensive C Programming(Mirror1)" by Dinu P. Madau 1999</li>
+<li>"Rules for Defensive C Programming(Mirror2)" by Dinu P. Madau 1999</li>
+<li>"Secure Programming for Linux and Unix HOWTO" by David A. Wheeler</li>
+<li>"Proactive Debugging" article by Jack Ganssle 2001-02-26</li>
+<li>"Defensive programming" article by Rob Manderson 2004-08-06</li>
+<li>"The art of defensive programming: Or how to write code that will be easy to maintain" article by Jonathan West</li>
+<li>"The Art of Software Security Assessment" by Mark Dowd, John McDonald, and Justin Schuh</li>
+<li>CERT Secure Coding Standards</li>
+<li>Art of defensive programming in Java</li>
+<li>Defensive Programming in the RKBExplorer</li>
+<li><i>Solid Software</i> by Shari Lawrence Pfleeger, Les Hatton and Charles C. Howell, has a section on Defensive Programming.</li>
+<li>"Defensive Programming" by Andrew Phillips</li>
+</ul>
+</body>
+</html>

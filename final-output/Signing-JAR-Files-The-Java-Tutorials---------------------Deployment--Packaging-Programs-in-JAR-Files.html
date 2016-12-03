@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Signing-JAR-Files-The-Java-Tutorials---------------------Deployment--Packaging-Programs-in-JAR-Files.html</title></head>
+<body>
+<h1>Signing JAR Files</h1>
+<p>You use the JAR Signing and Verification Tool to sign JAR files and time stamp the signature. You invoke the JAR Signing and Verification Tool by using the <tt>jarsigner</tt> command, so we'll refer to it as "Jarsigner" for short.</p>
+<p>To sign a JAR file, you must first have a private key. Private keys and their associated public-key certificates are stored in password-protected databases called <em>keystores</em>. A keystore can hold the keys of many potential signers. Each key in the keystore can be identified by an <em>alias</em> which is typically the name of the signer who owns the key. The key belonging to Rita Jones might have the alias "rita", for example.</p>
+<p>The basic form of the command for signing a JAR file is</p>
+<p>WHATSON? 95fa8b2d-4e09-4b32-8e52-712d1de8a64b</p>
+<pre>
+jarsigner <i>jar-file alias</i>
+</pre>
+<p>In this command:</p>
+<ul>
+<li><tt>jar-file</tt> is the pathname of the JAR file that's to be signed.</li>
+<li><tt>alias</tt> is the alias identifying the private key that's to be used to sign the JAR file, and the key's associated certificate.</li>
+</ul>
+<p>The Jarsigner tool will prompt you for the passwords for the keystore and alias.</p>
+<p>This basic form of the command assumes that the keystore to be used is in a file named <tt>.keystore</tt> in your home directory. It will create signature and signature block files with names <tt>x.SF</tt> and <tt>x.DSA</tt> respectively, where <tt>x</tt> is the first eight letters of the alias, all converted to upper case. This basic command will <em>overwrite</em> the original JAR file with the signed JAR file.</p>
+<p>In practice, you might want to use one or more of the command options that are available. For example, time stamping the signature is encouraged so that any tool used to deploy your application can verify that the certificate used to sign the JAR file was valid at the time that the file was signed. A warning is issued by the Jarsigner tool if a time stamp is not included.</p>
+<p>Options precede the <tt>jar-file</tt> pathname. The following table describes the options that are available:<br>
+<br></p>
+<h2>Example</h2>
+<p>Let's look at a couple of examples of signing a JAR file with the Jarsigner tool. In these examples we will assume:</p>
+<ul>
+<li>your alias is "johndoe".</li>
+<li>the keystore you want to use is in a file named "mykeys" in the current working directory.</li>
+<li>the keystore's password is "abc123".</li>
+<li>the TSA that you want to use to time stamp the signature is located at http://example.tsa.url</li></ul>
+<p>Under these assumptions, you could use this command to sign a JAR file named <tt>app.jar</tt>:</p>
+<p>WHATSON? 34d2d1d9-1c5a-4a93-9b2a-b86df092042a</p>
+<pre>
+jarsigner -keystore mykeys -storepass abc123 -tsa http://example.tsa.url app.jar johndoe
+</pre>
+<p>You will be prompted for the keystore password. Because this command doesn't make use of the <tt>-sigfile</tt> option, the .SF and .DSA files it creates would be named <tt>JOHNDOE.SF</tt> and <tt>JOHNDOE.DSA</tt>. Because the command doesn't use the <tt>-signedjar</tt> option, the resulting signed file will overwrite the original version of <tt>app.jar</tt>.</p>
+<p>Let's look at what would happen if you used a different combination of options:</p>
+<p>WHATSON? daca8814-451f-4f78-be42-216fe6f184cd</p>
+<pre>
+jarsigner -keystore mykeys -sigfile SIG -signedjar SignedApp.jar 
+          -tsacert testalias app.jar johndoe
+</pre>
+<p>This time, you would be prompted to enter the passwords for both the keystore and your alias because the passwords aren't specified on the command line. The signature and signature block files would be named <tt>SIG.SF</tt> and <tt>SIG.DSA</tt>, respectively, and the signed JAR file <tt>SignedApp.jar</tt> would be placed in the current directory. The original unsigned JAR file would remain unchanged. Also, the signature would be time stamped with the TSA's public key certificate identified as <tt>testalias</tt>.</p>
+<h2>Additional Information</h2>
+<p>Complete reference pages for the JAR Signing and Verification Tool are on-line: 
+Summary of Security Tools</p>
+</body>
+</html>
