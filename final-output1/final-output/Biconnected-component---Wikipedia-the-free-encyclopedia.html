@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Biconnected-component---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Biconnected component</h1>
+<p>In graph theory, a <b>biconnected component</b> (or <b>2-connected component</b>) is a maximal biconnected subgraph. Any connected graph decomposes into a tree of biconnected components called the <b>block tree</b> of the graph. The blocks are attached to each other at shared vertices called <b>cut vertices</b> or <b>articulation points</b>. Specifically, a <b>cut vertex</b> is any vertex whose removal increases the number of connected components.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Algorithm</li>
+<li>2 Other algorithms</li>
+<li>3 See also</li>
+<li>4 Notes</li>
+<li>5 References</li>
+<li>6 External links</li>
+</ul>
+<p></p>
+<h2>Algorithm</h2>
+<p>The classic sequential algorithm for computing biconnected components in a connected undirected graph is due to John Hopcroft and Robert Tarjan (1973). It runs in linear time, and is based on depth-first search. This algorithm is also outlined as Problem 22-2 of Introduction to Algorithms (both 2nd and 3rd editions).</p>
+<p>The idea is to run a depth-first search while maintaining the following information:</p>
+<ol>
+<li>the depth of each vertex in the depth-first-search tree (once it gets visited), and</li>
+<li>for each vertex <i>v</i>, the lowest depth of neighbors of all descendants of <i>v</i> in the depth-first-search tree, called the <b>lowpoint</b>.</li>
+</ol>
+<p>The depth is standard to maintain during a depth-first search. The lowpoint of <i>v</i> can be computed after visiting all descendants of <i>v</i> (i.e., just before <i>v</i> gets popped off the depth-first-search stack) as the minimum of the depth of v, the depth of all neighbors of <i>v</i> (other than the parent of <i>v</i> in the depth-first-search tree) and the lowpoint of all children of <i>v</i> in the depth-first-search tree.</p>
+<p>The key fact is that a nonroot vertex <i>v</i> is a cut vertex (or articulation point) separating two biconnected components if and only if there is a child <i>y</i> of <i>v</i> such that lowpoint(<i>y</i>) ≥ depth(<i>v</i>). This property can be tested once the depth-first search returned from every child of <i>v</i> (i.e., just before <i>v</i> gets popped off the depth-first-search stack), and if true, <i>v</i> separates the graph into different biconnected components. This can be represented by computing one biconnected component out of every such <i>y</i> (a component which contains <i>y</i> will contain the subtree of <i>y</i>, plus <i>v</i>), and then erasing the subtree of <i>y</i> from the tree.</p>
+<p>The root vertex must be handled separately: it is a cut vertex if and only if it has at least two children. Thus, it suffices to simply build one component out of each child subtree of the root (including the root).</p>
+<p>A non-recursive example implementation in C++11 is</p>
+<p>WHATSON? 4abef97e-51df-4940-96ca-0cb36da8c763</p>
+<pre>
+// Graph is a class with the following prototype
+// class Graph{
+//      range_of_arc_type out(int vertex)const; // Returns a range of all outgoing arcs.
+//      int head(arc_type arc)const;            // Maps an arc onto its head.
+//      int node_count()const;                  // Counts the number of nodes in the graph.
+// }
+template&lt;class Graph&gt;
+std::vector&lt;int&gt; find_all_articulation_points(const Graph&amp;g){
+        // The empty graph contains no articulation points
+        if(g.node_count() == 0)
+                return {};
+
+        typedef typename std::decay&lt;decltype(std::begin(g.out(0)))&gt;::type Iter;
+
+        std::vector&lt;bool&gt;
+                visited(g.node_count(), false),
+                is_articulation_point(g.node_count(), false);
+        std::vector&lt;int&gt;
+                parent(g.node_count(), -1),
+                depth(g.node_count(), std::numeric_limits&lt;int&gt;::max()),
+                min_succ_depth(g.node_count(), std::numeric_limits&lt;int&gt;::max());
+        std::vector&lt;Iter&gt;next_out_arc(g.node_count());
+
+        const int root = 0;
+
+        std::stack&lt;int&gt;s;
+        s.push(root);
+        depth[root] = 0;
+
+        while(!s.empty()){
+                int x = s.top();
+                s.pop();
+
+                if(!visited[x]){
+                        // x is visited for the first time.
+                        visited[x] = true;
+                        next_out_arc[x] = std::begin(g.out(x));
+                        min_succ_depth[x] = depth[x];
+                }else{
+                        // A child of x has been fully processed, continue with the next child.
+                        auto xy = *next_out_arc[x];
+                        auto y = g.head(xy);
+                        if(min_succ_depth[y] &gt;= depth[x] &amp;&amp; !is_articulation_point[x] &amp;&amp; x != root){
+                                // As removing x would disconnect y and parent[x] we know that x is articulation point.
+                                is_articulation_point[x] = true;
+                                articulation_point_list.push_back(x);
+                        }
+                        min_succ_depth[x] = std::min(min_succ_depth[x], min_succ_depth[y]);             
+                        ++next_out_arc[x];              
+                }
+
+                auto end = std::end(g.out(x));
+                while(next_out_arc[x] != end){
+                        auto xy = *next_out_arc[x];
+                        auto y = g.head(xy);
+                        if(visited[y]){
+                                if(parent[x] != y)
+                                        min_succ_depth[x] = std::min(min_succ_depth[x], depth[y]);
+                                ++next_out_arc[x];
+                        }else{
+                                auto xy = *next_out_arc[x];
+                                auto y = g.head(xy);
+                                s.push(x); // push x so that it is visited a second time on the way up
+                                s.push(y);
+                                parent[y] = x;
+                                depth[y] = depth[x]+1;
+                                break;
+                        }
+                }               
+        }
+
+        int root_child_count = 0;
+        for(auto xy:g.out(root)){
+                int y = g.head(xy);             
+                if(parent[y] == root)
+                        ++root_child_count;
+        }
+        
+        if(root_child_count &gt;= 2)
+                articulation_point_list.push_back(root);
+        return std::move(articulation_point_list);
+}
+</pre>
+<h2>Other algorithms</h2>
+<p>A simple alternative to the above algorithm uses chain decompositions, which are special ear decompositions depending on DFS-trees. Chain decompositions can be computed in linear time by this traversing rule. Let <i>C</i> be a chain decomposition of <i>G</i>. Then <i>G</i> is 2-vertex-connected if and only if <i>G</i> has minimum degree 2 and <i>C<sub>1</sub></i> is the only cycle in <i>C</i>. This gives immediately a linear-time 2-connectivity test and can be extended to list all cut vertices of <i>G</i> in linear time using the following statement: A vertex <i>v</i> in a connected graph <i>G</i> (with minimum degree 2) is a cut vertex if and only if <i>v</i> is incident to a bridge or <i>v</i> is the first vertex of a cycle in <i>C - C<sub>1</sub></i>. The list of cut vertices can be used to create the block-cut tree of <i>G</i> in linear time.</p>
+<p>In the online version of the problem, vertices and edges are added (but not removed) dynamically, and a data structure must maintain the biconnected components. Jeffery Westbrook and Robert Tarjan (1992)  developed an efficient data structure for this problem based on disjoint-set data structures. Specifically, it processes <i>n</i> vertex additions and <i>m</i> edge additions in O(<i>m</i> <i>α</i>(<i>m</i>, <i>n</i>)) total time, where α is the inverse Ackermann function. This time bound is proved to be optimal.</p>
+<p>Uzi Vishkin and Robert Tarjan (1985)  designed a parallel algorithm on CRCW PRAM that runs in O(log <i>n</i>) time with <i>n</i> + <i>m</i> processors. Guojing Cong and David A. Bader (2005)  developed an algorithm that achieves a speedup of 5 with 12 processors on SMPs. Speedups exceeding 30 based on the original Tarjan-Vishkin algorithm were reported by James A. Edwards and Uzi Vishkin (2012).</p>
+<h2>See also</h2>
+<ul>
+<li>Triconnected component</li>
+<li>Bridge (graph theory)</li>
+</ul>
+<h2>Notes</h2>
+<ol>
+<li><b>^</b> Hopcroft, J.; Tarjan, R. (1973). "Efficient algorithms for graph manipulation". <i>Communications of the ACM</i> <b>16</b> (6): 372–378. doi:10.1145/362248.362272.  edit</li>
+<li><b>^</b> Schmidt, Jens M. (2013), <i>A Simple Test on 2-Vertex- and 2-Edge-Connectivity</i>, <i>Information Processing Letters</i> <b>113</b> (7): 241–244, doi:10.1016/j.ipl.2013.01.016 .</li>
+<li><b>^</b> Westbrook, J.; Tarjan, R. E. (1992). "Maintaining bridge-connected and biconnected components on-line". <i>Algorithmica</i> <b>7</b>: 433–464. doi:10.1007/BF01758773.  edit</li>
+<li><b>^</b> Tarjan, R.; Vishkin, U. (1985). "An Efficient Parallel Biconnectivity Algorithm". <i>SIAM J. Comput.</i> <b>14</b> (4): 862–874. doi:10.1137/0214061.  edit</li>
+<li><b>^</b> Guojing Cong and David A. Bader, (2005). "An Experimental Study of Parallel Biconnected Components Algorithms on Symmetric Multiprocessors (SMPs)". "Proceedings of the 19th IEEE International Conference on Parallel and Distributed Processing Symposium". pp. 45b. doi:10.1109/IPDPS.2005.100.  edit</li>
+<li><b>^</b> Edwards, J. A.; Vishkin, U. (2012). "Better speedups using simpler parallel programming for graph connectivity and biconnectivity". "Proceedings of the 2012 International Workshop on Programming Models and Applications for Multicores and Manycores - PMAM '12". p. 103. doi:10.1145/2141702.2141714. ISBN 9781450312110.  edit</li>
+</ol>
+</body>
+</html>

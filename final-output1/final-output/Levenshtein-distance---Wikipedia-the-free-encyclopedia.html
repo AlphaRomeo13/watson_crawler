@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Levenshtein-distance---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Levenshtein distance</h1>
+<p>In information theory and computer science, the <b>Levenshtein distance</b> is a string metric for measuring the difference between two sequences. Informally, the Levenshtein distance between two words is the minimum number of single-character edits (i.e. insertions, deletions or substitutions) required to change one word into the other. It is named after Vladimir Levenshtein, who considered this distance in 1965.</p>
+<p>Levenshtein distance may also be referred to as <b>edit distance</b>, although that may also denote a larger family of distance metrics. It is closely related to pairwise string alignments.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Definition
+<ul>
+<li>1.1 Example</li>
+<li>1.2 Upper and lower bounds</li>
+</ul>
+</li>
+<li>2 Applications</li>
+<li>3 Relationship with other edit distance metrics</li>
+<li>4 Computing Levenshtein distance
+<ul>
+<li>4.1 Recursive</li>
+<li>4.2 Iterative with full matrix</li>
+<li>4.3 Iterative with two matrix rows</li>
+</ul>
+</li>
+<li>5 See also</li>
+<li>6 References</li>
+<li>7 External links</li>
+</ul>
+<ul>
+<li>1.1 Example</li>
+<li>1.2 Upper and lower bounds</li>
+</ul>
+<ul>
+<li>4.1 Recursive</li>
+<li>4.2 Iterative with full matrix</li>
+<li>4.3 Iterative with two matrix rows</li>
+</ul>
+<p></p>
+<h2>Definition</h2>
+<p>Mathematically, the Levenshtein distance between two strings <img class="mwe-math-fallback-image-inline tex" alt="a, b" src="//upload.wikimedia.org/math/b/3/4/b345e1dc09f20fdefdea469f09167892.png"> is given by <img class="mwe-math-fallback-image-inline tex" alt="\operatorname{lev}_{a,b}(|a|,|b|)" src="//upload.wikimedia.org/math/8/d/5/8d5f696227e40d27da2362fe7bde6ba9.png"> where</p>
+<p>where <img class="mwe-math-fallback-image-inline tex" alt="1_{(a_i \neq b_j)}" src="//upload.wikimedia.org/math/7/b/6/7b6e29afdb8c0ec65faabb63dd881f84.png"> is the indicator function equal to 0 when <img class="mwe-math-fallback-image-inline tex" alt="a_i = b_j" src="//upload.wikimedia.org/math/a/b/e/abe230c6676cfc34157d05840a678877.png"> and equal to 1 otherwise.</p>
+<p>Note that the first element in the minimum corresponds to deletion (from <img class="mwe-math-fallback-image-inline tex" alt="a" src="//upload.wikimedia.org/math/0/c/c/0cc175b9c0f1b6a831c399e269772661.png"> to <img class="mwe-math-fallback-image-inline tex" alt="b" src="//upload.wikimedia.org/math/9/2/e/92eb5ffee6ae2fec3ad71c777531578f.png">), the second to insertion and the third to match or mismatch, depending on whether the respective symbols are the same.</p>
+<h3>Example</h3>
+<p>For example, the Levenshtein distance between "kitten" and "sitting" is 3, since the following three edits change one into the other, and there is no way to do it with fewer than three edits:</p>
+<ol>
+<li><b>k</b>itten → <b>s</b>itten (substitution of "s" for "k")</li>
+<li>sitt<b>e</b>n → sitt<b>i</b>n (substitution of "i" for "e")</li>
+<li>sittin → sittin<b>g</b> (insertion of "g" at the end).</li>
+</ol>
+<h3>Upper and lower bounds</h3>
+<p>The Levenshtein distance has several simple upper and lower bounds. These include:</p>
+<ul>
+<li>It is always at least the difference of the sizes of the two strings.</li>
+<li>It is at most the length of the longer string.</li>
+<li>It is zero if and only if the strings are equal.</li>
+<li>If the strings are the same size, the Hamming distance is an upper bound on the Levenshtein distance.</li>
+<li>The Levenshtein distance between two strings is no greater than the sum of their Levenshtein distances from a third string (triangle inequality).</li>
+</ul>
+<h2>Applications</h2>
+<p>In approximate string matching, the objective is to find matches for short strings in many longer texts, in situations where a small number of differences is to be expected. The short strings could come from a dictionary, for instance. Here, one of the strings is typically short, while the other is arbitrarily long. This has a wide range of applications, for instance, spell checkers, correction systems for optical character recognition, and software to assist natural language translation based on translation memory.</p>
+<p>The Levenshtein distance can also be computed between two longer strings, but the cost to compute it, which is roughly proportional to the product of the two string lengths, makes this impractical. Thus, when used to aid in fuzzy string searching in applications such as record linkage, the compared strings are usually short to help improve speed of comparisons.</p>
+<h2>Relationship with other edit distance metrics</h2>
+<p>There are other popular measures of edit distance, which are calculated using a different set of allowable edit operations. For instance,</p>
+<ul>
+<li>the Damerau–Levenshtein distance allows insertion, deletion, substitution, and the transposition of two adjacent characters;</li>
+<li>the longest common subsequence metric allows only insertion and deletion, not substitution;</li>
+<li>the Hamming distance allows only substitution, hence, it only applies to strings of the same length.</li>
+</ul>
+<p>Edit distance is usually defined as a parameterizable metric calculated with a specific set of allowed edit operations, and each operation is assigned a cost (possibly infinite). This is further generalized by DNA sequence alignment algorithms such as the Smith–Waterman algorithm, which make an operation's cost depend on where it is applied.</p>
+<h2>Computing Levenshtein distance</h2>
+<h3>Recursive</h3>
+<p>This is a straightforward, but inefficient, recursive pseudocode implementation of a <code>LevenshteinDistance</code> function that takes two strings, <i>s</i> and <i>t</i>, together with their lengths, and returns the Levenshtein distance between them:</p>
+<p>WHATSON? 53119a9f-7cae-4182-9341-3aadf7ff17c5</p>
+<pre>
+// len_s and len_t are the number of characters in string s and t respectively
+int LevenshteinDistance(string s, int len_s, string t, int len_t)
+{
+  /* base case: empty strings */
+  if (len_s == 0) return len_t;
+  if (len_t == 0) return len_s;
+ 
+  /* test if last characters of the strings match */
+  if (s[len_s-1] == t[len_t-1])
+      cost = 0;
+  else
+      cost = 1;
+ 
+  /* return minimum of delete char from s, delete char from t, and delete char from both */
+  return minimum(LevenshteinDistance(s, len_s - 1, t, len_t    ) + 1,
+                 LevenshteinDistance(s, len_s    , t, len_t - 1) + 1,
+                 LevenshteinDistance(s, len_s - 1, t, len_t - 1) + cost);
+}
+</pre>
+<p>Unfortunately, this straightforward recursive implementation is very inefficient because it recomputes the Levenshtein distance of the same substrings many times.</p>
+<p>A more efficient method would never repeat the same distance calculation. For example, the Levenshtein distance of all possible prefixes might be stored in an array <code>d[][]</code> where <code>d[i][j]</code> is the distance between the first <code>i</code> characters of string <code>s</code> and the first <code>j</code> characters of string <code>t</code>. The table is easy to construct one row at a time starting with row 0. When the entire table has been built, the desired distance is <code>d[len_s][len_t]</code>. While this technique is significantly faster, it will consume <code>len_s * len_t</code> more memory than the straightforward recursive implementation.</p>
+<h3>Iterative with full matrix</h3>
+<p>Computing the Levenshtein distance is based on the observation that if we reserve a matrix to hold the Levenshtein distances between all prefixes of the first string and all prefixes of the second, then we can compute the values in the matrix in a dynamic programming fashion, and thus find the distance between the two full strings as the last value computed.</p>
+<p>This algorithm, an example of bottom-up dynamic programming, is discussed, with variants, in the 1974 article <i>The String-to-string correction problem</i> by Robert A. Wagner and Michael J. Fischer.</p>
+<p>This is a straightforward pseudocode implementation for a function <i>LevenshteinDistance</i> that takes two strings, <i>s</i> of length <i>m</i>, and <i>t</i> of length <i>n</i>, and returns the Levenshtein distance between them:</p>
+<p>WHATSON? 321250f9-7f4d-4fe4-b934-619aeab13a40</p>
+<pre>
+int LevenshteinDistance(char s[1..m], char t[1..n])
+{
+  // for all i and j, d[i,j] will hold the Levenshtein distance between
+  // the first i characters of s and the first j characters of t;
+  // note that d has (m+1)*(n+1) values
+  declare int d[0..m, 0..n]
+ 
+  clear all elements in d // set each element to zero
+ 
+  // source prefixes can be transformed into empty string by
+  // dropping all characters
+  for i from 1 to m
+    {
+      d[i, 0] := i
+    }
+ 
+  // target prefixes can be reached from empty source prefix
+  // by inserting every character
+  for j from 1 to n
+    {
+      d[0, j] := j
+    }
+ 
+  for j from 1 to n
+    {
+      for i from 1 to m
+        {
+          if s[i] = t[j] then
+            d[i, j] := d[i-1, j-1]       // no operation required
+          else
+            d[i, j] := minimum
+                    (
+                      d[i-1, j] + 1,  // a deletion
+                      d[i, j-1] + 1,  // an insertion
+                      d[i-1, j-1] + 1 // a substitution
+                    )
+        }
+    }
+ 
+  return d[m, n]
+}
+</pre>
+<p>Note that this implementation does not fit the definition precisely: it always prefers matches, even if insertions or deletions provided a better score. This is equivalent; it can be shown that for every optimal alignment (which induces the Levenshtein distance) there is another optimal alignment that prefers matches in the sense of this implementation.</p>
+<p>Two examples of the resulting matrix (hovering over a number reveals the operation performed to get that number):</p>
+<p>The invariant maintained throughout the algorithm is that we can transform the initial segment <code>s[1..i]</code> into <code>t[1..j]</code> using a minimum of <code>d[i,j]</code> operations. At the end, the bottom-right element of the array contains the answer.</p>
+<h3>Iterative with two matrix rows</h3>
+<p>It turns out that only two rows of the table are needed for the construction if one does not want to reconstruct the edited input strings (the previous row and the current row being calculated).</p>
+<p>The Levenshtein distance may be calculated iteratively using the following algorithm:</p>
+<p>WHATSON? 4a100de0-dd2c-4bfb-ae44-87030502cab9</p>
+<pre>
+int LevenshteinDistance(string s, string t)
+{
+    // degenerate cases
+    if (s == t) return 0;
+    if (s.Length == 0) return t.Length;
+    if (t.Length == 0) return s.Length;
+ 
+    // create two work vectors of integer distances
+    int[] v0 = new int[t.Length + 1];
+    int[] v1 = new int[t.Length + 1];
+ 
+    // initialize v0 (the previous row of distances)
+    // this row is A[0][i]: edit distance for an empty s
+    // the distance is just the number of characters to delete from t
+    for (int i = 0; i &lt; v0.Length; i++)
+        v0[i] = i;
+ 
+    for (int i = 0; i &lt; s.Length; i++)
+    {
+        // calculate v1 (current row distances) from the previous row v0
+ 
+        // first element of v1 is A[i+1][0]
+        //   edit distance is delete (i+1) chars from s to match empty t
+        v1[0] = i + 1;
+ 
+        // use formula to fill in the rest of the row
+        for (int j = 0; j &lt; t.Length; j++)
+        {
+            var cost = (s[i] == t[j]) ? 0 : 1;
+            v1[j + 1] = Minimum(v1[j] + 1, v0[j + 1] + 1, v0[j] + cost);
+        }
+ 
+        // copy v1 (current row) to v0 (previous row) for next iteration
+        for (int j = 0; j &lt; v0.Length; j++)
+            v0[j] = v1[j];
+    }
+ 
+    return v1[t.Length];
+}
+</pre>
+<h2>See also</h2>
+<ul>
+<li>agrep</li>
+<li>Approximate string matching</li>
+<li>Bitap algorithm</li>
+<li>Damerau–Levenshtein distance</li>
+<li>diff</li>
+<li>MinHash</li>
+<li>Dynamic time warping</li>
+<li>Euclidean distance</li>
+<li>Fuzzy string searching</li>
+<li>Hamming weight</li>
+<li>Hirschberg's algorithm</li>
+<li>Homology of sequences in genetics</li>
+<li>Hunt–McIlroy algorithm</li>
+<li>Jaccard index</li>
+<li>Jaro–Winkler distance</li>
+<li>Levenshtein automaton</li>
+<li>Locality-sensitive hashing</li>
+<li>Longest common subsequence problem</li>
+<li>Lucene (an open source search engine that implements edit distance)</li>
+<li>Manhattan distance</li>
+<li>Metric space</li>
+<li>Most frequent k characters</li>
+<li>Needleman–Wunsch algorithm</li>
+<li>Optimal matching algorithm</li>
+<li>Sequence alignment</li>
+<li>Similarity space on Numerical taxonomy</li>
+<li>Smith–Waterman algorithm</li>
+<li>Sørensen similarity index</li>
+<li>String distance metric</li>
+<li>String similarity function</li>
+<li>Wagner-Fischer algorithm</li>
+</ul>
+</body>
+</html>

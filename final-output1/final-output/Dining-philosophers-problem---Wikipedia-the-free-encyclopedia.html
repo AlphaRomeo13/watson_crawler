@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Dining-philosophers-problem---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Dining philosophers problem</h1>
+<p>In computer science, the <b>dining philosophers problem</b> is an example problem often used in concurrent algorithm design to illustrate synchronization issues and techniques for resolving them.</p>
+<p>It was originally formulated in 1965 by Edsger Dijkstra as a student exam exercise, presented in terms of computers competing for access to tape drive peripherals. Soon after, Tony Hoare gave the problem its present formulation.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Problem statement
+<ul>
+<li>1.1 Problems</li>
+</ul>
+</li>
+<li>2 Solutions
+<ul>
+<li>2.1 Resource hierarchy solution</li>
+<li>2.2 Arbitrator solution</li>
+<li>2.3 Chandy/Misra solution</li>
+</ul>
+</li>
+<li>3 Source code example</li>
+<li>4 See also</li>
+<li>5 References</li>
+<li>6 External links</li>
+</ul>
+<ul>
+<li>1.1 Problems</li>
+</ul>
+<ul>
+<li>2.1 Resource hierarchy solution</li>
+<li>2.2 Arbitrator solution</li>
+<li>2.3 Chandy/Misra solution</li>
+</ul>
+<p></p>
+<h2>Problem statement</h2>
+<p>Five silent philosophers sit at a round table with bowls of spaghetti. Forks are placed between each pair of adjacent philosophers. (An alternative problem formulation uses rice and chopsticks instead of spaghetti and forks.)</p>
+<p>Each philosopher must alternately think and eat. However, a philosopher can only eat spaghetti when he has both left and right forks. Each fork can be held by only one philosopher and so a philosopher can use the fork only if it's not being used by another philosopher. After he finishes eating, he needs to put down both forks so they become available to others. A philosopher can grab the fork on his right or the one on his left as they become available, but can't start eating before getting both of them.</p>
+<p>Eating is not limited by the amount of spaghetti left: assume an infinite supply.</p>
+<p>The problem is how to design a discipline of behavior (a concurrent algorithm) such that each philosopher won't starve; i.e., can forever continue to alternate between eating and thinking assuming that any philosopher cannot know when others may want to eat or think.</p>
+<h3>Problems</h3>
+<p>The problem was designed to illustrate the challenges of avoiding deadlock, a system state in which no progress is possible. To see that a proper solution to this problem isn't obvious, consider a proposal in which each philosopher is instructed to behave as follows:</p>
+<ul>
+<li>think until the left fork is available; when it is, pick it up;</li>
+<li>think until the right fork is available; when it is, pick it up;</li>
+<li>when both forks are held, eat for a fixed amount of time;</li>
+<li>then, put the right fork down;</li>
+<li>then, put the left fork down;</li>
+<li>repeat from the beginning.</li>
+</ul>
+<p>This attempted solution fails because it allows the system to reach a deadlock state, in which no progress is possible. This is the state in which each philosopher has picked up the fork to the left, and is waiting for the fork to the right to become available. With the given instructions, this state can be reached, and when it is reached, the philosophers will eternally wait for each other to release a fork.</p>
+<p>Resource starvation might also occur independently of deadlock if a particular philosopher is unable to acquire both forks because of a timing problem. For example there might be a rule that the philosophers put down a fork after waiting ten minutes for the other fork to become available and wait a further ten minutes before making their next attempt. This scheme eliminates the possibility of deadlock (the system can always advance to a different state) but still suffers from the problem of livelock. If all five philosophers appear in the dining room at exactly the same time and each picks up the left fork at the same time the philosophers will wait ten minutes until they all put their forks down and then wait a further ten minutes before they all pick them up again.</p>
+<p>Mutual exclusion is the core idea of the problem; the dining philosophers create a generic and abstract scenario useful for explaining issues of this type. The failures these philosophers may experience are analogous to the difficulties that arise in real computer programming when multiple programs need exclusive access to shared resources. These issues are studied in the branch of Concurrent Programming. The original problems of Dijkstra were related to external devices like tape drives. However, the difficulties exemplified by the dining philosophers problem arise far more often when multiple processes access sets of data that are being updated. Systems such as operating system kernels use thousands of locks and synchronizations that require strict adherence to methods and protocols if such problems as deadlock, starvation, or data corruption are to be avoided.</p>
+<h2>Solutions</h2>
+<h3>Resource hierarchy solution</h3>
+<p>This solution to the problem is the one originally proposed by Dijkstra. It assigns a partial order to the resources (the forks, in this case), and establishing the convention that all resources will be requested in order, and that no two resources unrelated by order will ever be used by a single unit of work at the same time. Here, the resources (forks) will be numbered 1 through 5 and each unit of work (philosopher) will always pick up the lower-numbered fork first, and then the higher-numbered fork, from among the two forks he plans to use. The order in which each philosopher puts down the forks does not matter. In this case, if four of the five philosophers simultaneously pick up their lower-numbered fork, only the highest numbered fork will remain on the table, so the fifth philosopher will not be able to pick up any fork. Moreover, only one philosopher will have access to that highest-numbered fork, so he will be able to eat using two forks.</p>
+<p>While the resource hierarchy solution avoids deadlocks, it is not always practical, especially when the list of required resources is not completely known in advance. For example, if a unit of work holds resources 3 and 5 and then determines it needs resource 2, it must release 5, then 3 before acquiring 2, and then it must re-acquire 3 and 5 in that order. Computer programs that access large numbers of database records would not run efficiently if they were required to release all higher-numbered records before accessing a new record, making the method impractical for that purpose.</p>
+<h3>Arbitrator solution</h3>
+<p>Another approach is to guarantee that a philosopher can only pick up both forks or none by introducing an arbitrator, e.g., a waiter. In order to pick up the forks, a philosopher must ask permission of the waiter. The waiter gives permission to only one philosopher at a time until he has picked up both his forks. Putting down a fork is always allowed. The waiter can be implemented as a mutex. In addition to introducing a new central entity (the waiter), this approach can result in reduced parallelism: if a philosopher is eating and one of his neighbors is requesting the forks, all other philosophers must wait until this request has been fulfilled even if forks for them are still available.</p>
+<h3>Chandy/Misra solution</h3>
+<p>In 1984, K. Mani Chandy and J. Misra proposed a different solution to the dining philosophers problem to allow for arbitrary agents (numbered <i>P</i><sub>1</sub>, ..., <i>P</i><sub><i>n</i></sub>) to contend for an arbitrary number of resources, unlike Dijkstra's solution. It is also completely distributed and requires no central authority after initialization. However, it violates the requirement that "the philosophers do not speak to each other" (due to the request messages).</p>
+<ol>
+<li>For every pair of philosophers contending for a resource, create a fork and give it to the philosopher with the lower ID (<i>n</i> for agent <i>P</i><sub><i>n</i></sub>). Each fork can either be <i>dirty</i> or <i>clean.</i> Initially, all forks are dirty.</li>
+<li>When a philosopher wants to use a set of resources (<i>i.e.</i> eat), he must obtain the forks from his contending neighbors. For all such forks he does not have, he sends a request message.</li>
+<li>When a philosopher with a fork receives a request message, he keeps the fork if it is clean, but gives it up when it is dirty. If he sends the fork over, he cleans the fork before doing so.</li>
+<li>After a philosopher is done eating, all his forks become dirty. If another philosopher had previously requested one of the forks, he cleans the fork and sends it.</li>
+</ol>
+<p>This solution also allows for a large degree of concurrency, and will solve an arbitrarily large problem.</p>
+<p>It also solves the starvation problem. The clean / dirty labels act as a way of giving preference to the most "starved" processes, and a disadvantage to processes that have just "eaten". One could compare their solution to one where philosophers are not allowed to eat twice in a row without letting others use the forks in between. Their solution is more flexible than that, but has an element tending in that direction.</p>
+<p>In their analysis they derive a system of preference levels from the distribution of the forks and their clean/dirty states. They show that this system may describe an acyclic graph, and if so, the operations in their protocol cannot turn that graph into a cyclic one. This guarantees that deadlock cannot occur. However, if the system is initialized to a perfectly symmetric state, like all philosophers holding their left side forks, then the graph is cyclic at the outset, and their solution cannot prevent a deadlock. Initializing the system so that philosophers with lower IDs have dirty forks ensures the graph is initially acyclic.</p>
+<h2>Source code example</h2>
+<p>Below is an implementation of the resource hierarchy solution written in Python.</p>
+<p>WHATSON? 52dcff08-1fa7-41c2-b39f-e7f83f644706</p>
+<pre>
+import threading
+from time import sleep
+import os
+ 
+# Layout of the table (P = philosopher, f = fork):
+#          P1
+#       f4    f1
+#     P4        P2
+#       f3    f2
+#          P3
+ 
+# Number of philosophers at the table. There'll be the same number of forks.
+numPhilosophers = 4
+ 
+# Lists to hold the philosophers and the forks. Philosophers are threads while
+# forks are essentially numbered locks.
+philosophers = []
+forks = []
+ 
+class Philosopher(threading.Thread):
+    def __init__(self, position):
+        threading.Thread.__init__(self)
+        self.position = position
+ 
+    def run(self):
+        # Eat forever
+        while True:
+            # Fork on left is has position self.position. Fork on right has position
+            # fork on right has position (self.position - 1 + numPhilosophers) %
+            # numPhilosophers
+            leftFork = self.position
+            rightFork = (self.position - 1 + numPhilosophers) % numPhilosophers
+ 
+            # Try and pick up the largest fork
+            if leftFork &gt; rightFork:
+                forkPickedUp = leftFork
+            else:
+                forkPickedUp = rightFork
+            pickedUp = forks[forkPickedUp].tryAndPickUp(self.position)
+ 
+            # We got the fork, try and pick up the other fork
+            if pickedUp:
+                otherFork = leftFork if forkPickedUp == leftFork else rightFork
+                pickedUpOther = forks[otherFork].tryAndPickUp(self.position)
+ 
+                # Did we get the other fork? If so, eat. Both forks get put down
+                # either way.
+                if pickedUpOther:
+                    print("Philosopher", self.position, "eats.")
+                    forks[otherFork].putDown()
+                forks[forkPickedUp].putDown()
+ 
+class Fork:
+    def __init__(self, position):
+        self.position = position
+        self.lock = threading.Lock()
+        self.owner = -1
+ 
+    def tryAndPickUp(self, philosopher):
+        with self.lock:
+            if self.owner == -1:
+                self.owner = philosopher
+        return self.owner == philosopher
+ 
+    def putDown(self):
+        with self.lock:
+            self.owner = -1
+ 
+if __name__ == "__main__":
+    # Create our philosophers and forks
+    for i in range(0, numPhilosophers):
+        philosopher = Philosopher(i)
+        philosopher.name = "Philosopher" + str(i)
+        philosopher.daemon = True
+        philosophers.append(philosopher)
+        forks.append(Fork(i))
+ 
+    # All philosophers start eating
+    for i in range(0, numPhilosophers):
+        philosophers[i].start()
+ 
+    # Allow CTRL + C to exit the program
+    try:
+        while True: sleep(0.1)
+    except (KeyboardInterrupt, SystemExit):
+        os._exit(0)
+</pre>
+<h2>See also</h2>
+<ul>
+<li>Cigarette smokers problem</li>
+<li>Producers-consumers problem</li>
+<li>Readers-writers problem</li>
+<li>Sleeping barber problem</li>
+</ul>
+</body>
+</html>

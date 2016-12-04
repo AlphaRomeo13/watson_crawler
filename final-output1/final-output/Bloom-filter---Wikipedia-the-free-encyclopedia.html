@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Bloom-filter---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Bloom filter</h1>
+<ul>
+<li><strong class="selflink">Bloom filter</strong></li>
+<li>Quotient filter</li>
+<li>Skip list</li>
+</ul>
+<ul>
+<li>Random binary tree</li>
+<li>Treap</li>
+<li>Rapidly exploring random tree</li>
+</ul>
+<ul>
+<li>Randomized algorithm</li>
+</ul>
+<ul>
+<li>v</li>
+<li>t</li>
+<li>e</li>
+</ul>
+<p>A <b>Bloom filter</b> is a space-efficient probabilistic data structure, conceived by Burton Howard Bloom in 1970, that is used to test whether an element is a member of a set. False positive matches are possible, but false negatives are not, thus a Bloom filter has a 100% recall rate. In other words, a query returns either "possibly in set" or "definitely not in set". Elements can be added to the set, but not removed (though this can be addressed with a "counting" filter). The more elements that are added to the set, the larger the probability of false positives.</p>
+<p>Bloom proposed the technique for applications where the amount of source data would require an impracticably large hash area in memory if "conventional" error-free hashing techniques were applied. He gave the example of a hyphenation algorithm for a dictionary of 500,000 words, out of which 90% follow simple hyphenation rules, but the remaining 10% require expensive disk accesses to retrieve specific hyphenation patterns. With sufficient core memory, an error-free hash could be used to eliminate all unnecessary disk accesses; on the other hand, with limited core memory, Bloom's technique uses a smaller hash area but still eliminates most unnecessary accesses. For example, a hash area only 15% of the size needed by an ideal error-free hash still eliminates 85% of the disk accesses (Bloom (1970)).</p>
+<p>More generally, fewer than 10 bits per element are required for a 1% false positive probability, independent of the size or number of elements in the set (Bonomi et al. (2006)).</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Algorithm description</li>
+<li>2 Space and time advantages</li>
+<li>3 Probability of false positives
+<ul>
+<li>3.1 Optimal number of hash functions</li>
+</ul>
+</li>
+<li>4 Approximating the number of items in a Bloom filter</li>
+<li>5 The union and intersection of sets</li>
+<li>6 Interesting properties</li>
+<li>7 Examples</li>
+<li>8 Alternatives</li>
+<li>9 Extensions and applications
+<ul>
+<li>9.1 Counting filters</li>
+<li>9.2 Data synchronization</li>
+<li>9.3 Bloomier filters</li>
+<li>9.4 Compact approximators</li>
+<li>9.5 Stable Bloom filters</li>
+<li>9.6 Scalable Bloom filters</li>
+<li>9.7 Layered Bloom filters</li>
+<li>9.8 Attenuated Bloom filters</li>
+<li>9.9 Chemical structure searching</li>
+</ul>
+</li>
+<li>10 See also</li>
+<li>11 Notes</li>
+<li>12 References</li>
+<li>13 External links
+<ul>
+<li>13.1 Implementations</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li>3.1 Optimal number of hash functions</li>
+</ul>
+<ul>
+<li>9.1 Counting filters</li>
+<li>9.2 Data synchronization</li>
+<li>9.3 Bloomier filters</li>
+<li>9.4 Compact approximators</li>
+<li>9.5 Stable Bloom filters</li>
+<li>9.6 Scalable Bloom filters</li>
+<li>9.7 Layered Bloom filters</li>
+<li>9.8 Attenuated Bloom filters</li>
+<li>9.9 Chemical structure searching</li>
+</ul>
+<ul>
+<li>13.1 Implementations</li>
+</ul>
+<p></p>
+<h2>Algorithm description</h2>
+<p>An <i>empty Bloom filter</i> is a bit array of m bits, all set to 0. There must also be k different hash functions defined, each of which maps or hashes some set element to one of the m array positions with a uniform random distribution.</p>
+<p>To <i>add</i> an element, feed it to each of the k hash functions to get k array positions. Set the bits at all these positions to 1.</p>
+<p>To <i>query</i> for an element (test whether it is in the set), feed it to each of the k hash functions to get k array positions. If any of the bits at these positions are 0, the element is definitely not in the set – if it were, then all the bits would have been set to 1 when it was inserted. If all are 1, then either the element is in the set, or the bits have by chance been set to 1 during the insertion of other elements, resulting in a false positive. In a simple Bloom filter, there is no way to distinguish between the two cases, but more advanced techniques can address this problem.</p>
+<p>The requirement of designing k different independent hash functions can be prohibitive for large k. For a good hash function with a wide output, there should be little if any correlation between different bit-fields of such a hash, so this type of hash can be used to generate multiple "different" hash functions by slicing its output into multiple bit fields. Alternatively, one can pass k different initial values (such as 0, 1, ..., k − 1) to a hash function that takes an initial value; or add (or append) these values to the key. For larger m and/or k, independence among the hash functions can be relaxed with negligible increase in false positive rate (Dillinger &amp; Manolios (2004a), Kirsch &amp; Mitzenmacher (2006)). Specifically, Dillinger &amp; Manolios (2004b) show the effectiveness of deriving the k indices using enhanced double hashing or triple hashing, variants of double hashing that are effectively simple random number generators seeded with the two or three hash values.</p>
+<p>Removing an element from this simple Bloom filter is impossible because false negatives are not permitted. An element maps to k bits, and although setting any one of those k bits to zero suffices to remove the element, it also results in removing any other elements that happen to map onto that bit. Since there is no way of determining whether any other elements have been added that affect the bits for an element to be removed, clearing any of the bits would introduce the possibility for false negatives.</p>
+<p>One-time removal of an element from a Bloom filter can be simulated by having a second Bloom filter that contains items that have been removed. However, false positives in the second filter become false negatives in the composite filter, which may be undesirable. In this approach re-adding a previously removed item is not possible, as one would have to remove it from the "removed" filter.</p>
+<p>It is often the case that all the keys are available but are expensive to enumerate (for example, requiring many disk reads). When the false positive rate gets too high, the filter can be regenerated; this should be a relatively rare event.</p>
+<h2>Space and time advantages</h2>
+<p>While risking false positives, Bloom filters have a strong space advantage over other data structures for representing sets, such as self-balancing binary search trees, tries, hash tables, or simple arrays or linked lists of the entries. Most of these require storing at least the data items themselves, which can require anywhere from a small number of bits, for small integers, to an arbitrary number of bits, such as for strings (tries are an exception, since they can share storage between elements with equal prefixes). Linked structures incur an additional linear space overhead for pointers. A Bloom filter with 1% error and an optimal value of <i>k</i>, in contrast, requires only about 9.6 bits per element — regardless of the size of the elements. This advantage comes partly from its compactness, inherited from arrays, and partly from its probabilistic nature. The 1% false-positive rate can be reduced by a factor of ten by adding only about 4.8 bits per element.</p>
+<p>However, if the number of potential values is small and many of them can be in the set, the Bloom filter is easily surpassed by the deterministic bit array, which requires only one bit for each potential element. Note also that hash tables gain a space and time advantage if they begin ignoring collisions and store only whether each bucket contains an entry; in this case, they have effectively become Bloom filters with <i>k</i> = 1.</p>
+<p>Bloom filters also have the unusual property that the time needed either to add items or to check whether an item is in the set is a fixed constant, O(<i>k</i>), completely independent of the number of items already in the set. No other constant-space set data structure has this property, but the average access time of sparse hash tables can make them faster in practice than some Bloom filters. In a hardware implementation, however, the Bloom filter shines because its <i>k</i> lookups are independent and can be parallelized.</p>
+<p>To understand its space efficiency, it is instructive to compare the general Bloom filter with its special case when <i>k</i> = 1. If <i>k</i> = 1, then in order to keep the false positive rate sufficiently low, a small fraction of bits should be set, which means the array must be very large and contain long runs of zeros. The information content of the array relative to its size is low. The generalized Bloom filter (<i>k</i> greater than 1) allows many more bits to be set while still maintaining a low false positive rate; if the parameters (<i>k</i> and <i>m</i>) are chosen well, about half of the bits will be set, and these will be apparently random, minimizing redundancy and maximizing information content.</p>
+<h2>Probability of false positives</h2>
+<p>Assume that a hash function selects each array position with equal probability. If <i>m</i> is the number of bits in the array, the probability that a certain bit is not set to 1 by a certain hash function during the insertion of an element is</p>
+<p>If <i>k</i> is the number of hash functions, the probability that the bit is not set to 1 by any of the hash functions is</p>
+<p>If we have inserted <i>n</i> elements, the probability that a certain bit is still 0 is</p>
+<p>the probability that it is 1 is therefore</p>
+<p>Now test membership of an element that is not in the set. Each of the <i>k</i> array positions computed by the hash functions is 1 with a probability as above. The probability of all of them being 1, which would cause the algorithm to erroneously claim that the element is in the set, is often given as</p>
+<p>This is not strictly correct as it assumes independence for the probabilities of each bit being set. However, assuming it is a close approximation we have that the probability of false positives decreases as <i>m</i> (the number of bits in the array) increases, and increases as <i>n</i> (the number of inserted elements) increases.</p>
+<p>An alternative analysis arriving at the same approximation without the assumption of independence is given by Mitzenmacher and Upfal. After all <i>n</i> items have been added to the Bloom filter, let <i>q</i> be the fraction of the <i>m</i> bits that are set to 0. (That is, the number of bits still set to 0 is <i>qm</i>.) Then, when testing membership of an element not in the set, for the array position given by any of the <i>k</i> hash functions, the probability that the bit is found set to 1 is <img class="mwe-math-fallback-image-inline tex" alt="1-q" src="//upload.wikimedia.org/math/e/5/b/e5b98395fb433f933f1919176b6fc93c.png">. So the probability that all <i>k</i> hash functions find their bit set to 1 is <img class="mwe-math-fallback-image-inline tex" alt="(1 - q)^k" src="//upload.wikimedia.org/math/7/7/9/77929939fdd3e831885eca70f63c66c9.png">. Further, the expected value of <i>q</i> is the probability that a given array position is left untouched by each of the <i>k</i> hash functions for each of the <i>n</i> items, which is (as above)</p>
+<p>It is possible to prove, without the independence assumption, that <i>q</i> is very strongly concentrated around its expected value. In particular, from the Azuma–Hoeffding inequality, they prove that</p>
+<p>Because of this, we can say that the exact probability of false positives is</p>
+<p>as before.</p>
+<h3>Optimal number of hash functions</h3>
+<p>For a given <i>m</i> and <i>n</i>, the value of <i>k</i> (the number of hash functions) that minimizes the false positive probability is</p>
+<p>which gives</p>
+<p>The required number of bits <i>m</i>, given <i>n</i> (the number of inserted elements) and a desired false positive probability <i>p</i> (and assuming the optimal value of <i>k</i> is used) can be computed by substituting the optimal value of <i>k</i> in the probability expression above:</p>
+<p>which can be simplified to:</p>
+<p>This results in:</p>
+<p>This means that for a given false positive probability <i>p</i>, the length of a Bloom filter <i>m</i> is proportionate to the number of elements being filtered <i>n</i>. While the above formula is asymptotic (i.e. applicable as <i>m</i>,<i>n</i> → ∞), the agreement with finite values of <i>m</i>,<i>n</i> is also quite good; the false positive probability for a finite bloom filter with <i>m</i> bits, <i>n</i> elements, and <i>k</i> hash functions is at most</p>
+<p>So we can use the asymptotic formula if we pay a penalty for at most half an extra element and at most one fewer bit.</p>
+<h2>Approximating the number of items in a Bloom filter</h2>
+<p>Swamidass &amp; Baldi (2007) showed that the number of items in a Bloom filter can be approximated with the following formula,</p>
+<p>where <var><img class="mwe-math-fallback-image-inline tex" alt="X^*" src="//upload.wikimedia.org/math/f/2/d/f2d6c5f9b59bae5bc8a1ff91f8ae7ded.png"></var> is an estimate of the number of items in the filter, <var>N</var> is length of the filter, <var>k</var> is the number of hash functions per item, and <var>X</var> is the number of bits set to one.</p>
+<h2>The union and intersection of sets</h2>
+<p>Bloom filters are a way of compactly representing a set of items. It is common to try to compute the size of the intersection or union between two sets. Bloom filters can be used to approximate the size of the intersection and union of two sets. Swamidass &amp; Baldi (2007) showed that for two bloom filters of length <img class="mwe-math-fallback-image-inline tex" alt="N" src="//upload.wikimedia.org/math/8/d/9/8d9c307cb7f3c4a32822a51922d1ceaa.png">, their counts, respectively can be estimated as</p>
+<p>and</p>
+<p>The size of their union can be estimated as</p>
+<p>where <img class="mwe-math-fallback-image-inline tex" alt="n(A \cup B)" src="//upload.wikimedia.org/math/1/6/f/16f31e0a62f2d1624b41e7c5560d5318.png"> is the number of bits set to one in either of the two bloom filters. And the intersection can be estimated as</p>
+<p>Using the three formulas together.</p>
+<h2>Interesting properties</h2>
+<ul>
+<li>Unlike a standard hash table, a Bloom filter of a fixed size can represent a set with an arbitrary large number of elements; adding an element never fails due to the data structure "filling up." However, the false positive rate increases steadily as elements are added until all bits in the filter are set to 1, at which point <i>all</i> queries yield a positive result.</li>
+</ul>
+<ul>
+<li>Union and intersection of Bloom filters with the same size and set of hash functions can be implemented with bitwise OR and AND operations, respectively. The union operation on Bloom filters is lossless in the sense that the resulting Bloom filter is the same as the Bloom filter created from scratch using the union of the two sets. The intersect operation satisfies a weaker property: the false positive probability in the resulting Bloom filter is at most the false-positive probability in one of the constituent Bloom filters, but may be larger than the false positive probability in the Bloom filter created from scratch using the intersection of the two sets.</li>
+</ul>
+<ul>
+<li>Some kinds of superimposed code can be seen as a Bloom filter implemented with physical edge-notched cards. An example is Zatocoding, invented by Calvin Mooers in 1947, in which the set of categories associated with a piece of information is represented by notches on a card, with a random pattern of four notches for each category.</li>
+</ul>
+<h2>Examples</h2>
+<ul>
+<li>Google BigTable and Apache Cassandra use Bloom filters to reduce the disk lookups for non-existent rows or columns. Avoiding costly disk lookups considerably increases the performance of a database query operation.</li>
+<li>The Google Chrome web browser used to use a Bloom filter to identify malicious URLs. Any URL was first checked against a local Bloom filter, and only if the Bloom filter returned a positive result was a full check of the URL performed (and the user warned, if that too returned a positive result).</li>
+<li>The Squid Web Proxy Cache uses Bloom filters for cache digests.</li>
+<li>Bitcoin uses Bloom filters to speed up wallet synchronization.</li>
+<li>The Venti archival storage system uses Bloom filters to detect previously stored data.</li>
+<li>The SPIN model checker uses Bloom filters to track the reachable state space for large verification problems.</li>
+<li>The Cascading analytics framework uses Bloom filters to speed up asymmetric joins, where one of the joined data sets is significantly larger than the other (often called Bloom join in the database literature).</li>
+</ul>
+<h2>Alternatives</h2>
+<p>Classic Bloom filters use <img class="mwe-math-fallback-image-inline tex" alt="1.44\log_2(1/\epsilon)" src="//upload.wikimedia.org/math/2/c/9/2c90d45cc041b2162a64eea0e6e76570.png"> bits of space per inserted key, where <img class="mwe-math-fallback-image-inline tex" alt="\epsilon" src="//upload.wikimedia.org/math/c/5/0/c50b9e82e318d4c163e4b1b060f7daf5.png"> is the false positive rate of the Bloom filter. However, the space that is strictly necessary for any data structure playing the same role as a Bloom filter is only <img class="mwe-math-fallback-image-inline tex" alt="\log_2(1/\epsilon)" src="//upload.wikimedia.org/math/2/4/f/24f7a423f621cb98529ecfb4bb348c82.png"> per key (Pagh, Pagh &amp; Rao 2005). Hence Bloom filters use 44% more space than a hypothetical equivalent optimal data structure. The number of hash functions used to achieve a given false positive rate <img class="mwe-math-fallback-image-inline tex" alt="\epsilon" src="//upload.wikimedia.org/math/c/5/0/c50b9e82e318d4c163e4b1b060f7daf5.png"> is proportional to <img class="mwe-math-fallback-image-inline tex" alt="log(1/\epsilon)" src="//upload.wikimedia.org/math/8/b/0/8b023058f29fe196dd0889c7b284df74.png"> which is not optimal as it has been proved that an optimal data structure would need only a constant number of hash functions independent of the false positive rate.</p>
+<p>Stern &amp; Dill (1996) describe a probabilistic structure based on hash tables, hash compaction, which Dillinger &amp; Manolios (2004b) identify as significantly more accurate than a Bloom filter when each is configured optimally. Dillinger and Manolios, however, point out that the reasonable accuracy of any given Bloom filter over a wide range of numbers of additions makes it attractive for probabilistic enumeration of state spaces of unknown size. Hash compaction is, therefore, attractive when the number of additions can be predicted accurately; however, despite being very fast in software, hash compaction is poorly suited for hardware because of worst-case linear access time.</p>
+<p>Putze, Sanders &amp; Singler (2007) have studied some variants of Bloom filters that are either faster or use less space than classic Bloom filters. The basic idea of the fast variant is to locate the k hash values associated with each key into one or two blocks having the same size as processor's memory cache blocks (usually 64 bytes). This will presumably improve performance by reducing the number of potential memory cache misses. The proposed variants have however the drawback of using about 32% more space than classic Bloom filters.</p>
+<p>The space efficient variant relies on using a single hash function that generates for each key a value in the range <img class="mwe-math-fallback-image-inline tex" alt="\left[0,n/\varepsilon\right]" src="//upload.wikimedia.org/math/8/7/1/8719561052ee96a6f1c88ae38a05dbe2.png"> where <img class="mwe-math-fallback-image-inline tex" alt="\epsilon" src="//upload.wikimedia.org/math/c/5/0/c50b9e82e318d4c163e4b1b060f7daf5.png"> is the requested false positive rate. The sequence of values is then sorted and compressed using Golomb coding (or some other compression technique) to occupy a space close to <img class="mwe-math-fallback-image-inline tex" alt="n\log_2(1/\epsilon)" src="//upload.wikimedia.org/math/7/5/d/75dfc5084b212a9876270d321d670837.png"> bits. To query the Bloom filter for a given key, it will suffice to check if its corresponding value is stored in the Bloom filter. Decompressing the whole Bloom filter for each query would make this variant totally unusable. To overcome this problem the sequence of values is divided into small blocks of equal size that are compressed separately. At query time only half a block will need to be decompressed on average. Because of decompression overhead, this variant may be slower than classic Bloom filters but this may be compensated by the fact that a single hash function need to be computed.</p>
+<p>Another alternative to classic Bloom filter is the one based on space efficient variants of cuckoo hashing. In this case once the hash table is constructed, the keys stored in the hash table are replaced with short signatures of the keys. Those signatures are strings of bits computed using a hash function applied on the keys.</p>
+<h2>Extensions and applications</h2>
+<h3>Counting filters</h3>
+<p>Counting filters provide a way to implement a <i>delete</i> operation on a Bloom filter without recreating the filter afresh. In a counting filter the array positions (buckets) are extended from being a single bit to being an n-bit counter. In fact, regular Bloom filters can be considered as counting filters with a bucket size of one bit. Counting filters were introduced by Fan et al. (1998).</p>
+<p>The insert operation is extended to <i>increment</i> the value of the buckets and the lookup operation checks that each of the required buckets is non-zero. The delete operation, obviously, then consists of decrementing the value of each of the respective buckets.</p>
+<p>Arithmetic overflow of the buckets is a problem and the buckets should be sufficiently large to make this case rare. If it does occur then the increment and decrement operations must leave the bucket set to the maximum possible value in order to retain the properties of a Bloom filter.</p>
+<p>The size of counters is usually 3 or 4 bits. Hence counting Bloom filters use 3 to 4 times more space than static Bloom filters. In theory, an optimal data structure equivalent to a counting Bloom filter should not use more space than a static Bloom filter.</p>
+<p>Another issue with counting filters is limited scalability. Because the counting Bloom filter table cannot be expanded, the maximal number of keys to be stored simultaneously in the filter must be known in advance. Once the designed capacity of the table is exceeded, the false positive rate will grow rapidly as more keys are inserted.</p>
+<p>Bonomi et al. (2006) introduced a data structure based on d-left hashing that is functionally equivalent but uses approximately half as much space as counting Bloom filters. The scalability issue does not occur in this data structure. Once the designed capacity is exceeded, the keys could be reinserted in a new hash table of double size.</p>
+<p>The space efficient variant by Putze, Sanders &amp; Singler (2007) could also be used to implement counting filters by supporting insertions and deletions.</p>
+<p>Rottenstreich, Kanizo &amp; Keslassy (2012) introduced a new general method based on variable increments that significantly improves the false positive probability of counting Bloom filters and their variants, while still supporting deletions. Unlike counting Bloom filters, at each element insertion, the hashed counters are incremented by a hashed variable increment instead of a unit increment. To query an element, the exact values of the counters are considered and not just their positiveness. If a sum represented by a counter value cannot be composed of the corresponding variable increment for the queried element, a negative answer can be returned to the query.</p>
+<h3>Data synchronization</h3>
+<p>Bloom filters can be used for approximate data synchronization as in Byers et al. (2004). Counting Bloom filters can be used to approximate the number of differences between two sets and this approach is described in Agarwal &amp; Trachtenberg (2006).</p>
+<h3>Bloomier filters</h3>
+<p>Chazelle et al. (2004) designed a generalization of Bloom filters that could associate a value with each element that had been inserted, implementing an associative array. Like Bloom filters, these structures achieve a small space overhead by accepting a small probability of false positives. In the case of "Bloomier filters", a <i>false positive</i> is defined as returning a result when the key is not in the map. The map will never return the wrong value for a key that <i>is</i> in the map.</p>
+<h3>Compact approximators</h3>
+<p>Boldi &amp; Vigna (2005) proposed a lattice-based generalization of Bloom filters. A <b>compact approximator</b> associates to each key an element of a lattice (the standard Bloom filters being the case of the Boolean two-element lattice). Instead of a bit array, they have an array of lattice elements. When adding a new association between a key and an element of the lattice, they compute the maximum of the current contents of the <var>k</var> array locations associated to the key with the lattice element. When reading the value associated to a key, they compute the minimum of the values found in the <var>k</var> locations associated to the key. The resulting value approximates from above the original value.</p>
+<h3>Stable Bloom filters</h3>
+<p>Deng &amp; Rafiei (2006) proposed Stable Bloom filters as a variant of Bloom filters for streaming data. The idea is that since there is no way to store the entire history of a stream (which can be infinite), Stable Bloom filters continuously evict stale information to make room for more recent elements. Since stale information is evicted, the Stable Bloom filter introduces false negatives, which do not appear in traditional bloom filters. The authors show that a tight upper bound of false positive rates is guaranteed, and the method is superior to standard bloom filters in terms of false positive rates and time efficiency when a small space and an acceptable false positive rate are given.</p>
+<h3>Scalable Bloom filters</h3>
+<p>Almeida et al. (2007) proposed a variant of Bloom filters that can adapt dynamically to the number of elements stored, while assuring a minimum false positive probability. The technique is based on sequences of standard bloom filters with increasing capacity and tighter false positive probabilities, so as to ensure that a maximum false positive probability can be set beforehand, regardless of the number of elements to be inserted.</p>
+<h3>Layered Bloom filters</h3>
+<p>A layered bloom filter consists of multiple bloom filter layers. Layered bloom filters allow keeping track of how many times an item was added to the bloom filter by checking how many layers contain the item. With a layered bloom filter a check operation will normally return the deepest layer number the item was found in.</p>
+<h3>Attenuated Bloom filters</h3>
+<p>An attenuated bloom filter of depth D can be viewed as an array of D normal bloom filters. In the context of service discovery in a network, each node stores regular and attenuated bloom filters locally. The regular or local bloom filter indicates which services are offered by the node itself. The attenuated filter of level i indicates which services can be found on nodes that are i-hops away from the current node. The i-th value is constructed by taking a union of local bloom filters for nodes i-hops away from the node.</p>
+<p>Let's take a small network shown on the graph below as an example. Say we are searching for a service A whose id hashes to bits 0,1, and 3 (pattern 11010). Let n1 node to be the starting point. First, we check whether service A is offered by n1 by checking its local filter. Since the patterns don't match, we check the attenuated bloom filter in order to determine which node should be the next hop. We see that n2 doesn't offer service A but lies on the path to nodes that do. Hence, we move to n2 and repeat the same procedure. We quickly find that n3 offers the service, and hence the destination is located.</p>
+<p>By using attenuated Bloom filters consisting of multiple layers, services at more than one hop distance can be discovered while avoiding saturation of the Bloom filter by attenuating (shifting out) bits set by sources further away.</p>
+<h3>Chemical structure searching</h3>
+<p>Bloom filters are often used to search large chemical structure databases (see chemical similarity). In the simplest case, the elements added to the filter (called a fingerprint in this field) are just the atomic numbers present in the molecule, or a hash based on the atomic number of each atom and the number and type of its bonds. This case is too simple to be useful. More advanced filters also encode atom counts, larger substructure features like carboxyl groups, and graph properties like the number of rings. In hash-based fingerprints, a hash function based on atom and bond properties is used to turn a subgraph into a PRNG seed, and the first first output values used to set bits in the Bloom filter.</p>
+<p>Molecular fingerprints arose as a way to screen out obvious rejects in molecular subgraph searches. In the present day they are more often used in calculating molecular similarity, computed as the Tanimoto similarity between their respective fingerprints.</p>
+<p>Strictly speaking, the MACCS keys and CACTVS keys are a Bloom filter with only k=1 hash functions, because each feature gets its own unique bit. The Daylight and Indigo fingerprints, use a variable number of hash functions depending on the size of the feature, so fit into the more general category of superimposed code.</p>
+<h2>See also</h2>
+<ul>
+<li>Count–min sketch</li>
+<li>Feature hashing</li>
+<li>MinHash</li>
+<li>Quotient filter</li>
+<li>Skip list</li>
+</ul>
+<h2>Notes</h2>
+<ol>
+<li><b>^</b> Mitzenmacher &amp; Upfal (2005).</li>
+<li><b>^</b> Blustein &amp; El-Maazawi (2002), pp. 21–22</li>
+<li><b>^</b> Mitzenmacher &amp; Upfal (2005), pp. 109–111, 308.</li>
+<li><b>^</b> Mitzenmacher &amp; Upfal (2005), p. 308.</li>
+<li><b>^</b> Starobinski, Trachtenberg &amp; Agarwal (2003)</li>
+<li><b>^</b> Goel &amp; Gupta (2010).</li>
+<li><b>^</b> (Chang et al. 2006).</li>
+<li><b>^</b> Yakunin, Alex (2010-03-25). "Alex Yakunin's blog: Nice Bloom filter application". Blog.alexyakunin.com. Retrieved 2014-05-31. </li>
+<li><b>^</b> "Issue 10896048: Transition safe browsing from bloom filter to prefix set. - Code Review". Chromiumcodereview.appspot.com. Retrieved 2014-07-03. </li>
+<li><b>^</b> Wessels, Duane (January 2004), "10.7 Cache Digests", <i>Squid: The Definitive Guide</i> (1st ed.), O'Reilly Media, p. 172, ISBN 0-596-00162-2, "Cache Digests are based on a technique first published by Pei Cao, called Summary Cache. The fundamental idea is to use a Bloom filter to represent the cache contents." </li>
+<li><b>^</b> Bitcoin 0.8.0</li>
+<li><b>^</b> Core Development Status Report #1</li>
+<li><b>^</b> "Plan 9 /sys/man/8/venti". Plan9.bell-labs.com. Retrieved 2014-05-31. </li>
+<li><b>^</b> http://spinroot.com/</li>
+<li><b>^</b> Mullin (1990)</li>
+<li><b>^</b> "BloomJoin: BloomFilter + CoGroup | LiveRamp Blog". Blog.liveramp.com. Retrieved 2014-05-31. </li>
+<li><b>^</b> "pmylund/go-bloom". Github.com. Retrieved 2014-06-13. </li>
+<li><b>^</b> First Name Middle Name Last Name (2010-08-22). "IEEE Xplore Abstract - A multi-layer bloom filter for duplicated URL detection". Ieeexplore.ieee.org. doi:10.1109/ICACTE.2010.5578947. Retrieved 2014-06-13. </li>
+<li>^   Koucheryavy et al. (2009)</li>
+<li><b>^</b> Kubiatowicz et al. (2000)</li>
+</ol>
+</body>
+</html>

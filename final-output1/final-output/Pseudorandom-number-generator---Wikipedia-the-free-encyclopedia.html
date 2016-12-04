@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Pseudorandom-number-generator---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Pseudorandom number generator</h1>
+<p>A <b>pseudorandom number generator</b> (<b>PRNG</b>), also known as a <b>deterministic random bit generator</b> (<b>DRBG</b>), is an algorithm for generating a sequence of numbers whose properties approximate the properties of sequences of random numbers. The PRNG-generated sequence is not truly random, because it is completely determined by a relatively small set of initial values, called the PRNG's <i>seed</i> (which may include truly random values). Although sequences that are closer to truly random can be generated using hardware random number generators, <i>pseudorandom</i> number generators are important in practice for their speed in number generation and their reproducibility.</p>
+<p>PRNGs are central in applications such as simulations (e.g. for the Monte Carlo method), electronic games (e.g. for procedural generation), and cryptography. Cryptographic applications require the output not to be predictable from earlier outputs, and more elaborate algorithms, which do not inherit the linearity of simpler PRNGs, are needed.</p>
+<p>Good statistical properties are a central requirement for the output of a PRNG. In general, careful mathematical analysis is required to have any confidence that a PRNG generates numbers that are sufficiently close to random to suit the intended use. John von Neumann cautioned about the misinterpretation of a PRNG as a truly random generator, and joked that "Anyone who considers arithmetical methods of producing random digits is, of course, in a state of sin."</p>
+<p><br></p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Periodicity</li>
+<li>2 Potential problems with deterministic generators</li>
+<li>3 Generators based on linear recurrences</li>
+<li>4 Cryptographically secure pseudorandom number generators</li>
+<li>5 BSI evaluation criteria</li>
+<li>6 Mathematical definition</li>
+<li>7 Early approaches</li>
+<li>8 Non-uniform generators</li>
+<li>9 See also</li>
+<li>10 References</li>
+<li>11 Bibliography</li>
+<li>12 External links</li>
+</ul>
+<p></p>
+<h2>Periodicity</h2>
+<p>A PRNG can be started from an arbitrary initial state using a seed state. It will always produce the same sequence when initialized with that state. The <i>period</i> of a PRNG is defined thus: the maximum, over all starting states, of the length of the repetition-free prefix of the sequence. The period is bounded by the number of the states, usually measured in bits. However, since the length of the period potentially doubles with each bit of "state" added, it is easy to build PRNGs with periods long enough for many practical applications.</p>
+<p>If a PRNG's internal state contains <i>n</i> bits, its period can be no longer than 2 results, and may be much shorter. For some PRNGs, the period length can be calculated without walking through the whole period. Linear Feedback Shift Registers (LFSRs) are usually chosen to have periods of exactly 2−1. Linear congruential generators have periods that can be calculated by factoring. Mixes (no restrictions) have periods of about 2 on average, usually after walking through a nonrepeating starting sequence. Mixes that are reversible (permutations) have periods of about 2 on average, and the period will always include the original internal state. Although PRNGs will repeat their results after they reach the end of their period, a repeated result does not imply that the end of the period has been reached, since its internal state may be larger than its output; this is particularly obvious with PRNGs with a 1-bit output.</p>
+<p>Most PRNG algorithms produce sequences which are uniformly distributed by any of several tests. It is an open question, and one central to the theory and practice of cryptography, whether there is any way to distinguish the output of a high-quality PRNG from a truly random sequence without knowing the algorithm(s) used and the state with which it was initialized. The security of most cryptographic algorithms and protocols using PRNGs is based on the assumption that it is infeasible to distinguish use of a suitable PRNG from use of a truly random sequence. The simplest examples of this dependency are stream ciphers, which (most often) work by exclusive or-ing the plaintext of a message with the output of a PRNG, producing ciphertext. The design of cryptographically adequate PRNGs is extremely difficult, because they must meet additional criteria (see below). The size of its period is an important factor in the cryptographic suitability of a PRNG, but not the only one.</p>
+<h2>Potential problems with deterministic generators</h2>
+<p>In practice, the output from many common PRNGs exhibit artifacts which cause them to fail statistical pattern-detection tests. These include:</p>
+<ul>
+<li>Shorter than expected periods for some seed states (such seed states may be called 'weak' in this context);</li>
+<li>Lack of uniformity of distribution for large amounts of generated numbers;</li>
+<li>Correlation of successive values;</li>
+<li>Poor dimensional distribution of the output sequence;</li>
+<li>The distances between where certain values occur are distributed differently from those in a random sequence distribution.</li>
+</ul>
+<p>Defects exhibited by flawed PRNGs range from unnoticeable (and unknown) to very obvious. An example was the RANDU random number algorithm used for decades on mainframe computers. It was seriously flawed, but its inadequacy went undetected for a very long time.</p>
+<p>In many fields, much research work prior to the 21st century that relied on random selection or on Monte Carlo simulations, or in other ways relied on PRNGs, is much less reliable than it might have been as a result of using poor-quality PRNGs. Even today, caution is sometimes required, as illustrated by the following warning, which is given in the <i>International Encyclopedia of Statistical Science</i> (2010).</p>
+<p>The list of widely used generators that should be discarded is [long] ... Check the default [PRNG] of your favorite software and be ready to replace it if needed. This last recommendation has been made over and over again over the past 40 years. Perhaps amazingly, it remains as relevant today as it was 40 years ago.</p>
+<p>As an illustration, consider the widely used programming language Java. As of 2014, Java still relies on a linear congruential generator for a PRNG; yet it is well known that LCGs are of low quality (see further below).</p>
+<p>The first PRNG to avoid major problems and still run fairly fast was the Mersenne Twister (discussed below), which was published in 1998. Other high-quality PRNGs have since been developed.</p>
+<h2>Generators based on linear recurrences</h2>
+<p>In the second half of the 20th century, the standard class of algorithms used for PRNGs comprised linear congruential generators. The quality of LCGs was known to be inadequate, but better methods were unavailable. Press et al. (2007) described the result thus: "If all scientific papers whose results are in doubt because of [LCGs and related] were to disappear from library shelves, there would be a gap on each shelf about as big as your fist".</p>
+<p>A major advance in the construction of pseudorandom generators was the introduction of techniques based on <b>linear recurrences</b> on the two-element field; such generators are related to linear feedback shift registers.</p>
+<p>The 1997 invention of the Mersenne twister, in particular, avoided many of the problems with earlier generators. The Mersenne Twister has a period of 2−1 iterations (≈4.3×10), is proven to be equidistributed in (up to) 623 dimensions (for 32-bit values), and at the time of its introduction was running faster than other statistically reasonable generators.</p>
+<p>Subsequently, the WELL family of generators was developed  to improve the quality of the Mersenne Twister, which has a too large state space and a very slow recovery from state spaces with a large number of zeroes.</p>
+<p>In 2003, George Marsaglia introduced the family of xorshift generators, again based on a linear recurrence. Such generators are extremely fast and, combined with a nonlinear operation, they pass strong statistical tests.</p>
+<h2>Cryptographically secure pseudorandom number generators</h2>
+<p>A PRNG suitable for cryptographic applications is called a <i>cryptographically secure PRNG</i> (CSPRNG). A requirement for a CSPRNG is that an adversary not knowing the seed has only negligible advantage in distinguishing the generator's output sequence from a random sequence. In other words, while a PRNG is only required to pass certain statistical tests, a CSPRNG must pass all statistical tests that are restricted to polynomial time in the size of the seed. Though such property cannot be proven, strong evidence may be provided by reducing the CSPRNG to a problem that is assumed to be hard, such as integer factorization. In general, years of review may be required before an algorithm can be certified as a CSPRNG.</p>
+<p>Some classes of CSPRNGs include the following:</p>
+<ul>
+<li>Stream ciphers</li>
+<li>Block ciphers running in counter or output feedback mode.</li>
+<li>PRNGs that have been designed specifically to be cryptographically secure, such as Microsoft's Cryptographic Application Programming Interface function CryptGenRandom, the Yarrow algorithm (incorporated in Mac OS X and FreeBSD), and Fortuna.</li>
+<li>Combination PRNGs which attempt to combine several PRNG primitive algorithms with the goal of removing any non-randomness.</li>
+<li>Special designs based on mathematical hardness assumptions. Examples include Micali-Schnorr and the Blum Blum Shub algorithm, which provide a strong security proof. Such algorithms are rather slow compared to traditional constructions, and impractical for many applications.</li>
+</ul>
+<p>The NSA is reported to have inserted an asymmetric backdoor into the NIST certified pseudorandom number generator Dual_EC_DRBG.</p>
+<h2>BSI evaluation criteria</h2>
+<p>The German Federal Office for Information Security (<i>Bundesamt für Sicherheit in der Informationstechnik</i>, BSI) has established four criteria for quality of deterministic random number generators. They are summarized here:</p>
+<ul>
+<li>K1 — A sequence of random numbers with a low probability of containing identical consecutive elements.</li>
+<li>K2 — A sequence of numbers which is indistinguishable from 'true random' numbers according to specified statistical tests. The tests are the <i>monobit</i> test (equal numbers of ones and zeros in the sequence), <i>poker</i> test (a special instance of the chi-squared test), <i>runs</i> test (counts the frequency of runs of various lengths), <i>longruns</i> test (checks whether there exists any run of length 34 or greater in 20 000 bits of the sequence) — both from BSI and NIST, and the <i>autocorrelation</i> test. In essence, these requirements are a test of how well a bit sequence: has zeros and ones equally often; after a sequence of <i>n</i> zeros (or ones), the next bit a one (or zero) with probability one-half; and any selected subsequence contains no information about the next element(s) in the sequence.</li>
+<li>K3 — It should be impossible for any attacker (for all practical purposes) to calculate, or otherwise guess, from any given sub-sequence, any previous or future values in the sequence, nor any inner state of the generator.</li>
+<li>K4 — It should be impossible, for all practical purposes, for an attacker to calculate, or guess from an inner state of the generator, any previous numbers in the sequence or any previous inner generator states.</li>
+</ul>
+<p>For cryptographic applications, only generators meeting the K3 or K4 standard are acceptable.</p>
+<h2>Mathematical definition</h2>
+<p>Given</p>
+<ul>
+<li><img class="mwe-math-fallback-image-inline tex" alt="P" src="//upload.wikimedia.org/math/4/4/c/44c29edb103a2872f519ad0c9a0fdaaa.png"> - a probability distribution on <img class="mwe-math-fallback-image-inline tex" alt="\left(\mathbb{R},\mathfrak{B}\right)" src="//upload.wikimedia.org/math/6/5/2/6526f698394c8425d07b96196ad215e3.png"> (where <img class="mwe-math-fallback-image-inline tex" alt="\mathfrak{B}" src="//upload.wikimedia.org/math/0/8/4/08418551545819117b9e3c87b599ca5c.png"> is the standard Borel field on the real line)</li>
+<li><img class="mwe-math-fallback-image-inline tex" alt="\mathfrak{F}" src="//upload.wikimedia.org/math/9/7/b/97bfd94df9d5118c9e71ddc9fb378b68.png"> - a non-empty collection of Borel sets <img class="mwe-math-fallback-image-inline tex" alt="\mathfrak{F}\subseteq\mathfrak{B}" src="//upload.wikimedia.org/math/3/f/b/3fbbdff743639988cc8436af383185c6.png">, e.g. <img class="mwe-math-fallback-image-inline tex" alt="\mathfrak{F}=\left\{\left(-\infty,t\right] : t\in\mathbb{R}\right\}" src="//upload.wikimedia.org/math/9/b/d/9bdb018ba77d4114b80272cc1f828b70.png">. If <img class="mwe-math-fallback-image-inline tex" alt="\mathfrak{F}" src="//upload.wikimedia.org/math/9/7/b/97bfd94df9d5118c9e71ddc9fb378b68.png"> is not specified, it may be either <img class="mwe-math-fallback-image-inline tex" alt="\mathfrak{B}" src="//upload.wikimedia.org/math/0/8/4/08418551545819117b9e3c87b599ca5c.png"> or <img class="mwe-math-fallback-image-inline tex" alt="\left\{\left(-\infty,t\right] : t\in\mathbb{R}\right\}" src="//upload.wikimedia.org/math/5/3/c/53c5c8649f403e4120e9dbc8f6308e6c.png">, depending on context.</li>
+<li><img class="mwe-math-fallback-image-inline tex" alt="A\subseteq\mathbb{R}" src="//upload.wikimedia.org/math/7/5/c/75c48e31594767f7509bfb09ebf75cb4.png"> - a non-empty set (not necessarily a Borel set). Often <img class="mwe-math-fallback-image-inline tex" alt="A" src="//upload.wikimedia.org/math/7/f/c/7fc56270e7a70fa81a5935b72eacbe29.png"> is a set between <img class="mwe-math-fallback-image-inline tex" alt="P" src="//upload.wikimedia.org/math/4/4/c/44c29edb103a2872f519ad0c9a0fdaaa.png">'s support and its interior, for instance, if <img class="mwe-math-fallback-image-inline tex" alt="P" src="//upload.wikimedia.org/math/4/4/c/44c29edb103a2872f519ad0c9a0fdaaa.png"> is the uniform distribution on the interval <img class="mwe-math-fallback-image-inline tex" alt="\left(0,1\right]" src="//upload.wikimedia.org/math/0/1/4/014436577a9d88d1415e14d24f6aa03b.png">, <img class="mwe-math-fallback-image-inline tex" alt="A" src="//upload.wikimedia.org/math/7/f/c/7fc56270e7a70fa81a5935b72eacbe29.png"> might be <img class="mwe-math-fallback-image-inline tex" alt="\left(0,1\right]" src="//upload.wikimedia.org/math/0/1/4/014436577a9d88d1415e14d24f6aa03b.png">. If <img class="mwe-math-fallback-image-inline tex" alt="A" src="//upload.wikimedia.org/math/7/f/c/7fc56270e7a70fa81a5935b72eacbe29.png"> is not specified, it is assumed to be some set contained in the support of <img class="mwe-math-fallback-image-inline tex" alt="P" src="//upload.wikimedia.org/math/4/4/c/44c29edb103a2872f519ad0c9a0fdaaa.png"> and containing its interior, depending on context.</li>
+</ul>
+<p>we call a function <img class="mwe-math-fallback-image-inline tex" alt="f:\mathbb{N}_1\rightarrow\mathbb{R}" src="//upload.wikimedia.org/math/e/5/c/e5c8e78108fada4d2a8917b76b49db96.png"> (where <img class="mwe-math-fallback-image-inline tex" alt="\mathbb{N}_1=\left\{1,2,3,\dots\right\}" src="//upload.wikimedia.org/math/b/d/f/bdfa16e316e2b2750faba88e34f1857f.png"> is the set of positive integers) a <b>pseudo-random number generator for <img class="mwe-math-fallback-image-inline tex" alt="P" src="//upload.wikimedia.org/math/4/4/c/44c29edb103a2872f519ad0c9a0fdaaa.png"> given <img class="mwe-math-fallback-image-inline tex" alt="\mathfrak{F}" src="//upload.wikimedia.org/math/9/7/b/97bfd94df9d5118c9e71ddc9fb378b68.png"> taking values in <img class="mwe-math-fallback-image-inline tex" alt="A" src="//upload.wikimedia.org/math/7/f/c/7fc56270e7a70fa81a5935b72eacbe29.png"></b> iff</p>
+<ul>
+<li><img class="mwe-math-fallback-image-inline tex" alt="f\left(\mathbb{N}_1\right)\subseteq A" src="//upload.wikimedia.org/math/d/6/3/d6334f773462a7a682f760df978edc87.png"></li>
+<li><img class="mwe-math-fallback-image-inline tex" alt="\forall E\in\mathfrak{F} \quad \forall 0&lt;\varepsilon\in\mathbb{R} \quad \exists N\in\mathbb{N}_1 \quad \forall N\leq n\in\mathbb{N}_1, \quad \left|\frac{\#\left\{i\in\left\{1,2,\dots, n\right\} : f(i)\in E\right\}}{n}-P(E)\right|&lt; \varepsilon" src="//upload.wikimedia.org/math/7/a/b/7abd4cf560f876c58c99271511a98e3b.png"></li>
+</ul>
+<p>(<img class="mwe-math-fallback-image-inline tex" alt="\#S" src="//upload.wikimedia.org/math/6/8/0/6807c423cfd9e34ec15ec98f041a9620.png"> denotes the number of elements in the finite set <img class="mwe-math-fallback-image-inline tex" alt="S" src="//upload.wikimedia.org/math/5/d/b/5dbc98dcc983a70728bd082d1a47546e.png">.)</p>
+<p>It can be shown that if <img class="mwe-math-fallback-image-inline tex" alt="f" src="//upload.wikimedia.org/math/8/f/a/8fa14cdd754f91cc6554c9e71929cce7.png"> is a pseudo-random number generator for the uniform distribution on <img class="mwe-math-fallback-image-inline tex" alt="\left(0,1\right)" src="//upload.wikimedia.org/math/f/2/3/f230da7e942faedcba8ca6482387066a.png"> and if <img class="mwe-math-fallback-image-inline tex" alt="F" src="//upload.wikimedia.org/math/8/0/0/800618943025315f869e4e1f09471012.png"> is the CDF of some given probability distribution <img class="mwe-math-fallback-image-inline tex" alt="P" src="//upload.wikimedia.org/math/4/4/c/44c29edb103a2872f519ad0c9a0fdaaa.png">, then <img class="mwe-math-fallback-image-inline tex" alt="F^*\circ f" src="//upload.wikimedia.org/math/3/b/c/3bcc9534cba35c233df3b789a85a7ae7.png"> is a pseudo-random number generator for <img class="mwe-math-fallback-image-inline tex" alt="P" src="//upload.wikimedia.org/math/4/4/c/44c29edb103a2872f519ad0c9a0fdaaa.png">, where <img class="mwe-math-fallback-image-inline tex" alt="F^*:\left(0,1\right)\rightarrow\mathbb{R}" src="//upload.wikimedia.org/math/4/5/7/45779788d3b661fd4c86214cb0e57fac.png"> is the percentile of <img class="mwe-math-fallback-image-inline tex" alt="P" src="//upload.wikimedia.org/math/4/4/c/44c29edb103a2872f519ad0c9a0fdaaa.png">, i.e. <img class="mwe-math-fallback-image-inline tex" alt="F^*(x):=\inf\left\{t\in\mathbb{R} : x\leq F(t)\right\}" src="//upload.wikimedia.org/math/a/a/a/aaa16414f8faf83330feddacbd4f9e8d.png">. Intuitively, an arbitrary distribution can be simulated from a simulation of the standard uniform distribution.</p>
+<p><br></p>
+<h2>Early approaches</h2>
+<p>An early computer-based PRNG, suggested by John von Neumann in 1946, is known as the middle-square method. The algorithm is as follows: take any number, square it, remove the middle digits of the resulting number as the "random number", then use that number as the seed for the next iteration. For example, squaring the number "1111" yields "1234321", which can be written as "01234321", an 8-digit number being the square of a 4-digit number. This gives "2343" as the "random" number. Repeating this procedure gives "4896" as the next result, and so on. Von Neumann used 10 digit numbers, but the process was the same.</p>
+<p>A problem with the "middle square" method is that all sequences eventually repeat themselves, some very quickly, such as "0000". Von Neumann was aware of this, but he found the approach sufficient for his purposes, and was worried that mathematical "fixes" would simply hide errors rather than remove them.</p>
+<p>Von Neumann judged hardware random number generators unsuitable, for, if they did not record the output generated, they could not later be tested for errors. If they did record their output, they would exhaust the limited computer memories then available, and so the computer's ability to read and write numbers. If the numbers were written to cards, they would take very much longer to write and read. On the ENIAC computer he was using, the "middle square" method generated numbers at a rate some hundred times faster than reading numbers in from punched cards.</p>
+<p>The middle-square method has since been supplanted by more elaborate generators.</p>
+<h2>Non-uniform generators</h2>
+<p>Numbers selected from a non-uniform probability distribution can be generated using a uniform distribution PRNG and a function that relates the two distributions.</p>
+<p>First, one needs the cumulative distribution function <img class="mwe-math-fallback-image-inline tex" alt="F(b)" src="//upload.wikimedia.org/math/b/6/0/b601daf67e7beb498303e5be9a2b9ea4.png"> of the target distribution <img class="mwe-math-fallback-image-inline tex" alt="f(b)" src="//upload.wikimedia.org/math/4/8/9/4895f8fcb3242a56118a273c423518a3.png">:</p>
+<p>Note that <img class="mwe-math-fallback-image-inline tex" alt="0=F(-\infty)\leq F(b) \leq F(\infty)=1" src="//upload.wikimedia.org/math/7/9/e/79e7ba43941c78ef6c4e1065ea59545b.png">. Using a random number <i>c</i> from a uniform distribution as the probability density to "pass by", we get</p>
+<p>so that</p>
+<h1>Pseudorandom number generator</h1>
+<p>A <b>pseudorandom number generator</b> (<b>PRNG</b>), also known as a <b>deterministic random bit generator</b> (<b>DRBG</b>), is an algorithm for generating a sequence of numbers whose properties approximate the properties of sequences of random numbers. The PRNG-generated sequence is not truly random, because it is completely determined by a relatively small set of initial values, called the PRNG's <i>seed</i> (which may include truly random values). Although sequences that are closer to truly random can be generated using hardware random number generators, <i>pseudorandom</i> number generators are important in practice for their speed in number generation and their reproducibility.</p>
+<p>is a number randomly selected from distribution <img class="mwe-math-fallback-image-inline tex" alt="f(b)" src="//upload.wikimedia.org/math/4/8/9/4895f8fcb3242a56118a273c423518a3.png">.</p>
+<p>PRNGs are central in applications such as simulations (e.g. for the Monte Carlo method), electronic games (e.g. for procedural generation), and cryptography. Cryptographic applications require the output not to be predictable from earlier outputs, and more elaborate algorithms, which do not inherit the linearity of simpler PRNGs, are needed.</p>
+<p>Good statistical properties are a central requirement for the output of a PRNG. In general, careful mathematical analysis is required to have any confidence that a PRNG generates numbers that are sufficiently close to random to suit the intended use. John von Neumann cautioned about the misinterpretation of a PRNG as a truly random generator, and joked that "Anyone who considers arithmetical methods of producing random digits is, of course, in a state of sin."</p>
+<p><br></p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Periodicity</li>
+<li>2 Potential problems with deterministic generators</li>
+<li>3 Generators based on linear recurrences</li>
+<li>4 Cryptographically secure pseudorandom number generators</li>
+<li>5 BSI evaluation criteria</li>
+<li>6 Mathematical definition</li>
+<li>7 Early approaches</li>
+<li>8 Non-uniform generators</li>
+<li>9 See also</li>
+<li>10 References</li>
+<li>11 Bibliography</li>
+<li>12 External links</li>
+</ul>
+<p></p>
+<h2>Periodicity</h2>
+<p>For example, the inverse of cumulative Gaussian distribution <img class="mwe-math-fallback-image-inline tex" alt="\operatorname{erf}^{-1}(x)" src="//upload.wikimedia.org/math/5/d/8/5d8ab71441b21a32e8bc56e05920e734.png"> with an ideal uniform PRNG with range (0, 1) as input <img class="mwe-math-fallback-image-inline tex" alt="x" src="//upload.wikimedia.org/math/9/d/d/9dd4e461268c8034f5c8564e155c67a6.png"> would produce a sequence of (positive only) values with a Gaussian distribution; however</p>
+<ul>
+<li>when using practical number representations, the infinite "tails" of the distribution have to be truncated to finite values.</li>
+<li>Repetitive recalculation of <img class="mwe-math-fallback-image-inline tex" alt="\operatorname{erf}^{-1}(x)" src="//upload.wikimedia.org/math/5/d/8/5d8ab71441b21a32e8bc56e05920e734.png"> should be reduced by means such as ziggurat algorithm for faster generation.</li>
+</ul>
+<p>Similar considerations apply to generating other non-uniform distributions such as Rayleigh and Poisson.</p>
+<h2>See also</h2>
+<ul>
+<li>List of pseudorandom number generators</li>
+</ul>
+<ul>
+<li>Applications of randomness</li>
+<li>Low-discrepancy sequence</li>
+<li>Pseudorandom binary sequence</li>
+<li>Pseudorandom noise</li>
+<li>Random number generation</li>
+<li>Random number generator attack</li>
+<li>Randomness</li>
+</ul>
+</body>
+</html>

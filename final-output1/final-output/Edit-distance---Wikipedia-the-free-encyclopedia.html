@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Edit-distance---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Edit distance</h1>
+<p>In computer science, <b>edit distance</b> is a way of quantifying how dissimilar two strings (e.g., words) are to one another by counting the minimum number of operations required to transform one string into the other. Edit distances find applications in natural language processing, where automatic spelling correction can determine candidate corrections for a misspelled word by selecting words from a dictionary that have a low distance to the word in question. In bioinformatics, it can be used to quantify the similarity of macromolecules such as DNA, which can be viewed as strings of the letters A, C, G and T.</p>
+<p>Several definitions of edit distance exist, using different sets of string operations. One of the most common variants is called Levenshtein distance, named after the Soviet Russian computer scientist Vladimir Levenshtein. In this version, the allowed operations are the removal or insertion of a single character, or the substitution of one character for another. Levenshtein distance may also simply be called "edit distance", although several variants exist.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Formal definition and properties
+<ul>
+<li>1.1 Example</li>
+<li>1.2 Properties</li>
+</ul>
+</li>
+<li>2 Computation
+<ul>
+<li>2.1 Basic algorithm</li>
+<li>2.2 Improved algorithms</li>
+</ul>
+</li>
+<li>3 Applications</li>
+<li>4 References</li>
+</ul>
+<ul>
+<li>1.1 Example</li>
+<li>1.2 Properties</li>
+</ul>
+<ul>
+<li>2.1 Basic algorithm</li>
+<li>2.2 Improved algorithms</li>
+</ul>
+<p></p>
+<h2>Formal definition and properties</h2>
+<p>Given two strings a and b on an alphabet Σ (e.g. the set of ASCII characters, the set of bytes [0..255], etc.), the edit distance d(a, b) is the minimum-weight series of edit operations that transforms a into b. One of the simplest sets of edit operations is that defined by Levenshtein in 1966:</p>
+<p>In Levenshtein's original definition, each of these operations has unit cost (except that substitution of a character by itself has zero cost), so the Levenshtein distance is equal to the minimum <i>number</i> of operations required to transform a to b. A more general definition associates non-negative weight functions w<sub>ins</sub>(x), w<sub>del</sub>(x) and w<sub>sub</sub>(x y) with the operations.</p>
+<p>Additional primitive operations have been suggested. A common mistake when typing text is <b>transposition</b> of two adjacent characters commonly occur, formally characterized by an operation that changes uxyv into uyxv where x, y ∈ Σ. For the task of correcting OCR output, <b>merge</b> and <b>split</b> operations have been used which replace a single character into a pair of them or vice-versa.</p>
+<p>Other variants of edit distance are obtained by restricting the set of operations. Longest common subsequence (LCS) distance is edit distance with insertion and deletion as the only two edit operations, both at unit cost. Similarly, by only allowing substitutions (again at unit cost), Hamming distance is obtained; this must be restricted to equal-length strings. Jaro–Winkler distance can be obtained from an edit distance where only transpositions are allowed.</p>
+<h3>Example</h3>
+<p>The Levenshtein distance between "kitten" and "sitting" is 3. The minimal edit script that transforms the former into the latter is:</p>
+<ol>
+<li><b>k</b>itten → <b>s</b>itten (substitution of "s" for "k")</li>
+<li>sitt<b>e</b>n → sitt<b>i</b>n (substitution of "i" for "e")</li>
+<li>sittin → sittin<b>g</b> (insertion of "g" at the end).</li>
+</ol>
+<p>LCS distance (insertions and deletions only) gives a different distance and minimal edit script:</p>
+<ol>
+<li>delete <b>k</b> at 0</li>
+<li>insert <b>s</b> at 0</li>
+<li>delete <b>e</b> at 4</li>
+<li>insert <b>i</b> at 4</li>
+<li>insert <b>g</b> at 6</li>
+</ol>
+<p>for a total cost/distance of 5 operations.</p>
+<h3>Properties</h3>
+<p>Edit distance with non-negative cost satisfies the axioms of a metric, giving rise to a metric space of strings, when the following conditions are met:</p>
+<ul>
+<li>Every edit operation has positive cost;</li>
+<li>for every operation, there is an inverse operation with equal cost.</li>
+</ul>
+<p>With these properties, the metric axioms are satisfied as follows:</p>
+<p>Levenshtein distance and LCS distance with unit cost satisfy the above conditions, and therefore the metric axioms. Variants of edit distance that are not proper metrics have also been considered in the literature.</p>
+<p>Other useful properties of unit-cost edit distances include:</p>
+<ul>
+<li>LCS distance is bounded above by the sum of lengths of a pair of strings.</li>
+<li>LCS distance is an upper bound on Levenshtein distance.</li>
+<li>For strings of the same length, Hamming distance is an upper bound on Levenshtein distance.</li>
+</ul>
+<p>Regardless of cost/weights, the following property holds of all edit distances:</p>
+<ul>
+<li>When a and b share a common prefix, this prefix has no effect on the distance. Formally, when a = uv and b = uw, then d(a, b) = d(v, w). This allows speeding up many computations involving edit distance and edit scripts, since common prefixes and suffixes can be skipped in linear time.</li>
+</ul>
+<h2>Computation</h2>
+<h3>Basic algorithm</h3>
+<p>Using Levenshtein's original operations, the edit distance between <img class="mwe-math-fallback-image-inline tex" alt="a = a_1\ldots a_n" src="//upload.wikimedia.org/math/c/4/8/c48ad7e9f200d154d4272b0d2a97f39d.png"> and <img class="mwe-math-fallback-image-inline tex" alt="b = b_1\ldots b_m" src="//upload.wikimedia.org/math/5/5/e/55e20ee18659f2d4f07cd965b6c7dc30.png"> is given by <img class="mwe-math-fallback-image-inline tex" alt="d_{mn}" src="//upload.wikimedia.org/math/9/e/1/9e13a460dce3324f01e829a7651155c2.png">, defined by the recurrence</p>
+<p>This algorithm can be generalized to handle transpositions by adding another term in the recursive clause's minimization.</p>
+<p>The straightforward, recursive way of evaluating this recurrence takes exponential time. Therefore, it is usually computed using a dynamic programming algorithm that is commonly credited to Wagner and Fischer, although it has a history of multiple invention. After completion of the Wagner–Fischer algorithm, a minimal sequence of edit operations can be read off as a backtrace of the operations used during the dynamic programming algorithm starting at <img class="mwe-math-fallback-image-inline tex" alt="d_{mn}" src="//upload.wikimedia.org/math/9/e/1/9e13a460dce3324f01e829a7651155c2.png">.</p>
+<p>This algorithm has a time complexity of Θ(mn). When the full dynamic programming table is constructed, its space complexity is also Θ(mn); this can be improved to Θ(min(m,n)) by observing that at any instant, the algorithm only requires two rows (or two columns) in memory. However, this optimization makes it impossible to read off the minimal series of edit operations. A linear-space solution to this problem is offered by Hirschberg's algorithm.</p>
+<h3>Improved algorithms</h3>
+<p>Improving on the Wagner–Fisher algorithm described above, Ukkonen describes several variants, one of which takes two strings and a maximum edit distance s, and returns min(s, d). It achieves this by only computing and storing a part of the dynamic programming table around its diagonal. This algorithm takes time O(s×min(m,n)), where m and n are the lengths of the strings. Space complexity is O(s²) or O(s), depending on whether the edit sequence needs to be read off.</p>
+<h2>Applications</h2>
+<p>Edit distance finds applications in computational biology and natural language processing, e.g. the correction of spelling mistakes or OCR errors, and approximate string matching, where the objective is to find matches for short strings in many longer texts, in situations where a small number of differences is to be expected.</p>
+<p>Various algorithms exist that solve problems beside the computation of distance between a pair of strings, to solve related types of problems.</p>
+<ul>
+<li>Hirschberg's algorithm computes the optimal alignment of two strings, where optimality is defined as minimizing edit distance.</li>
+<li>Approximate string matching can be formulated in terms of edit distance. Ukkonen's 1985 algorithm takes a string p, called the pattern, and a constant k; it then builds a deterministic finite state automaton that finds, in an arbitrary string s, a substring whose edit distance to p is at most k (cf. the Aho–Corasick algorithm, which similarly constructs an automaton to search for any of a number of patterns, but without allowing edit operations). A similar algorithm for approximate string matching is the bitap algorithm, also defined in terms of edit distance.</li>
+<li>Levenshtein automata are finite-state machines that recognize a set of strings within bounded edit distance of a fixed reference string.</li>
+</ul>
+</body>
+</html>

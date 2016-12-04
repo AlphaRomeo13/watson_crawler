@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Move-to-front-transform---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Move-to-front transform</h1>
+<p>The <b>move-to-front transform</b> (or <b>MTF</b>) is an encoding of data (typically a stream of bytes) designed to improve the performance of entropy encoding techniques of compression. When efficiently implemented, it is fast enough that its benefits usually justify including it as an extra step in data compression algorithms.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 The transform</li>
+<li>2 Implementation
+<ul>
+<li>2.1 Python</li>
+</ul>
+</li>
+<li>3 Use in practical data compression algorithms
+<ul>
+<li>3.1 Example</li>
+</ul>
+</li>
+<li>4 References</li>
+<li>5 External links</li>
+</ul>
+<ul>
+<li>2.1 Python</li>
+</ul>
+<ul>
+<li>3.1 Example</li>
+</ul>
+<p></p>
+<h2>The transform</h2>
+<p>The main idea is that each symbol in the data is replaced by its index in the stack of “recently used symbols”. For example, long sequences of identical symbols are replaced by as many zeroes, whereas when a symbol that has not been used in a long time appears, it is replaced with a large number. Thus at the end the data is transformed into a sequence of integers; if the data exhibits a lot of local correlations, then these integers tend to be small.</p>
+<p>This algorithm was published in a paper by Ryabko. The original name of this code is “book stack”.</p>
+<p>Let us give a precise description. Assume for simplicity that the symbols in the data are bytes. Each byte value is encoded by its index in a list of bytes, which changes over the course of the algorithm. The list is initially in order by byte value (0, 1, 2, 3, ..., 255). Therefore, the first byte is always encoded by its own value. However, after encoding a byte, that value is moved to the front of the list before continuing to the next byte.</p>
+<p>An example will shed some light on how the transform works. Imagine instead of bytes, we are encoding values in a-z. We wish to transform the following sequence:</p>
+<p>WHATSON? c1eef713-eab1-40d9-bb7c-a39467a272de</p>
+<pre>
+bananaaa
+</pre>
+<p>By convention, the list is initially (abcdefghijklmnopqrstuvwxyz). The first letter in the sequence is b, which appears at index 1 (the list is indexed from 0 to 25). We put a 1 to the output stream:</p>
+<p>WHATSON? a72eb43e-cbb7-45ff-8d37-737248cb5371</p>
+<pre>
+1
+</pre>
+<p>The b moves to the front of the list, producing (bacdefghijklmnopqrstuvwxyz). The next letter is a, which now appears at index 1. So we add a 1 to the output stream. We have:</p>
+<p>WHATSON? 4b6c0e6a-7e57-4b6c-983e-3b2bbda0f218</p>
+<pre>
+1,1
+</pre>
+<p>and we move back the letter a to the top of the list. Continuing this way, we find that the sequence is encoded by:</p>
+<p>WHATSON? 7d944ed2-0bc0-4b2b-a2ff-da2f2ff05f71</p>
+<pre>
+1,1,13,1,1,1,0,0
+</pre>
+<p>It is easy to see that the transform is reversible. Simply maintain the same list and decode by replacing each index in the encoded stream with the letter at that index in the list. Note the difference between this and the encoding method: The index in the list is used directly instead of looking up each value for its index.</p>
+<p>i.e. you start again with (abcdefghijklmnopqrstuvwxyz). You take the "1" of the encoded block and look it up in the list, which results in "b". Then move the "b" to front which results in (bacdef...). Then take the next "1", look it up in the list, this results in "a", move the "a" to front ... etc.</p>
+<h2>Implementation</h2>
+<p>Details of implementation are important for performance, particularly for decoding. For encoding, no clear advantage is gained by using a linked list, so using an array to store the list is acceptable, with worst-case performance O(<var>n</var><var>k</var>), where <var>n</var> is the length of the data to be encoded and <var>k</var> is the number of values (generally a constant for a given implementation).</p>
+<p>However, for decoding, we can use specialized data structures to greatly improve performance.</p>
+<h3>Python</h3>
+<p>This is a possible implementation of the Move to Front algorithm in Python.</p>
+<p>WHATSON? 684bb08a-bf55-430b-8834-6da466d36b66</p>
+<pre>
+def MtF(texte):
+	# Initialise the list of characters (i.e. the dictionary)
+	liste = list()
+	# read in each character
+	for i in range(len(texte)):
+		# if the character is not already in the dictionary, append it
+		if texte[i] not in liste:
+			liste.append(str(texte[i]))
+	# sort dictionary
+	liste.sort()
+	# Transformation #
+	mot_code = list()
+	rang = 0
+	# read in each character
+	for i in range(0,len(texte)):
+		rang = liste.index(str(texte[i])) # find the rank of the character in the dictionary
+		mot_code += [str(rang)] # update the encoded text
+		# update the dictionary
+		liste.pop(rang)
+		liste.insert(0, texte[i])
+ 
+	liste.sort() # sort dictionary
+ 
+	return [mot_code,liste] # Return the encoded text as well as the dictionary
+</pre>
+<p>The inverse will recover the original text:</p>
+<p>WHATSON? 1fbf6e2b-9135-4593-968b-fd473fd5d381</p>
+<pre>
+def iMtF(compressee):
+	# Initialise variables
+	mot_code = compressee[0]
+	liste = list(compressee[1])
+ 
+	texte = ""
+	rang = 0
+	# read in each character of the encoded text
+	for i in mot_code:
+		# read the rank of the character from dictionnaire
+		rang = int(i)
+		texte = texte + str(liste[rang])
+ 
+		# update dictionary
+		e = liste[int(i)]
+		liste.pop(int(i))
+		liste.insert(0, e)
+ 
+	return texte # Return original string
+</pre>
+<h2>Use in practical data compression algorithms</h2>
+<p>The MTF transform takes advantage of local correlation of frequencies to reduce the entropy of a message. Indeed, recently used letters stay towards the front of the list; if use of letters exhibits local correlations, this will result in a large number of small numbers such as "0"'s and "1"'s in the output.</p>
+<p>However, not all data exhibits this type of local correlation, and for some messages, the MTF transform may actually increase the entropy.</p>
+<p>An important use of the MTF transform is in Burrows–Wheeler transform based compression. The Burrows-Wheeler transform is very good at producing a sequence that exhibits local frequency correlation from text and certain other special classes of data. Compression benefits greatly from following up the Burrows-Wheeler transform with an MTF transform before the final entropy-encoding step.</p>
+<h3>Example</h3>
+<p>As an example, imagine we wish to compress Hamlet's soliloquy (<i>To be, or not to be...</i>). We can calculate the entropy of this message to be 7033 bits. Naively, we might try to apply the MTF transform directly. The result is a message with 7807 bits of entropy (higher than the original). The reason is that English text does not in general exhibit a high level of local frequency correlation. However, if we first apply the Burrows-Wheeler transform, and then the MTF transform, we get a message with 6187 bits of entropy. Note that the Burrows-Wheeler transform does not decrease the entropy of the message; it only reorders the bytes in a way that makes the MTF transform more effective.</p>
+<p>One problem with the basic MTF transform is that it makes the same changes for any character, regardless of frequency, which can result in diminished compression as characters that occur rarely may push frequent characters to higher values. Various alterations and alternatives have been developed for this reason. One common change is to make it so that characters above a certain point can only be moved to a certain threshold. Another is to make some algorithm that runs a count of each character's local frequency and uses these values to choose the characters' order at any point. Many of these transforms still reserve zero for repeat characters, since these are often the most common in data after the Burrows Wheeler Transform.</p>
+</body>
+</html>

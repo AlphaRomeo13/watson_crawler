@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Van-Emde-Boas-tree---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Van Emde Boas tree</h1>
+<p>A <b>Van Emde Boas tree</b> (or <b>Van Emde Boas priority queue</b>; <small>Dutch pronunciation:</small> [vɑn 'ɛmdə 'boɑs]), also known as a <b>vEB tree</b>, is a tree data structure which implements an associative array with <i>m</i>-bit integer keys. It performs all operations in O(log <i>m</i>) time, or equivalently in O(log log <i>M</i>) time, where M=2 is the maximum number of elements that can be stored in the tree. The <i>M</i> is not to be confused with the actual number of elements stored in the tree, by which the performance of other tree data-structures is often measured. The vEB tree has good space efficiency when it contains a large number of elements, as discussed below. It was invented by a team led by Peter van Emde Boas (de) in 1975.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Supported operations</li>
+<li>2 How it works
+<ul>
+<li>2.1 FindNext</li>
+<li>2.2 Insert</li>
+<li>2.3 Delete</li>
+<li>2.4 Discussion</li>
+</ul>
+</li>
+<li>3 References
+<ul>
+<li>3.1 Further reading</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li>2.1 FindNext</li>
+<li>2.2 Insert</li>
+<li>2.3 Delete</li>
+<li>2.4 Discussion</li>
+</ul>
+<ul>
+<li>3.1 Further reading</li>
+</ul>
+<p></p>
+<h2>Supported operations</h2>
+<p>A vEB supports the operations of an <i>ordered associative array</i>, which includes the usual associative array operations along with two more <i>order</i> operations, <i>FindNext</i> and <i>FindPrevious</i>:</p>
+<ul>
+<li><i>Insert</i>: insert a key/value pair with an <i>m</i>-bit key</li>
+<li><i>Delete</i>: remove the key/value pair with a given key</li>
+<li><i>Lookup</i>: find the value associated with a given key</li>
+<li><i>FindNext</i>: find the key/value pair with the smallest key at least a given <i>k</i></li>
+<li><i>FindPrevious</i>: find the key/value pair with the largest key at most a given <i>k</i></li>
+</ul>
+<p>A vEB tree also supports the operations <i>Minimum</i> and <i>Maximum</i>, which return the minimum and maximum element stored in the tree respectively. These both run in <i>O</i>(1) time, since the minimum and maximum element are stored as attributes in each tree.</p>
+<h2>How it works</h2>
+<p>For the sake of simplicity, let <i>log<sub>2</sub> m = k</i> for some integer <i>k</i>. Define M=2. A vEB tree <i>T</i> over the universe {0,...,<i>M</i>-1} has a root node that stores an array <i>T.children</i> of length <i>M</i>. <i>T.children[i]</i> is a pointer to a vEB tree that is responsible for the values {<i>iM,...,(i+1)M-1</i>}. Additionally, <i>T</i> stores two values <i>T.min</i> and <i>T.max</i> as well as an auxiliary vEB tree <i>T.aux</i>.</p>
+<p>Data is stored in a vEB tree as follows: The smallest value currently in the tree is stored in <i>T.min</i> and largest value is stored in <i>T.max</i>. Note that <i>T.min</i> is not stored anywhere else in the vEB tree, while <i>T.max</i> is. If <i>T</i> is empty then we use the convention that <i>T.max=-1</i> and <i>T.min=M</i>. Any other value <i>x</i> is stored in the subtree <i>T.children[i]</i> where <img class="mwe-math-fallback-image-inline tex" alt="i=\lfloor x/M^{1/2}\rfloor" src="//upload.wikimedia.org/math/0/4/9/049fe1c1a52ba3e8115acf69c21c5f97.png">. The auxiliary tree <i>T.aux</i> keeps track of which children are non-empty, so <i>T.aux</i> contains the value <i>j</i> if and only if <i>T.children[j]</i> is non-empty.</p>
+<h3>FindNext</h3>
+<p>The operation <i>FindNext(T, x)</i> that searches for the successor of an element <i>x</i> in a vEB tree proceeds as follows: If <i>x</i>≤<i>T.min</i> then the search is complete, and the answer is <i>T.min</i>. If <i>x&gt;T.max</i> then the next element does not exist, return M. Otherwise, let <i>i=x/M</i>. If <i>x≤T.children[i].max</i> then the value being searched for is contained in <i>T.children[i]</i> so the search proceeds recursively in <i>T.children[i]</i>. Otherwise, We search for the value <i>i</i> in <i>T.aux</i>. This gives us the index <i>j</i> of the first subtree that contains an element larger than <i>x</i>. The algorithm then returns <i>T.children[j].min</i>. The element found on the children level needs to be composed with the high bits to form a complete next element.</p>
+<p>WHATSON? c212118c-1613-4ab0-9e92-e54bfab991ae</p>
+<pre>
+<b>function</b> FindNext(T, x).
+    <b>if</b> x ≤ T.min <b>then</b>
+        <b>return</b> T.min
+    <b>if</b> x &gt; T.max <b>then</b> <i>// no next element</i>
+        <b>return</b> M
+    i = floor(x/<img class="mwe-math-fallback-image-inline tex" alt="\sqrt{M}" src="//upload.wikimedia.org/math/7/4/6/7469792805316eda6b589d12581d755c.png">)
+    lo = x % <img class="mwe-math-fallback-image-inline tex" alt="\sqrt{M}" src="//upload.wikimedia.org/math/7/4/6/7469792805316eda6b589d12581d755c.png">
+    hi = x - lo
+    <b>if</b> lo ≤ T.children[i].max <b>then</b>
+        <b>return</b> hi + FindNext(T.children[i], lo)
+    <b>return</b> hi + T.children[FindNext(T.aux, i)].min
+<b>end</b>
+</pre>
+<p>Note that, in any case, the algorithm performs <i>O</i>(1) work and then possibly recurses on a subtree over a universe of size <i>M</i> (an <i>m/2</i> bit universe). This gives a recurrence for the running time of <i>T(m)=T(m/2) + O(1)</i>, which resolves to <i>O(log</i> m<i>) =</i> O<i>(log log</i> M<i>).</i></p>
+<h3>Insert</h3>
+<p>The call <i>insert(T, x)</i> that inserts a value <i>x</i> into a vEB tree T operates as follows:</p>
+<p>If <i>T</i> is empty then we set <i>T.min = T.max = x</i> and we are done.</p>
+<p>Otherwise, if <i>x&lt;T.min</i> then we insert <i>T.min</i> into the subtree <i>i</i> responsible for <i>T.min</i> and then set <i>T.min = x</i>. If <i>T.children[i]</i> was previously empty, then we also insert <i>i</i> into <i>T.aux</i></p>
+<p>Otherwise, if <i>x&gt;T.max</i> then we insert <i>x</i> into the subtree <i>i</i> responsible for <i>x</i> and then set <i>T.max = x</i>. If <i>T.children[i]</i> was previously empty, then we also insert <i>i</i> into <i>T.aux</i></p>
+<p>Otherwise, <i>T.min&lt; x &lt; T.max</i> so we insert <i>x</i> into the subtree <i>i</i> responsible for <i>x</i>. If T.children[i] was previously empty, then we also insert <i>i</i> into <i>T.aux</i>.</p>
+<p>In code:</p>
+<p>WHATSON? 8e1640ec-5541-4693-8743-cc9563e549b2</p>
+<pre>
+<b>function</b> Insert(T, x)
+    <b>if</b> T.min &gt; T.max <b>then</b> <i>// T is empty</i>
+        T.min = T.max = x;
+        <b>return</b>
+    <b>if</b> T.min == T.max <b>then</b>
+        <b>if</b> x &lt; T.min <b>then</b>
+            T.min = x
+            <b>return</b>
+        <b>if</b> x &gt; T.max <b>then</b>
+            T.max = x
+    <b>if</b> x &lt; T.min <b>then</b>
+        swap(x, T.min)
+    <b>if</b> x &gt; T.max <b>then</b>
+        T.max = x
+    i = floor(x / <img class="mwe-math-fallback-image-inline tex" alt="\sqrt{M})" src="//upload.wikimedia.org/math/a/4/e/a4e12bb954a9562ba79530d6943eb5d3.png">
+    Insert(T.children[i], x % <img class="mwe-math-fallback-image-inline tex" alt="\sqrt{M}" src="//upload.wikimedia.org/math/7/4/6/7469792805316eda6b589d12581d755c.png">)
+    <b>if</b> T.children[i].min == T.children[i].max <b>then</b>
+        Insert(T.aux, i)
+<b>end</b>
+</pre>
+<p>The key to the efficiency of this procedure is that inserting an element into an empty vEB tree takes <i>O</i>(1) time. So, even though the algorithm sometimes makes two recursive calls, this only occurs when the first recursive call was into an empty subtree. This gives the same running time recurrence of <i>T(m)=T(m/2) + O(1)</i> as before.</p>
+<h3>Delete</h3>
+<p>Deletion from vEB trees is the trickiest of the operations. The call <i>Delete(T, x)</i> that deletes a value <i>x</i> from a vEB tree T operates as follows:</p>
+<p>If <i>T.min = T.max = x</i> then <i>x</i> is the only element stored in the tree and we set <i>T.min = M</i> and <i>T.max = -1</i> to indicate that the tree is empty.</p>
+<p>Otherwise, if <i>x = T.min</i> then we need to find the second-smallest value <i>y</i> in the vEB tree, delete it from its current location, and set <i>T.min=y</i>. The second-smallest value <i>y</i> is either <i>T.max</i> or <i>T.children[T.aux.min].min</i>, so it can be found in <i>O</i>(1) time. In the latter case we delete <i>y</i> from the subtree that contains it.</p>
+<p>Similarly, if <i>x = T.max</i> then we need to find the second-largest value <i>y</i> in the vEB tree and set <i>T.max=y</i>. The second-largest value <i>y</i> is either <i>T.min</i> or <i>T.children[T.aux.max].max</i>, so it can be found in <i>O</i>(1) time. We also delete <i>x</i> from the subtree that contains it.</p>
+<p>In case where x is not T.min or T.max, and T has no other elements, we know x is not in T and return without further operations.</p>
+<p>Otherwise, we have the typical case where <i>x≠T.min</i> and <i>x≠T.max</i>. In this case we delete x from the subtree <i>T.children[i]</i> that contains <i>x</i>.</p>
+<p>In any of the above cases, if we delete the last element <i>x</i> or <i>y</i> from any subtree <i>T.children[i]</i> then we also delete <i>i</i> from <i>T.aux</i></p>
+<p>In code:</p>
+<p>WHATSON? 5ac5beae-a0ba-4af4-a9a1-07f50592d482</p>
+<pre>
+<b>function</b> Delete(T, x)
+    <b>if</b> T.min == T.max == x <b>then</b>
+        T.min = M
+        T.max = -1
+        <b>return</b>
+    <b>if</b> x == T.min <b>then</b>
+        <b>if</b> T.aux is empty <b>then</b>
+            T.min = T.max
+            <b>return</b>
+        <b>else</b>
+            x = T.children[T.aux.min].min
+            T.min = x
+    <b>if</b> x == T.max <b>then</b>
+        <b>if</b> T.aux is empty <b>then</b>
+            T.max = T.min
+            <b>return</b>
+        <b>else</b>
+            T.max = T.children[T.aux.max].max
+    <b>if</b> T.aux is empty <b>then</b>
+        <b>return</b>
+    i = floor(x / <img class="mwe-math-fallback-image-inline tex" alt="\sqrt{M}" src="//upload.wikimedia.org/math/7/4/6/7469792805316eda6b589d12581d755c.png">)
+    Delete(T.children[i], x % <img class="mwe-math-fallback-image-inline tex" alt="\sqrt{M}" src="//upload.wikimedia.org/math/7/4/6/7469792805316eda6b589d12581d755c.png">)
+    <b>if</b> T.children[i] is empty <b>then</b>
+        Delete(T.aux, i)
+<b>end</b>
+</pre>
+<p>Again, the efficiency of this procedure hinges on the fact that deleting from a vEB tree that contains only one element takes only constant time. In particular, the last line of code only executes if <i>x</i> was the only element in <i>T.children[i]</i> prior to the deletion.</p>
+<h3>Discussion</h3>
+<p>The assumption that <i>log m</i> is an integer is unnecessary. The operations <i>x/<img class="mwe-math-fallback-image-inline tex" alt="\sqrt{M}" src="//upload.wikimedia.org/math/7/4/6/7469792805316eda6b589d12581d755c.png"></i> and <i>x%<img class="mwe-math-fallback-image-inline tex" alt="\sqrt{M}" src="//upload.wikimedia.org/math/7/4/6/7469792805316eda6b589d12581d755c.png"></i> can be replaced by taking only higher-order ceil(m/2) and the lower-order floor(m/2) bits of <i>x</i>, respectively. On any existing machine, this is more efficient than division or remainder computations.</p>
+<p>The implementation described above uses pointers and occupies a total space of <img class="mwe-math-fallback-image-inline tex" alt="O(M) = O(2^m) " src="//upload.wikimedia.org/math/0/f/8/0f80b4d0e869c6d48d81eb5d2b39b295.png">. This can be seen as follows. The recurrence is <img class="mwe-math-fallback-image-inline tex" alt=" S(M) = O( \sqrt{M}) + (\sqrt{M}+1) \cdot S(\sqrt{M}) " src="//upload.wikimedia.org/math/7/7/9/779aefd98334449b4b90ee65c4a3fa8c.png">. Resolving that would lead to <img class="mwe-math-fallback-image-inline tex" alt=" S(M) \in (1 + \sqrt{M})^{\log \log M}  + \log \log M \cdot O( \sqrt{M} )" src="//upload.wikimedia.org/math/f/a/f/fafc7f1dbd186e2dc52fd7624f5a1e3e.png">. One can, fortunately, also show that <img class="mwe-math-fallback-image-inline tex" alt="S(M) = M-2 " src="//upload.wikimedia.org/math/e/2/c/e2c5e6ad3941fc4adf4ea3d45c492fe9.png"> by induction.</p>
+<p>In practical implementations, especially on machines with <i>shift-by-k</i> and <i>find first zero</i> instructions, performance can further be improved by switching to a bit array once <i>m</i> equal to the word size (or a small multiple thereof) is reached. Since all operations on a single word are constant time, this does not affect the asymptotic performance, but it does avoid the majority of the pointer storage and several pointer dereferences, achieving a significant practical savings in time and space with this trick.</p>
+<p>An obvious optimization of vEB trees is to discard empty subtrees. This makes vEB trees quite compact when they contain many elements, because no subtrees are created until something needs to be added to them. Initially, each element added creates about log(<i>m</i>) new trees containing about <i>m/2</i> pointers all together. As the tree grows, more and more subtrees are reused, especially the larger ones. In a full tree of 2 elements, only O(2) space is used. Moreover, unlike a binary search tree, most of this space is being used to store data: even for billions of elements, the pointers in a full vEB tree number in the thousands.</p>
+<p>However, for small trees the overhead associated with vEB trees is enormous: on the order of <img class="mwe-math-fallback-image-inline tex" alt="\sqrt{M}" src="//upload.wikimedia.org/math/7/4/6/7469792805316eda6b589d12581d755c.png">. This is one reason why they are not popular in practice. One way of addressing this limitation is to use only a fixed number of bits per level, which results in a trie. Alternatively, each table may be replaced by a hash table, reducing the space to O(<i>n</i>) (where <i>n</i> is the number of elements stored in the data structure) at the expense of making the data structure randomized. Other structures, including y-fast tries and x-fast tries have been proposed that have comparable update and query times and also use randomized hash tables to reduce the space to <i>O</i>(<i>n</i>) or <i>O</i>(<i>n</i> log <i>M</i>).</p>
+</body>
+</html>

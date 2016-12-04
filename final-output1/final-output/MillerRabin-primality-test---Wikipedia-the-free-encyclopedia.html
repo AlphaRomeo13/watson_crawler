@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>MillerRabin-primality-test---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Miller–Rabin primality test</h1>
+<p>The <b>Miller–Rabin primality test</b> or <b>Rabin–Miller primality test</b> is a primality test: an algorithm which determines whether a given number is prime, similar to the Fermat primality test and the Solovay–Strassen primality test. Its original version, due to Gary L. Miller, is deterministic, but the determinism relies on the unproven generalized Riemann hypothesis; Michael O. Rabin modified it to obtain an unconditional probabilistic algorithm.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Concepts</li>
+<li>2 Example</li>
+<li>3 Algorithm and running time</li>
+<li>4 Accuracy of the test</li>
+<li>5 Deterministic variants of the test</li>
+<li>6 Notes</li>
+<li>7 External links</li>
+</ul>
+<p></p>
+<h2>Concepts</h2>
+<p>Just like the Fermat and Solovay–Strassen tests, the Miller–Rabin test relies on an equality or set of equalities that hold true for prime values, then checks whether or not they hold for a number that we want to test for primality.</p>
+<p>First, a lemma about square roots of unity in the finite field <b>Z</b>/<i>p</i><b>Z</b>, where <i>p</i> is prime and <i>p</i> &gt; 2. Certainly 1 and −1 always yield 1 when squared modulo <i>p</i>; call these trivial square roots of 1. There are no <i>nontrivial</i> square roots of 1 modulo <i>p</i> (a special case of the result that, in a field, a polynomial has no more zeroes than its degree). To show this, suppose that <i>x</i> is a square root of 1 modulo <i>p</i>. Then:</p>
+<p>In other words, prime <i>p</i> divides the product (<i>x</i> − 1)(<i>x</i> + 1). By Euclid's lemma it divides one of the factors <i>x</i> − 1 or <i>x</i> + 1, implying that <i>x</i> is congruent to either 1 or −1 modulo <i>p</i>.</p>
+<p>Now, let <i>n</i> be prime with <i>n</i> &gt; 2. It follows that <i>n</i> − 1 is even and we can write it as 2·<i>d</i>, where <i>s</i> and <i>d</i> are positive integers (<i>d</i> is odd). For each <i>a</i> in (<b>Z</b>/<i>n</i><b>Z</b>)*, either</p>
+<p>or</p>
+<p>for some 0 ≤ r ≤ <i>s</i> − 1.</p>
+<p>To show that one of these must be true, recall Fermat's little theorem, that for a prime number n:</p>
+<p>By the lemma above, if we keep taking square roots of <i>a</i>, we will get either 1 or −1. If we get −1 then the second equality holds and it is done. If we never get −1, then when we have taken out every power of 2, we are left with the first equality.</p>
+<p>The Miller–Rabin primality test is based on the contrapositive of the above claim. That is, if we can find an <i>a</i> such that</p>
+<p>and</p>
+<p>for all 0 ≤ r ≤ <i>s</i> − 1, then <i>n</i> is not prime. We call <i>a</i> a witness for the compositeness of <i>n</i> (sometimes misleadingly called a <i>strong witness</i>, although it is a certain proof of this fact). Otherwise <i>a</i> is called a <i>strong liar</i>, and <i>n</i> is a strong probable prime to base <i>a</i>. The term "strong liar" refers to the case where <i>n</i> is composite but nevertheless the equations hold as they would for a prime.</p>
+<p>Every odd composite <i>n</i> has many witnesses <i>a</i>, however, no simple way of generating such an <i>a</i> is known. The solution is to make the test probabilistic: we choose a non-zero <i>a</i> in <b>Z</b>/<i>n</i><b>Z</b> randomly, and check whether or not it is a witness for the compositeness of <i>n</i>. If <i>n</i> is composite, most of the choices for <i>a</i> will be witnesses, and the test will detect <i>n</i> as composite with high probability. There is, nevertheless, a small chance that we are unlucky and hit an <i>a</i> which is a strong liar for <i>n</i>. We may reduce the probability of such error by repeating the test for several independently chosen <i>a</i>.</p>
+<p>For testing large numbers, it is common to choose random bases <i>a</i>, as, a priori, we don't know the distribution of witnesses and liars among the numbers 1, 2, ..., <i>n</i> − 1. In particular, Arnault  gave a 397-digit composite number for which all bases <i>a</i> less than 307 are strong liars. As expected this number was reported to be prime by the Maple <code>isprime()</code> function, which implemented the Miller–Rabin test by checking the specific bases 2,3,5,7, and 11. However, selection of a few specific small bases can guarantee identification of composites for <i>n</i> less than some maximum determined by said bases. This maximum is generally quite large compared to the bases. As random bases lack such determinism for small <i>n</i>, specific bases are better in some circumstances.</p>
+<h2>Example</h2>
+<p>Suppose we wish to determine if <i>n</i> = 221 is prime. We write <i>n</i> − 1 = 220 as 2·55, so that we have <i>s</i> = 2 and <i>d</i> = 55. We randomly select a number <i>a</i> such that <i>a</i> &lt; <i>n</i>, say <i>a</i> = 174. We proceed to compute:</p>
+<ul>
+<li><i>a</i>·<i>d</i></sup> mod <i>n</i> = 174 mod 221 = 47 ≠ 1, <i>n</i> − 1</li>
+<li><i>a</i>·<i>d</i></sup> mod <i>n</i> = 174 mod 221 = 220 = <i>n</i> − 1.</li>
+</ul>
+<p>Since 220 ≡ −1 mod <i>n</i>, either 221 is prime, or 174 is a strong liar for 221. We try another random <i>a</i>, this time choosing <i>a</i> = 137:</p>
+<ul>
+<li><i>a</i>·<i>d</i></sup> mod <i>n</i> = 137 mod 221 = 188 ≠ 1, <i>n</i> − 1</li>
+<li><i>a</i>·<i>d</i></sup> mod <i>n</i> = 137 mod 221 = 205 ≠ <i>n</i> − 1.</li>
+</ul>
+<p>Hence 137 is a witness for the compositeness of 221, and 174 was in fact a strong liar. Note that this tells us nothing about the factors of 221 (which are 13 and 17). However, the example with 341 in the next section shows how these calculations can sometimes produce a factor of <i>n</i>.</p>
+<h2>Algorithm and running time</h2>
+<p>The algorithm can be written in pseudocode as follows:</p>
+<p>WHATSON? 51339359-9b0d-404e-82ec-8f2b6fbd6e6d</p>
+<pre>
+<b>Input</b>: <i>n</i> &gt; 3, an odd integer to be tested for primality;
+<b>Input</b>: <i>k</i>, a parameter that determines the accuracy of the test
+<b>Output</b>: <i>composite</i> if <i>n</i> is composite, otherwise <i>probably prime</i>
+write <i>n</i> − 1 as 2·<i>d</i> with <i>d</i> odd by factoring powers of 2 from <i>n</i> − 1
+WitnessLoop: repeat <i>k</i> times:
+   pick a random integer <i>a</i> in the range [2, <i>n</i> − 2]
+   <i>x</i> ← <i>a</i> mod <i>n</i>
+   if <i>x</i> = 1 or <i>x</i> = <i>n</i> − 1 then do next WitnessLoop
+   repeat <i>s</i> − 1 times:
+      <i>x</i> ← <i>x</i> mod <i>n</i>
+      if <i>x</i> = 1 then return <i>composite</i>
+      if <i>x</i> = <i>n</i> − 1 then do next WitnessLoop
+   return <i>composite</i>
+return <i>probably prime</i>
+</pre>
+<p>Using modular exponentiation by repeated squaring, the running time of this algorithm is O(<i>k</i> log<i>n</i>), where <i>k</i> is the number of different values of <i>a</i> that we test; thus this is an efficient, polynomial-time algorithm. FFT-based multiplication can push the running time down to O(<i>k</i> log<i>n</i> log log <i>n</i> log log log <i>n</i>) = Õ(<i>k</i> log<i>n</i>).</p>
+<p>If we insert Greatest common divisor (GCD) calculations into the above algorithm, we can sometimes obtain a factor of <i>n</i> instead of merely determining that <i>n</i> is composite. In particular, if <i>n</i> is a probable prime base <i>a</i> but not a strong probable prime base <i>a</i>, then either GCD((<i>a</i> mod <i>n</i>) − 1, <i>n</i>) or (for some <i>r</i> in the above range) GCD((<i>a</i>·<i>d</i></sup> mod <i>n</i>) − 1, <i>n</i>) will produce a (not necessarily prime) factor of <i>n</i>; see page 1402 of. If factoring is a goal, these GCDs can be inserted into the above algorithm at little additional computational cost.</p>
+<p>For example, consider <i>n</i> = 341. We have <i>n</i> − 1 = 85·4. Then 2 mod 341 = 32. This tells us that <i>n</i> is not a strong probable prime base 2, so we know <i>n</i> is composite. If we take a GCD at this stage, we can get a factor of 341: GCD((2 mod 341) − 1, 341) = 31. This works because 341 is a pseudoprime base 2, but is not a strong pseudoprime base 2.</p>
+<p>In the case that the algorithm returns "composite" because <i>x</i> = 1, it has also discovered that <i>d</i>2 is (an odd multiple of) the order of <i>a</i>—a fact which can (as in Shor's algorithm) be used to factorize <i>n</i>, since <i>n</i> then divides</p>
+<p>but not either factor by itself. The reason Miller–Rabin does <i>not</i> yield a probabilistic factorization algorithm is that if</p>
+<p>(i.e., <i>n</i> is not a pseudoprime to base <i>a</i>) then no such information is obtained about the period of <i>a</i>, and the second "return composite" is taken.</p>
+<h2>Accuracy of the test</h2>
+<p>The more bases <i>a</i> we test, the better the accuracy of the test. It can be shown that for any odd composite <i>n</i>, at least 3/4 of the bases <i>a</i> are witnesses for the compositeness of <i>n</i>. The Miller–Rabin test is strictly stronger than the Solovay–Strassen primality test in the sense that for every composite <i>n</i>, the set of strong liars for <i>n</i> is a subset of the set of Euler liars for <i>n</i>, and for many <i>n</i>, the subset is proper. If <i>n</i> is composite then the Miller–Rabin primality test declares <i>n</i> probably prime with a probability at most 4. On the other hand, the Solovay–Strassen primality test declares <i>n</i> probably prime with a probability at most 2.</p>
+<p>It is important to note that in many common applications of this algorithm, we are not interested in the error bound described above. The above error bound is the probability of a composite number being declared as a probable prime after <i>k</i> rounds of testing. We are often instead interested in the probability that, after passing <i>k</i> rounds of testing, the number being tested is actually a composite number. Formally, if we call the event of declaring <i>n</i> a probable prime after <i>k</i> rounds of Miller–Rabin <i>Y<sub>k</sub></i>, and we call the event that <i>n</i> is composite <i>X</i> (and denote the event that <i>n</i> is prime <img class="mwe-math-fallback-image-inline tex" alt="\overline{X}" src="//upload.wikimedia.org/math/a/6/e/a6e4e8639d2e624fd2d30a0829c27c5b.png">), then the above bound gives us <img class="mwe-math-fallback-image-inline tex" alt="P(Y_k | X)" src="//upload.wikimedia.org/math/2/2/0/2202fabde8c09a5480482a16ffe35d1a.png">, whereas we are interested in <img class="mwe-math-fallback-image-inline tex" alt="P(X | Y_k)" src="//upload.wikimedia.org/math/b/3/9/b390cf13c92b7091da33da2a8892ffb1.png">. Bayes' theorem gives us a way to relate these two conditional probabilities, namely</p>
+<p>This tells us that the probability that we are often interested in is related not just to the 4 bound above, but also probabilities related to the density of prime numbers in the region near <i>n</i>.</p>
+<p>In addition, for large values of <i>n</i>, on average the probability that a composite number is declared <i>probably prime</i> is significantly smaller than 4. Damgård, Landrock and Pomerance compute some explicit bounds and provide a method to make a reasonable selection for <i>k</i> for a desired error bound. Such bounds can, for example, be used to <i>generate</i> probable primes; however, they should not be used to <i>verify</i> primes with unknown origin, since in cryptographic applications an adversary might try to send you a pseudoprime in a place where a prime number is required. In such cases, only the error bound of 4 can be relied upon.</p>
+<h2>Deterministic variants of the test</h2>
+<p>The Miller–Rabin algorithm can be made deterministic by trying all possible <i>a</i> below a certain limit. The problem in general is to set the limit so that the test is still reliable.</p>
+<p>If the tested number <i>n</i> is composite, the strong liars <i>a</i> coprime to <i>n</i> are contained in a proper subgroup of the group (<b>Z</b>/<i>n</i><b>Z</b>)*, which means that if we test all <i>a</i> from a set which generates (<b>Z</b>/<i>n</i><b>Z</b>)*, one of them must be a witness for the compositeness of <i>n</i>. Assuming the truth of the generalized Riemann hypothesis (GRH), it is known that the group is generated by its elements smaller than O((log <i>n</i>)), which was already noted by Miller. The constant involved in the Big O notation was reduced to 2 by Eric Bach. This leads to the following conditional primality testing algorithm:</p>
+<p>WHATSON? 6b5a8ff9-37aa-45a3-8d1c-8ebb3738451d</p>
+<pre>
+<b>Input</b>: <i>n</i> &gt; 1, an odd integer to test for primality.
+<b>Output</b>: <i>composite</i> if <i>n</i> is composite, otherwise <i>prime</i>
+write <i>n</i>−1 as 2·<i>d</i> by factoring powers of 2 from <i>n</i>−1
+repeat for all <img class="mwe-math-fallback-image-inline tex" alt="a \in [2,\min(n-1,\lfloor2(\ln n)^2\rfloor)]" src="//upload.wikimedia.org/math/5/3/d/53dd8e72333fbc434c5fc0de88c2e707.png">:
+    if <img class="mwe-math-fallback-image-inline tex" alt="a^d \not\equiv 1\pmod{n} \text{ and }a^{2^r \cdot d} \not\equiv -1 \pmod{n} \text{ for all }r \in[0,s-1]" src="//upload.wikimedia.org/math/8/d/c/8dc6c6f101bcc2e808795c90c110c9b1.png">
+    then return <i>composite</i>
+return <i>prime</i>
+</pre>
+<p>The running time of the algorithm is Õ((log <i>n</i>)) (with FFT-based multiplication). The full power of the generalized Riemann hypothesis is not needed to ensure the correctness of the test: as we deal with subgroups of even index, it suffices to assume the validity of GRH for quadratic Dirichlet characters.</p>
+<p>This algorithm is not used in practice, as it is much slower than the randomized version of the Miller–Rabin test. For theoretical purposes, it was superseded by the AKS primality test, which does not rely on unproven assumptions.</p>
+<p>When the number <i>n</i> to be tested is small, trying all <i>a</i> &lt; 2(ln <i>n</i>) is not necessary, as much smaller sets of potential witnesses are known to suffice. For example, Pomerance, Selfridge and Wagstaff and Jaeschke have verified that</p>
+<ul>
+<li>if <i>n</i> &lt; 2,047, it is enough to test <i>a</i> = 2;</li>
+<li>if <i>n</i> &lt; 1,373,653, it is enough to test <i>a</i> = 2 and 3;</li>
+<li>if <i>n</i> &lt; 9,080,191, it is enough to test <i>a</i> = 31 and 73;</li>
+<li>if <i>n</i> &lt; 25,326,001, it is enough to test <i>a</i> = 2, 3, and 5;</li>
+<li>if <i>n</i> &lt; 4,759,123,141, it is enough to test <i>a</i> = 2, 7, and 61;</li>
+<li>if <i>n</i> &lt; 1,122,004,669,633, it is enough to test <i>a</i> = 2, 13, 23, and 1662803;</li>
+<li>if <i>n</i> &lt; 2,152,302,898,747, it is enough to test <i>a</i> = 2, 3, 5, 7, and 11;</li>
+<li>if <i>n</i> &lt; 3,474,749,660,383, it is enough to test <i>a</i> = 2, 3, 5, 7, 11, and 13;</li>
+<li>if <i>n</i> &lt; 341,550,071,728,321, it is enough to test <i>a</i> = 2, 3, 5, 7, 11, 13, and 17;</li>
+<li>if <i>n</i> &lt; 3,825,123,056,546,413,051, it is enough to test <i>a</i> = 2, 3, 5, 7, 11, 13, 17, 19, and 23.</li>
+</ul>
+<p>Note that Miller-Rabin pseudoprimes are called strong pseudoprimes.</p>
+<p>Other criteria of this sort exist and these results give very fast deterministic primality tests for numbers in the appropriate range, without any assumptions.</p>
+<p>There is a small list of potential witnesses for every possible input size (at most <i>n</i> values for <i>n</i>-bit numbers). However, no finite set of bases is sufficient for all composite numbers. Alford, Granville, and Pomerance have shown that there exist infinitely many composite numbers <i>n</i> whose smallest compositeness witness is at least (ln <i>n</i>). They also argue heuristically that the smallest number <i>w</i> such that every composite number below <i>n</i> has a compositeness witness less than <i>w</i> should be of order Θ(log <i>n</i> log log <i>n</i>).</p>
+<h2>Notes</h2>
+<ol>
+<li>^   Miller, Gary L. (1976), <i>Riemann's Hypothesis and Tests for Primality</i>, <i>Journal of Computer and System Sciences</i> <b>13</b> (3): 300–317, doi:10.1145/800116.803773 </li>
+<li>^   Rabin, Michael O. (1980), <i>Probabilistic algorithm for testing primality</i>, <i>Journal of Number Theory</i> <b>12</b> (1): 128–138, doi:10.1016/0022-314X(80)90084-0 </li>
+<li><b>^</b> F. Arnault (August 1995). "Constructing Carmichael Numbers Which Are Strong Pseudoprimes to Several Bases". <i>Journal of Symbolic Computation</i> <b>20</b> (2): 151–161. doi:10.1006/jsco.1995.1042. </li>
+<li><b>^</b> Robert Baillie; Samuel S. Wagstaff, Jr. (October 1980). "Lucas Pseudoprimes". <i>Mathematics of Computation</i> <b>35</b> (152): 1391–1417. doi:10.1090/S0025-5718-1980-0583518-6. MR 583518.  Cite uses deprecated parameters (help)</li>
+<li>^   Schoof, René (2004), "Four primality testing algorithms", <i>Algorithmic Number Theory: Lattices, Number Fields, Curves and Cryptography</i>, Cambridge University Press, ISBN 0-521-80854-5 </li>
+<li><b>^</b> Damgård, I.; Landrock, P. &amp; Pomerance, C. (1993), <i>Average case error estimates for the strong probable prime test</i>, <i>Mathematics of Computation</i> <b>61</b> (203): 177–194, doi:10.2307/2152945 </li>
+<li><b>^</b> Bach, Eric (1990), <i>Explicit bounds for primality testing and related problems</i>, <i>Mathematics of Computation</i> <b>55</b> (191): 355–380, doi:10.2307/2008811 </li>
+<li><b>^</b> Carl Pomerance; John L. Selfridge, Samuel S. Wagstaff, Jr. (July 1980). "The pseudoprimes to 25·10". <i>Mathematics of Computation</i> <b>35</b> (151): 1003–1026. doi:10.1090/S0025-5718-1980-0572872-7.  Cite uses deprecated parameters (help)</li>
+<li><b>^</b> Jaeschke, Gerhard (1993), <i>On strong pseudoprimes to several bases</i>, <i>Mathematics of Computation</i> <b>61</b> (204): 915–926, doi:10.2307/2153262 </li>
+<li><b>^</b> <i>The Primes Page</i> </li>
+<li><b>^</b> Zhang, Zhenxiang &amp; Tang, Min (2003), <i>Finding strong pseudoprimes to several bases. II</i>, <i>Mathematics of Computation</i> <b>72</b> (44): 2085–2097, doi:10.1090/S0025-5718-03-01545-X </li>
+<li><b>^</b> "Sloane's A014233 : Smallest odd number for which Miller-Rabin primality test on bases &lt;= n-th prime does not reveal compositeness", <i>The On-Line Encyclopedia of Integer Sequences</i>. OEIS Foundation.</li>
+<li><b>^</b> <i>SPRP Records</i> </li>
+<li><b>^</b> Alford, W. R.; Granville, A.; Pomerance, C. (1994), "On the difficulty of finding reliable witnesses", <i>Lecture Notes in Computer Science</i> (Springer-Verlag) <b>877</b>: 1–16, doi:10.1007/3-540-58691-1_36 </li>
+</ol>
+<h2>External links</h2>
+<ul>
+<li>Weisstein, Eric W., "Rabin-Miller Strong Pseudoprime Test", <i>MathWorld</i>.</li>
+<li>Interactive Online Implementation of the Deterministic Variant (stepping through the algorithm step-by-step)</li>
+<li>Applet (German)</li>
+<li>Miller-Rabin primality test in C#</li>
+<li>Miller-Rabin primality test in JavaScript using arbitrary precision arithmetic</li>
+</ul>
+<ul>
+<li>v</li>
+<li>t</li>
+<li>e</li>
+</ul>
+<ul>
+<li>AKS test</li>
+<li>APR test</li>
+<li>Baillie–PSW</li>
+<li>ECPP test</li>
+<li>Elliptic curve</li>
+<li>Pocklington</li>
+<li>Fermat</li>
+<li>Lucas</li>
+<li><i>Lucas–Lehmer</i></li>
+<li><i>Lucas–Lehmer–Riesel</i></li>
+<li><i>Proth's theorem</i></li>
+<li><i>Pépin's</i></li>
+<li>Quadratic Frobenius test</li>
+<li>Solovay–Strassen</li>
+<li><strong class="selflink">Miller–Rabin</strong></li>
+<li>Trial division</li>
+</ul>
+<ul>
+<li>Sieve of Atkin</li>
+<li>Sieve of Eratosthenes</li>
+<li>Sieve of Sundaram</li>
+<li>Wheel factorization</li>
+</ul>
+<ul>
+<li>Continued fraction (CFRAC)</li>
+<li>Dixon's</li>
+<li>Lenstra elliptic curve (ECM)</li>
+<li>Euler's</li>
+<li>Pollard's rho</li>
+<li><i>p</i> − 1</li>
+<li><i>p</i> + 1</li>
+<li>Quadratic sieve (QS)</li>
+<li>General number field sieve (GNFS)</li>
+<li><i>Special number field sieve (SNFS)</i></li>
+<li>Rational sieve</li>
+<li>Fermat's</li>
+<li>Shanks' square forms</li>
+<li>Trial division</li>
+<li>Shor's</li>
+</ul>
+<ul>
+<li>Ancient Egyptian</li>
+<li>Long</li>
+<li>Karatsuba</li>
+<li>Toom–Cook</li>
+<li>Schönhage–Strassen</li>
+<li>Fürer's</li>
+</ul>
+<ul>
+<li>Baby-step giant-step</li>
+<li>Pollard rho</li>
+<li>Pollard kangaroo</li>
+<li>Pohlig–Hellman</li>
+<li>Index calculus</li>
+<li>Function field sieve</li>
+</ul>
+<ul>
+<li>Binary</li>
+<li>Euclidean</li>
+<li>Extended Euclidean</li>
+<li>Lehmer's</li>
+</ul>
+<ul>
+<li>Cipolla</li>
+<li>Pocklington's</li>
+<li>Tonelli–Shanks</li>
+</ul>
+<ul>
+<li>Chakravala</li>
+<li>Cornacchia</li>
+<li>Integer relation</li>
+<li>Integer square root</li>
+<li>Modular exponentiation</li>
+<li>Schoof's</li>
+</ul>
+<ul>
+<li><i>Italics</i> indicate that algorithm is for numbers of special forms</li>
+<li>Smallcaps indicate a deterministic algorithm</li>
+</ul>
+</body>
+</html>

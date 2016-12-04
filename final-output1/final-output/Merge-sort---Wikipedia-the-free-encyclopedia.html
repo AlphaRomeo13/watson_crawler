@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Merge-sort---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Merge sort</h1>
+<p>O(<i>n</i> log <i>n</i>) typical,</p>
+<p>In computer science, <b>merge sort</b> (also commonly spelled <b>mergesort</b>) is an <i>O</i>(<i>n</i> log <i>n</i>) comparison-based sorting algorithm. Most implementations produce a stable sort, which means that the implementation preserves the input order of equal elements in the sorted output. Mergesort is a divide and conquer algorithm that was invented by John von Neumann in 1945. A detailed description and analysis of bottom-up mergesort appeared in a report by Goldstine and Neumann as early as 1948.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Algorithm
+<ul>
+<li>1.1 Top-down implementation</li>
+<li>1.2 Bottom-up implementation</li>
+<li>1.3 Top-down implementation using lists</li>
+</ul>
+</li>
+<li>2 Natural merge sort</li>
+<li>3 Analysis</li>
+<li>4 Variants</li>
+<li>5 Use with tape drives</li>
+<li>6 Optimizing merge sort</li>
+<li>7 Parallel processing</li>
+<li>8 Comparison with other sort algorithms</li>
+<li>9 Notes</li>
+<li>10 References</li>
+<li>11 External links</li>
+</ul>
+<ul>
+<li>1.1 Top-down implementation</li>
+<li>1.2 Bottom-up implementation</li>
+<li>1.3 Top-down implementation using lists</li>
+</ul>
+<p></p>
+<h2>Algorithm</h2>
+<p>Conceptually, a merge sort works as follows:</p>
+<ol>
+<li>Divide the unsorted list into <i>n</i> sublists, each containing 1 element (a list of 1 element is considered sorted).</li>
+<li>Repeatedly merge sublists to produce new sorted sublists until there is only 1 sublist remaining. This will be the sorted list.</li>
+</ol>
+<h3>Top-down implementation</h3>
+<p>Example C like code using indices for top down merge sort algorithm that recursively splits the list (called <i>runs</i> in this example) into sublists until sublist size is 1, then merges those sublists to produce a sorted list. The copy back step could be avoided if the recursion alternated between two functions so that the direction of the merge corresponds with the level of recursion.</p>
+<p>WHATSON? 9b14c45d-a477-492c-967e-445ab1a32f0b</p>
+<pre>
+TopDownMergeSort(A[], B[], n)
+{
+    TopDownSplitMerge(A, 0, n, B);
+}
+ 
+CopyArray(B[], iBegin, iEnd, A[])
+{
+    for(k = iBegin; k &lt; iEnd; k++)
+        A[k] = B[k];
+}
+ 
+// iBegin is inclusive; iEnd is exclusive (A[iEnd] is not in the set)
+TopDownSplitMerge(A[], iBegin, iEnd, B[])
+{
+    if(iEnd - iBegin &lt; 2)                       // if run size == 1
+        return;                                 //   consider it sorted
+    // recursively split runs into two halves until run size == 1,
+    // then merge them and return back up the call chain
+    iMiddle = (iEnd + iBegin) / 2;              // iMiddle = mid point
+    TopDownSplitMerge(A, iBegin,  iMiddle, B);  // split / merge left  half
+    TopDownSplitMerge(A, iMiddle,    iEnd, B);  // split / merge right half
+    TopDownMerge(A, iBegin, iMiddle, iEnd, B);  // merge the two half runs
+    CopyArray(B, iBegin, iEnd, A);              // copy the merged runs back to A
+}
+ 
+//  left half is A[iBegin :iMiddle-1]
+// right half is A[iMiddle:iEnd-1   ]
+TopDownMerge(A[], iBegin, iMiddle, iEnd, B[])
+{
+    i0 = iBegin, i1 = iMiddle;
+ 
+    // While there are elements in the left or right runs
+    for (j = iBegin; j &lt; iEnd; j++) {
+        // If left run head exists and is &lt;= existing right run head.
+        if (i0 &lt; iMiddle &amp;&amp; (i1 &gt;= iEnd || A[i0] &lt;= A[i1]))
+            B[j] = A[i0];
+            i0 = i0 + 1;
+        else
+            B[j] = A[i1];
+            i1 = i1 + 1;    }
+ 
+}
+</pre>
+<h3>Bottom-up implementation</h3>
+<p>Example code for C using indices for bottom up merge sort algorithm which treats the list as an array of <i>n</i> sublists (called <i>runs</i> in this example) of size 1, and iteratively merges sub-lists back and forth between two buffers:</p>
+<p>WHATSON? cad5d176-8dec-4c6c-bd95-c287513babb8</p>
+<pre>
+/* array A[] has the items to sort; array B[] is a work array */
+BottomUpSort(int n, int A[], int B[])
+{
+  int width;
+ 
+  /* Each 1-element run in A is already "sorted". */
+ 
+  /* Make successively longer sorted runs of length 2, 4, 8, 16... until whole array is sorted. */
+  for (width = 1; width &lt; n; width = 2 * width)
+    {
+      int i;
+ 
+      /* Array A is full of runs of length width. */
+      for (i = 0; i &lt; n; i = i + 2 * width)
+        {
+          /* Merge two runs: A[i:i+width-1] and A[i+width:i+2*width-1] to B[] */
+          /* or copy A[i:n-1] to B[] ( if(i+width &gt;= n) ) */
+          BottomUpMerge(A, i, min(i+width, n), min(i+2*width, n), B);
+        }
+ 
+      /* Now work array B is full of runs of length 2*width. */
+      /* Copy array B to array A for next iteration. */
+      /* A more efficient implementation would swap the roles of A and B */
+      CopyArray(A, B, n);
+      /* Now array A is full of runs of length 2*width. */
+    }
+}
+ 
+BottomUpMerge(int A[], int iLeft, int iRight, int iEnd, int B[])
+{
+  int i0 = iLeft;
+  int i1 = iRight;
+  int j;
+ 
+  /* While there are elements in the left or right lists */
+  for (j = iLeft; j &lt; iEnd; j++)
+    {
+      /* If left list head exists and is &lt;= existing right list head */
+      if (i0 &lt; iRight &amp;&amp; (i1 &gt;= iEnd || A[i0] &lt;= A[i1]))
+        {
+          B[j] = A[i0];
+          i0 = i0 + 1;
+        }
+      else
+        {
+          B[j] = A[i1];
+          i1 = i1 + 1;
+        }
+    }
+}
+</pre>
+<h3>Top-down implementation using lists</h3>
+<p>Pseudocode for top down merge sort algorithm which recursively divides the input list into smaller sublists until the sublists are trivially sorted, and then merges the sublists while returning up the call chain.</p>
+<p>WHATSON? 5490e2e5-2ff1-4910-949e-4d36a0c3bd4a</p>
+<pre>
+<b>function</b> merge_sort(<i>list</i> m)
+    // Base case. A list of zero or one elements is sorted, by definition.
+    <b>if</b> length(m) &lt;= 1
+        <b>return</b> m
+
+    // Recursive case. First, *divide* the list into equal-sized sublists.
+    <b>var</b> <i>list</i> left, right
+    <b>var</b> <i>integer</i> middle = length(m) / 2
+    <b>for each</b> x <b>in</b> m <b>before</b> middle
+         add x to left
+    <b>for each</b> x <b>in</b> m <b>after or equal</b> middle
+         add x to right
+
+    // Recursively sort both sublists.
+    left = merge_sort(left)
+    right = merge_sort(right)
+    // *Conquer*: merge the now-sorted sublists.
+    <b>return</b> merge(left, right)
+</pre>
+<p>In this example, the <code>merge</code> function merges the left and right sublists.</p>
+<p>WHATSON? 29a87085-0bf6-42b3-b921-f2c4a936935d</p>
+<pre>
+<b>function</b> merge(left, right)
+    <b>var</b> <i>list</i> result
+    <i>// assign the element of the sublists to 'result' variable until there is no element to merge.</i> 
+    <b>while</b> length(left) &gt; 0 <b>or</b> length(right) &gt; 0
+        <b>if</b> length(left) &gt; 0 <b>and</b> length(right) &gt; 0
+           <i>// compare the first two element, which is the small one, of each two sublists.</i>
+            <b>if</b> first(left) &lt;= first(right)
+                append first(left) to result
+                left = rest(left)
+            <b>else</b>
+                append first(right) to result
+                right = rest(right)
+        <b>else if</b> length(left) &gt; 0
+            append first(left) to result
+            left = rest(left)
+        <b>else if</b> length(right) &gt; 0
+            append first(right) to result
+            right = rest(right)
+    <b>end while</b>
+    <b>return</b> result
+</pre>
+<h2>Natural merge sort</h2>
+<p>A natural merge sort is similar to a bottom up merge sort except that any naturally occurring runs (sorted sequences) in the input are exploited. In the bottom up merge sort, the starting point assumes each run is one item long. In practice, random input data will have many short runs that just happen to be sorted. In the typical case, the natural merge sort may not need as many passes because there are fewer runs to merge. In the best case, the input is already sorted (i.e., is one run), so the natural merge sort need only make one pass through the data. Example:</p>
+<p>WHATSON? 65c4df2f-3389-4c17-ab54-389a83fc8257</p>
+<pre>
+Start       : 3--4--2--1--7--5--8--9--0--6
+Select runs : 3--4  2  1--7  5--8--9  0--6
+Merge       : 2--3--4  1--5--7--8--9  0--6
+Merge       : 1--2--3--4--5--7--8--9  0--6
+Merge       : 0--1--2--3--4--5--6--7--8--9
+</pre>
+<p>Tournament replacement selection sorts are used to gather the initial runs for external sorting algorithms.</p>
+<h2>Analysis</h2>
+<p>In sorting <i>n</i> objects, merge sort has an average and worst-case performance of O(<i>n</i> log <i>n</i>). If the running time of merge sort for a list of length <i>n</i> is <i>T</i>(<i>n</i>), then the recurrence <i>T</i>(<i>n</i>) = 2<i>T</i>(<i>n</i>/2) + <i>n</i> follows from the definition of the algorithm (apply the algorithm to two lists of half the size of the original list, and add the <i>n</i> steps taken to merge the resulting two lists). The closed form follows from the master theorem.</p>
+<p>In the worst case, the number of comparisons merge sort makes is equal to or slightly smaller than (<i>n</i> ⌈lg <i>n</i>⌉ - 2 + 1), which is between (<i>n</i> lg <i>n</i> - <i>n</i> + 1) and (<i>n</i> lg <i>n</i> + <i>n</i> + O(lg <i>n</i>)).</p>
+<p>For large <i>n</i> and a randomly ordered input list, merge sort's expected (average) number of comparisons approaches <i>α</i>·<i>n</i> fewer than the worst case where <img class="mwe-math-fallback-image-inline tex" alt="\alpha = -1 + \sum_{k=0}^\infty \frac1{2^k+1} \approx 0.2645." src="//upload.wikimedia.org/math/4/f/1/4f12e0075da998847dc03f8af3c9d3b2.png"></p>
+<p>In the <i>worst</i> case, merge sort does about 39% fewer comparisons than quicksort does in the <i>average</i> case. In terms of moves, merge sort's worst case complexity is O(<i>n</i> log <i>n</i>)—the same complexity as quicksort's best case, and merge sort's best case takes about half as many iterations as the worst case.</p>
+<p>Merge sort is more efficient than quicksort for some types of lists if the data to be sorted can only be efficiently accessed sequentially, and is thus popular in languages such as Lisp, where sequentially accessed data structures are very common. Unlike some (efficient) implementations of quicksort, merge sort is a stable sort.</p>
+<p>Merge sort's most common implementation does not sort in place; therefore, the memory size of the input must be allocated for the sorted output to be stored in (see below for versions that need only <i>n</i>/2 extra spaces).</p>
+<p>Merge sort also has some demerits. One is its use of 2<i>n</i> locations; the additional <i>n</i> locations are commonly used because merging two sorted sets in place is more complicated and would need more comparisons and move operations. But despite the use of this space the algorithm still does a lot of work: The contents of <i>m</i> are first copied into <i>left</i> and <i>right</i> and later into the list <i>result</i> on each invocation of <i>merge_sort</i> (variable names according to the pseudocode above).</p>
+<h2>Variants</h2>
+<p>Variants of merge sort are primarily concerned with reducing the space complexity and the cost of copying.</p>
+<p>A simple alternative for reducing the space overhead to <i>n</i>/2 is to maintain <i>left</i> and <i>right</i> as a combined structure, copy only the <i>left</i> part of <i>m</i> into temporary space, and to direct the <i>merge</i> routine to place the merged output into <i>m</i>. With this version it is better to allocate the temporary space outside the <i>merge</i> routine, so that only one allocation is needed. The excessive copying mentioned previously is also mitigated, since the last pair of lines before the <i>return result</i> statement (function <i>merge</i> in the pseudo code above) become superfluous.</p>
+<p>In-place sorting is possible, and still stable, but is more complicated, and slightly slower, requiring non-linearithmic quasilinear time O(<i>n</i> log <i>n</i>) One way to sort in-place is to merge the blocks recursively. Like the standard merge sort, in-place merge sort is also a stable sort. Stable sorting of linked lists is simpler. In this case the algorithm does not use more space than that already used by the list representation, but the O(log(<i>k</i>)) used for the recursion trace.</p>
+<p>An alternative to reduce the copying into multiple lists is to associate a new field of information with each key (the elements in <i>m</i> are called keys). This field will be used to link the keys and any associated information together in a sorted list (a key and its related information is called a record). Then the merging of the sorted lists proceeds by changing the link values; no records need to be moved at all. A field which contains only a link will generally be smaller than an entire record so less space will also be used. This is a standard sorting technique, not restricted to merge sort.</p>
+<h2>Use with tape drives</h2>
+<p>An external merge sort is practical to run using disk or tape drives when the data to be sorted is too large to fit into memory. External sorting explains how merge sort is implemented with disk drives. A typical tape drive sort uses four tape drives. All I/O is sequential (except for rewinds at the end of each pass). A minimal implementation can get by with just 2 record buffers and a few program variables.</p>
+<p>Naming the four tape drives as A, B, C, D, with the original data on A, and using only 2 record buffers, the algorithm is similar to Bottom-up implementation, using pairs of tape drives instead of arrays in memory. The basic algorithm can be described as follows:</p>
+<ol>
+<li>Merge pairs of records from A; writing two-record sublists alternately to C and D.</li>
+<li>Merge two-record sublists from C and D into four-record sublists; writing these alternately to A and B.</li>
+<li>Merge four-record sublists from A and B into eight-record sublists; writing these alternately to C and D</li>
+<li>Repeat until you have one list containing all the data, sorted --- in log2(<i>n</i>) passes.</li>
+</ol>
+<p>Instead of starting with very short runs, usually a hybrid algorithm is used, where the initial pass will read many records into memory, do an internal sort to create a long run, and then distribute those long runs onto the output set. The step avoids many early passes. For example, an internal sort of 1024 records will save 9 passes. The internal sort is often large because it has such a benefit. In fact, there are techniques that can make the initial runs longer than the available internal memory.</p>
+<p>A more sophisticated merge sort that optimizes tape (and disk) drive usage is the polyphase merge sort.</p>
+<h2>Optimizing merge sort</h2>
+<p>On modern computers, locality of reference can be of paramount importance in software optimization, because multilevel memory hierarchies are used. Cache-aware versions of the merge sort algorithm, whose operations have been specifically chosen to minimize the movement of pages in and out of a machine's memory cache, have been proposed. For example, the <b>tiled merge sort</b> algorithm stops partitioning subarrays when subarrays of size S are reached, where S is the number of data items fitting into a CPU's cache. Each of these subarrays is sorted with an in-place sorting algorithm such as insertion sort, to discourage memory swaps, and normal merge sort is then completed in the standard recursive fashion. This algorithm has demonstrated better performance on machines that benefit from cache optimization. (LaMarca &amp; Ladner 1997)</p>
+<p>Kronrod (1969) suggested an alternative version of merge sort that uses constant additional space. This algorithm was later refined. (Katajainen, Pasanen &amp; Teuhola 1996)</p>
+<p>Also, many applications of external sorting use a form of merge sorting where the input get split up to a higher number of sublists, ideally to a number for which merging them still makes the currently processed set of pages fit into main memory.</p>
+<h2>Parallel processing</h2>
+<p>Merge sort parallelizes well due to use of the divide-and-conquer method. A parallel implementation is shown in pseudo-code in the third edition of Cormen, Leiserson, Rivest, and Stein's <i>Introduction to Algorithms</i>. This algorithm uses a parallel merge algorithm to not only parallelize the recursive division of the array, but also the merge operation. It performs well in practice when combined with a fast stable sequential sort, such as insertion sort, and a fast sequential merge as a base case for merging small arrays. Merge sort was one of the first sorting algorithms where optimal speed up was achieved, with Richard Cole using a clever subsampling algorithm to ensure <i>O</i>(1) merge. Other sophisticated parallel sorting algorithms can achieve the same or better time bounds with a lower constant. For example, in 1991 David Powers described a parallelized quicksort (and a related radix sort) that can operate in <i>O</i>(log <i>n</i>) time on a CRCW PRAM with <i>n</i> processors by performing partitioning implicitly. Powers further shows that a pipelined version of Batcher's Bitonic Mergesort at <i>O</i>(log<i>n</i>) time on a butterfly sorting network is in practice actually faster than his <i>O</i>(log <i>n</i>) sorts on a PRAM, and he provides detailed discussion of the hidden overheads in comparison, radix and parallel sorting.</p>
+<h2>Comparison with other sort algorithms</h2>
+<p>Although heapsort has the same time bounds as merge sort, it requires only Θ(1) auxiliary space instead of merge sort's Θ(<i>n</i>). On typical modern architectures, efficient quicksort implementations generally outperform mergesort for sorting RAM-based arrays. On the other hand, merge sort is a stable sort and is more efficient at handling slow-to-access sequential media. Merge sort is often the best choice for sorting a linked list: in this situation it is relatively easy to implement a merge sort in such a way that it requires only Θ(1) extra space, and the slow random-access performance of a linked list makes some other algorithms (such as quicksort) perform poorly, and others (such as heapsort) completely impossible.</p>
+<p>As of Perl 5.8, merge sort is its default sorting algorithm (it was quicksort in previous versions of Perl). In Java, the Arrays.sort() methods use merge sort or a tuned quicksort depending on the datatypes and for implementation efficiency switch to insertion sort when fewer than seven array elements are being sorted. Python uses Timsort, another tuned hybrid of merge sort and insertion sort, that has become the standard sort algorithm in Java SE 7, on the Android platform, and in GNU Octave.</p>
+<h2>Notes</h2>
+<ol>
+<li><b>^</b> Knuth (1998, p. 158)</li>
+<li><b>^</b> Jyrki Katajainen and Jesper Larsson Träff (1997). "A meticulous analysis of mergesort programs". </li>
+<li><b>^</b> The worst case number given here does not agree with that given in Knuth's <i>Art of Computer Programming, Vol 3</i>. The discrepancy is due to Knuth analyzing a variant implementation of merge sort that is slightly sub-optimal</li>
+<li><b>^</b> A Java implementation of in-place stable merge sort</li>
+<li><b>^</b> Selection sort. Knuth's snowplow. Natural merge.</li>
+<li><b>^</b> Cormen et al. 2009, p. 803</li>
+<li><b>^</b> V. J. Duvanenko, "Parallel Merge Sort", Dr. Dobb's Journal, March 2011</li>
+<li><b>^</b> Cole, Richard (August 1988). "Parallel merge sort". <i>SIAM J. Comput.</i> <b>17</b> (4): 770–785. doi:10.1137/0217049 </li>
+<li><b>^</b> Powers, David M. W. Parallelized Quicksort and Radixsort with Optimal Speedup, <i>Proceedings of International Conference on Parallel Computing Technologies</i>. Novosibirsk. 1991.</li>
+<li><b>^</b> David M. W. Powers, Parallel Unification: Practical Complexity, Australasian Computer Architecture Workshop, Flinders University, January 1995</li>
+<li><b>^</b> OpenJDK Subversion</li>
+<li><b>^</b> jjb. "Commit 6804124: Replace "modified mergesort" in java.util.Arrays.sort with timsort". <i>Java Development Kit 7 Hg repo</i>. Retrieved 24 Feb 2011. </li>
+<li><b>^</b> "Class: java.util.TimSort&lt;T&gt;". <i>Android JDK 1.5 Documentation</i>. Retrieved 24 Feb 2011. </li>
+<li><b>^</b> "liboctave/util/oct-sort.cc". <i>Mercurial repository of Octave source code</i>. Lines 23-25 of the initial comment block. Retrieved 18 Feb 2013. "Code stolen in large part from Python's, listobject.c, which itself had no license header. However, thanks to Tim Peters for the parts of the code I ripped-off." </li>
+</ol>
+</body>
+</html>

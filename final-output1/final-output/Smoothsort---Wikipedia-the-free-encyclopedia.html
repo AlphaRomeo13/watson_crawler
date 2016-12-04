@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Smoothsort---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Smoothsort</h1>
+<p><b>Smoothsort</b> (method) is a comparison-based sorting algorithm. It is a variation of heapsort developed by Edsger Dijkstra in 1981. Like heapsort, smoothsort's upper bound is O(<i>n</i> log <i>n</i>). The advantage of smoothsort is that it comes closer to O(<i>n</i>) time if the input is already sorted to some degree, whereas heapsort averages O(<i>n</i> log <i>n</i>) regardless of the initial sorted state.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Overview</li>
+<li>2 Operations
+<ul>
+<li>2.1 Grow the string by adding an element to the right
+<ul>
+<li>2.1.1 Optimisation</li>
+</ul>
+</li>
+<li>2.2 Shrink the string by removing the rightmost element
+<ul>
+<li>2.2.1 Optimisation</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>3 Memory usage</li>
+<li>4 Notes</li>
+</ul>
+<ul>
+<li>2.1 Grow the string by adding an element to the right
+<ul>
+<li>2.1.1 Optimisation</li>
+</ul>
+</li>
+<li>2.2 Shrink the string by removing the rightmost element
+<ul>
+<li>2.2.1 Optimisation</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li>2.1.1 Optimisation</li>
+</ul>
+<ul>
+<li>2.2.1 Optimisation</li>
+</ul>
+<p></p>
+<h2>Overview</h2>
+<p>Like heapsort, smoothsort builds up an implicit heap data structure in the array to be sorted, then sorts the array by continuously extracting the maximum element from that heap. Unlike heapsort, smoothsort does not use a binary heap, but rather a custom heap based on the Leonardo numbers L(n). The heap structure consists of a string of heaps, the sizes of which are all Leonardo numbers, and whose roots are stored in ascending order. The advantage of this custom heap over binary heaps is that if the sequence is already sorted, it takes only <img class="mwe-math-fallback-image-inline tex" alt="\scriptstyle O(n)" src="//upload.wikimedia.org/math/5/2/5/525d9b1c09a0c5f033a274f1cfb19222.png"> time to construct and deconstruct the heap, hence the better runtime.</p>
+<p>Breaking the input up into a sequence of heaps is simple – the leftmost nodes of the array are made into the largest heap possible, and the remainder is likewise divided up. It can be proven  that:</p>
+<ul>
+<li>Any array of any length can so be divided up into sections of size L(x).</li>
+<li>No two heaps will have the same size. The string will therefore be a string of heaps strictly descending in size.</li>
+<li>No two heaps will have sizes that are consecutive Leonardo numbers, except for possibly the final two.</li>
+</ul>
+<p>Each heap, having a size of L(x), is structured from left to right as a sub-heap of size L(x − 1), a sub-heap of size L(x − 2), and a root node, with the exception of heaps with a size of L(1) and L(0), which are singleton nodes. Each heap maintains the heap property that a root node is always at least as large as the root nodes of its child heaps (and therefore at least as large as all nodes in its child heaps), and the string of heaps as a whole maintains the string property that the root node of each heap is at least as large as the root node of the heap to the left.</p>
+<p>The consequence of this is that the rightmost node in the string will always be the largest of the nodes, and, importantly, an array that is already sorted needs no rearrangement to be made into a valid series of heaps. This is the source of the adaptive qualities of the algorithm.</p>
+<p>The algorithm is simple. We start by dividing up our unsorted array into a single heap of one element, followed by an unsorted portion. A one-element array is trivially a valid sequence of heaps. This sequence is then grown by adding one element at a time to the right, performing swaps to keep the sequence property and the heap property, until it fills the entire original array.</p>
+<p>From this point on, the rightmost element of the sequence of heaps will be the largest element in any of the heaps, and will therefore be in its correct, final position. We then reduce the series of heaps back down to a single heap of one element by removing the rightmost node (which stays in place) and performing re-arrangements to restore the heap condition. When we are back down to a single heap of one element, the array is sorted.</p>
+<h2>Operations</h2>
+<p>Ignoring (for the moment) Dijkstra's optimisations, two operations are necessary – increase the string by adding one element to the right, and decrease the string by removing the right most element (the root of the last heap), preserving the heap and string conditions.</p>
+<h3>Grow the string by adding an element to the right</h3>
+<ul>
+<li>If the last two heaps are of size L(x + 1) and L(x) (i.e., consecutive leonardo numbers), the new element becomes the root node of a bigger heap of size L(x+2). This heap will not necessarily have the heap property.</li>
+<li>If the last two heaps of the string are not consecutive Leonardo numbers, then the rightmost element becomes a new heap of size 1. This 1 is taken to be L(1), unless the rightmost heap already has size L(1), in which case the new one-element heap is taken to be of size L(0).</li>
+</ul>
+<p>After this, the heap and string properties must be restored, which is usually done via a variant of insertion sort. This is done as follows:</p>
+<ol>
+<li>The rightmost heap (the one that has just been created) becomes the "current" heap</li>
+<li>While there is a heap to the left of the current heap and its root is larger than the current root <i>and</i> both of its child heap roots
+<ul>
+<li>Then swap the new root with the root on the heap to the left (this will not disturb the heap property of the current heap). That heap then becomes the current heap.</li>
+</ul>
+</li>
+<li>Perform a "filter" operation on the current heap to establish the heap property:
+<ul>
+<li>While the current heap has a size greater than 1 and either child heap of the current heap has a root node greater than the root of the current heap
+<ul>
+<li>Swap the greater child root with the current root. That child heap becomes the current heap.</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+<ul>
+<li>Then swap the new root with the root on the heap to the left (this will not disturb the heap property of the current heap). That heap then becomes the current heap.</li>
+</ul>
+<ul>
+<li>While the current heap has a size greater than 1 and either child heap of the current heap has a root node greater than the root of the current heap
+<ul>
+<li>Swap the greater child root with the current root. That child heap becomes the current heap.</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li>Swap the greater child root with the current root. That child heap becomes the current heap.</li>
+</ul>
+<p>The filter operation is greatly simplified by the use of Leonardo numbers, as a heap will always either be a single node, or will have two children. One does not need to manage the condition of one of the child heaps not being present.</p>
+<h4>Optimisation</h4>
+<ul>
+<li>If the new heap is going to become part of a larger heap by the time we are done, then don't bother establishing the string property: it only needs to be done when a heap has reached its final size.
+<ul>
+<li>To do this, look at how many elements are left after the new heap of size L(x). If there are more than L(x − 1) + 1, then this new heap is going to be merged.</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li>To do this, look at how many elements are left after the new heap of size L(x). If there are more than L(x − 1) + 1, then this new heap is going to be merged.</li>
+</ul>
+<ul>
+<li>Do not maintain the heap property of the rightmost heap. If that heap becomes one of the final heaps of the string, then maintaining the string property will restore the heap property. Of course, whenever a new heap is created, then the rightmost heap is no longer the rightmost and the heap property needs to be restored.</li>
+</ul>
+<h3>Shrink the string by removing the rightmost element</h3>
+<p>If the rightmost heap has a size of 1 (i.e., L(1) or L(0)), then nothing needs to be done. Simply remove that rightmost heap.</p>
+<p>If the rightmost heap does not have a size of 1, then remove the root, exposing the two sub-heaps as members of the string. Restore the string property first on the left one and then on the right one.</p>
+<h4>Optimisation</h4>
+<ul>
+<li>When restoring the string property, we do not need to compare the root of the heap to the left with the two child nodes of the heaps that have just been exposed, because we know that these newly exposed heaps have the heap property. Just compare it to the root.</li>
+</ul>
+<h2>Memory usage</h2>
+<p>The smoothsort algorithm needs to be able to hold in memory the sizes of all of the heaps in the string. Since all these values are distinct, this is usually done using a bit vector. Moreover, since there are at most O(log n) numbers in the sequence, these bits can be encoded in O(1) machine words, assuming a transdichotomous machine model.</p>
+<h2>Notes</h2>
+<ol>
+<li><b>^</b> Dijkstra, Edsger W. <i>Smoothsort – an alternative to sorting in situ (EWD-796a)</i>. E.W. Dijkstra Archive. Center for American History, University of Texas at Austin.  (original; transcription)</li>
+<li><b>^</b> Smoothsort Demystified. Keithschwarz.com. Retrieved on 2010-11-20.</li>
+</ol>
+<ul>
+<li>Commented transcription of EWD796a</li>
+</ul>
+<ul>
+<li>v</li>
+<li>t</li>
+<li>e</li>
+</ul>
+<ul>
+<li>Computational complexity theory</li>
+<li>Big O notation</li>
+<li>Total order</li>
+<li>Lists</li>
+<li>Inplacement</li>
+<li>Stability</li>
+<li>Comparison sort</li>
+<li>Adaptive sort</li>
+<li>Sorting network</li>
+<li>Integer sorting</li>
+</ul>
+<ul>
+<li>Bubble sort</li>
+<li>Cocktail sort</li>
+<li>Odd–even sort</li>
+<li>Comb sort</li>
+<li>Gnome sort</li>
+<li>Quicksort</li>
+<li>Stooge sort</li>
+<li>Bogosort</li>
+</ul>
+<ul>
+<li>Selection sort</li>
+<li>Heapsort</li>
+<li><strong class="selflink">Smoothsort</strong></li>
+<li>Cartesian tree sort</li>
+<li>Tournament sort</li>
+<li>Cycle sort</li>
+</ul>
+<ul>
+<li>Insertion sort</li>
+<li>Shellsort</li>
+<li>Splaysort</li>
+<li>Tree sort</li>
+<li>Library sort</li>
+<li>Patience sorting</li>
+</ul>
+<ul>
+<li>Merge sort</li>
+<li>Cascade merge sort</li>
+<li>Oscillating merge sort</li>
+<li>Polyphase merge sort</li>
+<li>Strand sort</li>
+</ul>
+<ul>
+<li>American flag sort</li>
+<li>Bead sort</li>
+<li>Bucket sort</li>
+<li>Burstsort</li>
+<li>Counting sort</li>
+<li>Pigeonhole sort</li>
+<li>Proxmap sort</li>
+<li>Radix sort</li>
+<li>Flashsort</li>
+</ul>
+<ul>
+<li>Bitonic sorter</li>
+<li>Batcher odd–even mergesort</li>
+<li>Pairwise sorting network</li>
+</ul>
+<ul>
+<li>Block sort</li>
+<li>Timsort</li>
+<li>Introsort</li>
+<li>Spreadsort</li>
+<li>JSort</li>
+</ul>
+<ul>
+<li>Topological sorting</li>
+<li>Pancake sorting</li>
+<li>Spaghetti sort</li>
+</ul>
+</body>
+</html>

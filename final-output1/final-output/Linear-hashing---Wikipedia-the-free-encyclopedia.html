@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Linear-hashing---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Linear hashing</h1>
+<p><b>Linear hashing</b> is a dynamic hash table algorithm invented by Witold Litwin (1980), and later popularized by Paul Larson. Linear hashing allows for the expansion of the hash table one slot at a time. The frequent single slot expansion can very effectively control the length of the collision chain. The cost of hash table expansion is spread out across each hash table insertion operation, as opposed to being incurred all at once. Linear hashing is therefore well suited for interactive applications.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Algorithm Details
+<ul>
+<li>1.1 Points to ponder over</li>
+<li>1.2 Algorithm for inserting ‘k’ and checking overflow condition</li>
+<li>1.3 Searching in the hash table for ‘k’</li>
+</ul>
+</li>
+<li>2 Adoption in language systems</li>
+<li>3 Adoption in database systems</li>
+<li>4 References</li>
+<li>5 External links</li>
+<li>6 See also</li>
+</ul>
+<ul>
+<li>1.1 Points to ponder over</li>
+<li>1.2 Algorithm for inserting ‘k’ and checking overflow condition</li>
+<li>1.3 Searching in the hash table for ‘k’</li>
+</ul>
+<p></p>
+<h2>Algorithm Details</h2>
+<p>First the initial hash table is set up with some arbitrary initial number of buckets. The following values need to be kept track of:</p>
+<ul>
+<li><img class="mwe-math-fallback-image-inline tex" alt="N" src="//upload.wikimedia.org/math/8/d/9/8d9c307cb7f3c4a32822a51922d1ceaa.png">: The initial number of buckets.</li>
+<li><img class="mwe-math-fallback-image-inline tex" alt="L" src="//upload.wikimedia.org/math/d/2/0/d20caec3b48a1eef164cb4ca81ba2587.png">: The current level which is an integer that indicates on a logarithmic scale approximately how many buckets the table has grown by. This is initially <img class="mwe-math-fallback-image-inline tex" alt="0" src="//upload.wikimedia.org/math/c/f/c/cfcd208495d565ef66e7dff9f98764da.png">.</li>
+<li><img class="mwe-math-fallback-image-inline tex" alt="S" src="//upload.wikimedia.org/math/5/d/b/5dbc98dcc983a70728bd082d1a47546e.png">: The step pointer which points to a bucket. It initially points to the first bucket in the table.</li>
+</ul>
+<p>Bucket collisions can be handled in a variety of ways but it is typical to have space for two items in each bucket and to add more buckets whenever a bucket overflows. More than two items can be used once the implementation is debugged. Addresses are calculated in the following way:</p>
+<ul>
+<li>Apply a hash function to the key and call the result <img class="mwe-math-fallback-image-inline tex" alt="H" src="//upload.wikimedia.org/math/c/1/d/c1d9f50f86825a1a2302ec2449c17196.png">.</li>
+<li>If <img class="mwe-math-fallback-image-inline tex" alt="H \bmod N \times 2^L" src="//upload.wikimedia.org/math/b/e/2/be25dd38013046fa9163b3f875693b8f.png"> is an address that comes before <img class="mwe-math-fallback-image-inline tex" alt="S" src="//upload.wikimedia.org/math/5/d/b/5dbc98dcc983a70728bd082d1a47546e.png">, the address is <img class="mwe-math-fallback-image-inline tex" alt="H \bmod N \times 2^{L+1}" src="//upload.wikimedia.org/math/4/6/e/46ecc950db552c9ea365bbb687945c98.png">.</li>
+<li>If <img class="mwe-math-fallback-image-inline tex" alt="H \bmod N \times 2^L" src="//upload.wikimedia.org/math/b/e/2/be25dd38013046fa9163b3f875693b8f.png"> is <img class="mwe-math-fallback-image-inline tex" alt="S" src="//upload.wikimedia.org/math/5/d/b/5dbc98dcc983a70728bd082d1a47546e.png"> or an address that comes after <img class="mwe-math-fallback-image-inline tex" alt="S" src="//upload.wikimedia.org/math/5/d/b/5dbc98dcc983a70728bd082d1a47546e.png">, the address is <img class="mwe-math-fallback-image-inline tex" alt="H \bmod N \times 2^L" src="//upload.wikimedia.org/math/b/e/2/be25dd38013046fa9163b3f875693b8f.png">.</li>
+</ul>
+<p>To add a bucket:</p>
+<ul>
+<li>Allocate a new bucket at the end of the table.</li>
+<li>If <img class="mwe-math-fallback-image-inline tex" alt="S" src="//upload.wikimedia.org/math/5/d/b/5dbc98dcc983a70728bd082d1a47546e.png"> points to the <img class="mwe-math-fallback-image-inline tex" alt="N \times 2^L" src="//upload.wikimedia.org/math/d/f/5/df5a011e12b1e627d4916f933992510c.png">th bucket in the table, reset <img class="mwe-math-fallback-image-inline tex" alt="S" src="//upload.wikimedia.org/math/5/d/b/5dbc98dcc983a70728bd082d1a47546e.png"> and increment <img class="mwe-math-fallback-image-inline tex" alt="L" src="//upload.wikimedia.org/math/d/2/0/d20caec3b48a1eef164cb4ca81ba2587.png">.</li>
+<li>Otherwise increment <img class="mwe-math-fallback-image-inline tex" alt="S" src="//upload.wikimedia.org/math/5/d/b/5dbc98dcc983a70728bd082d1a47546e.png">.</li>
+</ul>
+<p>The effect of all of this is that the table is split into three sections; the section before <img class="mwe-math-fallback-image-inline tex" alt="S" src="//upload.wikimedia.org/math/5/d/b/5dbc98dcc983a70728bd082d1a47546e.png">, the section from <img class="mwe-math-fallback-image-inline tex" alt="S" src="//upload.wikimedia.org/math/5/d/b/5dbc98dcc983a70728bd082d1a47546e.png"> to <img class="mwe-math-fallback-image-inline tex" alt="N \times 2^L" src="//upload.wikimedia.org/math/d/f/5/df5a011e12b1e627d4916f933992510c.png">, and the section after <img class="mwe-math-fallback-image-inline tex" alt="N \times 2^L" src="//upload.wikimedia.org/math/d/f/5/df5a011e12b1e627d4916f933992510c.png">. The first and last sections are stored using <img class="mwe-math-fallback-image-inline tex" alt="H \bmod N \times 2^{L+1}" src="//upload.wikimedia.org/math/4/6/e/46ecc950db552c9ea365bbb687945c98.png"> and the middle section is stored using <img class="mwe-math-fallback-image-inline tex" alt="H \bmod N \times 2^L" src="//upload.wikimedia.org/math/b/e/2/be25dd38013046fa9163b3f875693b8f.png">. Each time <img class="mwe-math-fallback-image-inline tex" alt="S" src="//upload.wikimedia.org/math/5/d/b/5dbc98dcc983a70728bd082d1a47546e.png"> reaches <img class="mwe-math-fallback-image-inline tex" alt="N \times 2^L" src="//upload.wikimedia.org/math/d/f/5/df5a011e12b1e627d4916f933992510c.png"> the table has doubled in size.</p>
+<h3>Points to ponder over</h3>
+<ul>
+<li>Full buckets are not necessarily split, and an overflow space for temporary overflow buckets is required. In external storage, this could mean a second file.</li>
+<li>Buckets split are not necessarily full</li>
+<li>Every bucket will be split sooner or later and so all Overflows will be reclaimed and rehashed.</li>
+<li>Split pointer s decides which bucket to split
+<ul>
+<li>s is independent to overflowing bucket</li>
+<li>At level i, s is between 0 and 2^i</li>
+<li>s is incremented and if at end, is reset to 0.</li>
+<li>since a bucket at s is split then s is in incremented, only buckets before s have the second doubled hash space .</li>
+<li>a large good pseudo random number is first obtained , and then is bit-masked with either (2^i) -1 or (2^(i+1)) -1, but the latter only applies if x, the random number, bit-masked with the former , (2^i) - 1, is less than S, so the larger range of hash values only apply to buckets that have already been split.</li>
+<li>e.g. To bit-mask a number , use x &amp; 0111 , where &amp; is the AND operator, 111 is binary 7 , where 7 = 8 - 1 and 8 is 2^3 and i = 3.</li>
+<li>what if s lands on a bucket which has 1 or more full overflow buckets ? The split will only reduce the overflow bucket count by 1, and the remaining overflow buckets will have to be recreated by seeing which of the new 2 buckets, or their overflow buckets, the overflow entries belong.</li>
+</ul>
+</li>
+<li>h<sub>i</sub> (k)= h(k) mod(2^i n)</li>
+<li>h<sub>i+1</sub> doubles the range of h<sub>i</sub></li>
+</ul>
+<ul>
+<li>s is independent to overflowing bucket</li>
+<li>At level i, s is between 0 and 2^i</li>
+<li>s is incremented and if at end, is reset to 0.</li>
+<li>since a bucket at s is split then s is in incremented, only buckets before s have the second doubled hash space .</li>
+<li>a large good pseudo random number is first obtained , and then is bit-masked with either (2^i) -1 or (2^(i+1)) -1, but the latter only applies if x, the random number, bit-masked with the former , (2^i) - 1, is less than S, so the larger range of hash values only apply to buckets that have already been split.</li>
+<li>e.g. To bit-mask a number , use x &amp; 0111 , where &amp; is the AND operator, 111 is binary 7 , where 7 = 8 - 1 and 8 is 2^3 and i = 3.</li>
+<li>what if s lands on a bucket which has 1 or more full overflow buckets ? The split will only reduce the overflow bucket count by 1, and the remaining overflow buckets will have to be recreated by seeing which of the new 2 buckets, or their overflow buckets, the overflow entries belong.</li>
+</ul>
+<h3>Algorithm for inserting ‘k’ and checking overflow condition</h3>
+<ul>
+<li>b = h<sub>0</sub>(k)</li>
+<li>if b &lt; split-pointer then</li>
+<li>b = h<sub>1</sub>(k)</li>
+</ul>
+<h3>Searching in the hash table for ‘k’</h3>
+<ul>
+<li>b = h<sub>0</sub>(k)</li>
+<li>if b &lt; split-pointer then</li>
+<li>b = h<sub>1</sub>(k)</li>
+<li>read bucket b and search there</li>
+</ul>
+<h2>Adoption in language systems</h2>
+<p>Griswold and Townsend  discussed the adoption of linear hashing in the Icon language. They discussed the implementation alternatives of dynamic array algorithm used in linear hashing, and presented performance comparisons using a list of Icon benchmark applications.</p>
+<h2>Adoption in database systems</h2>
+<p>Linear hashing is used in the BDB Berkeley database system, which in turn is used by many software systems such as OpenLDAP, using a C implementation derived from the CACM article and first published on the Usenet in 1988 by Esmond Pitt.</p>
+</body>
+</html>

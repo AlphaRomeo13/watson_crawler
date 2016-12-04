@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Numerical-stability---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Numerical stability</h1>
+<p>In the mathematical subfield of numerical analysis, <b>numerical stability</b> is a desirable property of numerical algorithms. The precise definition of stability depends on the context, but it is derived from the accuracy of the algorithm.</p>
+<p>Sometimes a single calculation can be achieved in several ways, all of which are algebraically equivalent in terms of ideal real or complex numbers, but in practice when performed on digital computers yield different results. Some calculations might damp out approximation errors that occur; others might magnify such errors. Calculations that can be proven not to magnify approximation errors are called <i>numerically stable</i>. One of the common tasks of numerical analysis is to try to select algorithms which are <i>robust</i> – that is to say, have good numerical stability among other desirable properties.</p>
+<p>An opposite phenomenon is <b>instability</b>. Typically, algorithms would approach the right solution in the limit, if there were no round-off or truncation errors, but depending on the specific computational method, errors can be magnified, instead of damped, causing the error to grow exponentially.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Example</li>
+<li>2 Forward, backward, and mixed stability</li>
+<li>3 Error growth</li>
+<li>4 Stability in numerical differential equations</li>
+<li>5 See also</li>
+<li>6 References</li>
+</ul>
+<p></p>
+<h2>Example</h2>
+<p>As an example of an unstable algorithm, consider the task of adding an array of 100 numbers. To simplify things, assume our computer only has two significant figures (for example, numbers can be represented as 2.3, 77, 100, 110, 120, etc., but not 12.3 or 177).</p>
+<p>The naive way to do this would be the following:</p>
+<p>WHATSON? 5ab0973e-d8f0-4850-a987-f739945fd2f4</p>
+<pre>
+<code><b>function</b> sumArray(array) <b>is</b>
+    <b>let</b> theSum = 0
+    <b>for each</b> element <b>in</b> array <b>do</b>
+        <b>let</b> theSum = theSum + element
+    <b>end for</b>
+    <b>return</b> theSum
+ <b>end function</b></code>
+</pre>
+<p>That looks reasonable, but suppose the first element in the array was 1.0 and the other 99 elements were 0.01. In exact arithmetic, the answer would be 1.99. However, on our two-digit computer, once the 1.0 was added into the sum variable, adding in 0.01 would have no effect on the sum, and so the final answer would be 1.0 – not a very good approximation of the real answer. Furthermore, we see that the algorithm depends on the ordering of elements within the array, in contrast to the exact arithmetic.</p>
+<p>An example of a stable algorithm in this specific case is one that first sorts the array by the absolute values of the elements in ascending order and then sums them up using the pseudo code given above. This ensures that the numbers closest to zero will be taken into consideration first. Once that change is made, all of the 0.01 elements will be added, giving 0.99, and then the 1.0 element will be added, yielding a rounded result of 2.0 – a much better approximation of the real result.</p>
+<p>However, for a larger array or for a computer with worse accuracy, sorting the array before adding the numbers together may not be enough. Consider for example the same task as above but with an array consisting of 1000 numbers instead of 100, and where all numbers have the value 1. In this case, sorting the numbers before summing them together will not have any effect since the numbers are all equally large. Once the calculated sum has reached 100, adding another number to it will no longer have any effect since the addition would be truncated down to 100 again. The calculated sum will therefore stop at 100, which is a very bad approximation of the actual sum which is 1000.</p>
+<p>Instead, a stable algorithm for solving this more general problem can for example be a divide and conquer algorithm where the array is recursively split into two parts for which the sum is calculated respectively, and where these two sums then are summed together to give the final sum.</p>
+<h2>Forward, backward, and mixed stability</h2>
+<p>There are different ways to formalize the concept of stability. The following definitions of forward, backward, and mixed stability are often used in numerical linear algebra.</p>
+<p>Consider the problem to be solved by the numerical algorithm as a function f mapping the data x to the solution y. The result of the algorithm, say y*, will usually deviate from the "true" solution y. The main causes of error are round-off error and truncation error. The <i>forward error</i> of the algorithm is the difference between the result and the solution; in this case, Δ<i>y</i> = <i>y</i>* − <i>y</i>. The <i>backward error</i> is the smallest Δx such that <i>f</i> (<i>x</i> + Δ<i>x</i>) = <i>y</i>*; in other words, the backward error tells us what problem the algorithm actually solved. The forward and backward error are related by the condition number: the forward error is at most as big in magnitude as the condition number multiplied by the magnitude of the backward error.</p>
+<p>In many cases, it is more natural to consider the relative error</p>
+<p>instead of the absolute error Δx.</p>
+<p>The algorithm is said to be <i>backward stable</i> if the backward error is small for all inputs x. Of course, "small" is a relative term and its definition will depend on the context. Often, we want the error to be of the same order as, or perhaps only a few orders of magnitude bigger than, the unit round-off.</p>
+<p>The usual definition of numerical stability uses a more general concept, called <i>mixed stability</i>, which combines the forward error and the backward error. An algorithm is stable in this sense if it solves a nearby problem approximately, i.e., if there exists a Δx such that both Δx is small and <i>f</i> (<i>x</i> + Δ<i>x</i>) − <i>y</i>* is small. Hence, a backward stable algorithm is always stable.</p>
+<p>An algorithm is <i>forward stable</i> if its forward error divided by the condition number of the problem is small. This means that an algorithm is forward stable if it has a forward error of magnitude similar to some backward stable algorithm.</p>
+<h2>Error growth</h2>
+<p>Suppose that <i>E</i><sub><i>i</i></sub> &gt; 0 denotes an initial error and <i>E</i><sub><i>n</i></sub> represents the magnitude of an error after n subsequent operations. If <i>E</i><sub><i>n</i></sub> ∼  <i>C</i>∙<i>n</i>∙<i>E</i><sub><i>i</i></sub>, where C is a constant independent of n, then the growth of the error is said to be <i>linear</i>. If <i>E</i><sub><i>n</i></sub> ∼  <i>C</i>∙<i>E</i><sub><i>i</i></sub>, for some <i>C</i> &gt; 1, then the growth of the error is called <i>exponential</i>.</p>
+<h2>Stability in numerical differential equations</h2>
+<p>The above definitions are particularly relevant in situations where truncation errors are not important. In other contexts, for instance when solving differential equations, a different definition of numerical stability is used.</p>
+<p>In numerical ordinary differential equations, various concepts of numerical stability exist, for instance A-stability. They are related to some concept of stability in the dynamical systems sense, often Lyapunov stability. It is important to use a stable method when solving a stiff equation.</p>
+<p>Yet another definition is used in numerical partial differential equations. An algorithm for solving a linear evolutionary partial differential equation is stable if the total variation of the numerical solution at a fixed time remains bounded as the step size goes to zero. The Lax equivalence theorem states that an algorithm converges if it is consistent and stable (in this sense). Stability is sometimes achieved by including numerical diffusion. Numerical diffusion is a mathematical term which ensures that roundoff and other errors in the calculation get spread out and do not add up to cause the calculation to "blow up". Von Neumann stability analysis is a commonly used procedure for the stability analysis of finite difference schemes as applied to linear partial differential equations. These results do not hold for nonlinear PDEs, where a general, consistent definition of stability is complicated by many properties absent in linear equations.</p>
+<h2>See also</h2>
+<ul>
+<li>Algorithms for calculating variance</li>
+<li>Stability theory</li>
+<li>Chaos theory</li>
+</ul>
+</body>
+</html>

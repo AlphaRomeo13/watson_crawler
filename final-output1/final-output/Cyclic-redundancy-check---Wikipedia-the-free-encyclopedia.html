@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Cyclic-redundancy-check---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Cyclic redundancy check</h1>
+<p>A <b>cyclic redundancy check</b> (<b>CRC</b>) is an error-detecting code commonly used in digital networks and storage devices to detect accidental changes to raw data. Blocks of data entering these systems get a short <i>check value</i> attached, based on the remainder of a polynomial division of their contents; on retrieval the calculation is repeated, and corrective action can be taken against presumed data corruption if the check values do not match.</p>
+<p>CRCs are so called because the <i>check</i> (data verification) value is a <i>redundancy</i> (it expands the message without adding information) and the algorithm is based on <i>cyclic</i> codes. CRCs are popular because they are simple to implement in binary hardware, easy to analyze mathematically, and particularly good at detecting common errors caused by noise in transmission channels. Because the check value has a fixed length, the function that generates it is occasionally used as a hash function.</p>
+<p>The CRC was invented by W. Wesley Peterson in 1961; the 32-bit CRC function of Ethernet and many other standards is the work of several researchers and was published in 1975.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Introduction</li>
+<li>2 Application</li>
+<li>3 Data integrity</li>
+<li>4 Computation</li>
+<li>5 Mathematics
+<ul>
+<li>5.1 Designing polynomials</li>
+</ul>
+</li>
+<li>6 Specification</li>
+<li>7 Standards and common use</li>
+<li>8 Implementations</li>
+<li>9 See also</li>
+<li>10 References</li>
+<li>11 External links</li>
+</ul>
+<ul>
+<li>5.1 Designing polynomials</li>
+</ul>
+<p></p>
+<h2>Introduction</h2>
+<p>CRCs are based on the theory of cyclic error-correcting codes. The use of systematic cyclic codes, which encode messages by adding a fixed-length check value, for the purpose of error detection in communication networks, was first proposed by W. Wesley Peterson in 1961. Cyclic codes are not only simple to implement but have the benefit of being particularly well suited for the detection of burst errors, contiguous sequences of erroneous data symbols in messages. This is important because burst errors are common transmission errors in many communication channels, including magnetic and optical storage devices. Typically an <i>n</i>-bit CRC applied to a data block of arbitrary length will detect any single error burst not longer than <i>n</i> bits and will detect a fraction 1 − 2 of all longer error bursts.</p>
+<p>Specification of a CRC code requires definition of a so-called generator polynomial. This polynomial becomes the divisor in a polynomial long division, which takes the message as the dividend and in which the quotient is discarded and the remainder becomes the result. The important caveat is that the polynomial coefficients are calculated according to the arithmetic of a finite field, so the addition operation can always be performed bitwise-parallel (there is no carry between digits). The length of the remainder is always less than the length of the generator polynomial, which therefore determines how long the result can be.</p>
+<p>In practice, all commonly used CRCs employ the <b>G</b>alois <b>f</b>ield of two elements, GF(2). The two elements are usually called 0 and 1, comfortably matching computer architecture.</p>
+<p>A CRC is called an <i>n</i>-bit CRC when its check value is <i>n</i> bits. For a given <i>n</i>, multiple CRCs are possible, each with a different polynomial. Such a polynomial has highest degree <i>n</i>, which means it has <i>n</i> + 1 terms. In other words, the polynomial has a length of <i>n</i> + 1; its encoding requires <i>n</i> + 1 bits. Note that most polynomial specifications either drop the MSB or LSB bit, since they are always 1. The CRC and associated polynomial typically have a name of the form CRC-<i>n</i>-XXX as in the table below.</p>
+<p>The simplest error-detection system, the parity bit, is in fact a trivial 1-bit CRC: it uses the generator polynomial <i>x</i> + 1 (two terms), and has the name CRC-1.</p>
+<h2>Application</h2>
+<p>A CRC-enabled device calculates a short, fixed-length binary sequence, known as the <i>check value</i> or <i>CRC</i>, for each block of data to be sent or stored and appends it to the data, forming a <i>codeword</i>. When a codeword is received or read, the device either compares its check value with one freshly calculated from the data block, or equivalently, performs a CRC on the whole codeword and compares the resulting check value with an expected <i>residue</i> constant. If the check values do not match, then the block contains a data error. The device may take corrective action, such as rereading the block or requesting that it be sent again. Otherwise, the data is assumed to be error-free (though, with some small probability, it may contain undetected errors; this is the fundamental nature of error-checking).</p>
+<h2>Data integrity</h2>
+<p>CRCs are specifically designed to protect against common types of errors on communication channels, where they can provide quick and reasonable assurance of the integrity of messages delivered. However, they are not suitable for protecting against intentional alteration of data.</p>
+<p>Firstly, as there is no authentication, an attacker can edit a message and recompute the CRC without the substitution being detected. When stored alongside the data, CRCs and cryptographic hash functions by themselves do not protect against <i>intentional</i> modification of data. Any application that requires protection against such attacks must use cryptographic authentication mechanisms, such as message authentication codes or digital signatures (which are commonly based on cryptographic hash functions).</p>
+<p>Secondly, unlike cryptographic hash functions, CRC is an easily reversible function, which makes it unsuitable for use in digital signatures.</p>
+<p>Thirdly, CRC is a linear function with a property that <img class="mwe-math-fallback-image-inline tex" alt="\operatorname{crc}(x \oplus y \oplus z) = \operatorname{crc}(x) \oplus \operatorname{crc}(y) \oplus \operatorname{crc}(z)" src="//upload.wikimedia.org/math/7/6/0/760cfda6ee1d6d7d598cf19792f42064.png">; as a result, even if the CRC is encrypted with a stream cipher that uses XOR as its combining operation (or mode of block cipher which effectively turns it into a stream cipher, such as OFB or CFB), both the message and the associated CRC can be manipulated without knowledge of the encryption key; this was one of the well-known design flaws of the Wired Equivalent Privacy (WEP) protocol.</p>
+<h2>Computation</h2>
+<p>To compute an <i>n</i>-bit binary CRC, line the bits representing the input in a row, and position the (<i>n</i> + 1)-bit pattern representing the CRC's divisor (called a "polynomial") underneath the left-hand end of the row.</p>
+<p>In this example, we shall encode 14 bits of message with a 3-bit CRC, with a polynomial x³+x+1. The polynomial is written in binary as the coefficients; a 3rd order polynomial has 4 coefficients (1x³+0x²+1x+1). In this case, the coefficients are 1,0, 1 and 1. The result of the calculation is 3 bits long.</p>
+<p>Start with the message to be encoded:</p>
+<p>WHATSON? c696e1fa-ff2c-49d6-93bf-55796006a386</p>
+<pre>
+11010011101100
+</pre>
+<p>This is first padded with zeroes corresponding to the bit length <i>n</i> of the CRC. Here is the first calculation for computing a 3-bit CRC:</p>
+<p>WHATSON? 9072336a-e666-4dba-8370-5d07b39341e5</p>
+<pre>
+11010011101100 000 &lt;--- input right padded by 3 bits
+1011               &lt;--- divisor (4 bits) = x³+x+1
+------------------
+01100011101100 000 &lt;--- result
+</pre>
+<p>The algorithm acts on the bits directly above the divisor in each step. The result for that iteration is the bitwise XOR of the polynomial divisor with the bits above it. The bits not above the divisor are simply copied directly below for that step. The divisor is then shifted one bit to the right, and the process is repeated until the divisor reaches the right-hand end of the input row. Here is the entire calculation:</p>
+<p>WHATSON? e33823b7-e162-46a5-87bf-81a010285190</p>
+<pre>
+11010011101100 000 &lt;--- input right padded by 3 bits
+1011               &lt;--- divisor
+01100011101100 000 &lt;--- result (note the first four bits are the XOR with the divisor beneath, the rest of the bits are unchanged)
+ 1011              &lt;--- divisor ...
+00111011101100 000
+  1011
+00010111101100 000
+   1011
+00000001101100 000 &lt;--- note that the divisor moves over to align with the next 1 in the dividend (since quotient for that step was zero)
+       1011             (in other words, it doesn't necessarily move one bit per iteration)
+00000000110100 000
+        1011
+00000000011000 000
+         1011
+00000000001110 000
+          1011
+00000000000101 000 
+           101 1
+-----------------
+00000000000000 100 &lt;--- remainder (3 bits).  Division algorithm stops here as quotient is equal to zero.
+</pre>
+<p>Since the leftmost divisor bit zeroed every input bit it touched, when this process ends the only bits in the input row that can be nonzero are the n bits at the right-hand end of the row. These <i>n</i> bits are the remainder of the division step, and will also be the value of the CRC function (unless the chosen CRC specification calls for some postprocessing).</p>
+<p>The validity of a received message can easily be verified by performing the above calculation again, this time with the check value added instead of zeroes. The remainder should equal zero if there are no detectable errors.</p>
+<p>WHATSON? 59b7f184-3041-483e-a5a1-bb4e22363833</p>
+<pre>
+11010011101100 100 &lt;--- input with check value
+1011               &lt;--- divisor
+01100011101100 100 &lt;--- result
+ 1011              &lt;--- divisor ...
+00111011101100 100
+
+......
+  
+00000000001110 100
+          1011
+00000000000101 100 
+           101 1
+------------------
+                 0 &lt;--- remainder
+</pre>
+<h2>Mathematics</h2>
+<p>Mathematical analysis of this division-like process reveals how to select a divisor that guarantees good error-detection properties. In this analysis, the digits of the bit strings are taken as the coefficients of a polynomial in some variable <i>x</i>—coefficients that are elements of the finite field GF(2), instead of more familiar numbers. The set of binary polynomials is a mathematical ring.</p>
+<h3>Designing polynomials</h3>
+<p>The selection of generator polynomial is the most important part of implementing the CRC algorithm. The polynomial must be chosen to maximize the error-detecting capabilities while minimizing overall collision probabilities.</p>
+<p>The most important attribute of the polynomial is its length (largest degree(exponent) +1 of any one term in the polynomial), because of its direct influence on the length of the computed check value.</p>
+<p>The most commonly used polynomial lengths are:</p>
+<ul>
+<li>9 bits (CRC-8)</li>
+<li>17 bits (CRC-16)</li>
+<li>33 bits (CRC-32)</li>
+<li>65 bits (CRC-64)</li>
+</ul>
+<p>A CRC is called an <i>n</i>-bit CRC when its check value is <i>n</i>-bits. For a given <i>n</i>, multiple CRC's are possible, each with a different polynomial. Such a polynomial has highest degree <i>n</i>, and hence <i>n</i> + 1 terms (the polynomial has a length of <i>n</i> + 1). The remainder has length <i>n</i>. The CRC has a name of the form CRC-<i>n</i>-XXX.</p>
+<p>The design of the CRC polynomial depends on the maximum total length of the block to be protected (data + CRC bits), the desired error protection features, and the type of resources for implementing the CRC, as well as the desired performance. A common misconception is that the "best" CRC polynomials are derived from either irreducible polynomials or irreducible polynomials times the factor 1 + <i>x</i>, which adds to the code the ability to detect all errors affecting an odd number of bits. In reality, all the factors described above should enter into the selection of the polynomial and may lead to a reducible polynomial. However, choosing a reducible polynomial will result in a certain proportion of missed errors, due to the quotient ring having zero divisors.</p>
+<p>The advantage of choosing a primitive polynomial as the generator for a CRC code is that the resulting code has maximal total block length in the sense that all 1-bit errors within that block length have different remainders (also called syndromes) and therefore, since the remainder is a linear function of the block, the code can detect all 2-bit errors within that block length. If r is the degree of the primitive generator polynomial, then the maximal total block length is <img class="mwe-math-fallback-image-inline tex" alt="2 ^ {r} - 1 " src="//upload.wikimedia.org/math/a/8/2/a827664cadeae649ac5250e1d070b4da.png">, and the associated code is able to detect any single-bit or double-bit errors. We can improve this situation. If we use the generator polynomial <img class="mwe-math-fallback-image-inline tex" alt="g(x) = p(x)(1 + x)" src="//upload.wikimedia.org/math/4/5/0/450664cb474d98e61b2c14396cc0e2d0.png">, where <img class="mwe-math-fallback-image-inline tex" alt="p(x)" src="//upload.wikimedia.org/math/4/1/3/4130c89f2d12c3ac81aba3adbff28685.png"> is a primitive polynomial of degree <img class="mwe-math-fallback-image-inline tex" alt="r - 1" src="//upload.wikimedia.org/math/4/b/a/4bafb3d0c4863848a59299854e083290.png">, then the maximal total block length is <img class="mwe-math-fallback-image-inline tex" alt="2^{r - 1} - 1" src="//upload.wikimedia.org/math/1/3/a/13a09ebd4b239efc850396a6232c54ad.png">, and the code is able to detect single, double, triple and any odd number of errors.</p>
+<p>A polynomial <img class="mwe-math-fallback-image-inline tex" alt="g(x)" src="//upload.wikimedia.org/math/e/8/4/e84fec1e074026d6fa8e3155482c35c3.png"> that admits other factorizations may be chosen then so as to balance the maximal total blocklength with a desired error detection power. The BCH codes are a powerful class of such polynomials. They subsume the two examples above. Regardless of the reducibility properties of a generator polynomial of degree <i>r</i>, if it includes the "+1" term, the code will be able to detect error patterns that are confined to a window of <i>r</i> contiguous bits. These patterns are called "error bursts".</p>
+<h2>Specification</h2>
+<p>The concept of the CRC as an error-detecting code gets complicated when an implementer or standards committee uses it to design a practical system. Here are some of the complications:</p>
+<ul>
+<li>Sometimes an implementation <b>prefixes a fixed bit pattern</b> to the bitstream to be checked. This is useful when clocking errors might insert 0-bits in front of a message, an alteration that would otherwise leave the check value unchanged.</li>
+<li>Usually, but not always, an implementation <b>appends <i>n</i> 0-bits</b> (<i>n</i> being the size of the CRC) to the bitstream to be checked before the polynomial division occurs. Such appending is explicitly demonstrated in the Computation of CRC article. This has the convenience that the remainder of the original bitstream with the check value appended is exactly zero, so the CRC can be checked simply by performing the polynomial division on the received bitstream and comparing the remainder with zero. Due to the associative and commutative properties of the exclusive-or operation, practical table driven implementations can obtain a result numerically equivalent to zero-appending without explicitly appending any zeroes, by using an equivalent, faster algorithm that combines the message bitstream with the stream being shifted out of the CRC register.</li>
+<li>Sometimes an implementation <b>exclusive-ORs a fixed bit pattern</b> into the remainder of the polynomial division.</li>
+<li><b>Bit order:</b> Some schemes view the low-order bit of each byte as "first", which then during polynomial division means "leftmost", which is contrary to our customary understanding of "low-order". This convention makes sense when serial-port transmissions are CRC-checked in hardware, because some widespread serial-port transmission conventions transmit bytes least-significant bit first.</li>
+<li><b>Byte order</b>: With multi-byte CRCs, there can be confusion over whether the byte transmitted first (or stored in the lowest-addressed byte of memory) is the least-significant byte (LSB) or the most-significant byte (MSB). For example, some 16-bit CRC schemes swap the bytes of the check value.</li>
+<li><b>Omission of the high-order bit</b> of the divisor polynomial: Since the high-order bit is always 1, and since an <i>n</i>-bit CRC must be defined by an (<i>n</i> + 1)-bit divisor which overflows an <i>n</i>-bit register, some writers assume that it is unnecessary to mention the divisor's high-order bit.</li>
+<li><b>Omission of the low-order bit</b> of the divisor polynomial: Since the low-order bit is always 1, authors such as Philip Koopman represent polynomials with their high-order bit intact, but without the low-order bit (the <img class="mwe-math-fallback-image-inline tex" alt="x^0" src="//upload.wikimedia.org/math/5/9/b/59b95a7f867ce9d4e0f0b5f86f1260ff.png"> or 1 term). This convention encodes the polynomial complete with its degree in one integer.</li>
+</ul>
+<p>These complications mean that there are three common ways to express a polynomial as an integer: the first two, which are mirror images in binary, are the constants found in code; the third is the number found in Koopman's papers. <i>In each case, one term is omitted.</i> So the polynomial <img class="mwe-math-fallback-image-inline tex" alt="x^4 + x + 1" src="//upload.wikimedia.org/math/9/c/f/9cf56dfddae542d12f2e7b1ad2b7d5b1.png"> may be transcribed as:</p>
+<ul>
+<li>0x3 = 0b0011, representing <s><img class="mwe-math-fallback-image-inline tex" alt="x^4 +" src="//upload.wikimedia.org/math/2/8/d/28daf78d366169dd535f512de836c878.png"></s><img class="mwe-math-fallback-image-inline tex" alt="0x^3 + 0x^2 + 1x^1 + 1x^0" src="//upload.wikimedia.org/math/2/a/6/2a6ac7889af0b8bd815ad6a9113e5781.png"> (MSB-first code)</li>
+<li>0xC = 0b1100, representing <img class="mwe-math-fallback-image-inline tex" alt="1x^0 + 1x^1 + 0x^2 + 0x^3" src="//upload.wikimedia.org/math/9/1/2/9124c7c78d7ff6fae27f27ab1efd134c.png"><s><img class="mwe-math-fallback-image-inline tex" alt="+ x^4" src="//upload.wikimedia.org/math/4/7/7/477d0ad86c2b3fb3d9f5454755118edc.png"></s> (LSB-first code)</li>
+<li>0x9 = 0b1001, representing <img class="mwe-math-fallback-image-inline tex" alt="1x^4 + 0x^3 + 0x^2 + 1x^1" src="//upload.wikimedia.org/math/5/7/b/57b1b671f929c55c943b1ac67fc5b00e.png"><s><img class="mwe-math-fallback-image-inline tex" alt="+ x^0" src="//upload.wikimedia.org/math/d/6/a/d6ad3b5938f00b8835d6e2758911bdd5.png"></s> (Koopman notation)</li>
+</ul>
+<p>In the table below they are shown as:</p>
+<h2>Standards and common use</h2>
+<p>Numerous varieties of cyclic redundancy checks have been incorporated into technical standards. By no means does one algorithm, or one of each degree, suit every purpose; Koopman and Chakravarty recommend selecting a polynomial according to the application requirements and the expected distribution of message lengths. The number of distinct CRCs in use has confused developers, a situation which authors have sought to address. There are three polynomials reported for CRC-12, sixteen conflicting definitions of CRC-16, and six of CRC-32.</p>
+<p>The polynomials commonly applied are not the most efficient ones possible. Between 1993 and 2004, Koopman, Castagnoli and others surveyed the space of polynomials up to 16 bits, and of 24 and 32 bits, finding examples that have much better performance (in terms of Hamming distance for a given message size) than the polynomials of earlier protocols, and publishing the best of these with the aim of improving the error detection capacity of future standards. In particular, iSCSI and SCTP have adopted one of the findings of this research, the CRC-32C (Castagnoli) polynomial.</p>
+<p>The design of the 32-bit polynomial most commonly used by standards bodies, CRC-32-IEEE, was the result of a joint effort for the Rome Laboratory and the Air Force Electronic Systems Division by Joseph Hammond, James Brown and Shyan-Shiang Liu of the Georgia Institute of Technology and Kenneth Brayer of the MITRE Corporation. The earliest known appearances of the 32-bit polynomial were in their 1975 publications: Technical Report 2956 by Brayer for MITRE, published in January and released for public dissemination through DTIC in August, and Hammond, Brown and Liu's report for the Rome Laboratory, published in May. Both reports contained contributions from the other team. During December 1975, Brayer and Hammond presented their work in a paper at the IEEE National Telecommunications Conference: the IEEE CRC-32 polynomial is the generating polynomial of a Hamming code and was selected for its error detection performance. Even so, the Castagnoli CRC-32C polynomial used in iSCSI or SCTP matches its performance on messages from 58 bits to 131 kbits, and outperforms it in several size ranges including the two most common sizes of Internet packet. The ITU-T G.hn standard also uses CRC-32C to detect errors in the payload (although it uses CRC-16-CCITT for PHY headers).</p>
+<p>The table below lists only the polynomials of the various algorithms in use. Variations of a particular protocol can impose pre-inversion, post-inversion and reversed bit ordering as described above. For example, the CRC32 used in both Gzip and Bzip2 use the same polynomial, but Bzip2 employs reversed bit ordering, while Gzip does not.</p>
+<p>CRCs in proprietary protocols might use a non-trivial initial value and final XOR for obfuscation but this does not add cryptographic strength to the algorithm. An unknown error-detecting code can be characterized as a CRC, and as such fully reverse engineered, from its output codewords.</p>
+<p>See Polynomial representations of cyclic redundancy checks for the algebraic representations of the polynomials for the CRCs below.</p>
+<p></p>
+<h2>Implementations</h2>
+<ul>
+<li>Implementation of CRC32 in Gnuradio;</li>
+<li>C class code for CRC checksum calculation with many different CRCs to choose from</li>
+</ul>
+<h2>See also</h2>
+<ul>
+<li>Mathematics of cyclic redundancy checks</li>
+<li>Computation of cyclic redundancy checks</li>
+<li>Polynomial representations of cyclic redundancy checks</li>
+<li>Error detection and correction</li>
+<li>List of hash functions</li>
+<li>Information security</li>
+<li>Simple file verification</li>
+<li>cksum</li>
+<li>Header Error Correction</li>
+</ul>
+</body>
+</html>

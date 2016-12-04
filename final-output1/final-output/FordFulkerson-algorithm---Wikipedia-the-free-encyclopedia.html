@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>FordFulkerson-algorithm---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Ford–Fulkerson algorithm</h1>
+<p>The <b>Ford–Fulkerson method</b> or <b>Ford–Fulkerson algorithm</b> (<b>FFA</b>) is an algorithm which computes the maximum flow in a flow network. It was published in 1956 by L. R. Ford, Jr. and D. R. Fulkerson. The name "Ford–Fulkerson" is often also used for the Edmonds–Karp algorithm, which is a specialization of Ford–Fulkerson.</p>
+<p>The idea behind the algorithm is as follows: As long as there is a path from the source (start node) to the sink (end node), with available capacity on all edges in the path, we send flow along one of these paths. Then we find another path, and so on. A path with available capacity is called an augmenting path.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Algorithm</li>
+<li>2 Complexity</li>
+<li>3 Integral example</li>
+<li>4 Non-terminating example</li>
+<li>5 Python implementation
+<ul>
+<li>5.1 Usage example</li>
+</ul>
+</li>
+<li>6 Notes</li>
+<li>7 References</li>
+<li>8 External links</li>
+</ul>
+<ul>
+<li>5.1 Usage example</li>
+</ul>
+<p></p>
+<h2>Algorithm</h2>
+<p>Let <img class="mwe-math-fallback-image-inline tex" alt="G(V,E)" src="//upload.wikimedia.org/math/5/f/6/5f65129cab9672382381b89bcea31d5f.png"> be a graph, and for each edge from <img class="mwe-math-fallback-image-inline tex" alt="u" src="//upload.wikimedia.org/math/7/b/7/7b774effe4a349c6dd82ad4f4f21d34c.png"> to <img class="mwe-math-fallback-image-inline tex" alt="v" src="//upload.wikimedia.org/math/9/e/3/9e3669d19b675bd57058fd4664205d2a.png">, let <img class="mwe-math-fallback-image-inline tex" alt="c(u,v)" src="//upload.wikimedia.org/math/6/3/9/63900c7efa10a56ca2267a5fb4ee201a.png"> be the capacity and <img class="mwe-math-fallback-image-inline tex" alt="f(u,v)" src="//upload.wikimedia.org/math/c/4/9/c499b59d362ea18ab698391a53819df1.png"> be the flow. We want to find the maximum flow from the source <img class="mwe-math-fallback-image-inline tex" alt="s" src="//upload.wikimedia.org/math/0/3/c/03c7c0ace395d80182db07ae2c30f034.png"> to the sink <img class="mwe-math-fallback-image-inline tex" alt="t" src="//upload.wikimedia.org/math/e/3/5/e358efa489f58062f10dd7316b65649e.png">. After every step in the algorithm the following is maintained:</p>
+<p>This means that the flow through the network is a <i>legal flow</i> after each round in the algorithm. We define the <b>residual network</b> <img class="mwe-math-fallback-image-inline tex" alt="G_f(V,E_f)" src="//upload.wikimedia.org/math/2/3/c/23c0475c4d358b721c0f5d91ef568468.png"> to be the network with capacity <img class="mwe-math-fallback-image-inline tex" alt="c_f(u,v) = c(u,v) - f(u,v)" src="//upload.wikimedia.org/math/2/8/7/2876037d4ab96e4eb6a0623f19f62861.png"> and no flow. Notice that it can happen that a flow from <img class="mwe-math-fallback-image-inline tex" alt="v" src="//upload.wikimedia.org/math/9/e/3/9e3669d19b675bd57058fd4664205d2a.png"> to <img class="mwe-math-fallback-image-inline tex" alt="u" src="//upload.wikimedia.org/math/7/b/7/7b774effe4a349c6dd82ad4f4f21d34c.png"> is allowed in the residual network, though disallowed in the original network: if <img class="mwe-math-fallback-image-inline tex" alt="f(u,v)&gt;0" src="//upload.wikimedia.org/math/7/2/e/72ed725f1d51fb5dcd05f4687953e3eb.png"> and <img class="mwe-math-fallback-image-inline tex" alt="c(v,u)=0" src="//upload.wikimedia.org/math/4/3/b/43b8d310c2aa7946d2806a95c12bb207.png"> then <img class="mwe-math-fallback-image-inline tex" alt="c_f(v,u)=c(v,u)-f(v,u)=f(u,v)&gt;0" src="//upload.wikimedia.org/math/4/7/3/473e3548174a7d4432e7fd6c1185eb5c.png">.</p>
+<p><b>Algorithm</b> Ford–Fulkerson</p>
+<ol>
+<li><img class="mwe-math-fallback-image-inline tex" alt="f(u,v) \leftarrow 0" src="//upload.wikimedia.org/math/9/6/a/96a4bf3d18edcd7b08ddcdd8c7a4fc74.png"> for all edges <img class="mwe-math-fallback-image-inline tex" alt="(u,v)" src="//upload.wikimedia.org/math/9/0/9/9093cc72d2d40694b9361424cb0a6803.png"></li>
+<li>While there is a path <img class="mwe-math-fallback-image-inline tex" alt="p" src="//upload.wikimedia.org/math/8/3/8/83878c91171338902e0fe0fb97a8c47a.png"> from <img class="mwe-math-fallback-image-inline tex" alt="s" src="//upload.wikimedia.org/math/0/3/c/03c7c0ace395d80182db07ae2c30f034.png"> to <img class="mwe-math-fallback-image-inline tex" alt="t" src="//upload.wikimedia.org/math/e/3/5/e358efa489f58062f10dd7316b65649e.png"> in <img class="mwe-math-fallback-image-inline tex" alt="G_f" src="//upload.wikimedia.org/math/1/f/a/1fae2f2405966218e18bcf694978c6e2.png">, such that <img class="mwe-math-fallback-image-inline tex" alt="c_f(u,v) &gt; 0" src="//upload.wikimedia.org/math/a/7/5/a754581119bf1b98e7bfdda5f32e8061.png"> for all edges <img class="mwe-math-fallback-image-inline tex" alt="(u,v) \in p" src="//upload.wikimedia.org/math/f/4/6/f46936c77083463175c321570a790725.png">:
+<ol>
+<li>Find <img class="mwe-math-fallback-image-inline tex" alt="c_f(p) = \min\{c_f(u,v) : (u,v) \in p\}" src="//upload.wikimedia.org/math/1/5/9/159fc890e98db54ee215cf5263a21f9c.png"></li>
+<li>For each edge <img class="mwe-math-fallback-image-inline tex" alt="(u,v) \in p" src="//upload.wikimedia.org/math/f/4/6/f46936c77083463175c321570a790725.png">
+<ol>
+<li><img class="mwe-math-fallback-image-inline tex" alt="f(u,v) \leftarrow f(u,v) + c_f(p)" src="//upload.wikimedia.org/math/6/d/0/6d08071b084b5869a901502331904f90.png"> (<i>Send flow along the path</i>)</li>
+<li><img class="mwe-math-fallback-image-inline tex" alt="f(v,u) \leftarrow f(v,u) - c_f(p)" src="//upload.wikimedia.org/math/a/d/7/ad7a986404a5748f84952323bf05e5a2.png"> (<i>The flow might be "returned" later</i>)</li>
+</ol>
+</li>
+</ol>
+</li>
+</ol>
+<ol>
+<li>Find <img class="mwe-math-fallback-image-inline tex" alt="c_f(p) = \min\{c_f(u,v) : (u,v) \in p\}" src="//upload.wikimedia.org/math/1/5/9/159fc890e98db54ee215cf5263a21f9c.png"></li>
+<li>For each edge <img class="mwe-math-fallback-image-inline tex" alt="(u,v) \in p" src="//upload.wikimedia.org/math/f/4/6/f46936c77083463175c321570a790725.png">
+<ol>
+<li><img class="mwe-math-fallback-image-inline tex" alt="f(u,v) \leftarrow f(u,v) + c_f(p)" src="//upload.wikimedia.org/math/6/d/0/6d08071b084b5869a901502331904f90.png"> (<i>Send flow along the path</i>)</li>
+<li><img class="mwe-math-fallback-image-inline tex" alt="f(v,u) \leftarrow f(v,u) - c_f(p)" src="//upload.wikimedia.org/math/a/d/7/ad7a986404a5748f84952323bf05e5a2.png"> (<i>The flow might be "returned" later</i>)</li>
+</ol>
+</li>
+</ol>
+<ol>
+<li><img class="mwe-math-fallback-image-inline tex" alt="f(u,v) \leftarrow f(u,v) + c_f(p)" src="//upload.wikimedia.org/math/6/d/0/6d08071b084b5869a901502331904f90.png"> (<i>Send flow along the path</i>)</li>
+<li><img class="mwe-math-fallback-image-inline tex" alt="f(v,u) \leftarrow f(v,u) - c_f(p)" src="//upload.wikimedia.org/math/a/d/7/ad7a986404a5748f84952323bf05e5a2.png"> (<i>The flow might be "returned" later</i>)</li>
+</ol>
+<p>The path in step 2 can be found with for example a breadth-first search or a depth-first search in <img class="mwe-math-fallback-image-inline tex" alt="G_f(V,E_f)" src="//upload.wikimedia.org/math/2/3/c/23c0475c4d358b721c0f5d91ef568468.png">. If you use the former, the algorithm is called Edmonds–Karp.</p>
+<p>When no more paths in step 2 can be found, <img class="mwe-math-fallback-image-inline tex" alt="s" src="//upload.wikimedia.org/math/0/3/c/03c7c0ace395d80182db07ae2c30f034.png"> will not be able to reach <img class="mwe-math-fallback-image-inline tex" alt="t" src="//upload.wikimedia.org/math/e/3/5/e358efa489f58062f10dd7316b65649e.png"> in the residual network. If <img class="mwe-math-fallback-image-inline tex" alt="S" src="//upload.wikimedia.org/math/5/d/b/5dbc98dcc983a70728bd082d1a47546e.png"> is the set of nodes reachable by <img class="mwe-math-fallback-image-inline tex" alt="s" src="//upload.wikimedia.org/math/0/3/c/03c7c0ace395d80182db07ae2c30f034.png"> in the residual network, then the total capacity in the original network of edges from <img class="mwe-math-fallback-image-inline tex" alt="S" src="//upload.wikimedia.org/math/5/d/b/5dbc98dcc983a70728bd082d1a47546e.png"> to the remainder of <img class="mwe-math-fallback-image-inline tex" alt="V" src="//upload.wikimedia.org/math/5/2/0/5206560a306a2e085a437fd258eb57ce.png"> is on the one hand equal to the total flow we found from <img class="mwe-math-fallback-image-inline tex" alt="s" src="//upload.wikimedia.org/math/0/3/c/03c7c0ace395d80182db07ae2c30f034.png"> to <img class="mwe-math-fallback-image-inline tex" alt="t" src="//upload.wikimedia.org/math/e/3/5/e358efa489f58062f10dd7316b65649e.png">, and on the other hand serves as an upper bound for all such flows. This proves that the flow we found is maximal. See also Max-flow Min-cut theorem.</p>
+<p>If the graph <img class="mwe-math-fallback-image-inline tex" alt="G(V,E)" src="//upload.wikimedia.org/math/5/f/6/5f65129cab9672382381b89bcea31d5f.png"> has multi Sources and Sinks, we act as follows. Suppose that <img class="mwe-math-fallback-image-inline tex" alt="T=\{t|t\; is \;a\; sink \}" src="//upload.wikimedia.org/math/4/9/3/493bff971aaac68e82f75aba8c7c0f53.png"> and <img class="mwe-math-fallback-image-inline tex" alt="S=\{s|s \;is \;a\; source\}" src="//upload.wikimedia.org/math/c/1/4/c1422bac3a237110b8d346d150959bce.png">. Add a new source <img class="mwe-math-fallback-image-inline tex" alt=" s^*" src="//upload.wikimedia.org/math/6/f/5/6f5ae8708553d2a617670a2948adfa60.png"> with an edge <img class="mwe-math-fallback-image-inline tex" alt="(s^*,s)" src="//upload.wikimedia.org/math/1/d/b/1dbb54fab8d50a1fae58e41459404b35.png"> from <img class="mwe-math-fallback-image-inline tex" alt="s^* " src="//upload.wikimedia.org/math/6/f/5/6f5ae8708553d2a617670a2948adfa60.png"> to every node <img class="mwe-math-fallback-image-inline tex" alt=" s\in S " src="//upload.wikimedia.org/math/a/1/5/a15fda5331218e41f76a749880c5c2f8.png">, with capacity <img class="mwe-math-fallback-image-inline tex" alt="c(s^*,s)=d_s\;(d_s=\sum_{(s,u)\in E}c(s,u))" src="//upload.wikimedia.org/math/c/0/3/c03dd8f19a5d11da4247d114660c2c74.png"> . And add a new sink <img class="mwe-math-fallback-image-inline tex" alt=" t^*" src="//upload.wikimedia.org/math/c/2/a/c2afa94c3b2d405c9585703b05a89bee.png"> with an edge <img class="mwe-math-fallback-image-inline tex" alt="(t^*,t)" src="//upload.wikimedia.org/math/f/1/d/f1dee954ba63af8c2262bde3d53564a3.png"> from <img class="mwe-math-fallback-image-inline tex" alt="t^* " src="//upload.wikimedia.org/math/c/2/a/c2afa94c3b2d405c9585703b05a89bee.png"> to every node <img class="mwe-math-fallback-image-inline tex" alt=" t\in T " src="//upload.wikimedia.org/math/5/a/5/5a580b07cd6a1ab7e4e4d0647b3010d5.png">, with capacity <img class="mwe-math-fallback-image-inline tex" alt="c(t^*,t)=d_t\;(d_t=\sum_{(v,t)\in E}c(v,t))" src="//upload.wikimedia.org/math/7/e/3/7e38c708a01b5cb7f5c36de3780159f8.png">. Then applying the Ford–Fulkerson algorithm.</p>
+<p>Also if every nodes <img class="mwe-math-fallback-image-inline tex" alt="u" src="//upload.wikimedia.org/math/7/b/7/7b774effe4a349c6dd82ad4f4f21d34c.png"> has constraint <img class="mwe-math-fallback-image-inline tex" alt="d_u " src="//upload.wikimedia.org/math/e/f/a/efa019f0c35b8a767a4e0d4b6e77f5d6.png">, we replace this node with two nodes <img class="mwe-math-fallback-image-inline tex" alt="u_{in},u_{out} " src="//upload.wikimedia.org/math/d/e/8/de8e5a1951be1c40e09f7024a78899d8.png">, and an edge <img class="mwe-math-fallback-image-inline tex" alt=" (u_{in},u_{out}) " src="//upload.wikimedia.org/math/c/9/f/c9f2149e6bd9d8cb22939bdd2dba990b.png">, with capacity <img class="mwe-math-fallback-image-inline tex" alt="f(u_{in},u_{out})=d_u" src="//upload.wikimedia.org/math/9/5/7/957d4704ee7fb7e0cf0a0a20b835766b.png">. and then applying the Ford–Fulkerson algorithm.</p>
+<h2>Complexity</h2>
+<p>By adding the flow augmenting path to the flow already established in the graph, the maximum flow will be reached when no more flow augmenting paths can be found in the graph. However, there is no certainty that this situation will ever be reached, so the best that can be guaranteed is that the answer will be correct if the algorithm terminates. In the case that the algorithm runs forever, the flow might not even converge towards the maximum flow. However, this situation only occurs with irrational flow values. When the capacities are integers, the runtime of Ford-Fulkerson is bounded by <img class="mwe-math-fallback-image-inline tex" alt="O(E f)" src="//upload.wikimedia.org/math/2/2/5/225ca672d7903f8992be25e70c798281.png"> (see big O notation), where <img class="mwe-math-fallback-image-inline tex" alt="E" src="//upload.wikimedia.org/math/3/a/3/3a3ea00cfc35332cedf6e5e9a32e94da.png"> is the number of edges in the graph and <img class="mwe-math-fallback-image-inline tex" alt="f" src="//upload.wikimedia.org/math/8/f/a/8fa14cdd754f91cc6554c9e71929cce7.png"> is the maximum flow in the graph. This is because each augmenting path can be found in <img class="mwe-math-fallback-image-inline tex" alt="O(E)" src="//upload.wikimedia.org/math/2/1/a/21aef3b32ae97d3e6e8ff4d095fb3d56.png"> time and increases the flow by an integer amount which is at least <img class="mwe-math-fallback-image-inline tex" alt="1" src="//upload.wikimedia.org/math/c/4/c/c4ca4238a0b923820dcc509a6f75849b.png">.</p>
+<p>A variation of the Ford–Fulkerson algorithm with guaranteed termination and a runtime independent of the maximum flow value is the Edmonds–Karp algorithm, which runs in <img class="mwe-math-fallback-image-inline tex" alt="O(VE^2)" src="//upload.wikimedia.org/math/5/f/6/5f6efa25e70cb61890a9bc3ebae39c47.png"> time.</p>
+<h2>Integral example</h2>
+<p>The following example shows the first steps of Ford–Fulkerson in a flow network with 4 nodes, source <img class="mwe-math-fallback-image-inline tex" alt="A" src="//upload.wikimedia.org/math/7/f/c/7fc56270e7a70fa81a5935b72eacbe29.png"> and sink <img class="mwe-math-fallback-image-inline tex" alt="D" src="//upload.wikimedia.org/math/f/6/2/f623e75af30e62bbd73d6df5b50bb7b5.png">. This example shows the worst-case behaviour of the algorithm. In each step, only a flow of <img class="mwe-math-fallback-image-inline tex" alt="1" src="//upload.wikimedia.org/math/c/4/c/c4ca4238a0b923820dcc509a6f75849b.png"> is sent across the network. If breadth-first-search were used instead, only two steps would be needed.</p>
+<p><img class="mwe-math-fallback-image-inline tex" alt="\min(c(A,B)-f(A,B) ,c(B,C)-f(B,C), c(C,D)-f(C,D))=" src="//upload.wikimedia.org/math/5/3/9/5395785335c207350a4f4caacb458443.png"><br>
+<img class="mwe-math-fallback-image-inline tex" alt="\min(1000-0, 1-0, 1000-0)=1" src="//upload.wikimedia.org/math/2/2/0/220d31861ec19aab034f6f03b80f1e99.png"></p>
+<p><img class="mwe-math-fallback-image-inline tex" alt="\min(c(A,C)-f(A,C), c(C,B)-f(C,B), c(B,D)-f(B,D))=" src="//upload.wikimedia.org/math/1/9/f/19f51c0dc827ed7e0904a823de900c6f.png"><br>
+<img class="mwe-math-fallback-image-inline tex" alt="\min(1000-0, 0-(-1), 1000-0)=1" src="//upload.wikimedia.org/math/9/2/0/920f3209fe14e144fe520d9e3204e09b.png"></p>
+<p>Notice how flow is "pushed back" from <img class="mwe-math-fallback-image-inline tex" alt="C" src="//upload.wikimedia.org/math/0/d/6/0d61f8370cad1d412f80b84d143e1257.png"> to <img class="mwe-math-fallback-image-inline tex" alt="B" src="//upload.wikimedia.org/math/9/d/5/9d5ed678fe57bcca610140957afab571.png"> when finding the path <img class="mwe-math-fallback-image-inline tex" alt="A,C,B,D" src="//upload.wikimedia.org/math/c/4/6/c46c01bedb129b7cd255273acf8b1883.png">.</p>
+<h2>Non-terminating example</h2>
+<p>Consider the flow network shown on the right, with source <img class="mwe-math-fallback-image-inline tex" alt="s" src="//upload.wikimedia.org/math/0/3/c/03c7c0ace395d80182db07ae2c30f034.png">, sink <img class="mwe-math-fallback-image-inline tex" alt="t" src="//upload.wikimedia.org/math/e/3/5/e358efa489f58062f10dd7316b65649e.png">, capacities of edges <img class="mwe-math-fallback-image-inline tex" alt="e_1" src="//upload.wikimedia.org/math/8/6/f/86f10061ad00479d981deb7c738917cb.png">, <img class="mwe-math-fallback-image-inline tex" alt="e_2" src="//upload.wikimedia.org/math/7/8/3/7838b605a6d7dc2dffa546f485b40fa0.png"> and <img class="mwe-math-fallback-image-inline tex" alt="e_3" src="//upload.wikimedia.org/math/8/b/c/8bc7f690dc7443e2f74ba0e58b16e8bb.png"> respectively <img class="mwe-math-fallback-image-inline tex" alt="1" src="//upload.wikimedia.org/math/c/4/c/c4ca4238a0b923820dcc509a6f75849b.png">, <img class="mwe-math-fallback-image-inline tex" alt="r=(\sqrt{5}-1)/2" src="//upload.wikimedia.org/math/4/e/8/4e85e3a19f53d87bcbd0e44daa421c8d.png"> and <img class="mwe-math-fallback-image-inline tex" alt="1" src="//upload.wikimedia.org/math/c/4/c/c4ca4238a0b923820dcc509a6f75849b.png"> and the capacity of all other edges some integer <img class="mwe-math-fallback-image-inline tex" alt="M \ge 2" src="//upload.wikimedia.org/math/4/a/e/4ae1519360e895ebfab656b4464a2413.png">. The constant <img class="mwe-math-fallback-image-inline tex" alt="r" src="//upload.wikimedia.org/math/4/b/4/4b43b0aee35624cd95b910189b3dc231.png"> was chosen so, that <img class="mwe-math-fallback-image-inline tex" alt="r^2 = 1 - r" src="//upload.wikimedia.org/math/9/2/3/9239e2f47afed709942d33df5cbd2bba.png">. We use augmenting paths according to the following table, where <img class="mwe-math-fallback-image-inline tex" alt="p_1 = \{ s, v_4, v_3, v_2, v_1, t \}" src="//upload.wikimedia.org/math/e/4/c/e4c94863b64ea2ce8c32e9830ef630e5.png">, <img class="mwe-math-fallback-image-inline tex" alt="p_2 = \{ s, v_2, v_3, v_4, t \}" src="//upload.wikimedia.org/math/c/0/3/c037813711086fd0a05a84f1d21addda.png"> and <img class="mwe-math-fallback-image-inline tex" alt="p_3 = \{ s, v_1, v_2, v_3, t \}" src="//upload.wikimedia.org/math/9/c/d/9cdc0ebc688556b1c75f036b9a0abd45.png">.</p>
+<p>Note that after step 1 as well as after step 5, the residual capacities of edges <img class="mwe-math-fallback-image-inline tex" alt="e_1" src="//upload.wikimedia.org/math/8/6/f/86f10061ad00479d981deb7c738917cb.png">, <img class="mwe-math-fallback-image-inline tex" alt="e_2" src="//upload.wikimedia.org/math/7/8/3/7838b605a6d7dc2dffa546f485b40fa0.png"> and <img class="mwe-math-fallback-image-inline tex" alt="e_3" src="//upload.wikimedia.org/math/8/b/c/8bc7f690dc7443e2f74ba0e58b16e8bb.png"> are in the form <img class="mwe-math-fallback-image-inline tex" alt="r^n" src="//upload.wikimedia.org/math/4/6/b/46be299a62b62142ca8cd3a7cc5da704.png">, <img class="mwe-math-fallback-image-inline tex" alt="r^{n+1}" src="//upload.wikimedia.org/math/5/3/a/53a5f964e48b8dc6dea4314566272373.png"> and <img class="mwe-math-fallback-image-inline tex" alt="0" src="//upload.wikimedia.org/math/c/f/c/cfcd208495d565ef66e7dff9f98764da.png">, respectively, for some <img class="mwe-math-fallback-image-inline tex" alt="n \in \mathbb{N}" src="//upload.wikimedia.org/math/2/e/2/2e259ed38824a8713d454b6f5bad6bde.png">. This means that we can use augmenting paths <img class="mwe-math-fallback-image-inline tex" alt="p_1" src="//upload.wikimedia.org/math/1/5/b/15be3c2519dc3df50beeab4d9eb20dd8.png">, <img class="mwe-math-fallback-image-inline tex" alt="p_2" src="//upload.wikimedia.org/math/b/b/d/bbdc52880341d0aeb3b3006af0a6583a.png">, <img class="mwe-math-fallback-image-inline tex" alt="p_1" src="//upload.wikimedia.org/math/1/5/b/15be3c2519dc3df50beeab4d9eb20dd8.png"> and <img class="mwe-math-fallback-image-inline tex" alt="p_3" src="//upload.wikimedia.org/math/d/5/b/d5b2ff134a3bc61ab8fe5c4df76f47bc.png"> infinitely many times and residual capacities of these edges will always be in the same form. Total flow in the network after step 5 is <img class="mwe-math-fallback-image-inline tex" alt="1 + 2(r^1 + r^2)" src="//upload.wikimedia.org/math/e/8/9/e89e124f939e5e170e9f518393e467c5.png">. If we continue to use augmenting paths as above, the total flow converges to <img class="mwe-math-fallback-image-inline tex" alt="\textstyle 1 + 2\sum_{i=1}^\infty r^i = 3 + 2r" src="//upload.wikimedia.org/math/b/4/8/b48a2c9c701476a2a4a7bab22b1cdc06.png">, while the maximum flow is <img class="mwe-math-fallback-image-inline tex" alt="2M + 1" src="//upload.wikimedia.org/math/c/2/2/c221cd01d162dfa494e0f03152a96122.png">. In this case, the algorithm never terminates and the flow doesn't even converge to the maximum flow.</p>
+<h2>Python implementation</h2>
+<p>WHATSON? 67044113-e2a6-4c56-a362-c08e1ac9df4d</p>
+<pre>
+class Edge(object):
+    def __init__(self, u, v, w):
+        self.source = u
+        self.sink = v  
+        self.capacity = w
+    def __repr__(self):
+        return "%s-&gt;%s:%s" % (self.source, self.sink, self.capacity)
+ 
+class FlowNetwork(object):
+    def __init__(self):
+        self.adj = {}
+        self.flow = {}
+ 
+    def add_vertex(self, vertex):
+        self.adj[vertex] = []
+ 
+    def get_edges(self, v):
+        return self.adj[v]
+ 
+    def add_edge(self, u, v, w=0):
+        if u == v:
+            raise ValueError("u == v")
+        edge = Edge(u,v,w)
+        redge = Edge(v,u,0)
+        edge.redge = redge
+        redge.redge = edge
+        self.adj[u].append(edge)
+        self.adj[v].append(redge)
+        self.flow[edge] = 0
+        self.flow[redge] = 0
+ 
+    def find_path(self, source, sink, path):
+        if source == sink:
+            return path
+        for edge in self.get_edges(source):
+            residual = edge.capacity - self.flow[edge]
+            if residual &gt; 0 and edge not in path:
+                result = self.find_path( edge.sink, sink, path + [edge]) 
+                if result != None:
+                    return result
+ 
+    def max_flow(self, source, sink):
+        path = self.find_path(source, sink, [])
+        while path != None:
+            residuals = [edge.capacity - self.flow[edge] for edge in path]
+            flow = min(residuals)
+            for edge in path:
+                self.flow[edge] += flow
+                self.flow[edge.redge] -= flow
+            path = self.find_path(source, sink, [])
+        return sum(self.flow[edge] for edge in self.get_edges(source))
+</pre>
+<h3>Usage example</h3>
+<p>For the example flow network in maximum flow problem we do the following:</p>
+<p>WHATSON? c9fdf6b4-21a9-4843-8d09-690b400b9595</p>
+<pre>
+&gt;&gt;&gt; g = FlowNetwork()
+&gt;&gt;&gt; [g.add_vertex(v) for v in "sopqrt"]
+[None, None, None, None, None, None]
+&gt;&gt;&gt;   g.add_vertex(v)
+&gt;&gt;&gt; g.add_edge('s','o',3)
+&gt;&gt;&gt; g.add_edge('s','p',3)
+&gt;&gt;&gt; g.add_edge('o','p',2)
+&gt;&gt;&gt; g.add_edge('o','q',3)
+&gt;&gt;&gt; g.add_edge('p','r',2)
+&gt;&gt;&gt; g.add_edge('r','t',3)
+&gt;&gt;&gt; g.add_edge('q','r',4)
+&gt;&gt;&gt; g.add_edge('q','t',2)
+&gt;&gt;&gt; print (g.max_flow('s','t'))
+3
+</pre>
+<h2>Notes</h2>
+<ol>
+<li><b>^</b> Ford, L. R.; Fulkerson, D. R. (1956). "Maximal flow through a network". <i>Canadian Journal of Mathematics</i> <b>8</b>: 399. doi:10.4153/CJM-1956-045-5.  edit</li>
+<li><b>^</b> Zwick, Uri (21 August 1995). "The smallest networks on which the Ford-Fulkerson maximum flow procedure may fail to terminate". <i>Theoretical Computer Science</i> <b>148</b> (1): 165–170. doi:10.1016/0304-3975(95)00022-O. </li>
+</ol>
+</body>
+</html>

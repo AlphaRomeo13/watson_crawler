@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Binary-GCD-algorithm---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Binary GCD algorithm</h1>
+<p>The <b>binary GCD algorithm</b>, also known as <b>Stein's algorithm</b>, is an algorithm that computes the greatest common divisor of two nonnegative integers. Stein's algorithm uses simpler arithmetic operations than the conventional Euclidean algorithm; it replaces division with arithmetic shifts, comparisons, and subtraction. Although the algorithm was first published by the Israeli physicist and programmer Josef Stein in 1967, it may have been known in 1st-century China.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Algorithm</li>
+<li>2 Implementation
+<ul>
+<li>2.1 Recursive version in C</li>
+<li>2.2 Iterative version in C</li>
+</ul>
+</li>
+<li>3 Efficiency</li>
+<li>4 Historical description</li>
+<li>5 See also</li>
+<li>6 References</li>
+<li>7 Further reading</li>
+<li>8 External links</li>
+</ul>
+<ul>
+<li>2.1 Recursive version in C</li>
+<li>2.2 Iterative version in C</li>
+</ul>
+<p></p>
+<h2>Algorithm</h2>
+<p>The algorithm reduces the problem of finding the GCD by repeatedly applying these identities:</p>
+<ol>
+<li>gcd(0, <i>v</i>) = <i>v</i>, because everything divides zero, and <i>v</i> is the largest number that divides <i>v</i>. Similarly, gcd(<i>u</i>, 0) = <i>u</i>. gcd(0, 0) is not typically defined, but it is convenient to set gcd(0, 0) = 0.</li>
+<li>If <i>u</i> and <i>v</i> are both even, then gcd(<i>u</i>, <i>v</i>) = 2·gcd(<i>u</i>/2, <i>v</i>/2), because 2 is a common divisor.</li>
+<li>If <i>u</i> is even and <i>v</i> is odd, then gcd(<i>u</i>, <i>v</i>) = gcd(<i>u</i>/2, <i>v</i>), because 2 is not a common divisor. Similarly, if <i>u</i> is odd and <i>v</i> is even, then gcd(<i>u</i>, <i>v</i>) = gcd(<i>u</i>, <i>v</i>/2).</li>
+<li>If <i>u</i> and <i>v</i> are both odd, and <i>u</i> ≥ <i>v</i>, then gcd(<i>u</i>, <i>v</i>) = gcd((<i>u</i> − <i>v</i>)/2, <i>v</i>). If both are odd and <i>u</i> &lt; <i>v</i>, then gcd(<i>u</i>, <i>v</i>) = gcd((<i>v</i> − <i>u</i>)/2, <i>u</i>). These are combinations of one step of the simple Euclidean algorithm, which uses subtraction at each step, and an application of step 3 above. The division by 2 results in an integer because the difference of two odd numbers is even.</li>
+<li>Repeat steps 2–4 until <i>u</i> = <i>v</i>, or (one more step) until <i>u</i> = 0. In either case, the GCD is 2<i>v</i>, where <i>k</i> is the number of common factors of 2 found in step 2.</li>
+</ol>
+<p>The algorithm requires O(n) worst-case time, where n is the number of bits in the larger of the two numbers. Although each step reduces at least one of the operands by at least a factor of 2, the subtract and shift operations take linear time for very large integers (although they're still quite fast in practice, requiring about one operation per word of the representation).</p>
+<p>An extended binary GCD, analogous to the extended Euclidean algorithm, is given by Knuth along with pointers to other versions.</p>
+<h2>Implementation</h2>
+<h3>Recursive version in C</h3>
+<p>Following is a recursive implementation of the algorithm in C. The implementation is similar to the description of the algorithm given above. It use two arguments <i>u</i> and <i>v</i>. All but one of the recursive calls are tail recursive.</p>
+<p>WHATSON? e679badf-34d0-4f9f-bee7-8c1d98d6c86c</p>
+<pre>
+unsigned int gcd(unsigned int u, unsigned int v)
+{
+    // simple cases (termination)
+    if (u == v)
+        return u;
+ 
+    if (u == 0)
+        return v;
+ 
+    if (v == 0)
+        return u;
+ 
+    // look for factors of 2
+    if (~u &amp; 1) // u is even
+    {
+        if (v &amp; 1) // v is odd
+            return gcd(u &gt;&gt; 1, v);
+        else // both u and v are even
+            return gcd(u &gt;&gt; 1, v &gt;&gt; 1) &lt;&lt; 1;
+    }
+ 
+    if (~v &amp; 1) // u is odd, v is even
+        return gcd(u, v &gt;&gt; 1);
+ 
+    // reduce larger argument
+    if (u &gt; v)
+        return gcd((u - v) &gt;&gt; 1, v);
+ 
+    return gcd((v - u) &gt;&gt; 1, u);
+}
+</pre>
+<h3>Iterative version in C</h3>
+<p>Following is an implementation of the algorithm in C, taking two (non-negative) integer arguments <i>u</i> and <i>v</i>. It first removes all common factors of 2 using identity 2, then computes the GCD of the remaining numbers using identities 3 and 4, and combines these to form the final answer.</p>
+<p>WHATSON? f5409b91-3ed9-468c-a575-f4a602eabc6e</p>
+<pre>
+unsigned int gcd(unsigned int u, unsigned int v)
+{
+  int shift;
+ 
+  /* GCD(0,v) == v; GCD(u,0) == u, GCD(0,0) == 0 */
+  if (u == 0) return v;
+  if (v == 0) return u;
+ 
+  /* Let shift := lg K, where K is the greatest power of 2
+        dividing both u and v. */
+  for (shift = 0; ((u | v) &amp; 1) == 0; ++shift) {
+         u &gt;&gt;= 1;
+         v &gt;&gt;= 1;
+  }
+ 
+  while ((u &amp; 1) == 0)
+    u &gt;&gt;= 1;
+ 
+  /* From here on, u is always odd. */
+  do {
+       /* remove all factors of 2 in v -- they are not common */
+       /*   note: v is not zero, so while will terminate */
+       while ((v &amp; 1) == 0)  /* Loop X */
+           v &gt;&gt;= 1;
+ 
+       /* Now u and v are both odd. Swap if necessary so u &lt;= v,
+          then set v = v - u (which is even). For bignums, the
+          swapping is just pointer movement, and the subtraction
+          can be done in-place. */
+       if (u &gt; v) {
+         unsigned int t = v; v = u; u = t;}  // Swap u and v.
+       v = v - u;                       // Here v &gt;= u.
+     } while (v != 0);
+ 
+  /* restore common factors of 2 */
+  return u &lt;&lt; shift;
+}
+</pre>
+<h2>Efficiency</h2>
+<p>Akhavi and Vallée proved that, in theory, binary GCD can be about 60% more efficient (in terms of the number of bit operations) on average than the Euclidean algorithm. However, although this algorithm modestly outperforms the traditional Euclidean algorithm in real implementations (see next paragraph), its asymptotic performance is the same, and binary GCD is considerably more complex to code given the widespread availability of a division instruction in all modern microprocessors. (Note however that the division instruction may take a significant number of cycles to execute, relative to the other machine instructions.)</p>
+<p>Real computers operate on more than one bit at a time, and even assembly language implementations of binary GCD have to compete against carefully designed hardware circuits for integer division. Overall, Knuth (1998) reports a 20% gain over Euclidean GCD, on a version of MIX (Knuth's abstract model of a machine architecture) extended with binary shift and test operations.</p>
+<p>For arbitrary-precision arithmetic, neither the Euclidean algorithm nor the binary GCD algorithm are fastest, as they both take time that is a quadratic function of the number of input digits. Instead, recursive methods that combine ideas from the binary GCD algorithm with the Schönhage–Strassen algorithm for fast integer multiplication can find GCDs in near-linear time.</p>
+<h2>Historical description</h2>
+<p>An algorithm for computing the GCD of two numbers was described in the ancient Chinese mathematics book <i>The Nine Chapters on the Mathematical Art</i>. The original algorithm was used to reduce a fraction. The description reads:</p>
+<p>"If possible halve it; otherwise, take the denominator and the numerator, subtract the lesser from the greater, and do that alternately to make them the same. Reduce by the same number."</p>
+<p>This description looks like a normal Euclidean algorithm, but there is ambiguity in the phrase "if possible halve it". The traditional interpretation is that this only applies when 'both' numbers are even, implying the algorithm is just slightly inferior Euclidean algorithm (for using subtraction instead of division). But the phrase may mean dividing by 2 should 'either' of the numbers become even, in which case it is the binary GCD algorithm.</p>
+<h2>See also</h2>
+<ul>
+<li>Euclidean algorithm</li>
+<li>Extended Euclidean algorithm</li>
+<li>Least common multiple</li>
+</ul>
+</body>
+</html>

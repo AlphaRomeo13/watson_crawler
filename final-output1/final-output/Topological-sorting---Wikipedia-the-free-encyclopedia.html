@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Topological-sorting---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Topological sorting</h1>
+<p>In computer science, a <b>topological sort</b> (sometimes abbreviated <b>topsort</b> or <b>toposort</b>) or <b>topological ordering</b> of a directed graph is a linear ordering of its vertices such that for every directed edge <i>uv</i> from vertex <i>u</i> to vertex <i>v</i>, <i>u</i> comes before <i>v</i> in the ordering. For instance, the vertices of the graph may represent tasks to be performed, and the edges may represent constraints that one task must be performed before another; in this application, a topological ordering is just a valid sequence for the tasks. A topological ordering is possible if and only if the graph has no directed cycles, that is, if it is a directed acyclic graph (DAG). Any DAG has at least one topological ordering, and algorithms are known for constructing a topological ordering of any DAG in linear time.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Examples</li>
+<li>2 Algorithms</li>
+<li>3 Complexity</li>
+<li>4 Uniqueness</li>
+<li>5 Relation to partial orders</li>
+<li>6 See also</li>
+<li>7 References</li>
+<li>8 External links</li>
+</ul>
+<p></p>
+<h2>Examples</h2>
+<p>The canonical application of topological sorting (topological order) is in scheduling a sequence of jobs or tasks based on their dependencies; topological sorting algorithms were first studied in the early 1960s in the context of the PERT technique for scheduling in project management (Jarnagin 1960). The jobs are represented by vertices, and there is an edge from <i>x</i> to <i>y</i> if job <i>x</i> must be completed before job <i>y</i> can be started (for example, when washing clothes, the washing machine must finish before we put the clothes to dry). Then, a topological sort gives an order in which to perform the jobs.</p>
+<p>In computer science, applications of this type arise in instruction scheduling, ordering of formula cell evaluation when recomputing formula values in spreadsheets, logic synthesis, determining the order of compilation tasks to perform in makefiles, data serialization, and resolving symbol dependencies in linkers. It is also used to decide in which order to load tables with foreign keys in databases.</p>
+<ul>
+<li>7, 5, 3, 11, 8, 2, 9, 10 (visual left-to-right, top-to-bottom)</li>
+<li>3, 5, 7, 8, 11, 2, 9, 10 (smallest-numbered available vertex first)</li>
+<li>5, 7, 3, 8, 11, 10, 9, 2 (fewest edges first)</li>
+<li>7, 5, 11, 3, 10, 8, 9, 2 (largest-numbered available vertex first)</li>
+<li>7, 5, 11, 2, 3, 8, 9, 10 (attempting top-to-bottom, left-to-right)</li>
+<li>3, 7, 8, 5, 11, 10, 2, 9 (arbitrary)</li>
+</ul>
+<h2>Algorithms</h2>
+<p>The usual algorithms for topological sorting have running time linear in the number of nodes plus the number of edges, asymptotically, <img class="mwe-math-fallback-image-inline tex" alt="O(\left|{V}\right| + \left|{E}\right|)" src="//upload.wikimedia.org/math/1/0/d/10d30bf5cd4cfdc1692d225f9fbe6e52.png">.</p>
+<p>One of these algorithms, first described by Kahn (1962), works by choosing vertices in the same order as the eventual topological sort. First, find a list of "start nodes" which have no incoming edges and insert them into a set S; at least one such node must exist in a non-empty acyclic graph. Then:</p>
+<p>WHATSON? 68be126f-21e3-444c-ad2b-7bbc79199e85</p>
+<pre>
+L ← Empty list that will contain the sorted elements
+S ← Set of all nodes with no incoming edges
+<b>while</b> S is non-empty <b>do</b>
+    remove a node n from S
+    add n to <i>tail</i> of L
+    <b>for each</b> node m with an edge <i>e</i> from n to m <b>do</b>
+        remove edge e from the graph
+        <b>if</b> m has no other incoming edges <b>then</b>
+            insert m into S
+<b>if</b> graph has edges <b>then</b>
+    return error (graph has at least one cycle)
+<b>else</b> 
+    return L (a topologically sorted order)
+</pre>
+<p>If the graph is a DAG, a solution will be contained in the list L (the solution is not necessarily unique). Otherwise, the graph must have at least one cycle and therefore a topological sorting is impossible.</p>
+<p>Reflecting the non-uniqueness of the resulting sort, the structure S can be simply a set or a queue or a stack. Depending on the order that nodes n are removed from set S, a different solution is created. A variation of Kahn's algorithm that breaks ties lexicographically forms a key component of the Coffman–Graham algorithm for parallel scheduling and layered graph drawing.</p>
+<p>An alternative algorithm for topological sorting is based on depth-first search. The algorithm loops through each node of the graph, in an arbitrary order, initiating a depth-first search that terminates when it hits any node that has already been visited since the beginning of the topological sort:</p>
+<p>WHATSON? 5a9c3701-3d8c-40df-ac22-6c28a215de8d</p>
+<pre>
+L ← Empty list that will contain the sorted nodes
+<b>while</b> there are unmarked nodes <b>do</b>
+    select an unmarked node n
+    visit(n) 
+<b>function</b> visit(node n)
+    <b>if</b> n has a temporary mark <b>then</b> stop (not a DAG)
+    <b>if</b> n is not marked (i.e. has not been visited yet) <b>then</b>
+        mark n temporarily
+        <b>for each</b> node m with an edge from n to m <b>do</b>
+            visit(m)
+        mark n permanently
+        unmark n temporarily
+        add n to <i>head</i> of L
+</pre>
+<p>Each node <i>n</i> gets <i>prepended</i> to the output list L only after considering all other nodes on which <i>n</i> depends (all ancestral nodes of <i>n</i> in the graph). Specifically, when the algorithm adds node <i>n</i>, we are guaranteed that all nodes on which <i>n</i> depends are already in the output list L: they were added to L either by the preceding recursive call to visit(), or by an earlier call to visit(). Since each edge and node is visited once, the algorithm runs in linear time. This depth-first-search-based algorithm is the one described by Cormen et al. (2001); it seems to have been first described in print by Tarjan (1976).</p>
+<h2>Complexity</h2>
+<p>The computational complexity of the problem of computing a topological ordering of a directed acyclic graph is <b>NC</b>; that is, it can be computed in <i>O</i>(log <i>n</i>) time on a parallel computer using a polynomial number <i>O</i>(<i>n</i>) of processors, for some constant <i>k</i> (Cook 1985). One method for doing this is to repeatedly square the adjacency matrix of the given graph, logarithmically many times, using min-plus matrix multiplication with maximization in place of minimization. The resulting matrix describes the longest path distances in the graph. Sorting the vertices by the lengths of their longest incoming paths produces a topological ordering (Dekel, Nassimi &amp; Sahni 1981).</p>
+<h2>Uniqueness</h2>
+<p>If a topological sort has the property that all pairs of consecutive vertices in the sorted order are connected by edges, then these edges form a directed Hamiltonian path in the DAG. If a Hamiltonian path exists, the topological sort order is unique; no other order respects the edges of the path. Conversely, if a topological sort does not form a Hamiltonian path, the DAG will have two or more valid topological orderings, for in this case it is always possible to form a second valid ordering by swapping two consecutive vertices that are not connected by an edge to each other. Therefore, it is possible to test in linear time whether a unique ordering exists, and whether a Hamiltonian path exists, despite the NP-hardness of the Hamiltonian path problem for more general directed graphs (Vernet &amp; Markenzon 1997).</p>
+<h2>Relation to partial orders</h2>
+<p>Topological orderings are also closely related to the concept of a linear extension of a partial order in mathematics.</p>
+<p>A partially ordered set is just a set of objects together with a definition of the "≤" inequality relation, satisfying the axioms of reflexivity (<i>x</i> ≤ <i>x</i>), antisymmetry (if <i>x</i> ≤ <i>y</i> and <i>y</i> ≤ <i>x</i> then <i>x</i> = <i>y</i>) and transitivity (if <i>x</i> ≤ <i>y</i> and <i>y</i> ≤ <i>z</i>, then <i>x</i> ≤ <i>z</i>). A total order is a partial order in which, for every two objects <i>x</i> and <i>y</i> in the set, either <i>x</i> ≤ <i>y</i> or <i>y</i> ≤ <i>x</i>. Total orders are familiar in computer science as the comparison operators needed to perform comparison sorting algorithms. For finite sets, total orders may be identified with linear sequences of objects, where the "≤" relation is true whenever the first object precedes the second object in the order; a comparison sorting algorithm may be used to convert a total order into a sequence in this way. A linear extension of a partial order is a total order that is compatible with it, in the sense that, if <i>x</i> ≤ <i>y</i> in the partial order, then <i>x</i> ≤ <i>y</i> in the total order as well.</p>
+<p>One can define a partial ordering from any DAG by letting the set of objects be the vertices of the DAG, and defining <i>x</i> ≤ <i>y</i> to be true, for any two vertices <i>x</i> and <i>y</i>, whenever there exists a directed path from <i>x</i> to <i>y</i>; that is, whenever <i>y</i> is reachable from <i>x</i>. With these definitions, a topological ordering of the DAG is the same thing as a linear extension of this partial order. Conversely, any partial ordering may be defined as the reachability relation in a DAG. One way of doing this is to define a DAG that has a vertex for every object in the partially ordered set, and an edge <i>xy</i> for every pair of objects for which <i>x</i> ≤ <i>y</i>. An alternative way of doing this is to use the transitive reduction of the partial ordering; in general, this produces DAGs with fewer edges, but the reachability relation in these DAGs is still the same partial order. By using these constructions, one can use topological ordering algorithms to find linear extensions of partial orders.</p>
+<h2>See also</h2>
+<ul>
+<li>tsort, a Unix program for topological sorting</li>
+<li>dep-trace Orders basic dependencies and unfolds nested ones. (basic: without 2D graphical presumption)</li>
+<li>Feedback arc set, a (possibly empty) set of arcs which, if removed from the graph, make it possible to topologically sort it. Useful for dealing with graphs with cycles.</li>
+<li>D. E. Knuth, The Art of Computer Programming, Volume 1, section 2.2.3, which gives an algorithm for topological sorting of a partial ordering, and a brief history.</li>
+<li>Dependency graph</li>
+</ul>
+</body>
+</html>

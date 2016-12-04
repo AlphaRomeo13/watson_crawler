@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Dijkstras-algorithm---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Dijkstra's algorithm</h1>
+<ul>
+<li>α–β</li>
+<li>A*</li>
+<li>B*</li>
+<li>Backtracking</li>
+<li>Beam</li>
+<li>Bellman–Ford</li>
+<li>Best-first</li>
+<li>Bidirectional</li>
+<li>Borůvka</li>
+<li>Branch &amp; bound</li>
+<li>BFS</li>
+<li>British Museum</li>
+<li>D*</li>
+<li>DFS</li>
+<li>Depth-limited</li>
+<li><strong class="selflink">Dijkstra</strong></li>
+<li>Edmonds</li>
+<li>Floyd–Warshall</li>
+<li>Fringe search</li>
+<li>Hill climbing</li>
+<li>IDA*</li>
+<li>Iterative deepening</li>
+<li>Johnson</li>
+<li>Jump point</li>
+<li>Kruskal</li>
+<li>Lexicographic BFS</li>
+<li>Prim</li>
+<li>SMA*</li>
+<li>Uniform-cost</li>
+</ul>
+<ul>
+<li><i>Graph algorithms</i></li>
+<li><i>Search algorithms</i></li>
+<li><i>List of graph algorithms</i></li>
+</ul>
+<ul>
+<li>Dynamic programming</li>
+<li>Graph traversal</li>
+<li>Tree traversal</li>
+<li>Search games</li>
+</ul>
+<ul>
+<li>v</li>
+<li>t</li>
+<li>e</li>
+</ul>
+<p><b>Dijkstra's algorithm</b>, conceived by computer scientist Edsger Dijkstra in 1956 and published in 1959, is a graph search algorithm that solves the single-source shortest path problem for a graph with non-negative edge path costs, producing a shortest path tree. This algorithm is often used in routing and as a subroutine in other graph algorithms.</p>
+<p>For a given source vertex (node) in the graph, the algorithm finds the path with lowest cost (i.e. the shortest path) between that vertex and every other vertex (although Dijkstra originally only considered the shortest path between a given pair of nodes). It can also be used for finding costs of shortest paths from a single vertex to a single destination vertex by stopping the algorithm once the shortest path to the destination vertex has been determined. For example, if the vertices of the graph represent cities and edge path costs represent driving distances between pairs of cities connected by a direct road, Dijkstra's algorithm can be used to find the shortest route between one city and all other cities. As a result, the shortest path algorithm is widely used in network routing protocols, most notably IS-IS and OSPF (Open Shortest Path First).</p>
+<p>Dijkstra's original algorithm does not use a min-priority queue and runs in time <img class="mwe-math-fallback-image-inline tex" alt="O(|V|^2)" src="//upload.wikimedia.org/math/1/7/5/17589e5af2a8e3d48c486d30939c1268.png"> (where <img class="mwe-math-fallback-image-inline tex" alt="|V|" src="//upload.wikimedia.org/math/7/4/f/74fcb594bdd93c0f956682ae1ea013e6.png"> is the number of vertices). The idea of this algorithm is also given in (Leyzorek et al. 1957). The implementation based on a min-priority queue implemented by a Fibonacci heap and running in <img class="mwe-math-fallback-image-inline tex" alt="O(|E|+|V|\log|V|)" src="//upload.wikimedia.org/math/8/a/f/8afcf9cf1e69f85b094063fd7b9e15cb.png"> (where <img class="mwe-math-fallback-image-inline tex" alt="|E|" src="//upload.wikimedia.org/math/c/b/d/cbdcf0e203060323ebcd0079f280f4b8.png"> is the number of edges) is due to (Fredman &amp; Tarjan 1984). This is asymptotically the fastest known single-source shortest-path algorithm for arbitrary directed graphs with unbounded non-negative weights.</p>
+<p>Note that graphs under special cases such as integer and/or bounded weights, can be improved further in complexity. See the following section on running time.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Algorithm</li>
+<li>2 Description</li>
+<li>3 Pseudocode
+<ul>
+<li>3.1 Using a priority queue</li>
+</ul>
+</li>
+<li>4 Running time
+<ul>
+<li>4.1 Specialized variants</li>
+</ul>
+</li>
+<li>5 Related problems and algorithms</li>
+<li>6 Dynamic programming perspective</li>
+<li>7 See also</li>
+<li>8 Notes</li>
+<li>9 References</li>
+<li>10 External links</li>
+</ul>
+<ul>
+<li>3.1 Using a priority queue</li>
+</ul>
+<ul>
+<li>4.1 Specialized variants</li>
+</ul>
+<p></p>
+<h2>Algorithm</h2>
+<p>Let the node at which we are starting be called the <b>initial node</b>. Let the <b>distance of node <i>Y</i></b> be the distance from the <b>initial node</b> to <i>Y</i>. Dijkstra's algorithm will assign some initial distance values and will try to improve them step by step.</p>
+<ol>
+<li>Assign to every node a tentative distance value: set it to zero for our initial node and to infinity for all other nodes.</li>
+<li>Mark all nodes unvisited. Set the initial node as current. Create a set of the unvisited nodes called the <i>unvisited set</i> consisting of all the nodes.</li>
+<li>For the current node, consider all of its unvisited neighbors and calculate their <i>tentative</i> distances. Compare the newly calculated <i>tentative</i> distance to the current assigned value and assign the smaller one. For example, if the current node <i>A</i> is marked with a distance of 6, and the edge connecting it with a neighbor <i>B</i> has length 2, then the distance to <i>B</i> (through <i>A</i>) will be 6 + 2 = 8. If B was previously marked with a distance greater than 8 then change it to 8. Otherwise, keep the current value.</li>
+<li>When we are done considering all of the neighbors of the current node, mark the current node as visited and remove it from the <i>unvisited set</i>. A visited node will never be checked again.</li>
+<li>If the destination node has been marked visited (when planning a route between two specific nodes) or if the smallest tentative distance among the nodes in the <i>unvisited set</i> is infinity (when planning a complete traversal; occurs when there is no connection between the initial node and remaining unvisited nodes), then stop. The algorithm has finished.</li>
+<li>Select the unvisited node that is marked with the smallest tentative distance, and set it as the new "current node" then go back to step 3.</li>
+</ol>
+<h2>Description</h2>
+<p>Suppose you would like to find the shortest path between two intersections on a city map, a starting point and a destination. The order is conceptually simple: to start, mark the distance to every intersection on the map with infinity. This is done not to imply there is an infinite distance, but to note that intersection has not yet been <i>visited</i>; some variants of this method simply leave the intersection unlabeled. Now, at each iteration, select a <i>current</i> intersection. For the first iteration, the current intersection will be the starting point and the distance to it (the intersection's label) will be zero. For subsequent iterations (after the first), the current intersection will be the closest unvisited intersection to the starting point—this will be easy to find.</p>
+<p>From the current intersection, update the distance to every unvisited intersection that is directly connected to it. This is done by determining the sum of the distance between an unvisited intersection and the value of the current intersection, and relabeling the unvisited intersection with this value if it is less than its current value. In effect, the intersection is relabeled if the path to it through the current intersection is shorter than the previously known paths. To facilitate shortest path identification, in pencil, mark the road with an arrow pointing to the relabeled intersection if you label/relabel it, and erase all others pointing to it. After you have updated the distances to each neighboring intersection, mark the current intersection as <i>visited</i> and select the unvisited intersection with lowest distance (from the starting point) – or the lowest label—as the current intersection. Nodes marked as visited are labeled with the shortest path from the starting point to it and will not be revisited or returned to.</p>
+<p>Continue this process of updating the neighboring intersections with the shortest distances, then marking the current intersection as visited and moving onto the closest unvisited intersection until you have marked the destination as visited. Once you have marked the destination as visited (as is the case with any visited intersection) you have determined the shortest path to it, from the starting point, and can trace your way back, following the arrows in reverse.</p>
+<p>Of note is the fact that this algorithm makes no attempt to direct "exploration" towards the destination as one might expect. Rather, the sole consideration in determining the next "current" intersection is its distance from the starting point. This algorithm, therefore "expands outward" from the starting point, interactively considering every node that is closer in terms of shortest path distance until it reaches the destination. When understood in this way, it is clear how the algorithm necessarily finds the shortest path, however, it may also reveal one of the algorithm's weaknesses: its relative slowness in some topologies.</p>
+<h2>Pseudocode</h2>
+<p>In the following algorithm, the code <code>u := vertex in <i>Q</i> with min dist[u]</code>, searches for the vertex <code><var>u</var></code> in the vertex set <code><var>Q</var></code> that has the least <code>dist[<var>u</var>]</code> value. <code>length(<var>u</var>, <var>v</var>)</code> returns the length of the edge joining (i.e. the distance between) the two neighbor-nodes <code><var>u</var></code> and <code><var>v</var></code>. The variable <code><var>alt</var></code> on line 17 is the length of the path from the root node to the neighbor node <code><var>v</var></code> if it were to go through <code><var>u</var></code>. If this path is shorter than the current shortest path recorded for <code><var>v</var></code>, that current path is replaced with this <code><var>alt</var></code> path. The <code>previous</code> array is populated with a pointer to the "next-hop" node on the source graph to get the shortest route to the source.</p>
+<p>WHATSON? 2f16ddf7-85c8-426b-bbf8-0c1e26125efe</p>
+<pre>
+ 1  <b>function</b> Dijkstra(<i>Graph</i>, <i>source</i>):
+ 2      dist[<i>source</i>]  := 0                     <i>// Distance from source to source</i>
+ 3      <b>for each</b> vertex <i>v</i> in <i>Graph</i>:            <i>// Initializations</i>
+ 4          <b>if</b> <i>v</i> ≠ <i>source</i>
+ 5              dist[<i>v</i>]  := infinity           <i>// Unknown distance function from source to v</i>
+ 6              previous[<i>v</i>]  := undefined      <i>// Previous node in optimal path from source</i>
+ 7          <b>end if</b> 
+ 8          add <i>v</i> to <i>Q</i>                         <i>// All nodes initially in Q (unvisited nodes)</i>
+ 9      <b>end for</b>
+10      
+11      <b>while</b> <i>Q</i> <b>is not</b> empty:                  <i>// The main loop</i>
+12          <i>u</i> := vertex in <i>Q</i> with min dist[u]  <i>// Source node in first case</i>
+13          remove <i>u</i> from <i>Q</i> 
+14          
+15          <b>for each</b> neighbor <i>v</i> of <i>u</i>:           <i>// where v has not yet been removed from Q.</i>
+16              <i>alt</i> := dist[<i>u</i>] + length(<i>u</i>, <i>v</i>)
+17              <b>if</b> <i>alt</i> &lt; dist[<i>v</i>]:               <i>// A shorter path to v has been found</i>
+18                  dist[<i>v</i>]  := <i>alt</i> 
+19                  previous[<i>v</i>]  := <i>u</i> 
+20              <b>end if</b>
+21          <b>end for</b>
+22      <b>end while</b>
+23      <b>return</b> dist[], previous[]
+24  <b>end function</b>
+</pre>
+<p>If we are only interested in a shortest path between vertices <code><var>source</var></code> and <code><var>target</var></code>, we can terminate the search at line 13 if <code><var>u</var> = <var>target</var></code>. Now we can read the shortest path from <code><var>source</var></code> to <code><var>target</var></code> by reverse iteration:</p>
+<p>WHATSON? 2eed5eda-f85e-45b4-bc51-d549ac92bdbc</p>
+<pre>
+1  <i>S</i> := empty sequence
+2  <i>u</i> := <i>target</i>
+3  <b>while</b> previous[<i>u</i>] is defined:                <i>// Construct the shortest path with a stack S</i>
+4      insert <i>u</i> at the beginning of <i>S</i>           <i>// Push the vertex into the stack</i>
+5      <i>u</i> := previous[<i>u</i>]                         <i>// Traverse from target to source</i>
+6  <b>end while</b>
+</pre>
+<p>Now sequence <code><var>S</var></code> is the list of vertices constituting one of the shortest paths from <code><var>source</var></code> to <code><var>target</var></code>, or the empty sequence if no path exists.</p>
+<p>A more general problem would be to find all the shortest paths between <code><var>source</var></code> and <code><var>target</var></code> (there might be several different ones of the same length). Then instead of storing only a single node in each entry of <code>previous[]</code> we would store all nodes satisfying the relaxation condition. For example, if both <code><var>r</var></code> and <code><var>source</var></code> connect to <code><var>target</var></code> and both of them lie on different shortest paths through <code><var>target</var></code> (because the edge cost is the same in both cases), then we would add both <code><var>r</var></code> and <code><var>source</var></code> to <code>previous[<var>target</var>]</code>. When the algorithm completes, <code>previous[]</code> data structure will actually describe a graph that is a subset of the original graph with some edges removed. Its key property will be that if the algorithm was run with some starting node, then every path from that node to any other node in the new graph will be the shortest path between those nodes in the original graph, and all paths of that length from the original graph will be present in the new graph. Then to actually find all these shortest paths between two given nodes we would use a path finding algorithm on the new graph, such as depth-first search.</p>
+<h3>Using a priority queue</h3>
+<p>A min-priority queue is an abstract data structure that provides 3 basic operations : <code>add_with_priority()</code>, <code>decrease_priority()</code> and <code>extract_min()</code>. As mentioned earlier, using such a data structure can lead to faster computing times than using a basic queue. Notably, Fibonacci heap (Fredman &amp; Tarjan 1984) or Brodal queue offer optimal implementations for those 3 operations. As the algorithm is slightly different, we mention it here, in pseudo-code as well :</p>
+<p>WHATSON? 32b4f2ab-3149-40c3-a16c-49f344626fbd</p>
+<pre>
+1  <b>function</b> Dijkstra(<i>Graph</i>, <i>source</i>):
+2      dist[<i>source</i>] := 0                     <i>// Initializations</i>
+3      <b>for each</b> vertex <i>v</i> in <i>Graph</i>:           
+4          <b>if</b> <i>v</i> ≠ <i>source</i>
+5              dist[<i>v</i>] := infinity           <i>// Unknown distance from source to v</i>
+6              previous[<i>v</i>] := undefined      <i>// Predecessor of v</i>
+7          <b>end if</b>
+8          <i>Q</i>.add_with_priority(<i>v</i>,dist[<i>v</i>])
+9      <b>end for</b> 
+10
+11
+12     <b>while</b> <i>Q</i> is not empty:                 <i>// The main loop</i>
+13         <i>u</i> := <i>Q</i>.extract_min()              <i>// Remove and return best vertex</i>
+14         mark <i>u</i> as scanned
+15         <b>for each</b> neighbor <i>v</i> of <i>u</i>:
+16             <b>if</b> <i>v</i> is not yet scanned:
+17                 <i>alt</i> = dist[<i>u</i>] + length(<i>u</i>, <i>v</i>) 
+18                 <b>if</b> <i>alt</i> &lt; dist[<i>v</i>]
+19                     dist[<i>v</i>] := <i>alt</i>
+20                     previous[<i>v</i>] := <i>u</i>
+21                     <i>Q</i>.decrease_priority(<i>v</i>,<i>alt</i>)
+22                 <b>end if</b>
+23             <b>end if</b>
+24         <b>end for</b>
+25     <b>end while</b>
+26     <b>return</b> previous[]
+</pre>
+<p>Instead of filling the priority queue with all nodes in the initialization phase, it is also possible to initialize it to contain only <i>source</i>; then, inside the <code><b>if</b> <i>alt</i> &lt; dist[<i>v</i>]</code> block, the node must be inserted if not already in the queue (instead of performing a <code>decrease_priority</code> operation).</p>
+<p>It should be noted that other data structures can be used to achieve even faster computing times in practice.</p>
+<h2>Running time</h2>
+<p>An upper bound of the running time of Dijkstra's algorithm on a graph with edges <img class="mwe-math-fallback-image-inline tex" alt="E" src="//upload.wikimedia.org/math/3/a/3/3a3ea00cfc35332cedf6e5e9a32e94da.png"> and vertices <img class="mwe-math-fallback-image-inline tex" alt="V" src="//upload.wikimedia.org/math/5/2/0/5206560a306a2e085a437fd258eb57ce.png"> can be expressed as a function of <img class="mwe-math-fallback-image-inline tex" alt="|E|" src="//upload.wikimedia.org/math/c/b/d/cbdcf0e203060323ebcd0079f280f4b8.png"> and <img class="mwe-math-fallback-image-inline tex" alt="|V|" src="//upload.wikimedia.org/math/7/4/f/74fcb594bdd93c0f956682ae1ea013e6.png"> using big-O notation.</p>
+<p>For any implementation of the vertex set <img class="mwe-math-fallback-image-inline tex" alt="Q" src="//upload.wikimedia.org/math/f/0/9/f09564c9ca56850d4cd6b3319e541aee.png">, the running time is in <img class="mwe-math-fallback-image-inline tex" alt="O(|E| \cdot dk_Q + |V| \cdot em_Q)" src="//upload.wikimedia.org/math/9/d/3/9d3831112976667fa87383a71671c79d.png">, where <img class="mwe-math-fallback-image-inline tex" alt="dk_Q" src="//upload.wikimedia.org/math/c/9/7/c97ad2350ff5e7bd3ed6f2b7bf155ac8.png"> and <img class="mwe-math-fallback-image-inline tex" alt="em_Q" src="//upload.wikimedia.org/math/4/9/9/499adf2761f6230874f4cc9b73402a8f.png"> are the complexities of the <i>decrease-key</i> and <i>extract-minimum</i> operations in <img class="mwe-math-fallback-image-inline tex" alt="Q" src="//upload.wikimedia.org/math/f/0/9/f09564c9ca56850d4cd6b3319e541aee.png">, respectively.</p>
+<p>The simplest implementation of the Dijkstra's algorithm stores vertices of set <img class="mwe-math-fallback-image-inline tex" alt="Q" src="//upload.wikimedia.org/math/f/0/9/f09564c9ca56850d4cd6b3319e541aee.png"> in an ordinary linked list or array, and extract minimum from <img class="mwe-math-fallback-image-inline tex" alt="Q" src="//upload.wikimedia.org/math/f/0/9/f09564c9ca56850d4cd6b3319e541aee.png"> is simply a linear search through all vertices in <img class="mwe-math-fallback-image-inline tex" alt="Q" src="//upload.wikimedia.org/math/f/0/9/f09564c9ca56850d4cd6b3319e541aee.png">. In this case, the running time is <img class="mwe-math-fallback-image-inline tex" alt="O(|E| + |V|^2) = O(|V|^2)" src="//upload.wikimedia.org/math/3/0/4/304209ec202fce67f8973db90c2b9612.png">.</p>
+<p>For sparse graphs, that is, graphs with far fewer than <img class="mwe-math-fallback-image-inline tex" alt="O(|V|^2)" src="//upload.wikimedia.org/math/1/7/5/17589e5af2a8e3d48c486d30939c1268.png"> edges, Dijkstra's algorithm can be implemented more efficiently by storing the graph in the form of adjacency lists and using a self-balancing binary search tree, binary heap, pairing heap, or Fibonacci heap as a priority queue to implement extracting minimum efficiently. With a self-balancing binary search tree or binary heap, the algorithm requires <img class="mwe-math-fallback-image-inline tex" alt="\Theta((|E| + |V|) \log |V|)" src="//upload.wikimedia.org/math/2/2/9/229c4d219a2dfaff648e0bf0124bed7a.png"> time in the worst case (which is dominated by <img class="mwe-math-fallback-image-inline tex" alt="\Theta( | E | \log | V | )" src="//upload.wikimedia.org/math/e/d/6/ed6417ed21f77d52a15b26e5a2ff6e83.png">, assuming the graph is connected). To avoid <img class="mwe-math-fallback-image-inline tex" alt="O(|V|)" src="//upload.wikimedia.org/math/c/0/8/c08c0e45a937a414cd20dbdf046ca4b5.png"> look-up in decrease-key step on a vanilla binary heap, it is necessary to maintain a supplementary index mapping each vertex to the heap's index (and keep it up to date as priority queue <img class="mwe-math-fallback-image-inline tex" alt="Q" src="//upload.wikimedia.org/math/f/0/9/f09564c9ca56850d4cd6b3319e541aee.png"> changes), making it take only <img class="mwe-math-fallback-image-inline tex" alt="O(\log|V|)" src="//upload.wikimedia.org/math/2/8/4/284a984fc35ba2a8642aa7e19347be59.png"> time instead. The Fibonacci heap improves this to <img class="mwe-math-fallback-image-inline tex" alt="O(|E| + |V| \log|V|)" src="//upload.wikimedia.org/math/8/a/f/8afcf9cf1e69f85b094063fd7b9e15cb.png">.</p>
+<p>When using binary heaps, the average case time complexity is lower than the worst-case: assuming edge costs are drawn independently from a common probability distribution, the expected number of <i>decrease-key</i> operations is bounded by <img class="mwe-math-fallback-image-inline tex" alt="O(|V| \log \frac{|E|}{|V|})" src="//upload.wikimedia.org/math/0/6/6/06686a023c50243ec4b389fd3b773830.png">, giving a total running time of <img class="mwe-math-fallback-image-inline tex" alt="O(|E| + |V| \log \frac{|E|}{|V|} \log |V|)" src="//upload.wikimedia.org/math/9/6/5/965e8454a0d3aacd459457e6e4e53988.png">. (The assumption is actually stronger than required for the analysis.)</p>
+<h3>Specialized variants</h3>
+<p>When arc weights are integers and bounded by a constant <i>C</i>, the usage of a special priority queue structure by Van Emde Boas etal.(1977) (Ahuja et al. 1990) brings the complexity to <img class="mwe-math-fallback-image-inline tex" alt="O(|E|\log\log|C|)" src="//upload.wikimedia.org/math/3/c/1/3c1a8075cf450df797f96fffeefd2759.png">. Another interesting implementation based on a combination of a new radix heap and the well-known Fibonacci heap runs in time <img class="mwe-math-fallback-image-inline tex" alt="O(|E|+|V|\sqrt{\log|C|})" src="//upload.wikimedia.org/math/4/e/1/4e18b32ab58b0d7b2a62477b9c8410b5.png"> (Ahuja et al. 1990). Finally, the best algorithms in this special case are as follows. The algorithm given by (Thorup 2000) runs in <img class="mwe-math-fallback-image-inline tex" alt="O(|E|\log\log|V|)" src="//upload.wikimedia.org/math/c/b/1/cb1d00bae6b3948ee490040fef4f0e1d.png"> time and the algorithm given by (Raman 1997) runs in <img class="mwe-math-fallback-image-inline tex" alt="O(|E| + |V|\min\{(\log|V|)^{1/3+\epsilon}, (\log|C|)^{1/4+\epsilon}\})" src="//upload.wikimedia.org/math/9/4/a/94af3fb93ad58da9635372acfe5cd8df.png"> time.</p>
+<p>Also, for directed acyclic graphs, it is possible to find shortest paths from a given starting vertex in linear <img class="mwe-math-fallback-image-inline tex" alt="O(|E|+|V|)" src="//upload.wikimedia.org/math/9/6/b/96b64add48b0c59f6b07b490983a4a3b.png"> time, by processing the vertices in a topological order, and calculating the path length for each vertex to be the minimum length obtained via any of its incoming edges. </p>
+<p>In the special case of integer weights and undirected graphs, the Dijkstra's algorithm can be completely countered with a linear <img class="mwe-math-fallback-image-inline tex" alt="O(|V|+|E|)" src="//upload.wikimedia.org/math/4/f/e/4fe9f15fb53c589e023213ae35fcf78f.png"> complexity algorithm, given by (Thorup 1999).</p>
+<h2>Related problems and algorithms</h2>
+<p>The functionality of Dijkstra's original algorithm can be extended with a variety of modifications. For example, sometimes it is desirable to present solutions which are less than mathematically optimal. To obtain a ranked list of less-than-optimal solutions, the optimal solution is first calculated. A single edge appearing in the optimal solution is removed from the graph, and the optimum solution to this new graph is calculated. Each edge of the original solution is suppressed in turn and a new shortest-path calculated. The secondary solutions are then ranked and presented after the first optimal solution.</p>
+<p>Dijkstra's algorithm is usually the working principle behind link-state routing protocols, OSPF and IS-IS being the most common ones.</p>
+<p>Unlike Dijkstra's algorithm, the Bellman–Ford algorithm can be used on graphs with negative edge weights, as long as the graph contains no negative cycle reachable from the source vertex <i>s</i>. The presence of such cycles means there is no shortest path, since the total weight becomes lower each time the cycle is traversed. It is possible to adapt Dijkstra's algorithm to handle negative weight edges by combining it with the Bellman-Ford algorithm (to remove negative edges and detect negative cycles), such an algorithm is called Johnson's algorithm.</p>
+<p>The A* algorithm is a generalization of Dijkstra's algorithm that cuts down on the size of the subgraph that must be explored, if additional information is available that provides a lower bound on the "distance" to the target. This approach can be viewed from the perspective of linear programming: there is a natural linear program for computing shortest paths, and solutions to its dual linear program are feasible if and only if they form a consistent heuristic (speaking roughly, since the sign conventions differ from place to place in the literature). This feasible dual / consistent heuristic defines a non-negative reduced cost and A* is essentially running Dijkstra's algorithm with these reduced costs. If the dual satisfies the weaker condition of admissibility, then A* is instead more akin to the Bellman–Ford algorithm.</p>
+<p>The process that underlies Dijkstra's algorithm is similar to the greedy process used in Prim's algorithm. Prim's purpose is to find a minimum spanning tree that connects all nodes in the graph; Dijkstra is concerned with only two nodes. Prim's does not evaluate the total weight of the path from the starting node, only the individual path.</p>
+<p>Breadth-first search can be viewed as a special-case of Dijkstra's algorithm on unweighted graphs, where the priority queue degenerates into a FIFO queue.</p>
+<p>Fast marching method can be viewed as a continuous version of Dijkstra's algorithm which computes the geodesic distance on a triangle mesh.</p>
+<h2>Dynamic programming perspective</h2>
+<p>From a dynamic programming point of view, Dijkstra's algorithm is a successive approximation scheme that solves the dynamic programming functional equation for the shortest path problem by the <b>Reaching</b> method.</p>
+<p>In fact, Dijkstra's explanation of the logic behind the algorithm, namely</p>
+<p><b>Problem 2.</b> Find the path of minimum total length between two given nodes <img class="mwe-math-fallback-image-inline tex" alt="P" src="//upload.wikimedia.org/math/4/4/c/44c29edb103a2872f519ad0c9a0fdaaa.png"> and <img class="mwe-math-fallback-image-inline tex" alt="Q" src="//upload.wikimedia.org/math/f/0/9/f09564c9ca56850d4cd6b3319e541aee.png">.</p>
+<p>We use the fact that, if <img class="mwe-math-fallback-image-inline tex" alt="R" src="//upload.wikimedia.org/math/e/1/e/e1e1d3d40573127e9ee0480caf1283d6.png"> is a node on the minimal path from <img class="mwe-math-fallback-image-inline tex" alt="P" src="//upload.wikimedia.org/math/4/4/c/44c29edb103a2872f519ad0c9a0fdaaa.png"> to <img class="mwe-math-fallback-image-inline tex" alt="Q" src="//upload.wikimedia.org/math/f/0/9/f09564c9ca56850d4cd6b3319e541aee.png">, knowledge of the latter implies the knowledge of the minimal path from <img class="mwe-math-fallback-image-inline tex" alt="P" src="//upload.wikimedia.org/math/4/4/c/44c29edb103a2872f519ad0c9a0fdaaa.png"> to <img class="mwe-math-fallback-image-inline tex" alt="R" src="//upload.wikimedia.org/math/e/1/e/e1e1d3d40573127e9ee0480caf1283d6.png">.</p>
+<p>is a paraphrasing of Bellman's famous Principle of Optimality in the context of the shortest path problem.</p>
+<h2>See also</h2>
+<ul>
+<li>A* search algorithm</li>
+<li>Bellman–Ford algorithm</li>
+<li>Euclidean shortest path</li>
+<li>Flood fill</li>
+<li>Floyd–Warshall algorithm</li>
+<li>Johnson's algorithm</li>
+<li>Longest path problem</li>
+</ul>
+<h2>Notes</h2>
+<ol>
+<li><b>^</b> Dijkstra, Edsger; Thomas J. Misa, Editor (August 2010). "An Interview with Edsger W. Dijkstra". <i>Communications of the ACM</i> <b>53</b> (8): 41–47. doi:10.1145/1787234.1787249. "What is the shortest way to travel from Rotterdam to Groningen? It is the algorithm for the shortest path which I designed in about 20 minutes. One morning I was shopping with my young fiancée, and tired, we sat down on the café terrace to drink a cup of coffee and I was just thinking about whether I could do this, and I then designed the algorithm for the shortest path."  Cite uses deprecated parameters (help)</li>
+<li><b>^</b> Dijkstra 1959</li>
+<li>^    Mehlhorn, Kurt; Sanders, Peter (2008). <i>Algorithms and Data Structures: The Basic Toolbox</i>. Springer. </li>
+<li><b>^</b> Dijkstra 1959</li>
+<li><b>^</b> Chen, M.; Chowdhury, R. A.; Ramachandran, V.; Roche, D. L.; Tong, L. (2007). <i>Priority Queues and Dijkstra’s Algorithm — UTCS Technical Report TR-07-54 — 12 October 2007</i>. Austin, Texas: The University of Texas at Austin, Department of Computer Sciences. </li>
+<li><b>^</b> http://www.boost.org/doc/libs/1_44_0/libs/graph/doc/dag_shortest_paths.html</li>
+<li><b>^</b> Cormen etal, Introduction to Algorithms &amp; 3ed,chapter-24 2009</li>
+<li><b>^</b> Sniedovich, M. (2006). "Dijkstra’s algorithm revisited: the dynamic programming connexion" (PDF). <i>Journal of Control and Cybernetics</i> <b>35</b> (3): 599–620.  Online version of the paper with interactive computational modules.</li>
+<li><b>^</b> Denardo, E.V. (2003). <i>Dynamic Programming: Models and Applications</i>. Mineola, NY: Dover Publications. ISBN 978-0-486-42810-9. </li>
+<li><b>^</b> Sniedovich, M. (2010). <i>Dynamic Programming: Foundations and Principles</i>. Francis &amp; Taylor. ISBN 978-0-8247-4099-3. </li>
+<li><b>^</b> Dijkstra 1959, p. 270</li>
+</ol>
+</body>
+</html>

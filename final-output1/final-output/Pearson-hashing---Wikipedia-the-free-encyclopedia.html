@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Pearson-hashing---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Pearson hashing</h1>
+<p><b>Pearson hashing</b> is a hash function designed for fast execution on processors with 8-bit registers. Given an input consisting of any number of bytes, it produces as output a single byte that is strongly dependent on every byte of the input. Its implementation requires only a few instructions, plus a 256-byte lookup table containing a permutation of the values 0 through 255.</p>
+<p>This hash function is a CBC-MAC that uses an 8-bit substitution cipher implemented via the substitution table. An 8-bit cipher has negligible cryptographic security, so the Pearson hash function is not cryptographically strong; but it offers these benefits:</p>
+<ul>
+<li>It is extremely simple.</li>
+<li>It executes quickly on resource-limited processors.</li>
+<li>There is no simple class of inputs for which collisions (identical outputs) are especially likely.</li>
+<li>Given a small, privileged set of inputs (e.g., reserved words for a compiler), the permutation table can be adjusted so that those inputs yield distinct hash values, producing what is called a perfect hash function.</li>
+</ul>
+<p>One of its drawbacks when compared with other hashing algorithms designed for 8-bit processors is the suggested 256 byte lookup table, which can be prohibitively large for a small microcontroller with a program memory size on the order of hundreds of bytes. A workaround to this is to use a simple permutation function instead of a table stored in program memory. However, using a too simple function, such as <i>T[i] = 255-i</i> partly defeats the usability as a hash function as anagrams will result in the same hash value; using a too complex function, on the other hand, will affect speed negatively.</p>
+<p>The algorithm can be described by the following pseudocode, which computes the hash of message <i>C</i> using the permutation table <i>T</i>:</p>
+<p>WHATSON? 4b4fe35e-a2bd-4bee-85b4-eee8c4217c92</p>
+<pre>
+<code lang="pseudo" xml:lang="pseudo">h := 0
+<b>for each</b> c <b>in</b> C <b>loop</b>
+  index := h <b>xor</b> c
+  h := T[index]
+<b>end loop</b>
+<b>return</b> h
+</code>
+</pre>
+<h2>C implementation to generate 64-bit (16 hex chars) hash</h2>
+<ol>
+<li>
+<pre>
+   void xPear16(const unsigned char *x, size_t len, char *hex, size_t hexlen) {
+</pre></li>
+<li>
+<pre>
+      size_t i, j;
+</pre></li>
+<li>
+<pre>
+      unsigned char hh[8];
+</pre></li>
+<li>
+<pre>
+      static const unsigned char T[256] = {
+</pre></li>
+<li>
+<pre>
+      // 256 values 0-255 in any (random) order suffices
+</pre></li>
+<li>
+<pre>
+       98,  6, 85,150, 36, 23,112,164,135,207,169,  5, 26, 64,165,219, //  1
+</pre></li>
+<li>
+<pre>
+       61, 20, 68, 89,130, 63, 52,102, 24,229,132,245, 80,216,195,115, //  2
+</pre></li>
+<li>
+<pre>
+       90,168,156,203,177,120,  2,190,188,  7,100,185,174,243,162, 10, //  3
+</pre></li>
+<li>
+<pre>
+      237, 18,253,225,  8,208,172,244,255,126,101, 79,145,235,228,121, //  4
+</pre></li>
+<li>
+<pre>
+      123,251, 67,250,161,  0,107, 97,241,111,181, 82,249, 33, 69, 55, //  5
+</pre></li>
+<li>
+<pre>
+       59,153, 29,  9,213,167, 84, 93, 30, 46, 94, 75,151,114, 73,222, //  6
+</pre></li>
+<li>
+<pre>
+      197, 96,210, 45, 16,227,248,202, 51,152,252,125, 81,206,215,186, //  7
+</pre></li>
+<li>
+<pre>
+       39,158,178,187,131,136,  1, 49, 50, 17,141, 91, 47,129, 60, 99, //  8
+</pre></li>
+<li>
+<pre>
+      154, 35, 86,171,105, 34, 38,200,147, 58, 77,118,173,246, 76,254, //  9
+</pre></li>
+<li>
+<pre>
+      133,232,196,144,198,124, 53,  4,108, 74,223,234,134,230,157,139, // 10
+</pre></li>
+<li>
+<pre>
+      189,205,199,128,176, 19,211,236,127,192,231, 70,233, 88,146, 44, // 11
+</pre></li>
+<li>
+<pre>
+      183,201, 22, 83, 13,214,116,109,159, 32, 95,226,140,220, 57, 12, // 12
+</pre></li>
+<li>
+<pre>
+      221, 31,209,182,143, 92,149,184,148, 62,113, 65, 37, 27,106,166, // 13
+</pre></li>
+<li>
+<pre>
+        3, 14,204, 72, 21, 41, 56, 66, 28,193, 40,217, 25, 54,179,117, // 14
+</pre></li>
+<li>
+<pre>
+      238, 87,240,155,180,170,242,212,191,163, 78,218,137,194,175,110, // 15
+</pre></li>
+<li>
+<pre>
+       43,119,224, 71,122,142, 42,160,104, 48,247,103, 15, 11,138,239  // 16
+</pre></li>
+<li>
+<pre>
+      };
+</pre></li>
+<li>
+<pre>
+ 
+</pre></li>
+<li>
+<pre>
+      for (j = 0; j &lt; 8; j++) {
+</pre></li>
+<li>
+<pre>
+         unsigned char h = T[(x[0] + j) % 256];
+</pre></li>
+<li>
+<pre>
+         for (i = 1; i &lt; len; i++) {
+</pre></li>
+<li>
+<pre>
+            h = T[h ^ x[i]];
+</pre></li>
+<li>
+<pre>
+         }
+</pre></li>
+<li>
+<pre>
+         hh[j] = h;
+</pre></li>
+<li>
+<pre>
+      }
+</pre></li>
+<li>
+<pre>
+ 
+</pre></li>
+<li>
+<pre>
+      snprintf(hex, hexlen, "%02X%02X%02X%02X%02X%02X%02X%02X",
+</pre></li>
+<li>
+<pre>
+         hh[0], hh[1], hh[2], hh[3],
+</pre></li>
+<li>
+<pre>
+         hh[4], hh[5], hh[6], hh[7]);
+</pre></li>
+<li>
+<pre>
+   }
+</pre></li>
+</ol>
+<p>WHATSON? 35ccb6cd-f665-40b3-979d-3b35d804c135</p>
+<pre>
+   void xPear16(const unsigned char *x, size_t len, char *hex, size_t hexlen) {
+</pre>
+<p>WHATSON? b778a6f0-64c1-4111-b651-724c3069d077</p>
+<pre>
+      size_t i, j;
+</pre>
+<p>WHATSON? e38fcf30-5f59-473c-af9f-c1a5c2e7b30a</p>
+<pre>
+      unsigned char hh[8];
+</pre>
+<p>WHATSON? 3bc214c5-809a-497c-92bd-f08f1a2c46dc</p>
+<pre>
+      static const unsigned char T[256] = {
+</pre>
+<p>WHATSON? dbee8bd7-4fbf-402e-be7b-01c08bd8da21</p>
+<pre>
+      // 256 values 0-255 in any (random) order suffices
+</pre>
+<p>WHATSON? 80ece544-0765-4242-a943-44fe35496490</p>
+<pre>
+       98,  6, 85,150, 36, 23,112,164,135,207,169,  5, 26, 64,165,219, //  1
+</pre>
+<p>WHATSON? ebf7a107-8720-446d-95d7-089008dfde6a</p>
+<pre>
+       61, 20, 68, 89,130, 63, 52,102, 24,229,132,245, 80,216,195,115, //  2
+</pre>
+<p>WHATSON? 9cc3a5e4-962b-4058-8022-dcaa8b214b3a</p>
+<pre>
+       90,168,156,203,177,120,  2,190,188,  7,100,185,174,243,162, 10, //  3
+</pre>
+<p>WHATSON? eb7c7761-c868-472a-a727-aafd66ff1f78</p>
+<pre>
+      237, 18,253,225,  8,208,172,244,255,126,101, 79,145,235,228,121, //  4
+</pre>
+<p>WHATSON? 54f30b01-3688-4842-ae80-e690e80e74e6</p>
+<pre>
+      123,251, 67,250,161,  0,107, 97,241,111,181, 82,249, 33, 69, 55, //  5
+</pre>
+<p>WHATSON? 01fce691-9d80-44ca-b45f-09cb0d7a395a</p>
+<pre>
+       59,153, 29,  9,213,167, 84, 93, 30, 46, 94, 75,151,114, 73,222, //  6
+</pre>
+<p>WHATSON? 56bef2a6-790c-4dad-a003-d80714e73e1f</p>
+<pre>
+      197, 96,210, 45, 16,227,248,202, 51,152,252,125, 81,206,215,186, //  7
+</pre>
+<p>WHATSON? 99250e15-9df3-4689-840e-ed8a11293d16</p>
+<pre>
+       39,158,178,187,131,136,  1, 49, 50, 17,141, 91, 47,129, 60, 99, //  8
+</pre>
+<p>WHATSON? 6fda01db-00ff-435c-9ad3-04a8334c2535</p>
+<pre>
+      154, 35, 86,171,105, 34, 38,200,147, 58, 77,118,173,246, 76,254, //  9
+</pre>
+<p>WHATSON? 3c9bb5b2-a44a-49c3-8e5e-90108b40e507</p>
+<pre>
+      133,232,196,144,198,124, 53,  4,108, 74,223,234,134,230,157,139, // 10
+</pre>
+<p>WHATSON? 81f22ba1-1604-4dad-a3c7-ff7b3ac2e7ae</p>
+<pre>
+      189,205,199,128,176, 19,211,236,127,192,231, 70,233, 88,146, 44, // 11
+</pre>
+<p>WHATSON? 5298551a-28d8-4cee-88a2-9c201d5d6678</p>
+<pre>
+      183,201, 22, 83, 13,214,116,109,159, 32, 95,226,140,220, 57, 12, // 12
+</pre>
+<p>WHATSON? 700cc5c7-e0c2-4ae0-96aa-8b42a1b914fc</p>
+<pre>
+      221, 31,209,182,143, 92,149,184,148, 62,113, 65, 37, 27,106,166, // 13
+</pre>
+<p>WHATSON? e4593073-dd5e-485b-82d7-bd27037d2c67</p>
+<pre>
+        3, 14,204, 72, 21, 41, 56, 66, 28,193, 40,217, 25, 54,179,117, // 14
+</pre>
+<p>WHATSON? df2fa6c2-825b-4ebe-882a-6c7a299739e7</p>
+<pre>
+      238, 87,240,155,180,170,242,212,191,163, 78,218,137,194,175,110, // 15
+</pre>
+<p>WHATSON? e5ed7239-ee05-4e2f-bf59-e3398950152d</p>
+<pre>
+       43,119,224, 71,122,142, 42,160,104, 48,247,103, 15, 11,138,239  // 16
+</pre>
+<p>WHATSON? c8b45620-1e96-496b-a7a3-dcedffa4433d</p>
+<pre>
+      };
+</pre>
+<p>WHATSON? b062e03c-a737-445d-85e1-273ff0200d68</p>
+<pre>
+ 
+</pre>
+<p>WHATSON? 4c1689d7-2014-4af2-951a-2208f839ef2e</p>
+<pre>
+      for (j = 0; j &lt; 8; j++) {
+</pre>
+<p>WHATSON? 7c4fe737-b330-40ac-8e35-7cfa42bbb4ba</p>
+<pre>
+         unsigned char h = T[(x[0] + j) % 256];
+</pre>
+<p>WHATSON? d1f9bde9-4a79-45b3-95c8-71dd7337aae8</p>
+<pre>
+         for (i = 1; i &lt; len; i++) {
+</pre>
+<p>WHATSON? cec29e8b-4f1e-47bf-9ab5-22249cc05381</p>
+<pre>
+            h = T[h ^ x[i]];
+</pre>
+<p>WHATSON? 71b283dd-00c7-4673-8f16-57a7abd252ee</p>
+<pre>
+         }
+</pre>
+<p>WHATSON? 05e06ce6-4abf-4a06-a0b4-28840005f2db</p>
+<pre>
+         hh[j] = h;
+</pre>
+<p>WHATSON? 9fae92dd-36c0-4885-9333-d6417d03c87c</p>
+<pre>
+      }
+</pre>
+<p>WHATSON? 727bc500-8c39-4320-adc1-6cd56484ffa8</p>
+<pre>
+ 
+</pre>
+<p>WHATSON? 1cbc2e9e-9e84-45e6-8698-5465ff9c44bf</p>
+<pre>
+      snprintf(hex, hexlen, "%02X%02X%02X%02X%02X%02X%02X%02X",
+</pre>
+<p>WHATSON? a6d5d857-b707-43b0-b4a9-0a78d99807bb</p>
+<pre>
+         hh[0], hh[1], hh[2], hh[3],
+</pre>
+<p>WHATSON? adc6ca7e-90c2-4ef7-9b8a-5062ca143230</p>
+<pre>
+         hh[4], hh[5], hh[6], hh[7]);
+</pre>
+<p>WHATSON? 5703248a-52c2-40ef-bb6e-d411e0fac0a9</p>
+<pre>
+   }
+</pre>
+<p>For a given string or chunk of data, Pearson's original algorithm produces only an 8 bit byte or integer, 0-255. But the algorithm makes it extremely easy to generate whatever length of hash is desired. The scheme used above is a very straightforward implementation of the algorithm. As Pearson noted: a change to any bit in the string causes his algorithm to create a completely different hash (0-255). In the code above, following every completion of the inner loop, the first byte of the string is incremented by one.</p>
+<p>Every time that simple change to the first byte of the data is made, a different Pearson hash, h, is generated. xPear16 builds a 16 hex byte hash by concatenating a series of 8-bit Pearson (h) hashes. Instead of producing a value from 0 to 255, it generates a value from 0 to 18,446,744,073,709,551,615.</p>
+<p>Pearson's algorithm can be made to generate hashes of any desired length, simply by adding 1 to the first byte of the string, re-computing h for the string, and concatenating the results. Thus the same core logic can be made to generate 32-bit or 128-bit hashes.</p>
+</body>
+</html>

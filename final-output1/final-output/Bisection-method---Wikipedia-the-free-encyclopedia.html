@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Bisection-method---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Bisection method</h1>
+<p>The <b>bisection method</b> in mathematics is a root-finding method that repeatedly bisects an interval and then selects a subinterval in which a root must lie for further processing. It is a very simple and robust method, but it is also relatively slow. Because of this, it is often used to obtain a rough approximation to a solution which is then used as a starting point for more rapidly converging methods. The method is also called the <b>interval halving</b> method, the <b>binary search method</b>, or the <b>dichotomy method</b>.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 The method
+<ul>
+<li>1.1 Iteration tasks</li>
+<li>1.2 Algorithm</li>
+</ul>
+</li>
+<li>2 Example: Finding the root of a polynomial</li>
+<li>3 Analysis</li>
+<li>4 See also</li>
+<li>5 References</li>
+<li>6 External links</li>
+</ul>
+<ul>
+<li>1.1 Iteration tasks</li>
+<li>1.2 Algorithm</li>
+</ul>
+<p></p>
+<h2>The method</h2>
+<p>The method is applicable for solving the equation <i>f</i>(<i>x</i>) = 0 for the real variable <i>x</i>, where <i>f</i> is a continuous function defined on an interval [<i>a</i>, <i>b</i>] and <i>f</i>(<i>a</i>) and <i>f</i>(<i>b</i>) have opposite signs. In this case <i>a</i> and <i>b</i> are said to bracket a root since, by the intermediate value theorem, the continuous function <i>f</i> must have at least one root in the interval (<i>a</i>, <i>b</i>).</p>
+<p>At each step the method divides the interval in two by computing the midpoint <i>c</i> = (<i>a</i>+<i>b</i>) / 2 of the interval and the value of the function <i>f</i>(<i>c</i>) at that point. Unless <i>c</i> is itself a root (which is very unlikely, but possible) there are now two possibilities: either <i>f</i>(<i>a</i>) and <i>f</i>(<i>c</i>) have opposite signs and bracket a root, or <i>f</i>(<i>c</i>) and <i>f</i>(<i>b</i>) have opposite signs and bracket a root. The method selects the subinterval that is a bracket as a new interval to be used in the next step. In this way the interval that contains a zero of <i>f</i> is reduced in width by 50% at each step. The process is continued until the interval is sufficiently small.</p>
+<p>Explicitly, if <i>f</i>(<i>a</i>) and <i>f</i>(<i>c</i>) are opposite signs, then the method sets <i>c</i> as the new value for <i>b</i>, and if <i>f</i>(<i>b</i>) and <i>f</i>(<i>c</i>) are opposite signs then the method sets <i>c</i> as the new <i>a</i>. (If <i>f</i>(<i>c</i>)=0 then <i>c</i> may be taken as the solution and the process stops.) In both cases, the new <i>f</i>(<i>a</i>) and <i>f</i>(<i>b</i>) have opposite signs, so the method is applicable to this smaller interval.</p>
+<h3>Iteration tasks</h3>
+<p>The input for the method is a continuous function <i>f</i>, an interval [<i>a</i>, <i>b</i>], and the function values <i>f</i>(<i>a</i>) and <i>f</i>(<i>b</i>). The function values are of opposite sign (there is at least one zero crossing within the interval). Each iteration performs these steps:</p>
+<ol>
+<li>Calculate <i>c</i>, the midpoint of the interval, <i>c</i> = 0.5 * (<i>a</i> + <i>b</i>).</li>
+<li>Calculate the function value at the midpoint, <i>f</i>(<i>c</i>).</li>
+<li>If convergence is satisfactory (that is, <i>a</i> - <i>c</i> is sufficiently small, or <i>f</i>(<i>c</i>) is sufficiently small), return <i>c</i> and stop iterating.</li>
+<li>Examine the sign of <i>f</i>(<i>c</i>) and replace either (<i>a</i>, <i>f</i>(<i>a</i>)) or (<i>b</i>, <i>f</i>(<i>b</i>)) with (<i>c</i>, <i>f</i>(<i>c</i>)) so that there is a zero crossing within the new interval.</li>
+</ol>
+<p>When implementing the method on a computer, there can be problems with finite precision, so there are often additional convergence tests or limits to the number of iterations. Although <i>f</i> is continuous, finite precision may preclude a function value ever being zero. For <i>f</i>(<i>x</i>) = <i>x</i> − π, there will never be a finite representation of <i>x</i> that gives zero. Floating point representations also have limited precision, so at some point the midpoint of [<i>a</i>, <i>b</i>] will be either <i>a</i> or <i>b</i>.</p>
+<h3>Algorithm</h3>
+<p>The method may be written in pseudocode as follows:</p>
+<p>WHATSON? 68b68d6c-d0df-48da-b839-1066014024b4</p>
+<pre>
+INPUT: Function <i>f</i>, endpoint values <i>a</i>, <i>b</i>, tolerance <i>TOL</i>, maximum iterations <i>NMAX</i>
+CONDITIONS: <i>a</i> &lt; <i>b</i>, either <i>f</i>(<i>a</i>) &lt; 0 and <i>f</i>(<i>b</i>) &gt; 0 or <i>f</i>(<i>a</i>) &gt; 0 and <i>f</i>(<i>b</i>) &lt; 0
+OUTPUT: value which differs from a root of <i>f</i>(<i>x</i>)=0 by less than <i>TOL</i>
+ 
+<i>N</i> ← 1
+<b>While</b> <i>N</i> ≤ <i>NMAX</i> <i># limit iterations to prevent infinite loop</i>
+  <i>c</i> ← (<i>a</i> + <i>b</i>)/2 <i># new midpoint</i>
+  <b>If</b> <i>f</i>(<i>c</i>) = 0 or (<i>b</i> – <i>a</i>)/2 &lt; <i>TOL</i> <b>then</b> <i># solution found</i>
+    Output(<i>c</i>)
+    <b>Stop</b>
+  <b>EndIf</b>
+  <i>N</i> ← <i>N</i> + 1 <i># increment step counter</i>
+  <b>If</b> sign(<i>f</i>(<i>c</i>)) = sign(<i>f</i>(<i>a</i>)) <b>then</b> <i>a</i> ← <i>c</i> <b>else</b> <i>b</i> ← <i>c</i> <i># new interval</i>
+<b>EndWhile</b>
+Output("Method failed.") <i># max number of steps exceeded</i>
+</pre>
+<h2>Example: Finding the root of a polynomial</h2>
+<p>Suppose that the bisection method is used to find a root of the polynomial</p>
+<p>First, two numbers <img class="mwe-math-fallback-image-inline tex" alt=" a " src="//upload.wikimedia.org/math/0/c/c/0cc175b9c0f1b6a831c399e269772661.png"> and <img class="mwe-math-fallback-image-inline tex" alt=" b " src="//upload.wikimedia.org/math/9/2/e/92eb5ffee6ae2fec3ad71c777531578f.png"> have to be found such that <img class="mwe-math-fallback-image-inline tex" alt="f(a)" src="//upload.wikimedia.org/math/8/a/1/8a17929730159dd1440a93e485de0a45.png"> and <img class="mwe-math-fallback-image-inline tex" alt="f(b)" src="//upload.wikimedia.org/math/4/8/9/4895f8fcb3242a56118a273c423518a3.png"> have opposite signs. For the above function, <img class="mwe-math-fallback-image-inline tex" alt=" a = 1 " src="//upload.wikimedia.org/math/3/8/7/3872c9ae3f427af0be0ead09d07ae2cf.png"> and <img class="mwe-math-fallback-image-inline tex" alt=" b = 2 " src="//upload.wikimedia.org/math/1/9/b/19bf9442bea375a24abb4c22e9951a92.png"> satisfy this criterion, as</p>
+<p>and</p>
+<p>Because the function is continuous, there must be a root within the interval [1, 2].</p>
+<p>In the first iteration, the end points of the interval which brackets the root are <img class="mwe-math-fallback-image-inline tex" alt=" a_1 = 1 " src="//upload.wikimedia.org/math/c/e/7/ce7bccd95db37776721a69c77d633ac3.png"> and <img class="mwe-math-fallback-image-inline tex" alt=" b_1 = 2 " src="//upload.wikimedia.org/math/f/c/2/fc2a442f60f9badcfd6451d7e2279754.png">, so the midpoint is</p>
+<p>The function value at the midpoint is <img class="mwe-math-fallback-image-inline tex" alt=" f(c_1) = (1.5)^3 - (1.5) - 2 = -0.125 " src="//upload.wikimedia.org/math/a/2/d/a2d8881a58da818678a9112979f6418b.png">. Because <img class="mwe-math-fallback-image-inline tex" alt=" f(c_1) " src="//upload.wikimedia.org/math/6/6/f/66f0990f78e0532d826ce57f95f11471.png"> is negative, <img class="mwe-math-fallback-image-inline tex" alt=" a = 1 " src="//upload.wikimedia.org/math/3/8/7/3872c9ae3f427af0be0ead09d07ae2cf.png"> is replaced with <img class="mwe-math-fallback-image-inline tex" alt=" a = 1.5 " src="//upload.wikimedia.org/math/a/1/4/a142b96726af8327932c571e34a469d1.png"> for the next iteration to ensure that <img class="mwe-math-fallback-image-inline tex" alt=" f(a) " src="//upload.wikimedia.org/math/8/a/1/8a17929730159dd1440a93e485de0a45.png"> and <img class="mwe-math-fallback-image-inline tex" alt=" f(b) " src="//upload.wikimedia.org/math/4/8/9/4895f8fcb3242a56118a273c423518a3.png"> have opposite signs. As this continues, the interval between <img class="mwe-math-fallback-image-inline tex" alt=" a " src="//upload.wikimedia.org/math/0/c/c/0cc175b9c0f1b6a831c399e269772661.png"> and <img class="mwe-math-fallback-image-inline tex" alt=" b " src="//upload.wikimedia.org/math/9/2/e/92eb5ffee6ae2fec3ad71c777531578f.png"> will become increasingly smaller, converging on the root of the function. See this happen in the table below.</p>
+<p>After 13 iterations, it becomes apparent that there is a convergence to about 1.521: a root for the polynomial.</p>
+<h2>Analysis</h2>
+<p>The method is guaranteed to converge to a root of <i>f</i> if <i>f</i> is a continuous function on the interval [<i>a</i>, <i>b</i>] and <i>f</i>(<i>a</i>) and <i>f</i>(<i>b</i>) have opposite signs. The absolute error is halved at each step so the method converges linearly, which is comparatively slow.</p>
+<p>Specifically, if <i>c</i><sub>1</sub> = (<i>a</i>+<i>b</i>)/2 is the midpoint of the initial interval, and <i>c</i><sub><i>n</i></sub> is the midpoint of the interval in the <i>n</i>th step, then the difference between <i>c</i><sub><i>n</i></sub> and a solution <i>c</i> is bounded by</p>
+<p>This formula can be used to determine in advance the number of iterations that the bisection method would need to converge to a root to within a certain tolerance. The number of iterations needed, <i>n</i>, to achieve a given error (or tolerance), ε, is given by: <img class="mwe-math-fallback-image-inline tex" alt="n = \log_2\left(\frac{\epsilon_0}{\epsilon}\right)=\frac{\log\epsilon_0-\log\epsilon}{\log2} , " src="//upload.wikimedia.org/math/8/4/f/84f73a60b04ac3a106e66da15750c21a.png"></p>
+<p>where <img class="mwe-math-fallback-image-inline tex" alt="\epsilon_0 = \text{initial bracket size} = b-a ." src="//upload.wikimedia.org/math/d/f/5/df588a85f303bd57540b0f3832a0bd9b.png"></p>
+<p>Therefore, the linear convergence is expressed by <img class="mwe-math-fallback-image-inline tex" alt="\epsilon_{n+1} = \text{constant} \times \epsilon_n^m, \ m=1 ." src="//upload.wikimedia.org/math/9/c/c/9ccd4e31f820e07d04374959a5857b22.png"></p>
+<h2>See also</h2>
+<ul>
+<li>Secant method</li>
+<li>Newton's method</li>
+<li>Root-finding algorithm</li>
+<li>Binary search algorithm</li>
+<li>Lehmer–Schur algorithm, generalization of the bisection method in the complex plane</li>
+<li>Nested intervals</li>
+<li>Brent's method</li>
+</ul>
+</body>
+</html>

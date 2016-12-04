@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Double-hashing---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Double hashing</h1>
+<p><b>Double hashing</b> is a computer programming technique used in hash tables to resolve hash collisions, cases when two different values to be searched for produce the same hash key. It is a popular collision-resolution technique in open-addressed hash tables. Double hashing is implemented in many popular libraries.</p>
+<p>Like linear probing, it uses one hash value as a starting point and then repeatedly steps forward an interval until the desired value is located, an empty location is reached, or the entire table has been searched; but this interval is decided using a second, independent hash function (hence the name double hashing). Unlike linear probing and quadratic probing, the interval depends on the data, so that even values mapping to the same location have different bucket sequences; this minimizes repeated collisions and the effects of clustering.</p>
+<p>Given two randomly, uniformly, and independently selected hash functions <img class="mwe-math-fallback-image-inline tex" alt="h_1" src="//upload.wikimedia.org/math/e/2/f/e2f66b6f97eb982536588a1bfa05ffbf.png"> and <img class="mwe-math-fallback-image-inline tex" alt="h_2" src="//upload.wikimedia.org/math/b/d/3/bd3e5f3199896dfe9791ade3db413154.png">, the <i>i</i>th location in the bucket sequence for value <i>k</i> in a hash table <img class="mwe-math-fallback-image-inline tex" alt="T" src="//upload.wikimedia.org/math/b/9/e/b9ece18c950afbfa6b0fdbfa4ff731d3.png"> is: <img class="mwe-math-fallback-image-inline tex" alt="h(i,k)=(h_1(k) + i \cdot h_2(k))\mod |T|." src="//upload.wikimedia.org/math/0/a/b/0ab684621f9520707856607e3fc1280e.png"> Generally, <img class="mwe-math-fallback-image-inline tex" alt="h_1" src="//upload.wikimedia.org/math/e/2/f/e2f66b6f97eb982536588a1bfa05ffbf.png"> and <img class="mwe-math-fallback-image-inline tex" alt="h_2" src="//upload.wikimedia.org/math/b/d/3/bd3e5f3199896dfe9791ade3db413154.png"> are selected from a set of universal hash functions.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Classical applied data structure</li>
+<li>2 Implementation details for caching</li>
+<li>3 See also</li>
+<li>4 Notes</li>
+<li>5 External links</li>
+</ul>
+<p></p>
+<h2>Classical applied data structure</h2>
+<p>Double hashing with open addressing is a classical data structure on a table <img class="mwe-math-fallback-image-inline tex" alt="T" src="//upload.wikimedia.org/math/b/9/e/b9ece18c950afbfa6b0fdbfa4ff731d3.png">. Let <img class="mwe-math-fallback-image-inline tex" alt="n" src="//upload.wikimedia.org/math/7/b/8/7b8b965ad4bca0e41ab51de7b31363a1.png"> be the number of elements stored in <img class="mwe-math-fallback-image-inline tex" alt="T" src="//upload.wikimedia.org/math/b/9/e/b9ece18c950afbfa6b0fdbfa4ff731d3.png">, then <img class="mwe-math-fallback-image-inline tex" alt="T" src="//upload.wikimedia.org/math/b/9/e/b9ece18c950afbfa6b0fdbfa4ff731d3.png">'s load factor is <img class="mwe-math-fallback-image-inline tex" alt="\alpha = \frac{n}{|T|}" src="//upload.wikimedia.org/math/2/f/8/2f810ec2afc05f107039192d73ed321b.png">.</p>
+<p>Double hashing approximates uniform open address hashing. That is, start by randomly, uniformly and independently selecting two universal hash functions <img class="mwe-math-fallback-image-inline tex" alt="h_1" src="//upload.wikimedia.org/math/e/2/f/e2f66b6f97eb982536588a1bfa05ffbf.png"> and <img class="mwe-math-fallback-image-inline tex" alt="h_2" src="//upload.wikimedia.org/math/b/d/3/bd3e5f3199896dfe9791ade3db413154.png"> to build a double hashing table <img class="mwe-math-fallback-image-inline tex" alt="T" src="//upload.wikimedia.org/math/b/9/e/b9ece18c950afbfa6b0fdbfa4ff731d3.png">.</p>
+<p>All elements are put in <img class="mwe-math-fallback-image-inline tex" alt="T" src="//upload.wikimedia.org/math/b/9/e/b9ece18c950afbfa6b0fdbfa4ff731d3.png"> by double hashing using <img class="mwe-math-fallback-image-inline tex" alt="h_1" src="//upload.wikimedia.org/math/e/2/f/e2f66b6f97eb982536588a1bfa05ffbf.png"> and <img class="mwe-math-fallback-image-inline tex" alt="h_2" src="//upload.wikimedia.org/math/b/d/3/bd3e5f3199896dfe9791ade3db413154.png">. Given a key <img class="mwe-math-fallback-image-inline tex" alt="k" src="//upload.wikimedia.org/math/8/c/e/8ce4b16b22b58894aa86c421e8759df3.png">, determining the <img class="mwe-math-fallback-image-inline tex" alt="(i+1)" src="//upload.wikimedia.org/math/7/f/f/7ff525f6557e318e738fc03f2797b0d3.png">-st hash location is computed by:</p>
+<p><img class="mwe-math-fallback-image-inline tex" alt=" h(i,k) = ( h_1(k) + i \cdot h_2(k) ) \mod |T|." src="//upload.wikimedia.org/math/0/a/b/0ab684621f9520707856607e3fc1280e.png"></p>
+<p>Let <img class="mwe-math-fallback-image-inline tex" alt="T" src="//upload.wikimedia.org/math/b/9/e/b9ece18c950afbfa6b0fdbfa4ff731d3.png"> have fixed load factor <img class="mwe-math-fallback-image-inline tex" alt="\alpha: 1 &gt; \alpha &gt; 0" src="//upload.wikimedia.org/math/1/d/e/1deb8ccf06f8ff75e76b3f3012d92d62.png">. Bradford and Katehakis showed the expected number of probes for an unsuccessful search in <img class="mwe-math-fallback-image-inline tex" alt="T" src="//upload.wikimedia.org/math/b/9/e/b9ece18c950afbfa6b0fdbfa4ff731d3.png">, still using these initially chosen hash functions, is <img class="mwe-math-fallback-image-inline tex" alt="\frac{1}{1-\alpha}" src="//upload.wikimedia.org/math/2/e/5/2e588a04717cb198ffb3a93bd6a60038.png"> regardless of the distribution of the inputs. More precisely, these two uniformly, randomly and independently chosen hash functions are chosen from a set of universal hash functions where pair-wise independence suffices.</p>
+<p>Previous results include: Guibas and Szemerédi showed <img class="mwe-math-fallback-image-inline tex" alt="\frac{1}{1-\alpha}" src="//upload.wikimedia.org/math/2/e/5/2e588a04717cb198ffb3a93bd6a60038.png"> holds for unsuccessful search for load factors <img class="mwe-math-fallback-image-inline tex" alt="\alpha &lt; 0.319" src="//upload.wikimedia.org/math/0/8/a/08adc8fcfb83e14e7923e8d865fefae4.png">. Also, Lueker and Molodowitch showed this held assuming ideal randomized functions. Schmidt and Siegel showed this with <img class="mwe-math-fallback-image-inline tex" alt="k" src="//upload.wikimedia.org/math/8/c/e/8ce4b16b22b58894aa86c421e8759df3.png">-wise independent and uniform functions (for <img class="mwe-math-fallback-image-inline tex" alt="k = c \log n" src="//upload.wikimedia.org/math/1/f/e/1feb4526a1aa6de8f9b33bb9a57dfb34.png">, and suitable constant <img class="mwe-math-fallback-image-inline tex" alt="c" src="//upload.wikimedia.org/math/4/a/8/4a8a08f09d37b73795649038408b5f33.png">).</p>
+<h2>Implementation details for caching</h2>
+<p>Linear probing and, to a lesser extent, quadratic probing are able to take advantage of the data cache by accessing locations that are close together. Double hashing has, on average, larger intervals and is not able to achieve this advantage.</p>
+<p>Like all other forms of open addressing, double hashing becomes linear as the hash table approaches maximum capacity. The only solution to this is to rehash to a larger size, as with all other open addressing schemes.</p>
+<p>On top of that, it is possible for the secondary hash function to evaluate to zero. For example, if we choose k=5 with the following function:</p>
+<p><img class="mwe-math-fallback-image-inline tex" alt=" h_2(k) = 5 - (k\mod 7) " src="//upload.wikimedia.org/math/2/c/0/2c0899363fabcb8b2a49961fe4939781.png"></p>
+<p>The resulting sequence will always remain at the initial hash value. One possible solution is to change the secondary hash function to:</p>
+<p><img class="mwe-math-fallback-image-inline tex" alt=" h_2(k) = (k\mod 7) + 1" src="//upload.wikimedia.org/math/3/0/c/30c331fb1a623a8bde02597c8845339d.png"></p>
+<p>This ensures that the secondary hash function will always be non zero.</p>
+<h2>See also</h2>
+<ul>
+<li>Hash collision</li>
+<li>Hash function</li>
+<li>Linear probing</li>
+<li>Cuckoo hashing</li>
+</ul>
+<h2>Notes</h2>
+<ol>
+<li><b>^</b> P. G. Bradford and M. Katehakis: <i>A Probabilistic Study on Combinatorial Expanders and Hashing</i>, SIAM Journal on Computing 2007 (37:1), 83-111. http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.91.2647</li>
+<li><b>^</b> L. Guibas and E. Szemerédi: <i>The Analysis of Double Hashing</i>, Journal of Computer and System Sciences, 1978, 16, 226-274.</li>
+<li><b>^</b> G. S. Lueker and M. Molodowitch: <i>More Analysis of Double Hashing</i>, Combinatorica, 1993, 13(1), 83-96.</li>
+<li><b>^</b> J. P. Schmidt and A. Siegel: <i>Double Hashing is Computable and Randomizable with Universal Hash Functions</i>, manuscript.</li>
+</ol>
+<h2>External links</h2>
+<ul>
+<li>How Caching Affects Hashing by Gregory L. Heileman and Wenbin Luo 2005.</li>
+<li>Hash Table Animation</li>
+<li>klib a C library that includes double hashing functionality.</li>
+</ul>
+<h1>Double hashing</h1>
+<p><b>Double hashing</b> is a computer programming technique used in hash tables to resolve hash collisions, cases when two different values to be searched for produce the same hash key. It is a popular collision-resolution technique in open-addressed hash tables. Double hashing is implemented in many popular libraries.</p>
+<p>Like linear probing, it uses one hash value as a starting point and then repeatedly steps forward an interval until the desired value is located, an empty location is reached, or the entire table has been searched; but this interval is decided using a second, independent hash function (hence the name double hashing). Unlike linear probing and quadratic probing, the interval depends on the data, so that even values mapping to the same location have different bucket sequences; this minimizes repeated collisions and the effects of clustering.</p>
+<p>Given two randomly, uniformly, and independently selected hash functions <img class="mwe-math-fallback-image-inline tex" alt="h_1" src="//upload.wikimedia.org/math/e/2/f/e2f66b6f97eb982536588a1bfa05ffbf.png"> and <img class="mwe-math-fallback-image-inline tex" alt="h_2" src="//upload.wikimedia.org/math/b/d/3/bd3e5f3199896dfe9791ade3db413154.png">, the <i>i</i>th location in the bucket sequence for value <i>k</i> in a hash table <img class="mwe-math-fallback-image-inline tex" alt="T" src="//upload.wikimedia.org/math/b/9/e/b9ece18c950afbfa6b0fdbfa4ff731d3.png"> is: <img class="mwe-math-fallback-image-inline tex" alt="h(i,k)=(h_1(k) + i \cdot h_2(k))\mod |T|." src="//upload.wikimedia.org/math/0/a/b/0ab684621f9520707856607e3fc1280e.png"> Generally, <img class="mwe-math-fallback-image-inline tex" alt="h_1" src="//upload.wikimedia.org/math/e/2/f/e2f66b6f97eb982536588a1bfa05ffbf.png"> and <img class="mwe-math-fallback-image-inline tex" alt="h_2" src="//upload.wikimedia.org/math/b/d/3/bd3e5f3199896dfe9791ade3db413154.png"> are selected from a set of universal hash functions.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Classical applied data structure</li>
+<li>2 Implementation details for caching</li>
+<li>3 See also</li>
+<li>4 Notes</li>
+<li>5 External links</li>
+</ul>
+<p></p>
+<h2>Classical applied data structure</h2>
+<p>Double hashing with open addressing is a classical data structure on a table <img class="mwe-math-fallback-image-inline tex" alt="T" src="//upload.wikimedia.org/math/b/9/e/b9ece18c950afbfa6b0fdbfa4ff731d3.png">. Let <img class="mwe-math-fallback-image-inline tex" alt="n" src="//upload.wikimedia.org/math/7/b/8/7b8b965ad4bca0e41ab51de7b31363a1.png"> be the number of elements stored in <img class="mwe-math-fallback-image-inline tex" alt="T" src="//upload.wikimedia.org/math/b/9/e/b9ece18c950afbfa6b0fdbfa4ff731d3.png">, then <img class="mwe-math-fallback-image-inline tex" alt="T" src="//upload.wikimedia.org/math/b/9/e/b9ece18c950afbfa6b0fdbfa4ff731d3.png">'s load factor is <img class="mwe-math-fallback-image-inline tex" alt="\alpha = \frac{n}{|T|}" src="//upload.wikimedia.org/math/2/f/8/2f810ec2afc05f107039192d73ed321b.png">.</p>
+<p>Double hashing approximates uniform open address hashing. That is, start by randomly, uniformly and independently selecting two universal hash functions <img class="mwe-math-fallback-image-inline tex" alt="h_1" src="//upload.wikimedia.org/math/e/2/f/e2f66b6f97eb982536588a1bfa05ffbf.png"> and <img class="mwe-math-fallback-image-inline tex" alt="h_2" src="//upload.wikimedia.org/math/b/d/3/bd3e5f3199896dfe9791ade3db413154.png"> to build a double hashing table <img class="mwe-math-fallback-image-inline tex" alt="T" src="//upload.wikimedia.org/math/b/9/e/b9ece18c950afbfa6b0fdbfa4ff731d3.png">.</p>
+<p>All elements are put in <img class="mwe-math-fallback-image-inline tex" alt="T" src="//upload.wikimedia.org/math/b/9/e/b9ece18c950afbfa6b0fdbfa4ff731d3.png"> by double hashing using <img class="mwe-math-fallback-image-inline tex" alt="h_1" src="//upload.wikimedia.org/math/e/2/f/e2f66b6f97eb982536588a1bfa05ffbf.png"> and <img class="mwe-math-fallback-image-inline tex" alt="h_2" src="//upload.wikimedia.org/math/b/d/3/bd3e5f3199896dfe9791ade3db413154.png">. Given a key <img class="mwe-math-fallback-image-inline tex" alt="k" src="//upload.wikimedia.org/math/8/c/e/8ce4b16b22b58894aa86c421e8759df3.png">, determining the <img class="mwe-math-fallback-image-inline tex" alt="(i+1)" src="//upload.wikimedia.org/math/7/f/f/7ff525f6557e318e738fc03f2797b0d3.png">-st hash location is computed by:</p>
+<p><img class="mwe-math-fallback-image-inline tex" alt=" h(i,k) = ( h_1(k) + i \cdot h_2(k) ) \mod |T|." src="//upload.wikimedia.org/math/0/a/b/0ab684621f9520707856607e3fc1280e.png"></p>
+<p>Let <img class="mwe-math-fallback-image-inline tex" alt="T" src="//upload.wikimedia.org/math/b/9/e/b9ece18c950afbfa6b0fdbfa4ff731d3.png"> have fixed load factor <img class="mwe-math-fallback-image-inline tex" alt="\alpha: 1 &gt; \alpha &gt; 0" src="//upload.wikimedia.org/math/1/d/e/1deb8ccf06f8ff75e76b3f3012d92d62.png">. Bradford and Katehakis showed the expected number of probes for an unsuccessful search in <img class="mwe-math-fallback-image-inline tex" alt="T" src="//upload.wikimedia.org/math/b/9/e/b9ece18c950afbfa6b0fdbfa4ff731d3.png">, still using these initially chosen hash functions, is <img class="mwe-math-fallback-image-inline tex" alt="\frac{1}{1-\alpha}" src="//upload.wikimedia.org/math/2/e/5/2e588a04717cb198ffb3a93bd6a60038.png"> regardless of the distribution of the inputs. More precisely, these two uniformly, randomly and independently chosen hash functions are chosen from a set of universal hash functions where pair-wise independence suffices.</p>
+<p>Previous results include: Guibas and Szemerédi showed <img class="mwe-math-fallback-image-inline tex" alt="\frac{1}{1-\alpha}" src="//upload.wikimedia.org/math/2/e/5/2e588a04717cb198ffb3a93bd6a60038.png"> holds for unsuccessful search for load factors <img class="mwe-math-fallback-image-inline tex" alt="\alpha &lt; 0.319" src="//upload.wikimedia.org/math/0/8/a/08adc8fcfb83e14e7923e8d865fefae4.png">. Also, Lueker and Molodowitch showed this held assuming ideal randomized functions. Schmidt and Siegel showed this with <img class="mwe-math-fallback-image-inline tex" alt="k" src="//upload.wikimedia.org/math/8/c/e/8ce4b16b22b58894aa86c421e8759df3.png">-wise independent and uniform functions (for <img class="mwe-math-fallback-image-inline tex" alt="k = c \log n" src="//upload.wikimedia.org/math/1/f/e/1feb4526a1aa6de8f9b33bb9a57dfb34.png">, and suitable constant <img class="mwe-math-fallback-image-inline tex" alt="c" src="//upload.wikimedia.org/math/4/a/8/4a8a08f09d37b73795649038408b5f33.png">).</p>
+<h2>Implementation details for caching</h2>
+<p>Linear probing and, to a lesser extent, quadratic probing are able to take advantage of the data cache by accessing locations that are close together. Double hashing has, on average, larger intervals and is not able to achieve this advantage.</p>
+<p>Like all other forms of open addressing, double hashing becomes linear as the hash table approaches maximum capacity. The only solution to this is to rehash to a larger size, as with all other open addressing schemes.</p>
+<p>On top of that, it is possible for the secondary hash function to evaluate to zero. For example, if we choose k=5 with the following function:</p>
+<p><img class="mwe-math-fallback-image-inline tex" alt=" h_2(k) = 5 - (k\mod 7) " src="//upload.wikimedia.org/math/2/c/0/2c0899363fabcb8b2a49961fe4939781.png"></p>
+<p>The resulting sequence will always remain at the initial hash value. One possible solution is to change the secondary hash function to:</p>
+<p><img class="mwe-math-fallback-image-inline tex" alt=" h_2(k) = (k\mod 7) + 1" src="//upload.wikimedia.org/math/3/0/c/30c331fb1a623a8bde02597c8845339d.png"></p>
+<p>This ensures that the secondary hash function will always be non zero.</p>
+<h2>See also</h2>
+<ul>
+<li>Hash collision</li>
+<li>Hash function</li>
+<li>Linear probing</li>
+<li>Cuckoo hashing</li>
+</ul>
+<h2>Notes</h2>
+<ol>
+<li><b>^</b> P. G. Bradford and M. Katehakis: <i>A Probabilistic Study on Combinatorial Expanders and Hashing</i>, SIAM Journal on Computing 2007 (37:1), 83-111. http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.91.2647</li>
+<li><b>^</b> L. Guibas and E. Szemerédi: <i>The Analysis of Double Hashing</i>, Journal of Computer and System Sciences, 1978, 16, 226-274.</li>
+<li><b>^</b> G. S. Lueker and M. Molodowitch: <i>More Analysis of Double Hashing</i>, Combinatorica, 1993, 13(1), 83-96.</li>
+<li><b>^</b> J. P. Schmidt and A. Siegel: <i>Double Hashing is Computable and Randomizable with Universal Hash Functions</i>, manuscript.</li>
+</ol>
+<h2>External links</h2>
+<ul>
+<li>How Caching Affects Hashing by Gregory L. Heileman and Wenbin Luo 2005.</li>
+<li>Hash Table Animation</li>
+<li>klib a C library that includes double hashing functionality.</li>
+</ul>
+</body>
+</html>

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Oddeven-sort---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Odd–even sort</h1>
+<p>In computing, an <b>odd–even sort</b> or <b>odd–even transposition sort</b> (also known as <b>brick sort</b>) is a relatively simple sorting algorithm, developed originally for use on parallel processors with local interconnections. It is a comparison sort related to bubble sort, with which it shares many characteristics. It functions by comparing all (odd, even)-indexed pairs of adjacent elements in the list and, if a pair is in the wrong order (the first is larger than the second) the elements are switched. The next step repeats this for (even, odd)-indexed pairs (of adjacent elements). Then it alternates between (odd, even) and (even, odd) steps until the list is sorted.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Sorting on processor arrays</li>
+<li>2 Batcher's odd–even mergesort</li>
+<li>3 Algorithm</li>
+<li>4 Proof of Correctness</li>
+<li>5 References</li>
+</ul>
+<p></p>
+<h2>Sorting on processor arrays</h2>
+<p>On parallel processors, with one value per processor and only local left–right neighbor connections, the processors all concurrently do a compare–exchange operation with their neighbors, alternating between odd–even and even–odd pairings. This algorithm was originally presented, and shown to be efficient on such processors, by Habermann in 1972.</p>
+<p>The algorithm extends efficiently to the case of multiple items per processor. In the Baudet–Stevenson odd–even merge-splitting algorithm, each processor sorts its own sublist at each step, using any efficient sort algorithm, and then performs a merge splitting, or transposition–merge, operation with its neighbor, with neighbor pairing alternating between odd–even and even–odd on each step.</p>
+<h2>Batcher's odd–even mergesort</h2>
+<p>A related but more efficient sort algorithm is the Batcher odd–even mergesort, using compare–exchange operations and perfect-shuffle operations. Batcher's method is efficient on parallel processors with long-range connections.</p>
+<h2>Algorithm</h2>
+<p>The single-processor algorithm, like bubblesort, is simple but not very efficient. Here a zero-based index is assumed:</p>
+<p>WHATSON? 9d4c845e-d5a5-4764-9300-f0fd3e465b10</p>
+<pre>
+function oddEvenSort(list) {
+  var sorted = false;
+  while(!sorted)
+  {
+    sorted = true;
+    for(var i = 1; i &lt; list.length-1; i += 2)
+    {
+      if(list[i] &gt; list[i+1])
+      {
+        swap(list, i, i+1);
+        sorted = false;
+      }
+    }
+ 
+    for(var i = 0; i &lt; list.length-1; i += 2)
+    {
+      if(list[i] &gt; list[i+1])
+      {
+        swap(list, i, i+1);
+        sorted = false;
+      }
+    }
+  }
+}
+</pre>
+<p><br>
+This is an example of the algorithm in c++</p>
+<p>WHATSON? 4b37b469-551c-4632-8d83-03b8dc1ea43c</p>
+<pre>
+template &lt;class T&gt;
+void OddEvenSort(T a[], int n)
+{
+    for (int i = 0; i &lt; n; ++i)
+    {
+        if (i &amp; 1)
+        {
+            for (int j = 2; j &lt; n; j+=2)
+                if (a[j] &lt; a[j-1])
+                    swap(a[j-1], a[j]);
+        }
+        else
+        {
+            for (int j = 1; j &lt; n; j+=2)
+                if (a[j] &lt; a[j-1])
+                    swap(a[j-1], a[j]);
+        }
+    }
+}
+</pre>
+<p>This is an example of the algorithm in php</p>
+<p>WHATSON? 5248f476-8946-47ef-a812-cf5e0efa0e48</p>
+<pre>
+function oddEvenSorting(&amp;$a) {
+	$n = count($a);
+	$sorted = false;
+	while (!$sorted) {
+		$sorted = true;
+		for ($i = 1; $i &lt; ($n - 1); $i += 2) {
+			if ($a[$i] &gt; $a[$i + 1]) {
+				list($a[$i], $a[$i + 1]) = array($a[$i + 1], $a[$i]);
+				if ($sorted) $sorted = false;
+			}
+		}
+ 
+		for ($i = 0; $i &lt; ($n - 1); $i += 2) {
+			if ($a[$i] &gt; $a[$i + 1]) {
+				list($a[$i], $a[$i + 1]) = array($a[$i + 1], $a[$i]);
+				if ($sorted) $sorted = false;
+			}
+		}
+	}
+}
+</pre>
+<h2>Proof of Correctness</h2>
+<p>Claim: Let <img class="mwe-math-fallback-image-inline tex" alt="a_1, ..., a_n" src="//upload.wikimedia.org/math/5/d/9/5d9531bab6a2edc82c7bff8d0df9c719.png"> be a sequence of data ordered by &lt;. The odd-even sort algorithm correctly sorts this data in n passes. (A pass here is defined to be a full sequence of odd-even, or even-odd comparisons. The passes occur in order pass 1: odd-even, pass 2: even-odd, etc.)</p>
+<p>Proof:</p>
+<p>This proof is based loosely on one by Thomas Worsch.</p>
+<p>Since the sorting algorithm only involves comparison-swap operations and is oblivious (the order of comparison-swap operations does not depend on the data), by Knuth's 0-1 sorting principle,  it suffices to check correctness when each <img class="mwe-math-fallback-image-inline tex" alt="a_i" src="//upload.wikimedia.org/math/d/8/d/d8dd7d0f3eb7145ca41c711457b7eb8f.png"> is either 0 or 1. Assume that there are e 1's.</p>
+<p>Observe that the rightmost 1 can be either in an even or odd position, so it might not be moved by the first odd-even pass. But after the first odd-even pass, the rightmost 1 will be in an even position. It follows that it will be moved to the right by all remaining passes. Since the rightmost one starts in position greater than or equal to e, it must be moved at most n-e steps. It follows that it takes at most n-e+1 passes to move the rightmost 1 to its correct position.</p>
+<p>Now, consider the second rightmost 1. After two passes, the 1 to its right will have moved right by at least one step. It follows that, for all remaining passes, we can view the second rightmost 1 as the rightmost 1. The second rightmost 1 starts in position at least e-1 at must be moved to position at most n-1, so it must be moved at most (n-1) - (e-1) = n-e steps. After at most 2 passes, the rightmost 1 will have already moved, so the entry to the right of the second rightmost 1 will be 0. Hence, for all passes after the first two, the second rightmost 1 will move to the right. It thus takes at most n-e +2 passes to move the second rightmost 1 to its correct position.</p>
+<p>Continuing in this manner, by induction it can be shown that the i^th rightmost 1 is moved to its correct position in at most n-e+i+1 passes. It follows that the e^th rightmost 1 is moved to its correct position in at most n-e+(e-1)+1 = n passes (consider: counting starts at value "0") . The list is thus correctly sorted in n passes. QED.</p>
+<p>We remark that each pass takes O(n) steps, so this algorithm is O(n^2) complexity.</p>
+</body>
+</html>

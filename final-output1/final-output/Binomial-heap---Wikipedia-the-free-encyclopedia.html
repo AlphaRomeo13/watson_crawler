@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Binomial-heap---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Binomial heap</h1>
+<p>In computer science, a <b>binomial heap</b> is a heap similar to a binary heap but also supports quick merging of two heaps. This is achieved by using a special tree structure. It is important as an implementation of the mergeable heap abstract data type (also called meldable heap), which is a priority queue supporting merge operation.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Binomial heap</li>
+<li>2 Structure of a binomial heap</li>
+<li>3 Implementation
+<ul>
+<li>3.1 Merge</li>
+<li>3.2 Insert</li>
+<li>3.3 Find minimum</li>
+<li>3.4 Delete minimum</li>
+<li>3.5 Decrease key</li>
+<li>3.6 Delete</li>
+</ul>
+</li>
+<li>4 Summary of running times</li>
+<li>5 Applications</li>
+<li>6 See also</li>
+<li>7 References</li>
+<li>8 External links</li>
+</ul>
+<ul>
+<li>3.1 Merge</li>
+<li>3.2 Insert</li>
+<li>3.3 Find minimum</li>
+<li>3.4 Delete minimum</li>
+<li>3.5 Decrease key</li>
+<li>3.6 Delete</li>
+</ul>
+<p></p>
+<h2>Binomial heap</h2>
+<p>A binomial heap is implemented as a collection of binomial trees (compare with a binary heap, which has a shape of a single binary tree). A <b>binomial tree</b> is defined recursively:</p>
+<ul>
+<li>A binomial tree of order 0 is a single node</li>
+<li>A binomial tree of order <i>k</i> has a root node whose children are roots of binomial trees of orders <i>k</i>−1, <i>k</i>−2, ..., 2, 1, 0 (in this order).</li>
+</ul>
+<p>A binomial tree of order <i>k</i> has 2 nodes, height <i>k</i>.</p>
+<p>Because of its unique structure, a binomial tree of order <i>k</i> can be constructed from two trees of order <i>k</i>−1 trivially by attaching one of them as the leftmost child of root of the other one. This feature is central to the <i>merge</i> operation of a binomial heap, which is its major advantage over other conventional heaps.</p>
+<p>The name comes from the shape: a binomial tree of order <img class="mwe-math-fallback-image-inline tex" alt="n" src="//upload.wikimedia.org/math/7/b/8/7b8b965ad4bca0e41ab51de7b31363a1.png"> has <img class="mwe-math-fallback-image-inline tex" alt="\tbinom n d" src="//upload.wikimedia.org/math/b/6/e/b6ea99a5a2f2e5ac8e231eb5d533e71c.png"> nodes at depth <img class="mwe-math-fallback-image-inline tex" alt="d" src="//upload.wikimedia.org/math/8/2/7/8277e0910d750195b448797616e091ad.png">. (See Binomial coefficient.)</p>
+<h2>Structure of a binomial heap</h2>
+<p>A binomial heap is implemented as a set of binomial trees that satisfy the <i>binomial heap properties</i>:</p>
+<ul>
+<li>Each binomial tree in a heap obeys the <i>minimum-heap property</i>: the key of a node is greater than or equal to the key of its parent.</li>
+</ul>
+<ul>
+<li>There can only be either <i>one</i> or <i>zero</i> binomial trees for each order, including zero order.</li>
+</ul>
+<p>The first property ensures that the root of each binomial tree contains the smallest key in the tree, which applies to the entire heap.</p>
+<p>The second property implies that a binomial heap with <i>n</i> nodes consists of at most log <i>n</i> + 1 binomial trees. In fact, the number and orders of these trees are uniquely determined by the number of nodes <i>n</i>: each binomial tree corresponds to one digit in the binary representation of number <i>n</i>. For example number 13 is 1101 in binary, <img class="mwe-math-fallback-image-inline tex" alt="2^3 + 2^2 + 2^0" src="//upload.wikimedia.org/math/9/e/3/9e3e923cd90b341fe8aed744267bd28f.png">, and thus a binomial heap with 13 nodes will consist of three binomial trees of orders 3, 2, and 0 (see figure below).</p>
+<h2>Implementation</h2>
+<p>Because no operation requires random access to the root nodes of the binomial trees, the roots of the binomial trees can be stored in a linked list, ordered by increasing order of the tree.</p>
+<h3>Merge</h3>
+<p>As mentioned above, the simplest and most important operation is the merging of two binomial trees of the same order within a binomial heaps. Due to the structure of binomial trees, they can be merged trivially. As their root node is the smallest element within the tree, by comparing the two keys, the smaller of them is the minimum key, and becomes the new root node. Then the other tree becomes a subtree of the combined tree. This operation is basic to the complete merging of two binomial heaps.</p>
+<p>WHATSON? bc58b6a8-d6f0-43cd-92fe-9d90a7ce84f4</p>
+<pre>
+<b>function</b> mergeTree(p, q)
+    <b>if</b> p.root.key &lt;= q.root.key
+        <b>return</b> p.addSubTree(q)
+    <b>else</b>
+        <b>return</b> q.addSubTree(p)
+</pre>
+<p><br></p>
+<p>The operation of <b>merging</b> two heaps is perhaps the most interesting and can be used as a subroutine in most other operations. The lists of roots of both heaps are traversed simultaneously, similarly as in the merge algorithm.</p>
+<p>If only one of the heaps contains a tree of order <i>j</i>, this tree is moved to the merged heap. If both heaps contain a tree of order <i>j</i>, the two trees are merged to one tree of order <i>j</i>+1 so that the minimum-heap property is satisfied. Note that it may later be necessary to merge this tree with some other tree of order <i>j</i>+1 present in one of the heaps. In the course of the algorithm, we need to examine at most three trees of any order (two from the two heaps we merge and one composed of two smaller trees).</p>
+<p>Because each binomial tree in a binomial heap corresponds to a bit in the binary representation of its size, there is an analogy between the merging of two heaps and the binary addition of the <i>sizes</i> of the two heaps, from right-to-left. Whenever a carry occurs during addition, this corresponds to a merging of two binomial trees during the merge.</p>
+<p>Each tree has order at most log <i>n</i> and therefore the running time is <i>O</i>(log <i>n</i>).</p>
+<p>WHATSON? 5fdf36f0-cead-4f36-9fe3-1368c11f1e61</p>
+<pre>
+<b>function</b> merge(p, q)
+    <b>while</b> <b>not</b> (p.end() <b>and</b> q.end())
+        tree = mergeTree(p.currentTree(), q.currentTree())
+        
+        <b>if</b> <b>not</b> heap.currentTree().empty()
+            tree = mergeTree(tree, heap.currentTree())
+        
+        heap.addTree(tree)
+        heap.next(); p.next(); q.next()
+</pre>
+<h3>Insert</h3>
+<p><b>Inserting</b> a new element to a heap can be done by simply creating a new heap containing only this element and then merging it with the original heap. Due to the merge, insert takes O(log <i>n</i>) time. However, across a series of <i>n</i> consecutive insertions, <b>insert</b> has an <i>amortized</i> time of O(1) (i.e. constant).</p>
+<h3>Find minimum</h3>
+<p>To find the <b>minimum</b> element of the heap, find the minimum among the roots of the binomial trees. This can again be done easily in <i>O</i>(log <i>n</i>) time, as there are just <i>O</i>(log <i>n</i>) trees and hence roots to examine.</p>
+<p>By using a pointer to the binomial tree that contains the minimum element, the time for this operation can be reduced to <i>O</i>(1). The pointer must be updated when performing any operation other than Find minimum. This can be done in <i>O</i>(log <i>n</i>) without raising the running time of any operation.</p>
+<h3>Delete minimum</h3>
+<p>To <b>delete the minimum element</b> from the heap, first find this element, remove it from its binomial tree, and obtain a list of its subtrees. Then transform this list of subtrees into a separate binomial heap by reordering them from smallest to largest order. Then merge this heap with the original heap. Since each tree has at most log <i>n</i> children, creating this new heap is <i>O</i>(log <i>n</i>). Merging heaps is <i>O</i>(log <i>n</i>), so the entire delete minimum operation is <i>O</i>(log <i>n</i>).</p>
+<p>WHATSON? 0256e4ab-ca86-43cb-89ac-9f967206677a</p>
+<pre>
+<b>function</b> deleteMin(heap)
+    min = heap.trees().first()
+    <b>for each</b> current <b>in</b> heap.trees()
+        <b>if</b> current.root &lt; min.root <b>then</b> min = current
+    <b>for each</b> tree <b>in</b> min.subTrees()
+        tmp.addTree(tree)
+    heap.removeTree(min)
+    merge(heap, tmp)
+</pre>
+<h1>Binomial heap</h1>
+<p>In computer science, a <b>binomial heap</b> is a heap similar to a binary heap but also supports quick merging of two heaps. This is achieved by using a special tree structure. It is important as an implementation of the mergeable heap abstract data type (also called meldable heap), which is a priority queue supporting merge operation.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Binomial heap</li>
+<li>2 Structure of a binomial heap</li>
+<li>3 Implementation
+<ul>
+<li>3.1 Merge</li>
+<li>3.2 Insert</li>
+<li>3.3 Find minimum</li>
+<li>3.4 Delete minimum</li>
+<li>3.5 Decrease key</li>
+<li>3.6 Delete</li>
+</ul>
+</li>
+<li>4 Summary of running times</li>
+<li>5 Applications</li>
+<li>6 See also</li>
+<li>7 References</li>
+<li>8 External links</li>
+</ul>
+<ul>
+<li>3.1 Merge</li>
+<li>3.2 Insert</li>
+<li>3.3 Find minimum</li>
+<li>3.4 Delete minimum</li>
+<li>3.5 Decrease key</li>
+<li>3.6 Delete</li>
+</ul>
+<h3>Decrease key</h3>
+<p>After <b>decreasing</b> the key of an element, it may become smaller than the key of its parent, violating the minimum-heap property. If this is the case, exchange the element with its parent, and possibly also with its grandparent, and so on, until the minimum-heap property is no longer violated. Each binomial tree has height at most log <i>n</i>, so this takes <i>O</i>(log <i>n</i>) time.</p>
+<h3>Delete</h3>
+<p>To <b>delete</b> an element from the heap, decrease its key to negative infinity (that is, some value lower than any element in the heap) and then delete the minimum in the heap.</p>
+<h2>Summary of running times</h2>
+<p>In the following time complexities <i>O</i>(<i>f</i>) is an asymptotic upper bound and <i>Θ</i>(<i>f</i>) is an asymptotically tight bound (see Big O notation). Function names assume a min-heap.</p>
+<ol>
+<li><b>^</b> Brodal and Okasaki later describe a persistent variant with the same bounds except for decrease-key, which is not supported. Heaps with <i>n</i> elements can be constructed bottom-up in <i>O</i>(<i>n</i>).</li>
+<li>^        Amortized time.</li>
+<li><b>^</b> Bounded by <img class="mwe-math-fallback-image-inline tex" alt="\Omega(\log\log n), O(2^{2\sqrt{\log\log n}})" src="//upload.wikimedia.org/math/c/7/3/c73afc51ab84a9b0c213ee20d4a5fa41.png"></li>
+<li><b>^</b> <i>n</i> is the size of the larger heap and <i>m</i> is the size of the smaller heap.</li>
+<li><b>^</b> <i>n</i> is the size of the larger heap.</li>
+</ol>
+<h2>Applications</h2>
+<ul>
+<li>Discrete event simulation</li>
+<li>Priority queues</li>
+</ul>
+<h2>See also</h2>
+<ul>
+<li>Fibonacci heap</li>
+<li>Soft heap</li>
+<li>Skew binomial heap</li>
+</ul>
+</body>
+</html>

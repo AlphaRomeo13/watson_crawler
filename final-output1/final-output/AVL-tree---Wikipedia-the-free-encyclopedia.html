@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>AVL-tree---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>AVL tree</h1>
+<p>In computer science, an <b>AVL tree</b> (Georgy Adelson-Velsky and Landis' tree, named after the inventors) is a self-balancing binary search tree. It was the first such data structure to be invented. In an AVL tree, the heights of the two child subtrees of any node differ by at most one; if at any time they differ by more than one, rebalancing is done to restore this property. Lookup, insertion, and deletion all take O(log <i>n</i>) time in both the average and worst cases, where <i>n</i> is the number of nodes in the tree prior to the operation. Insertions and deletions may require the tree to be rebalanced by one or more tree rotations.</p>
+<p>The AVL tree is named after its two Soviet inventors, Georgy Adelson-Velsky and E. M. Landis, who published it in their 1962 paper "An algorithm for the organization of information".</p>
+<p>AVL trees are often compared with red-black trees because both support the same set of operations and take O(log <i>n</i>) time for the basic operations. For lookup-intensive applications, AVL trees are faster than red-black trees because they are more rigidly balanced. Similar to red-black trees, AVL trees are height-balanced. Both are in general not weight-balanced nor μ-balanced for any <img class="mwe-math-fallback-image-inline tex" alt="\scriptstyle \mu\leq\tfrac12" src="//upload.wikimedia.org/math/e/a/f/eaf228073f01882aa7b7480f0b94f13d.png">; that is, sibling nodes can have hugely differing numbers of descendants.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Operations
+<ul>
+<li>1.1 Searching</li>
+<li>1.2 Traversal</li>
+<li>1.3 Insertion</li>
+<li>1.4 Deletion</li>
+</ul>
+</li>
+<li>2 Comparison to other structures</li>
+<li>3 See also</li>
+<li>4 References</li>
+<li>5 Further reading</li>
+<li>6 External links</li>
+</ul>
+<ul>
+<li>1.1 Searching</li>
+<li>1.2 Traversal</li>
+<li>1.3 Insertion</li>
+<li>1.4 Deletion</li>
+</ul>
+<p></p>
+<h2>Operations</h2>
+<p>Basic operations of an AVL tree involve carrying out the same actions as would be carried out on an unbalanced binary search tree, but modifications are followed by zero or more operations called tree rotations, which help to restore the height balance of the subtrees.</p>
+<h3>Searching</h3>
+<h3>Traversal</h3>
+<p>Once a node has been found in a balanced tree, the <i>next</i> or <i>previous</i> nodes can be explored in amortized constant time. Some instances of exploring these "nearby" nodes require traversing up to log(<i>n</i>) links (particularly when moving from the rightmost leaf of the root's left subtree to the root or from the root to the leftmost leaf of the root's right subtree; in the example AVL tree, moving from node 14 to the <i>next but one</i> node 19 takes 4 steps). However, exploring all <i>n</i> nodes of the tree in this manner would use each link exactly twice: one traversal to enter the subtree rooted at that node, another to leave that node's subtree after having explored it. And since there are <i>n</i>−1 links in any tree, the amortized cost is found to be 2×(<i>n</i>−1)/<i>n</i>, or approximately 2.</p>
+<h3>Insertion</h3>
+<p>After inserting a node, it is necessary to check each of the node's ancestors for consistency with the rules of AVL ("retracing"). The balance factor is calculated as follows: balanceFactor = height(left subtree) - height(right subtree). Since with a single insertion the height of an AVL subtree cannot increase by more than one, the temporary balance factor of a node will be in the range from −2 to +2. For each node checked, if the balance factor remains in the range from −1 to +1 then only corrections of the balance factor, but no rotations are necessary. However, if balance factor becomes less than −1 or greater than +1, the subtree rooted at this node is unbalanced.</p>
+<p></p>
+<p>Let us first assume the balance factor of a node P is 2 (as opposed to the other possible unbalanced value −2). This case is depicted in the left column of the illustration with P:=<b>5</b>. We then look at the left subtree (the larger one) with root N. If this subtree does not lean to the right - i.e. N has balance factor 1 (or, when deletion also 0) - we can rotate the whole tree to the right to get a balanced tree. This is labelled as the "Left Left Case" in the illustration with N:=<b>4</b>. If the subtree does lean to the right - i.e. N:=<b>3</b> has balance factor −1 - we first rotate the subtree to the left and end up the previous case. This second case is labelled as "Left Right Case" in the illustration.</p>
+<p>If the balance factor of the node P is −2 (this case is depicted in the right column of the illustration P:=<b>3</b>) we can mirror the above algorithm. I.e. if the root N of the (larger) right subtree has balance factor −1 (or, when deletion also 0) we can rotate the whole tree to the left to get a balanced tree. This is labelled as the "Right Right Case" in the illustration with N:=<b>4</b>. If the root N:=<b>5</b> of the right subtree has balance factor 1 ("Right Left Case") we can rotate the subtree to the right to end up in the "Right Right Case".</p>
+<p>The whole retracing loop for an insertion looks like this:</p>
+<p>WHATSON? 8e1e655d-45f6-4f22-b14f-a30df7dec3f9</p>
+<pre>
+<code>// N is the child of P whose height increases by 1.
+loop {
+  if (N == left_child(P)) {
+    if (balance_factor(P) == 1) { // The left column in the picture
+      // Temporary balance_factor(P) == 2 ==&gt; rebalancing is required.
+      if (balance_factor(N) == -1) { // Left Right Case
+         rotate_left(N); // Reduce to Left Left Case
+      }
+      // Left Left Case
+      rotate_right(P);
+      break; // Leave the loop
+    }
+    if (balance_factor(P) == -1) {
+      balance_factor(P) = 0; // N’s height increase is absorbed at P.
+      break; // Leave the loop
+    }
+    balance_factor(P) = 1; // Height increases at P
+  } else { // N == right_child(P), the child whose height increases by 1.
+    if (balance_factor(P) == -1) { // The right column in the picture
+      // Temporary balance_factor(P) == -2 ==&gt; rebalancing is required.
+      if (balance_factor(N) == 1) { // Right Left Case
+         rotate_right(N); // Reduce to Right Right Case
+      }
+      // Right Right Case
+      rotate_left(P);
+      break; // Leave the loop
+    }
+    if (balance_factor(P) == 1) {
+      balance_factor(P) = 0; // N’s height increase is absorbed at P.
+      break; // Leave the loop
+    }
+    balance_factor(P) = -1; // Height increases at P
+  }
+  N = P;
+  P = parent(N);
+} while (P != null); // Possibly up to the root
+</code>
+</pre>
+<p>After a rotation a subtree has the same height as before, so retracing can stop. In order to restore the balance factors of all nodes, first observe that all nodes requiring correction lie along the path used during the initial insertion. If the above procedure is applied to nodes along this path, starting from the bottom (i.e. the inserted node), then every node in the tree will again have a balance factor of −1, 0, or 1.</p>
+<p>The time required is O(log <i>n</i>) for lookup, plus a maximum of O(log <i>n</i>) retracing levels on the way back to the root, so the operation can be completed in O(log <i>n</i>) time.</p>
+<h3>Deletion</h3>
+<p>Let node X be the node with the value we need to delete, and let node Y be a node in the tree we need to find to take node X's place, and let node Z be the actual node we take out of the tree.</p>
+<p>Steps to consider when deleting a node in an AVL tree are the following:</p>
+<ol>
+<li>If node X is a leaf or has only one child, skip to step 5 with Z:=X.</li>
+<li>Otherwise, determine node Y by finding the largest node in node X's left subtree (the in-order predecessor of X − it does not have a right child) or the smallest in its right subtree (the in-order successor of X − it does not have a left child).</li>
+<li>Exchange all the child and parent links of node X with those of node Y. In this step, the in-order sequence between nodes X and Y is temporarily disturbed, but the tree structure doesn't change.</li>
+<li>Choose node Z to be all the child and parent links of old node Y = those of new node X.</li>
+<li>If node Z has a subtree (which then is a leaf) attach it to Z's parent.</li>
+<li>If node Z was the root (its parent is null), update root.</li>
+<li>Delete node Z.</li>
+<li>Retrace the path back up the tree (starting with node Z's parent) to the root, adjusting the balance factors as needed.</li>
+</ol>
+<p>Since with a single deletion the height of an AVL subtree cannot decrease by more than one, the temporary balance factor of a node will be in the range from −2 to +2.</p>
+<p>If the balance factor becomes ±2 then the subtree is unbalanced and needs to be rotated. The various cases of rotations are depicted in section "Insertion" together with a brief description.</p>
+<p>The retracing can stop if the balance factor becomes ±1 indicating that the height of that subtree has remained unchanged. This can also result from a rotation when the higher child tree has a balance factor of 0. (In case of an insertion the higher child tree involved in a rotation always has a balance factor of ±1.)</p>
+<p>If the balance factor becomes 0 then the height of the subtree has decreased by one and the retracing needs to continue. This can also result from a rotation.</p>
+<p>The time required is O(log <i>n</i>) for lookup, plus a maximum of O(log <i>n</i>) retracing levels on the way back to the root, so the operation can be completed in O(log <i>n</i>) time.</p>
+<h2>Comparison to other structures</h2>
+<p>Both AVL trees and red-black trees are self-balancing binary search trees and they are very similar mathematically. The operations to balance the trees are different, but both occur on the average in O(1) with maximum in O(log <i>n</i>). The real difference between the two is the limiting height. For a tree of size <img class="mwe-math-fallback-image-inline tex" alt=" n " src="//upload.wikimedia.org/math/7/b/8/7b8b965ad4bca0e41ab51de7b31363a1.png">:</p>
+<ul>
+<li>An AVL tree's height is strictly less than:
+<dl>
+<dd><img class="mwe-math-fallback-image-inline tex" alt="\log_\varphi(\sqrt 5 (n+2)) - 2 = { \log_2(\sqrt 5 (n+2)) \over \log_2(\varphi) } - 2 = \log_\varphi(2) \cdot \log_2(\sqrt 5 (n+2)) - 2 \approx 1.44\log_2(n+2) - 0.328" src="//upload.wikimedia.org/math/5/5/1/5510f359619e43c60ceb3b8eacf9ad24.png"></dd>
+<dd>where <img class="mwe-math-fallback-image-inline tex" alt="\varphi" src="//upload.wikimedia.org/math/3/5/3/3538eb9c84efdcbd130c4c953781cfdb.png"> is the golden ratio.</dd>
+</dl>
+</li>
+<li>A red-black tree's height is at most <img class="mwe-math-fallback-image-inline tex" alt="2\log_2(n+1)" src="//upload.wikimedia.org/math/d/4/3/d43f9dec1ef43a5b90d23d4c83406435.png"></li>
+</ul>
+<p>AVL trees are more rigidly balanced than red-black trees, leading to slower insertion and removal but faster retrieval.</p>
+<h2>See also</h2>
+<ul>
+<li>Trees</li>
+<li>Tree rotation</li>
+<li>Splay tree</li>
+<li>Scapegoat tree</li>
+<li>B-tree</li>
+<li>T-tree</li>
+<li>List of data structures</li>
+</ul>
+</body>
+</html>

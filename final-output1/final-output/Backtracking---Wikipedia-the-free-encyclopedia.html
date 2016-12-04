@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Backtracking---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Backtracking</h1>
+<ul>
+<li>α–β</li>
+<li>A*</li>
+<li>B*</li>
+<li><strong class="selflink">Backtracking</strong></li>
+<li>Beam</li>
+<li>Bellman–Ford</li>
+<li>Best-first</li>
+<li>Bidirectional</li>
+<li>Borůvka</li>
+<li>Branch &amp; bound</li>
+<li>BFS</li>
+<li>British Museum</li>
+<li>D*</li>
+<li>DFS</li>
+<li>Depth-limited</li>
+<li>Dijkstra</li>
+<li>Edmonds</li>
+<li>Floyd–Warshall</li>
+<li>Fringe search</li>
+<li>Hill climbing</li>
+<li>IDA*</li>
+<li>Iterative deepening</li>
+<li>Johnson</li>
+<li>Jump point</li>
+<li>Kruskal</li>
+<li>Lexicographic BFS</li>
+<li>Prim</li>
+<li>SMA*</li>
+<li>Uniform-cost</li>
+</ul>
+<ul>
+<li><i>Graph algorithms</i></li>
+<li><i>Search algorithms</i></li>
+<li><i>List of graph algorithms</i></li>
+</ul>
+<ul>
+<li>Dynamic programming</li>
+<li>Graph traversal</li>
+<li>Tree traversal</li>
+<li>Search games</li>
+</ul>
+<ul>
+<li>v</li>
+<li>t</li>
+<li>e</li>
+</ul>
+<p><b>Backtracking</b> is a general algorithm for finding all (or some) solutions to some computational problems, notably constraint satisfaction problems, that incrementally builds candidates to the solutions, and abandons each partial candidate <i>c</i> ("backtracks") as soon as it determines that <i>c</i> cannot possibly be completed to a valid solution.</p>
+<p>The classic textbook example of the use of backtracking is the eight queens puzzle, that asks for all arrangements of eight chess queens on a standard chessboard so that no queen attacks any other. In the common backtracking approach, the partial candidates are arrangements of <i>k</i> queens in the first <i>k</i> rows of the board, all in different rows and columns. Any partial solution that contains two mutually attacking queens can be abandoned, since it cannot possibly be completed to a valid solution.</p>
+<p>Backtracking can be applied only for problems which admit the concept of a "partial candidate solution" and a relatively quick test of whether it can possibly be completed to a valid solution. It is useless, for example, for locating a given value in an unordered table. When it is applicable, however, backtracking is often much faster than brute force enumeration of all complete candidates, since it can eliminate a large number of candidates with a single test.</p>
+<p>Backtracking is an important tool for solving constraint satisfaction problems, such as crosswords, verbal arithmetic, Sudoku, and many other puzzles. It is often the most convenient (if not the most efficient) technique for parsing, for the knapsack problem and other combinatorial optimization problems. It is also the basis of the so-called logic programming languages such as Icon, Planner and Prolog. Backtracking is also utilized in the (diff) difference engine for the MediaWiki software.</p>
+<p>Backtracking depends on user-given "black box procedures" that define the problem to be solved, the nature of the partial candidates, and how they are extended into complete candidates. It is therefore a metaheuristic rather than a specific algorithm – although, unlike many other meta-heuristics, it is guaranteed to find all solutions to a finite problem in a bounded amount of time.</p>
+<p>The term "backtrack" was coined by American mathematician D. H. Lehmer in the 1950s. The pioneer string-processing language SNOBOL (1962) may have been the first to provide a built-in general backtracking facility.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Description of the method
+<ul>
+<li>1.1 Pseudocode</li>
+<li>1.2 Usage considerations</li>
+<li>1.3 Early stopping variants</li>
+</ul>
+</li>
+<li>2 Examples
+<ul>
+<li>2.1 Constraint satisfaction</li>
+</ul>
+</li>
+<li>3 See also</li>
+<li>4 References</li>
+<li>5 Further reading</li>
+<li>6 External links</li>
+</ul>
+<ul>
+<li>1.1 Pseudocode</li>
+<li>1.2 Usage considerations</li>
+<li>1.3 Early stopping variants</li>
+</ul>
+<ul>
+<li>2.1 Constraint satisfaction</li>
+</ul>
+<p></p>
+<h2>Description of the method</h2>
+<p>The backtracking algorithm enumerates a set of <i>partial candidates</i> that, in principle, could be <i>completed</i> in various ways to give all the possible solutions to the given problem. The completion is done incrementally, by a sequence of <i>candidate extension steps.</i></p>
+<p>Conceptually, the partial candidates are represented as the nodes of a tree structure, the <i>potential search tree.</i> Each partial candidate is the parent of the candidates that differ from it by a single extension step; the leaves of the tree are the partial candidates that cannot be extended any further.</p>
+<p>The backtracking algorithm traverses this search tree recursively, from the root down, in depth-first order. At each node <i>c</i>, the algorithm checks whether <i>c</i> can be completed to a valid solution. If it cannot, the whole sub-tree rooted at <i>c</i> is skipped (<i>pruned</i>). Otherwise, the algorithm (1) checks whether <i>c</i> itself is a valid solution, and if so reports it to the user; and (2) recursively enumerates all sub-trees of <i>c</i>. The two tests and the children of each node are defined by user-given procedures.</p>
+<p>Therefore, the <i>actual search tree</i> that is traversed by the algorithm is only a part of the potential tree. The total cost of the algorithm is the number of nodes of the actual tree times the cost of obtaining and processing each node. This fact should be considered when choosing the potential search tree and implementing the pruning test.</p>
+<h3>Pseudocode</h3>
+<p>In order to apply backtracking to a specific class of problems, one must provide the data <i>P</i> for the particular instance of the problem that is to be solved, and six procedural parameters, <i>root</i>, <i>reject</i>, <i>accept</i>, <i>first</i>, <i>next</i>, and <i>output</i>. These procedures should take the instance data <i>P</i> as a parameter and should do the following:</p>
+<ol>
+<li><i>root</i>(<i>P</i>): return the partial candidate at the root of the search tree.</li>
+<li><i>reject</i>(<i>P</i>,<i>c</i>): return <i>true</i> only if the partial candidate <i>c</i> is not worth completing.</li>
+<li><i>accept</i>(<i>P</i>,<i>c</i>): return <i>true</i> if <i>c</i> is a solution of <i>P</i>, and <i>false</i> otherwise.</li>
+<li><i>first</i>(<i>P</i>,<i>c</i>): generate the first extension of candidate <i>c</i>.</li>
+<li><i>next</i>(<i>P</i>,<i>s</i>): generate the next alternative extension of a candidate, after the extension <i>s</i>.</li>
+<li><i>output</i>(<i>P</i>,<i>c</i>): use the solution <i>c</i> of <i>P</i>, as appropriate to the application.</li>
+</ol>
+<p>The backtracking algorithm reduces then to the call <i>bt</i>(<i>root</i>(<i>P</i>)), where <i>bt</i> is the following recursive procedure:</p>
+<p>WHATSON? 863a97ae-b044-42d2-b1c6-d658a5bfda78</p>
+<pre>
+procedure bt(c)
+  if reject(P,c) then return
+  if accept(P,c) then output(P,c)
+  s ← first(P,c)
+  while s ≠ Λ do
+    bt(s)
+    s ← next(P,s)
+</pre>
+<h3>Usage considerations</h3>
+<p>The <i>reject</i> procedure should be a boolean-valued function that returns <i>true</i> only if it is certain that no possible extension of <i>c</i> is a valid solution for <i>P</i>. If the procedure cannot reach a definite conclusion, it should return <i>false</i>. An incorrect <i>true</i> result may cause the <i>bt</i> procedure to miss some valid solutions. The procedure may assume that <i>reject</i>(<i>P</i>,<i>t</i>) returned <i>false</i> for every ancestor <i>t</i> of <i>c</i> in the search tree.</p>
+<p>On the other hand, the efficiency of the backtracking algorithm depends on <i>reject</i> returning <i>true</i> for candidates that are as close to the root as possible. If <i>reject</i> always returns <i>false</i>, the algorithm will still find all solutions, but it will be equivalent to a brute-force search.</p>
+<p>The <i>accept</i> procedure should return <i>true</i> if <i>c</i> is a complete and valid solution for the problem instance <i>P</i>, and <i>false</i> otherwise. It may assume that the partial candidate <i>c</i> and all its ancestors in the tree have passed the <i>reject</i> test.</p>
+<p>Note that the general pseudo-code above does not assume that the valid solutions are always leaves of the potential search tree. In other words, it admits the possibility that a valid solution for <i>P</i> can be further extended to yield other valid solutions.</p>
+<p>The <i>first</i> and <i>next</i> procedures are used by the backtracking algorithm to enumerate the children of a node <i>c</i> of the tree, that is, the candidates that differ from <i>c</i> by a single extension step. The call <i>first</i>(<i>P</i>,<i>c</i>) should yield the first child of <i>c</i>, in some order; and the call <i>next</i>(<i>P</i>,<i>s</i>) should return the next sibling of node <i>s</i>, in that order. Both functions should return a distinctive "null" candidate, denoted here by 'Λ', if the requested child does not exist.</p>
+<p>Together, the <i>root</i>, <i>first</i>, and <i>next</i> functions define the set of partial candidates and the potential search tree. They should be chosen so that every solution of <i>P</i> occurs somewhere in the tree, and no partial candidate occurs more than once. Moreover, they should admit an efficient and effective <i>reject</i> predicate.</p>
+<h3>Early stopping variants</h3>
+<p>The pseudo-code above will call <i>output</i> for all candidates that are a solution to the given instance <i>P</i>. The algorithm is easily modified to stop after finding the first solution, or a specified number of solutions; or after testing a specified number of partial candidates, or after spending a given amount of CPU time.</p>
+<h2>Examples</h2>
+<p>Typical examples are</p>
+<ul>
+<li>Puzzles such as eight queens puzzle, crosswords, verbal arithmetic, Sudoku, Peg Solitaire.</li>
+<li>Combinatorial optimization problems such as parsing and the knapsack problem.</li>
+<li>Logic programming languages such as Icon, Planner and Prolog, which use backtracking internally to generate answers.</li>
+<li>Backtracking is also utilized in the "diff" (version comparing) engine for the MediaWiki software.</li>
+</ul>
+<p>Below is an example for the constraint satisfaction problem:</p>
+<h3>Constraint satisfaction</h3>
+<p>The general constraint satisfaction problem consists in finding a list of integers <i>x</i> = (<i>x</i>[1],<i>x</i>[2], ..., <i>x</i>[<i>n</i>]), each in some range {1, 2, ..., <i>m</i>}, that satisfies some arbitrary constraint (boolean function) <i>F</i>.</p>
+<p>For this class of problems, the instance data <i>P</i> would be the integers <i>m</i> and <i>n</i>, and the predicate <i>F</i>. In a typical backtracking solution to this problem, one could define a partial candidate as a list of integers <i>c</i> = (<i>c</i>[1],<i>c</i>[2], ... <i>c</i>[k]), for any <i>k</i> between 0 and <i>n</i>, that are to be assigned to the first <i>k</i> variables <i>x</i>[1],<i>x</i>[2], ..., <i>x</i>[<i>k</i>]). The root candidate would then be the empty list (). The <i>first</i> and <i>next</i> procedures would then be</p>
+<p>WHATSON? a0d8a386-8ce5-4868-8ff2-aca3674e02a9</p>
+<pre>
+function first(P,c)
+  k ← length(c)
+  if k = n
+    then return Λ
+    else return (c[1], c[2], ..., c[k], 1)
+ 
+function next(P,s)
+  k ← length(s)
+  if s[k] = m
+    then return Λ
+    else return (s[1], s[2], ..., s[k-1], 1 + s[k])
+</pre>
+<p>Here "<b>length</b>(<i>c</i>)" is the number of elements in the list <i>c</i>.</p>
+<p>The call <i>reject</i>(<i>P</i>,<i>c</i>) should return <i>true</i> if the constraint <i>F</i> cannot be satisfied by any list of <i>n</i> integers that begins with the <i>k</i> elements of <i>c</i>. For backtracking to be effective, there must be a way to detect this situation, at least for some candidates <i>c</i>, without enumerating all those <i>m</i> <i>n</i>-tuples.</p>
+<p>For example, if <i>F</i> is the conjunction of several boolean predicates, <i>F</i> = <i>F</i>[1] <img class="mwe-math-fallback-image-inline tex" alt="\wedge" src="//upload.wikimedia.org/math/1/b/a/1ba4f06f68614e5da79a8ebd378d532a.png"> <i>F</i>[2] <img class="mwe-math-fallback-image-inline tex" alt="\wedge" src="//upload.wikimedia.org/math/1/b/a/1ba4f06f68614e5da79a8ebd378d532a.png"> <img class="mwe-math-fallback-image-inline tex" alt="\cdots" src="//upload.wikimedia.org/math/3/3/a/33ac38248f756c206658df33d70efc31.png"> <img class="mwe-math-fallback-image-inline tex" alt="\wedge" src="//upload.wikimedia.org/math/1/b/a/1ba4f06f68614e5da79a8ebd378d532a.png"> <i>F</i>[p], and each <i>F</i>[i] depends only on a small subset of the variables <i>x</i>[1], ..., <i>x</i>[<i>n</i>], then the <i>reject</i> procedure could simply check the terms <i>F</i>[i] that depend only on variables <i>x</i>[1], ..., <i>x</i>[<i>k</i>], and return <i>true</i> if any of those terms returns <i>false</i>. In fact, <i>reject</i> needs only check those terms that do depend on <i>x</i>[<i>k</i>], since the terms that depend only on <i>x</i>[1], ..., <i>x</i>[<i>k</i>-1] will have been tested further up in the search tree.</p>
+<p>Assuming that <i>reject</i> is implemented as above, then <i>accept</i>(<i>P</i>,<i>c</i>) needs only check whether <i>c</i> is complete, that is, whether it has <i>n</i> elements.</p>
+<p>It is generally better to order the list of variables so that it begins with the most critical ones (i.e. the ones with fewest value options, or which have a greater impact on subsequent choices).</p>
+<p>One could also allow the <i>next</i> function to choose which variable should be assigned when extending a partial candidate, based on the values of the variables already assigned by it. Further improvements can be obtained by the technique of constraint propagation.</p>
+<p>In addition to retaining minimal recovery values used in backing up, backtracking implementations commonly keep a variable trail, to record value change history. An efficient implementation will avoid creating a variable trail entry between two successive changes when there is no choice point, as the backtracking will erase all of the changes as a single operation.</p>
+<p>An alternative to the variable trail is to keep a timestamp of when the last change was made to the variable. The timestamp is compared to the timestamp of a choice point. If the choice point has an associated time later than that of the variable, it is unnecessary to revert the variable when the choice point is backtracked, as it was changed before the choice point occurred.</p>
+<h2>See also</h2>
+<ul>
+<li>Ariadne's thread (logic)</li>
+<li>Backjumping</li>
+<li>Recursion (computer science)</li>
+</ul>
+</body>
+</html>

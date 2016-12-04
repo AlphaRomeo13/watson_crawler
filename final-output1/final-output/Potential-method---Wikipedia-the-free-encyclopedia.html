@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Potential-method---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Potential method</h1>
+<p>In computational complexity theory, the <b>potential method</b> is a method used to analyze the amortized time and space complexity of a data structure, a measure of its performance over sequences of operations that smooths out the cost of infrequent but expensive operations.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Definition of amortized time</li>
+<li>2 Relation between amortized and actual time</li>
+<li>3 Amortized analysis of worst-case inputs</li>
+<li>4 Example</li>
+<li>5 Applications</li>
+<li>6 References</li>
+</ul>
+<p></p>
+<h2>Definition of amortized time</h2>
+<p>In the potential method, a function Φ is chosen that maps states of the data structure to non-negative numbers. If <i>S</i> is a state of the data structure, Φ(<i>S</i>) may be thought of intuitively as an amount of potential energy stored in that state; alternatively, Φ(<i>S</i>) may be thought of as representing the amount of disorder in state <i>S</i> or its distance from an ideal state. The potential value prior to the operation of initializing a data structure is defined to be zero.</p>
+<p>Let <i>o</i> be any individual operation within a sequence of operations on some data structure, with <i>S</i><sub>before</sub> denoting the state of the data structure prior to operation <i>o</i> and <i>S</i><sub>after</sub> denoting its state after operation <i>o</i> has completed. Then, once Φ has been chosen, the amortized time for operation <i>o</i> is defined to be</p>
+<p>where <i>C</i> is a non-negative constant of proportionality (in units of time) that must remain fixed throughout the analysis. That is, the amortized time is defined to be the actual time taken by the operation plus <i>C</i> times the difference in potential caused by the operation.</p>
+<h2>Relation between amortized and actual time</h2>
+<p>Despite its artificial appearance, the total amortized time of a sequence of operations provides a valid upper bound on the actual time for the same sequence of operations. That is, for any sequence of operations <img class="mwe-math-fallback-image-inline tex" alt="o_0, o_1, \dots" src="//upload.wikimedia.org/math/4/f/a/4fafb16ff13af632dbac8aafbec9ad71.png">, the total amortized time <img class="mwe-math-fallback-image-inline tex" alt="\sum_i T_{\mathrm{amortized}}(o_i)" src="//upload.wikimedia.org/math/b/f/9/bf9f2bee2899b25680512d78af73e6e2.png"> is always at least as large as the total actual time <img class="mwe-math-fallback-image-inline tex" alt="\sum_i T_{\mathrm{actual}}(o_i)" src="//upload.wikimedia.org/math/4/9/2/49238c1cbf753aa8b8f71157c90b986f.png">. In more detail,</p>
+<p>where the sequence of potential function values forms a telescoping series in which all terms other than the initial and final potential function values cancel in pairs, and where the final inequality arises from the assumptions that <img class="mwe-math-fallback-image-inline tex" alt="\Phi(S_{\mathrm{final}})\ge 0" src="//upload.wikimedia.org/math/9/6/2/962b34899599442aea0c953f9884555a.png"> and <img class="mwe-math-fallback-image-inline tex" alt="\Phi(S_{\mathrm{initial}}) = 0" src="//upload.wikimedia.org/math/4/8/a/48aaae1a451875231bff50bbf0c14828.png">. Therefore, amortized time can be used to provide accurate predictions about the actual time of sequences of operations, even though the amortized time for an individual operation may vary widely from its actual time.</p>
+<h2>Amortized analysis of worst-case inputs</h2>
+<p>Typically, amortized analysis is used in combination with a worst case assumption about the input sequence. With this assumption, if <i>X</i> is a type of operation that may be performed by the data structure, and <i>n</i> is an integer defining the size of the given data structure (for instance, the number of items that it contains), then the amortized time for operations of type <i>X</i> is defined to be the maximum, among all possible sequences of operations on data structures of size <i>n</i> and all operations <i>o<sub>i</sub></i> of type <i>X</i> within the sequence, of the amortized time for operation <i>o<sub>i</sub></i>.</p>
+<p>With this definition, the time to perform a sequence of operations may be estimated by multiplying the amortized time for each type of operation in the sequence by the number of operations of that type.</p>
+<h2>Example</h2>
+<p>A dynamic array is a data structure for maintaining an array of items, allowing both random access to positions within the array and the ability to increase the array size by one. It is available in Java as the "ArrayList" type and in Python as the "list" type. A dynamic array may be implemented by a data structure consisting of an array <i>A</i> of items, of some length <i>N</i>, together with a number <i>n</i> ≤ <i>N</i> representing the positions within the array that have been used so far. With this structure, random accesses to the dynamic array may be implemented by accessing the same cell of the internal array <i>A</i>, and when <i>n</i> &lt; <i>N</i> an operation that increases the dynamic array size may be implemented simply by incrementing <i>n</i>. However, when <i>n</i> = <i>N</i>, it is necessary to resize <i>A</i>, and a common strategy for doing so is to double its size, replacing <i>A</i> by a new array of length 2<i>n</i>.</p>
+<p>This structure may be analyzed using a potential function Φ = 2<i>n</i> − <i>N</i>. Since the resizing strategy always causes <i>A</i> to be at least half-full, this potential function is always non-negative, as desired. When an increase-size operation does not lead to a resize operation, Φ increases by 2, a constant. Therefore, the constant actual time of the operation and the constant increase in potential combine to give a constant amortized time for an operation of this type.</p>
+<p>However, when an increase-size operation causes a resize, the potential value of <i>n</i> prior to the resize decreases to zero after the resize. Allocating a new internal array <i>A</i> and copying all of the values from the old internal array to the new one takes O(<i>n</i>) actual time, but (with an appropriate choice of the constant of proportionality <i>C</i>) this is entirely cancelled by the decrease of <i>n</i> in the potential function, leaving again a constant total amortized time for the operation.</p>
+<p>The other operations of the data structure (reading and writing array cells without changing the array size) do not cause the potential function to change and have the same constant amortized time as their actual time.</p>
+<p>Therefore, with this choice of resizing strategy and potential function, the potential method shows that all dynamic array operations take constant amortized time. Combining this with the inequality relating amortized time and actual time over sequences of operations, this shows that any sequence of <i>n</i> dynamic array operations takes O(<i>n</i>) actual time in the worst case, despite the fact that some of the individual operations may themselves take a linear amount of time.</p>
+<h2>Applications</h2>
+<p>The potential function method is commonly used to analyze Fibonacci heaps, a form of priority queue in which removing an item takes logarithmic amortized time, and all other operations take constant amortized time. It may also be used to analyze splay trees, a self-adjusting form of binary search tree with logarithmic amortized time per operation.</p>
+</body>
+</html>

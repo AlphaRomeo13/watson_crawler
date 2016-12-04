@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Open-addressing---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Open addressing</h1>
+<p><b>Open addressing</b>, or <b>open hashing</b>, is a method of collision resolution in hash tables. With this method a hash collision is resolved by <b>probing</b>, or searching through alternate locations in the array (the <i>probe sequence</i>) until either the target record is found, or an unused array slot is found, which indicates that there is no such key in the table. Well known probe sequences include:</p>
+<p>The main tradeoffs between these methods are that linear probing has the best cache performance but is most sensitive to clustering, while double hashing has poor cache performance but exhibits virtually no clustering; quadratic probing falls in-between in both areas. Double hashing can also require more computation than other forms of probing. Some open addressing methods, such as last-come-first-served hashing and cuckoo hashing move existing keys around in the array to make room for the new key. This gives better maximum search times than the methods based on probing.</p>
+<p>A critical influence on performance of an open addressing hash table is the <i>load factor</i>; that is, the proportion of the slots in the array that are used. As the load factor increases towards 100%, the number of probes that may be required to find or insert a given key rises dramatically. Once the table becomes full, probing algorithms may even fail to terminate. Even with good hash functions, load factors are normally limited to 80%. A poor hash function can exhibit poor performance even at very low load factors by generating significant clustering. What causes hash functions to cluster is not well understood, and it is easy to unintentionally write a hash function which causes severe clustering.</p>
+<h2>Example pseudo code</h2>
+<p>The following pseudocode is an implementation of an open addressing hash table with linear probing and single-slot stepping, a common approach that is effective if the hash function is good. Each of the <b>lookup</b>, <b>set</b> and <b>remove</b> functions use a common internal function <b>find_slot</b> to locate the array slot that either does or should contain a given key.</p>
+<p>WHATSON? c5c0f9d6-2106-4d9f-ae64-6260826e48fc</p>
+<pre>
+ <b>record</b> pair { key, value }
+ <b>var</b> <i>pair array</i> slot[0..num_slots-1]
+</pre>
+<p>WHATSON? 07a412c0-aa84-43ba-9704-0f4540ab2a47</p>
+<pre>
+ <b>function</b> find_slot(key)
+     i := hash(key) modulo num_slots
+     <i>// search until we either find the key, or find an empty slot.</i>
+     <b>while</b> (slot[i] is occupied) and ( slot[i].key ≠ key )
+         i = (i + 1) modulo num_slots
+     <b>return</b> i
+</pre>
+<p>WHATSON? 268281f2-6e91-4173-9e58-b6d9c2d750b9</p>
+<pre>
+ <b>function</b> lookup(key)
+     i := find_slot(key)
+     <b>if</b> slot[i] is occupied   <i>// key is in table</i>
+         <b>return</b> slot[i].value
+     <b>else</b>                     <i>// key is not in table</i>
+         <b>return</b> not found
+</pre>
+<p>WHATSON? c8002c9d-f61f-415e-9768-fe85ee7dc269</p>
+<pre>
+ <b>function</b> set(key, value)
+     i := find_slot(key)
+     <b>if</b> slot[i] is occupied   <i>// we found our key</i>
+         slot[i].value = value
+         <b>return</b>
+     <b>if</b> the table is almost full
+         rebuild the table larger <i>(note 1)</i>
+         i = find_slot(key)
+     slot[i].key   = key
+     slot[i].value = value
+</pre>
+<p>WHATSON? 887c3dce-ac04-41ab-a29e-77440e7f1c39</p>
+<pre>
+ <b>function</b> remove(key)
+     i := find_slot(key)
+     <b>if</b> slot[i] is unoccupied
+         return   <i>// key is not in the table</i>
+     j := i
+     <b>loop</b>
+         mark slot[i] as unoccupied
+        r2: <i>(note 2)</i>
+         j := (j+1) modulo num_slots
+         <b>if</b> slot[j] is unoccupied
+             <b>exit loop</b>
+         k := hash(slot[j].key) modulo num_slots
+         // determine if k lies cyclically in ]i,j]
+         // |    i.k.j |
+         // |....j i.k.| or  |.k..j i...|
+         if ( (i&lt;=j) ? ((i&lt;k)&amp;&amp;(k&lt;=j)) : ((i&lt;k)||(k&lt;=j)) )
+             goto r2;
+         slot[i] := slot[j]
+         i := j
+</pre>
+<p>Another technique for removal is simply to mark the slot as deleted. However this eventually requires rebuilding the table simply to remove deleted records. The methods above provide O(1) updating and removal of existing records, with occasional rebuilding if the high-water mark of the table size grows.</p>
+<p>The O(1) remove method above is only possible in linearly probed hash tables with single-slot stepping. In the case where many records are to be deleted in one operation, marking the slots for deletion and later rebuilding may be more efficient.</p>
+<h2>See also</h2>
+<ul>
+<li>Lazy deletion - a method of deleting from a hash table using open addressing.</li>
+</ul>
+</body>
+</html>

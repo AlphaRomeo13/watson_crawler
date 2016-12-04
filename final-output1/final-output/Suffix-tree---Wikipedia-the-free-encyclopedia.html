@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Suffix-tree---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Suffix tree</h1>
+<p>In computer science, a <b>suffix tree</b> (also called <b>PAT tree</b> or, in an earlier form, <b>position tree</b>) is a compressed trie containing all the suffixes of the given text as their keys and positions in the text as their values. Suffix trees allow particularly fast implementations of many important string operations.</p>
+<p>The construction of such a tree for the string <img class="mwe-math-fallback-image-inline tex" alt="S" src="//upload.wikimedia.org/math/5/d/b/5dbc98dcc983a70728bd082d1a47546e.png"> takes time and space linear in the length of <img class="mwe-math-fallback-image-inline tex" alt="S" src="//upload.wikimedia.org/math/5/d/b/5dbc98dcc983a70728bd082d1a47546e.png">. Once constructed, several operations can be performed quickly, for instance locating a substring in <img class="mwe-math-fallback-image-inline tex" alt="S" src="//upload.wikimedia.org/math/5/d/b/5dbc98dcc983a70728bd082d1a47546e.png">, locating a substring if a certain number of mistakes are allowed, locating matches for a regular expression pattern etc. Suffix trees also provide one of the first linear-time solutions for the longest common substring problem. These speedups come at a cost: storing a string's suffix tree typically requires significantly more space than storing the string itself.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 History</li>
+<li>2 Definition</li>
+<li>3 Generalized suffix tree</li>
+<li>4 Functionality</li>
+<li>5 Applications</li>
+<li>6 Implementation</li>
+<li>7 External construction</li>
+<li>8 See also</li>
+<li>9 Notes</li>
+<li>10 References</li>
+<li>11 External links</li>
+</ul>
+<p></p>
+<h2>History</h2>
+<p>The concept was first introduced by Weiner (1973), which Donald Knuth subsequently characterized as "Algorithm of the Year 1973". The construction was greatly simplified by McCreight (1976) , and also by Ukkonen (1995). Ukkonen provided the first online-construction of suffix trees, now known as Ukkonen's algorithm, with running time that matched the then fastest algorithms. These algorithms are all linear-time for a constant-size alphabet, and have worst-case running time of <img class="mwe-math-fallback-image-inline tex" alt="O(n\log n)" src="//upload.wikimedia.org/math/f/4/9/f49341ab621f12e8cb93d0146ea51d34.png"> in general.</p>
+<p>Farach (1997) gave the first suffix tree construction algorithm that is optimal for all alphabets. In particular, this is the first linear-time algorithm for strings drawn from an alphabet of integers in a polynomial range. Farach's algorithm has become the basis for new algorithms for constructing both suffix trees and suffix arrays, for example, in external memory, compressed, succinct, etc.</p>
+<h2>Definition</h2>
+<p>The suffix tree for the string <img class="mwe-math-fallback-image-inline tex" alt="S" src="//upload.wikimedia.org/math/5/d/b/5dbc98dcc983a70728bd082d1a47546e.png"> of length <img class="mwe-math-fallback-image-inline tex" alt="n" src="//upload.wikimedia.org/math/7/b/8/7b8b965ad4bca0e41ab51de7b31363a1.png"> is defined as a tree such that:</p>
+<ul>
+<li>The tree has exactly n leaves numbered from 1 to n.</li>
+<li>Except for the root, every internal node has at least two children.</li>
+<li>Each edge is labeled with a non-empty substring of S.</li>
+<li>No two edges starting out of a node can have string-labels beginning with the same character.</li>
+<li>The string obtained by concatenating all the string-labels found on the path from the root to leaf i spells out suffix S[i..n], for i from 1 to n.</li>
+</ul>
+<p>Since such a tree does not exist for all strings, <img class="mwe-math-fallback-image-inline tex" alt="S" src="//upload.wikimedia.org/math/5/d/b/5dbc98dcc983a70728bd082d1a47546e.png"> is padded with a terminal symbol not seen in the string (usually denoted <code>$</code>). This ensures that no suffix is a prefix of another, and that there will be <img class="mwe-math-fallback-image-inline tex" alt="n" src="//upload.wikimedia.org/math/7/b/8/7b8b965ad4bca0e41ab51de7b31363a1.png"> leaf nodes, one for each of the <img class="mwe-math-fallback-image-inline tex" alt="n" src="//upload.wikimedia.org/math/7/b/8/7b8b965ad4bca0e41ab51de7b31363a1.png"> suffixes of <img class="mwe-math-fallback-image-inline tex" alt="S" src="//upload.wikimedia.org/math/5/d/b/5dbc98dcc983a70728bd082d1a47546e.png">. Since all internal non-root nodes are branching, there can be at most <i>n</i> −  1 such nodes, and <i>n</i> + (<i>n</i> − 1) + 1 = 2<i>n</i> nodes in total (<i>n</i> leaves, <i>n</i> − 1 internal non-root nodes, 1 root).</p>
+<p><b>Suffix links</b> are a key feature for older linear-time construction algorithms, although most newer algorithms, which are based on Farach's algorithm, dispense with suffix links. In a complete suffix tree, all internal non-root nodes have a suffix link to another internal node. If the path from the root to a node spells the string <img class="mwe-math-fallback-image-inline tex" alt="\chi\alpha" src="//upload.wikimedia.org/math/3/d/d/3dd48e088738543ff42c59b536a3c27d.png">, where <img class="mwe-math-fallback-image-inline tex" alt="\chi" src="//upload.wikimedia.org/math/7/9/c/79c40dd2b43f3c03eaf88b5fc4c199b8.png"> is a single character and <img class="mwe-math-fallback-image-inline tex" alt="\alpha" src="//upload.wikimedia.org/math/b/c/c/bccfc7022dfb945174d9bcebad2297bb.png"> is a string (possibly empty), it has a suffix link to the internal node representing <img class="mwe-math-fallback-image-inline tex" alt="\alpha" src="//upload.wikimedia.org/math/b/c/c/bccfc7022dfb945174d9bcebad2297bb.png">. See for example the suffix link from the node for <code>ANA</code> to the node for <code>NA</code> in the figure above. Suffix links are also used in some algorithms running on the tree.</p>
+<h2>Generalized suffix tree</h2>
+<p>A generalized suffix tree is a suffix tree made for a set of words instead of only for a single word. It represents all suffixes from this set of words. Each word must be terminated by a different termination symbol or word.</p>
+<h2>Functionality</h2>
+<p>A suffix tree for a string <img class="mwe-math-fallback-image-inline tex" alt="S" src="//upload.wikimedia.org/math/5/d/b/5dbc98dcc983a70728bd082d1a47546e.png"> of length <img class="mwe-math-fallback-image-inline tex" alt="n" src="//upload.wikimedia.org/math/7/b/8/7b8b965ad4bca0e41ab51de7b31363a1.png"> can be built in <img class="mwe-math-fallback-image-inline tex" alt="\Theta(n)" src="//upload.wikimedia.org/math/5/c/1/5c151486ce3904339687c2bac3cccd8d.png"> time, if the letters come from an alphabet of integers in a polynomial range (in particular, this is true for constant-sized alphabets). For larger alphabets, the running time is dominated by first sorting the letters to bring them into a range of size <img class="mwe-math-fallback-image-inline tex" alt="O(n)" src="//upload.wikimedia.org/math/7/b/a/7ba55e7c64a9405a0b39a1107e90ca94.png">; in general, this takes <img class="mwe-math-fallback-image-inline tex" alt="O(n\log n)" src="//upload.wikimedia.org/math/f/4/9/f49341ab621f12e8cb93d0146ea51d34.png"> time. The costs below are given under the assumption that the alphabet is constant.</p>
+<p>Assume that a suffix tree has been built for the string <img class="mwe-math-fallback-image-inline tex" alt="S" src="//upload.wikimedia.org/math/5/d/b/5dbc98dcc983a70728bd082d1a47546e.png"> of length <img class="mwe-math-fallback-image-inline tex" alt="n" src="//upload.wikimedia.org/math/7/b/8/7b8b965ad4bca0e41ab51de7b31363a1.png">, or that a generalised suffix tree has been built for the set of strings <img class="mwe-math-fallback-image-inline tex" alt="D=\{S_1,S_2,\dots,S_K\}" src="//upload.wikimedia.org/math/4/6/8/4688a184cdf4de3e8387b7f950369636.png"> of total length <img class="mwe-math-fallback-image-inline tex" alt="n=|n_1|+|n_2|+\cdots+|n_K|" src="//upload.wikimedia.org/math/8/5/e/85ef05d2b5023d5983f053ac01a7fc50.png">. You can:</p>
+<ul>
+<li>Search for strings:
+<ul>
+<li>Check if a string <img class="mwe-math-fallback-image-inline tex" alt="P" src="//upload.wikimedia.org/math/4/4/c/44c29edb103a2872f519ad0c9a0fdaaa.png"> of length <img class="mwe-math-fallback-image-inline tex" alt="m" src="//upload.wikimedia.org/math/6/f/8/6f8f57715090da2632453988d9a1501b.png"> is a substring in <img class="mwe-math-fallback-image-inline tex" alt="O(m)" src="//upload.wikimedia.org/math/0/e/2/0e2ae329177722b1818828e92b441032.png"> time.</li>
+<li>Find the first occurrence of the patterns <img class="mwe-math-fallback-image-inline tex" alt="P_1,\dots,P_q" src="//upload.wikimedia.org/math/a/5/6/a569cec30c8de66b0e882a7ea6e8f96b.png"> of total length <img class="mwe-math-fallback-image-inline tex" alt="m" src="//upload.wikimedia.org/math/6/f/8/6f8f57715090da2632453988d9a1501b.png"> as substrings in <img class="mwe-math-fallback-image-inline tex" alt="O(m)" src="//upload.wikimedia.org/math/0/e/2/0e2ae329177722b1818828e92b441032.png"> time.</li>
+<li>Find all <img class="mwe-math-fallback-image-inline tex" alt="z" src="//upload.wikimedia.org/math/f/b/a/fbade9e36a3f36d3d676c1b808451dd7.png"> occurrences of the patterns <img class="mwe-math-fallback-image-inline tex" alt="P_1,\dots,P_q" src="//upload.wikimedia.org/math/a/5/6/a569cec30c8de66b0e882a7ea6e8f96b.png"> of total length <img class="mwe-math-fallback-image-inline tex" alt="m" src="//upload.wikimedia.org/math/6/f/8/6f8f57715090da2632453988d9a1501b.png"> as substrings in <img class="mwe-math-fallback-image-inline tex" alt="O(m + z)" src="//upload.wikimedia.org/math/7/3/a/73a9b32a6601d78476eb0c8cdb1403ce.png"> time.</li>
+<li>Search for a regular expression <i>P</i> in time expected sublinear in <img class="mwe-math-fallback-image-inline tex" alt="n" src="//upload.wikimedia.org/math/7/b/8/7b8b965ad4bca0e41ab51de7b31363a1.png">.</li>
+<li>Find for each suffix of a pattern <img class="mwe-math-fallback-image-inline tex" alt="P" src="//upload.wikimedia.org/math/4/4/c/44c29edb103a2872f519ad0c9a0fdaaa.png">, the length of the longest match between a prefix of <img class="mwe-math-fallback-image-inline tex" alt="P[i\dots m]" src="//upload.wikimedia.org/math/9/7/d/97de18339eb5bcdad0c90980066a735a.png"> and a substring in <img class="mwe-math-fallback-image-inline tex" alt="D" src="//upload.wikimedia.org/math/f/6/2/f623e75af30e62bbd73d6df5b50bb7b5.png"> in <img class="mwe-math-fallback-image-inline tex" alt="\Theta(m)" src="//upload.wikimedia.org/math/4/7/5/47565216c2ebe48fc0f6b31fca86fec7.png"> time. This is termed the <b>matching statistics</b> for <img class="mwe-math-fallback-image-inline tex" alt="P" src="//upload.wikimedia.org/math/4/4/c/44c29edb103a2872f519ad0c9a0fdaaa.png">.</li>
+</ul>
+</li>
+<li>Find properties of the strings:
+<ul>
+<li>Find the longest common substrings of the string <img class="mwe-math-fallback-image-inline tex" alt="S_i" src="//upload.wikimedia.org/math/5/7/3/57322f88a90b4fc9a5da1f5d01a8f6ea.png"> and <img class="mwe-math-fallback-image-inline tex" alt="S_j" src="//upload.wikimedia.org/math/8/1/a/81af8d9a5183838442a428b851906cd4.png"> in <img class="mwe-math-fallback-image-inline tex" alt="\Theta(n_i + n_j)" src="//upload.wikimedia.org/math/3/9/5/39578c3906b1fa52615a36c1cf827b4f.png"> time.</li>
+<li>Find all maximal pairs, maximal repeats or supermaximal repeats in <img class="mwe-math-fallback-image-inline tex" alt="\Theta(n + z)" src="//upload.wikimedia.org/math/7/d/5/7d59abd80db2878bbad7513f90d38f6b.png"> time.</li>
+<li>Find the Lempel–Ziv decomposition in <img class="mwe-math-fallback-image-inline tex" alt="\Theta(n)" src="//upload.wikimedia.org/math/5/c/1/5c151486ce3904339687c2bac3cccd8d.png"> time.</li>
+<li>Find the longest repeated substrings in <img class="mwe-math-fallback-image-inline tex" alt="\Theta(n)" src="//upload.wikimedia.org/math/5/c/1/5c151486ce3904339687c2bac3cccd8d.png"> time.</li>
+<li>Find the most frequently occurring substrings of a minimum length in <img class="mwe-math-fallback-image-inline tex" alt="\Theta(n)" src="//upload.wikimedia.org/math/5/c/1/5c151486ce3904339687c2bac3cccd8d.png"> time.</li>
+<li>Find the shortest strings from <img class="mwe-math-fallback-image-inline tex" alt="\Sigma" src="//upload.wikimedia.org/math/a/6/4/a643a0ef5974b64678111d03125054fc.png"> that do not occur in <img class="mwe-math-fallback-image-inline tex" alt="D" src="//upload.wikimedia.org/math/f/6/2/f623e75af30e62bbd73d6df5b50bb7b5.png">, in <img class="mwe-math-fallback-image-inline tex" alt="O(n + z)" src="//upload.wikimedia.org/math/9/9/5/9957d6b52c5179829d2bba3b8c6ccc87.png"> time, if there are <img class="mwe-math-fallback-image-inline tex" alt="z" src="//upload.wikimedia.org/math/f/b/a/fbade9e36a3f36d3d676c1b808451dd7.png"> such strings.</li>
+<li>Find the shortest substrings occurring only once in <img class="mwe-math-fallback-image-inline tex" alt="\Theta(n)" src="//upload.wikimedia.org/math/5/c/1/5c151486ce3904339687c2bac3cccd8d.png"> time.</li>
+<li>Find, for each <img class="mwe-math-fallback-image-inline tex" alt="i" src="//upload.wikimedia.org/math/8/6/5/865c0c0b4ab0e063e5caa3387c1a8741.png">, the shortest substrings of <img class="mwe-math-fallback-image-inline tex" alt="S_i" src="//upload.wikimedia.org/math/5/7/3/57322f88a90b4fc9a5da1f5d01a8f6ea.png"> not occurring elsewhere in <img class="mwe-math-fallback-image-inline tex" alt="D" src="//upload.wikimedia.org/math/f/6/2/f623e75af30e62bbd73d6df5b50bb7b5.png"> in <img class="mwe-math-fallback-image-inline tex" alt="\Theta(n)" src="//upload.wikimedia.org/math/5/c/1/5c151486ce3904339687c2bac3cccd8d.png"> time.</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li>Check if a string <img class="mwe-math-fallback-image-inline tex" alt="P" src="//upload.wikimedia.org/math/4/4/c/44c29edb103a2872f519ad0c9a0fdaaa.png"> of length <img class="mwe-math-fallback-image-inline tex" alt="m" src="//upload.wikimedia.org/math/6/f/8/6f8f57715090da2632453988d9a1501b.png"> is a substring in <img class="mwe-math-fallback-image-inline tex" alt="O(m)" src="//upload.wikimedia.org/math/0/e/2/0e2ae329177722b1818828e92b441032.png"> time.</li>
+<li>Find the first occurrence of the patterns <img class="mwe-math-fallback-image-inline tex" alt="P_1,\dots,P_q" src="//upload.wikimedia.org/math/a/5/6/a569cec30c8de66b0e882a7ea6e8f96b.png"> of total length <img class="mwe-math-fallback-image-inline tex" alt="m" src="//upload.wikimedia.org/math/6/f/8/6f8f57715090da2632453988d9a1501b.png"> as substrings in <img class="mwe-math-fallback-image-inline tex" alt="O(m)" src="//upload.wikimedia.org/math/0/e/2/0e2ae329177722b1818828e92b441032.png"> time.</li>
+<li>Find all <img class="mwe-math-fallback-image-inline tex" alt="z" src="//upload.wikimedia.org/math/f/b/a/fbade9e36a3f36d3d676c1b808451dd7.png"> occurrences of the patterns <img class="mwe-math-fallback-image-inline tex" alt="P_1,\dots,P_q" src="//upload.wikimedia.org/math/a/5/6/a569cec30c8de66b0e882a7ea6e8f96b.png"> of total length <img class="mwe-math-fallback-image-inline tex" alt="m" src="//upload.wikimedia.org/math/6/f/8/6f8f57715090da2632453988d9a1501b.png"> as substrings in <img class="mwe-math-fallback-image-inline tex" alt="O(m + z)" src="//upload.wikimedia.org/math/7/3/a/73a9b32a6601d78476eb0c8cdb1403ce.png"> time.</li>
+<li>Search for a regular expression <i>P</i> in time expected sublinear in <img class="mwe-math-fallback-image-inline tex" alt="n" src="//upload.wikimedia.org/math/7/b/8/7b8b965ad4bca0e41ab51de7b31363a1.png">.</li>
+<li>Find for each suffix of a pattern <img class="mwe-math-fallback-image-inline tex" alt="P" src="//upload.wikimedia.org/math/4/4/c/44c29edb103a2872f519ad0c9a0fdaaa.png">, the length of the longest match between a prefix of <img class="mwe-math-fallback-image-inline tex" alt="P[i\dots m]" src="//upload.wikimedia.org/math/9/7/d/97de18339eb5bcdad0c90980066a735a.png"> and a substring in <img class="mwe-math-fallback-image-inline tex" alt="D" src="//upload.wikimedia.org/math/f/6/2/f623e75af30e62bbd73d6df5b50bb7b5.png"> in <img class="mwe-math-fallback-image-inline tex" alt="\Theta(m)" src="//upload.wikimedia.org/math/4/7/5/47565216c2ebe48fc0f6b31fca86fec7.png"> time. This is termed the <b>matching statistics</b> for <img class="mwe-math-fallback-image-inline tex" alt="P" src="//upload.wikimedia.org/math/4/4/c/44c29edb103a2872f519ad0c9a0fdaaa.png">.</li>
+</ul>
+<ul>
+<li>Find the longest common substrings of the string <img class="mwe-math-fallback-image-inline tex" alt="S_i" src="//upload.wikimedia.org/math/5/7/3/57322f88a90b4fc9a5da1f5d01a8f6ea.png"> and <img class="mwe-math-fallback-image-inline tex" alt="S_j" src="//upload.wikimedia.org/math/8/1/a/81af8d9a5183838442a428b851906cd4.png"> in <img class="mwe-math-fallback-image-inline tex" alt="\Theta(n_i + n_j)" src="//upload.wikimedia.org/math/3/9/5/39578c3906b1fa52615a36c1cf827b4f.png"> time.</li>
+<li>Find all maximal pairs, maximal repeats or supermaximal repeats in <img class="mwe-math-fallback-image-inline tex" alt="\Theta(n + z)" src="//upload.wikimedia.org/math/7/d/5/7d59abd80db2878bbad7513f90d38f6b.png"> time.</li>
+<li>Find the Lempel–Ziv decomposition in <img class="mwe-math-fallback-image-inline tex" alt="\Theta(n)" src="//upload.wikimedia.org/math/5/c/1/5c151486ce3904339687c2bac3cccd8d.png"> time.</li>
+<li>Find the longest repeated substrings in <img class="mwe-math-fallback-image-inline tex" alt="\Theta(n)" src="//upload.wikimedia.org/math/5/c/1/5c151486ce3904339687c2bac3cccd8d.png"> time.</li>
+<li>Find the most frequently occurring substrings of a minimum length in <img class="mwe-math-fallback-image-inline tex" alt="\Theta(n)" src="//upload.wikimedia.org/math/5/c/1/5c151486ce3904339687c2bac3cccd8d.png"> time.</li>
+<li>Find the shortest strings from <img class="mwe-math-fallback-image-inline tex" alt="\Sigma" src="//upload.wikimedia.org/math/a/6/4/a643a0ef5974b64678111d03125054fc.png"> that do not occur in <img class="mwe-math-fallback-image-inline tex" alt="D" src="//upload.wikimedia.org/math/f/6/2/f623e75af30e62bbd73d6df5b50bb7b5.png">, in <img class="mwe-math-fallback-image-inline tex" alt="O(n + z)" src="//upload.wikimedia.org/math/9/9/5/9957d6b52c5179829d2bba3b8c6ccc87.png"> time, if there are <img class="mwe-math-fallback-image-inline tex" alt="z" src="//upload.wikimedia.org/math/f/b/a/fbade9e36a3f36d3d676c1b808451dd7.png"> such strings.</li>
+<li>Find the shortest substrings occurring only once in <img class="mwe-math-fallback-image-inline tex" alt="\Theta(n)" src="//upload.wikimedia.org/math/5/c/1/5c151486ce3904339687c2bac3cccd8d.png"> time.</li>
+<li>Find, for each <img class="mwe-math-fallback-image-inline tex" alt="i" src="//upload.wikimedia.org/math/8/6/5/865c0c0b4ab0e063e5caa3387c1a8741.png">, the shortest substrings of <img class="mwe-math-fallback-image-inline tex" alt="S_i" src="//upload.wikimedia.org/math/5/7/3/57322f88a90b4fc9a5da1f5d01a8f6ea.png"> not occurring elsewhere in <img class="mwe-math-fallback-image-inline tex" alt="D" src="//upload.wikimedia.org/math/f/6/2/f623e75af30e62bbd73d6df5b50bb7b5.png"> in <img class="mwe-math-fallback-image-inline tex" alt="\Theta(n)" src="//upload.wikimedia.org/math/5/c/1/5c151486ce3904339687c2bac3cccd8d.png"> time.</li>
+</ul>
+<p>The suffix tree can be prepared for constant time lowest common ancestor retrieval between nodes in <img class="mwe-math-fallback-image-inline tex" alt="\Theta(n)" src="//upload.wikimedia.org/math/5/c/1/5c151486ce3904339687c2bac3cccd8d.png"> time. One can then also:</p>
+<ul>
+<li>Find the longest common prefix between the suffixes <img class="mwe-math-fallback-image-inline tex" alt="S_i[p..n_i]" src="//upload.wikimedia.org/math/7/7/2/7728684d4c1a4314d7be76c062fd5ce9.png"> and <img class="mwe-math-fallback-image-inline tex" alt="S_j[q..n_j]" src="//upload.wikimedia.org/math/6/3/c/63c218991767745006a96e4ba57b57dc.png"> in <img class="mwe-math-fallback-image-inline tex" alt="\Theta(1)" src="//upload.wikimedia.org/math/c/7/0/c70c6bcc03fbdff9564729b1ca2ed0f1.png">.</li>
+<li>Search for a pattern <i>P</i> of length <i>m</i> with at most <i>k</i> mismatches in <img class="mwe-math-fallback-image-inline tex" alt="O(k n + z)" src="//upload.wikimedia.org/math/8/1/a/81a9f95e5d898978213cacc977d8d7c8.png"> time, where <i>z</i> is the number of hits.</li>
+<li>Find all <img class="mwe-math-fallback-image-inline tex" alt="z" src="//upload.wikimedia.org/math/f/b/a/fbade9e36a3f36d3d676c1b808451dd7.png"> maximal palindromes in <img class="mwe-math-fallback-image-inline tex" alt="\Theta(n)" src="//upload.wikimedia.org/math/5/c/1/5c151486ce3904339687c2bac3cccd8d.png">, or <img class="mwe-math-fallback-image-inline tex" alt="\Theta(g n)" src="//upload.wikimedia.org/math/0/4/7/047ecebf0f27c609a952166de7d83950.png"> time if gaps of length <img class="mwe-math-fallback-image-inline tex" alt="g" src="//upload.wikimedia.org/math/b/2/f/b2f5ff47436671b6e533d8dc3614845d.png"> are allowed, or <img class="mwe-math-fallback-image-inline tex" alt="\Theta(k n)" src="//upload.wikimedia.org/math/8/a/5/8a57c8d0adf8a25ecc24a6f2569d8ced.png"> if <img class="mwe-math-fallback-image-inline tex" alt="k" src="//upload.wikimedia.org/math/8/c/e/8ce4b16b22b58894aa86c421e8759df3.png"> mismatches are allowed.</li>
+<li>Find all <img class="mwe-math-fallback-image-inline tex" alt="z" src="//upload.wikimedia.org/math/f/b/a/fbade9e36a3f36d3d676c1b808451dd7.png"> tandem repeats in <img class="mwe-math-fallback-image-inline tex" alt="O(n \log n + z)" src="//upload.wikimedia.org/math/4/d/2/4d2c4cf1b8c4fb18e6b8f6fc673c76df.png">, and <i>k</i>-mismatch tandem repeats in <img class="mwe-math-fallback-image-inline tex" alt="O(k n \log (n/k) + z)" src="//upload.wikimedia.org/math/e/8/3/e83f10131cbefa6e44e791fafaa8110e.png">.</li>
+<li>Find the longest common substrings to at least <img class="mwe-math-fallback-image-inline tex" alt="k" src="//upload.wikimedia.org/math/8/c/e/8ce4b16b22b58894aa86c421e8759df3.png"> strings in <img class="mwe-math-fallback-image-inline tex" alt="D" src="//upload.wikimedia.org/math/f/6/2/f623e75af30e62bbd73d6df5b50bb7b5.png"> for <img class="mwe-math-fallback-image-inline tex" alt="k=2,\dots,K" src="//upload.wikimedia.org/math/0/6/5/065994918344996d40037865482344f7.png"> in <img class="mwe-math-fallback-image-inline tex" alt="\Theta(n)" src="//upload.wikimedia.org/math/5/c/1/5c151486ce3904339687c2bac3cccd8d.png"> time.</li>
+<li>Find the longest palindromic substring of a given string (using the suffix trees of both the string and its reverse) in linear time.</li>
+</ul>
+<h2>Applications</h2>
+<p>Suffix trees can be used to solve a large number of string problems that occur in text-editing, free-text search, computational biology and other application areas. Primary applications include:</p>
+<ul>
+<li>String search, in <i>O(m)</i> complexity, where <i>m</i> is the length of the sub-string (but with initial <i>O(n)</i> time required to build the suffix tree for the string)</li>
+<li>Finding the longest repeated substring</li>
+<li>Finding the longest common substring</li>
+<li>Finding the longest palindrome in a string</li>
+</ul>
+<p>Suffix trees are often used in bioinformatics applications, searching for patterns in DNA or protein sequences (which can be viewed as long strings of characters). The ability to search efficiently with mismatches might be considered their greatest strength. Suffix trees are also used in data compression; they can be used to find repeated data, and can be used for the sorting stage of the Burrows–Wheeler transform. Variants of the LZW compression schemes use suffix trees (LZSS). A suffix tree is also used in suffix tree clustering, a data clustering algorithm used in some search engines.</p>
+<h2>Implementation</h2>
+<p>If each node and edge can be represented in <img class="mwe-math-fallback-image-inline tex" alt="\Theta(1)" src="//upload.wikimedia.org/math/c/7/0/c70c6bcc03fbdff9564729b1ca2ed0f1.png"> space, the entire tree can be represented in <img class="mwe-math-fallback-image-inline tex" alt="\Theta(n)" src="//upload.wikimedia.org/math/5/c/1/5c151486ce3904339687c2bac3cccd8d.png"> space. The total length of all the strings on all of the edges in the tree is <img class="mwe-math-fallback-image-inline tex" alt="O(n^2)" src="//upload.wikimedia.org/math/1/8/9/189317b4b935a745fcfaf95940d2b4f0.png">, but each edge can be stored as the position and length of a substring of <i>S</i>, giving a total space usage of <img class="mwe-math-fallback-image-inline tex" alt="\Theta(n)" src="//upload.wikimedia.org/math/5/c/1/5c151486ce3904339687c2bac3cccd8d.png"> computer words. The worst-case space usage of a suffix tree is seen with a fibonacci word, giving the full <img class="mwe-math-fallback-image-inline tex" alt="2n" src="//upload.wikimedia.org/math/2/1/e/21e2c0c0472b331622877accbe29b91b.png"> nodes.</p>
+<p>An important choice when making a suffix tree implementation is the parent-child relationships between nodes. The most common is using linked lists called <b>sibling lists</b>. Each node has a pointer to its first child, and to the next node in the child list it is a part of. Other implementations with efficient running time properties use hash maps, sorted or unsorted arrays (with array doubling), or balanced search trees. We are interested in:</p>
+<ul>
+<li>The cost of finding the child on a given character.</li>
+<li>The cost of inserting a child.</li>
+<li>The cost of enlisting all children of a node (divided by the number of children in the table below).</li>
+</ul>
+<p>Let <img class="mwe-math-fallback-image-inline tex" alt="\sigma" src="//upload.wikimedia.org/math/9/d/4/9d43cb8bbcb702e9d5943de477f099e2.png"> be the size of the alphabet. Then you have the following costs:</p>
+<p>Note that the insertion cost is amortised, and that the costs for hashing are given for perfect hashing.</p>
+<p>The large amount of information in each edge and node makes the suffix tree very expensive, consuming about 10 to 20 times the memory size of the source text in good implementations. The suffix array reduces this requirement to a factor of 8 (for array including LCP values built within 32-bit address space and 8-bit characters.) This factor depends on the properties and may reach 2 with usage of 4-byte wide characters (needed to contain any symbol in some UNIX-like systems, see wchar t) on 32-bit systems. Researchers have continued to find smaller indexing structures.</p>
+<h2>External construction</h2>
+<p>Though linear, the memory usage of a suffix tree is significantly higher than the actual size of the sequence collection. For a large text, construction may require external memory approaches.</p>
+<p>There are theoretical results for constructing suffix trees in external memory. The algorithm by Farach-Colton, Ferragina &amp; Muthukrishnan (2000) is theoretically optimal, with an I/O complexity equal to that of sorting. However the overall intricacy of this algorithm has prevented, so far, its practical implementation.</p>
+<p>On the other hand, there have been practical works for constructing disk-based suffix trees which scale to (few) GB/hours. The state of the art methods are TDD, TRELLIS, DiGeST, and BST.</p>
+<p>TDD and TRELLIS scale up to the entire human genome – approximately 3GB – resulting in a disk-based suffix tree of a size in the tens of gigabytes. However, these methods cannot handle efficiently collections of sequences exceeding 3GB. DiGeST performs significantly better and is able to handle collections of sequences in the order of 6GB in about 6 hours. . All these methods can efficiently build suffix trees for the case when the tree does not fit in main memory, but the input does. The most recent method, BST, scales to handle inputs that do not fit in main memory. ERA is a recent parallel suffix tree construction method that is significantly faster. ERA can index the entire human genome in 19 minutes on an 8-core desktop computer with 16GB RAM. On a simple Linux cluster with 16 nodes (4GB RAM per node), ERA can index the entire human genome in less than 9 minutes.</p>
+<h2>See also</h2>
+<ul>
+<li>Suffix array</li>
+<li>Generalised suffix tree</li>
+<li>Trie</li>
+</ul>
+<h2>Notes</h2>
+<ol>
+<li><b>^</b> Giegerich &amp; Kurtz (1997).</li>
+<li><b>^</b> http://www.cs.uoi.gr/~kblekas/courses/bioinformatics/Suffix_Trees1.pdf</li>
+<li><b>^</b> Farach (1997).</li>
+<li><b>^</b> Gusfield (1999), p.92.</li>
+<li><b>^</b> Gusfield (1999), p.123.</li>
+<li><b>^</b> Baeza-Yates &amp; Gonnet (1996).</li>
+<li><b>^</b> Gusfield (1999), p.132.</li>
+<li><b>^</b> Gusfield (1999), p.125.</li>
+<li><b>^</b> Gusfield (1999), p.144.</li>
+<li><b>^</b> Gusfield (1999), p.166.</li>
+<li><b>^</b> Gusfield (1999), Chapter 8.</li>
+<li><b>^</b> Gusfield (1999), p.196.</li>
+<li><b>^</b> Gusfield (1999), p.200.</li>
+<li><b>^</b> Gusfield (1999), p.198.</li>
+<li><b>^</b> Gusfield (1999), p.201.</li>
+<li><b>^</b> Gusfield (1999), p.204.</li>
+<li><b>^</b> Gusfield (1999), p.205.</li>
+<li><b>^</b> Gusfield (1999), pp.197–199.</li>
+<li>^   Allison, L. "Suffix Trees". Retrieved 2008-10-14. </li>
+<li><b>^</b> First introduced by Zamir &amp; Etzioni (1998).</li>
+<li><b>^</b> Smyth (2003).</li>
+<li>^   Tata, Hankins &amp; Patel (2003).</li>
+<li>^   Phoophakdee &amp; Zaki (2007).</li>
+<li>^    Barsky et al. (2008).</li>
+<li>^   Barsky et al. (2009).</li>
+<li><b>^</b> Mansour et al. (2011).</li>
+</ol>
+</body>
+</html>

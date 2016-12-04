@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Depth-first-search---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Depth-first search</h1>
+<ul>
+<li>α–β</li>
+<li>A*</li>
+<li>B*</li>
+<li>Backtracking</li>
+<li>Beam</li>
+<li>Bellman–Ford</li>
+<li>Best-first</li>
+<li>Bidirectional</li>
+<li>Borůvka</li>
+<li>Branch &amp; bound</li>
+<li>BFS</li>
+<li>British Museum</li>
+<li>D*</li>
+<li><strong class="selflink">DFS</strong></li>
+<li>Depth-limited</li>
+<li>Dijkstra</li>
+<li>Edmonds</li>
+<li>Floyd–Warshall</li>
+<li>Fringe search</li>
+<li>Hill climbing</li>
+<li>IDA*</li>
+<li>Iterative deepening</li>
+<li>Johnson</li>
+<li>Jump point</li>
+<li>Kruskal</li>
+<li>Lexicographic BFS</li>
+<li>Prim</li>
+<li>SMA*</li>
+<li>Uniform-cost</li>
+</ul>
+<ul>
+<li><i>Graph algorithms</i></li>
+<li><i>Search algorithms</i></li>
+<li><i>List of graph algorithms</i></li>
+</ul>
+<ul>
+<li>Dynamic programming</li>
+<li>Graph traversal</li>
+<li>Tree traversal</li>
+<li>Search games</li>
+</ul>
+<ul>
+<li>v</li>
+<li>t</li>
+<li>e</li>
+</ul>
+<p><b>Depth-first search</b> (<b>DFS</b>) is an algorithm for traversing or searching tree or graph data structures. One starts at the root (selecting some arbitrary node as the root in the case of a graph) and explores as far as possible along each branch before backtracking.</p>
+<p>A version of depth-first search was investigated in the 19th century by French mathematician Charles Pierre Trémaux as a strategy for solving mazes.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Properties</li>
+<li>2 Example</li>
+<li>3 Output of a depth-first search
+<ul>
+<li>3.1 Vertex orderings</li>
+</ul>
+</li>
+<li>4 Pseudocode</li>
+<li>5 Applications</li>
+<li>6 See also</li>
+<li>7 Notes</li>
+<li>8 References</li>
+<li>9 External links</li>
+</ul>
+<ul>
+<li>3.1 Vertex orderings</li>
+</ul>
+<p></p>
+<h2>Properties</h2>
+<p>The time and space analysis of DFS differs according to its application area. In theoretical computer science, DFS is typically used to traverse an entire graph, and takes time <img class="mwe-math-fallback-image-inline tex" alt="O(|V| + |E|)" src="//upload.wikimedia.org/math/4/f/e/4fe9f15fb53c589e023213ae35fcf78f.png">, linear in the size of the graph. In these applications it also uses space <img class="mwe-math-fallback-image-inline tex" alt="O(|V|)" src="//upload.wikimedia.org/math/c/0/8/c08c0e45a937a414cd20dbdf046ca4b5.png"> in the worst case to store the stack of vertices on the current search path as well as the set of already-visited vertices. Thus, in this setting, the time and space bounds are the same as for breadth-first search and the choice of which of these two algorithms to use depends less on their complexity and more on the different properties of the vertex orderings the two algorithms produce.</p>
+<p>For applications of DFS in relation to specific domains, such as searching for solutions in artificial intelligence or web-crawling, the graph to be traversed is often either too large to visit in its entirety or infinite (DFS may suffer from non-termination). In such cases, search is only performed to a limited depth; due to limited resources, such as memory or disk space, one typically does not use data structures to keep track of the set of all previously visited vertices. When search is performed to a limited depth, the time is still linear in terms of the number of expanded vertices and edges (although this number is not the same as the size of the entire graph because some vertices may be searched more than once and others not at all) but the space complexity of this variant of DFS is only proportional to the depth limit, and as a result, is much smaller than the space needed for searching to the same depth using breadth-first search. For such applications, DFS also lends itself much better to heuristic methods for choosing a likely-looking branch. When an appropriate depth limit is not known a priori, iterative deepening depth-first search applies DFS repeatedly with a sequence of increasing limits. In the artificial intelligence mode of analysis, with a branching factor greater than one, iterative deepening increases the running time by only a constant factor over the case in which the correct depth limit is known due to the geometric growth of the number of nodes per level.</p>
+<p>DFS may also be used to collect a sample of graph nodes. However, incomplete DFS, similarly to incomplete BFS, is biased towards nodes of high degree.</p>
+<h2>Example</h2>
+<p>For the following graph:</p>
+<p><img alt="Graph.traversal.example.svg" src="//upload.wikimedia.org/wikipedia/commons/thumb/6/61/Graph.traversal.example.svg/200px-Graph.traversal.example.svg.png" width="200" height="162" srcset="//upload.wikimedia.org/wikipedia/commons/thumb/6/61/Graph.traversal.example.svg/300px-Graph.traversal.example.svg.png 1.5x, //upload.wikimedia.org/wikipedia/commons/thumb/6/61/Graph.traversal.example.svg/400px-Graph.traversal.example.svg.png 2x" data-file-width="332" data-file-height="269"></p>
+<p>a depth-first search starting at A, assuming that the left edges in the shown graph are chosen before right edges, and assuming the search remembers previously visited nodes and will not repeat them (since this is a small graph), will visit the nodes in the following order: A, B, D, F, E, C, G. The edges traversed in this search form a Trémaux tree, a structure with important applications in graph theory.</p>
+<p>Performing the same search without remembering previously visited nodes results in visiting nodes in the order A, B, D, F, E, A, B, D, F, E, etc. forever, caught in the A, B, D, F, E cycle and never reaching C or G.</p>
+<p>Iterative deepening is one technique to avoid this infinite loop and would reach all nodes.</p>
+<h2>Output of a depth-first search</h2>
+<p>A convenient description of a depth first search of a graph is in terms of a spanning tree of the vertices reached during the search. Based on this spanning tree, the edges of the original graph can be divided into three classes: <b>forward edges</b>, which point from a node of the tree to one of its descendants, <b>back edges</b>, which point from a node to one of its ancestors, and <b>cross edges</b>, which do neither. Sometimes <b>tree edges</b>, edges which belong to the spanning tree itself, are classified separately from forward edges. If the original graph is undirected then all of its edges are tree edges or back edges.</p>
+<h3>Vertex orderings</h3>
+<p>It is also possible to use the depth-first search to linearly order the vertices of the original graph (or tree). There are three common ways of doing this:</p>
+<ul>
+<li>A <b>preordering</b> is a list of the vertices in the order that they were first visited by the depth-first search algorithm. This is a compact and natural way of describing the progress of the search, as was done earlier in this article. A preordering of an expression tree is the expression in Polish notation.</li>
+</ul>
+<ul>
+<li>A <b>postordering</b> is a list of the vertices in the order that they were <i>last</i> visited by the algorithm. A postordering of an expression tree is the expression in reverse Polish notation.</li>
+</ul>
+<ul>
+<li>A <b>reverse postordering</b> is the reverse of a postordering, i.e. a list of the vertices in the opposite order of their last visit. Reverse postordering is not the same as preordering. For example, when searching the directed graph in pre-order</li>
+</ul>
+<p>WHATSON? 7803716b-a402-47d6-92a7-035e4237d229</p>
+<pre>
+if (<b>A</b>) then {
+       <b>B</b>
+     } else {
+       <b>C</b>
+     }
+     <b>D</b>
+</pre>
+<h2>Pseudocode</h2>
+<p><b>Input</b>: A graph <i>G</i> and a vertex <i>v</i> of G</p>
+<p><b>Output</b>: All vertices reachable from <i>v</i> labeled as discovered</p>
+<p>A recursive implementation of DFS:</p>
+<p>WHATSON? 6f3eddbd-82f3-4db0-89d1-499221696dc2</p>
+<pre>
+1  <b>procedure</b> DFS(<i>G</i>,<i>v</i>):
+2      label <i>v</i> as discovered
+3      <b>for all</b> edges from <i>v</i> to <i>w</i> <b>in</b> <i>G</i>.adjacentEdges(<i>v</i>) <b>do</b>
+4          <b>if</b> vertex <i>w</i> is not labeled as discovered <b>then</b>
+5              recursively call DFS(<i>G</i>,<i>w</i>)
+</pre>
+<p>A non-recursive implementation of DFS:</p>
+<p>WHATSON? 3579fb21-4a06-48fd-b9ad-dbdcdcb235e9</p>
+<pre>
+1  <b>procedure</b> DFS-iterative(<i>G</i>,<i>v</i>):
+2      let <i>S</i> be a stack
+3      <i>S</i>.push(<i>v</i>)
+4      <b>while</b> <i>S</i> is not empty
+5            <i>v</i> ← <i>S</i>.pop() 
+6            <b>if</b> <i>v</i> is not labeled as discovered:
+7                label <i>v</i> as discovered
+8                <b>for all</b> edges from <i>v</i> to <i>w</i> <b>in</b> <i>G</i>.adjacentEdges(<i>v</i>) <b>do</b>
+9                    <i>S</i>.push(<i>w</i>)
+</pre>
+<p>These two variations of DFS visit the neighbors of each vertex in the opposite order from each other: the first neighbor of <i>v</i> visited by the recursive variation is the first one in the list of adjacent edges, while in the iterative variation the first visited neighbor is the last one in the list of adjacent edges. The non-recursive implementation is similar to breadth-first search but differs from it in two ways: it uses a stack instead of a queue, and it delays checking whether a vertex has been discovered until the vertex is popped from the stack rather than making this check before pushing the vertex.</p>
+<h2>Applications</h2>
+<p>Algorithms that use depth-first search as a building block include:</p>
+<ul>
+<li>Finding connected components.</li>
+<li>Topological sorting.</li>
+<li>Finding 2-(edge or vertex)-connected components.</li>
+<li>Finding 3-(edge or vertex)-connected components.</li>
+<li>Finding the bridges of a graph.</li>
+<li>Generating words in order to plot the Limit Set of a Group.</li>
+<li>Finding strongly connected components.</li>
+<li>Planarity testing</li>
+<li>Solving puzzles with only one solution, such as mazes. (DFS can be adapted to find all solutions to a maze by only including nodes on the current path in the visited set.)</li>
+<li>Maze generation may use a randomized depth-first search.</li>
+<li>Finding biconnectivity in graphs.</li>
+</ul>
+<h2>See also</h2>
+<ul>
+<li>Breadth-first search</li>
+<li>Iterative deepening depth-first search</li>
+<li>Search games</li>
+</ul>
+<h2>Notes</h2>
+<ol>
+<li><b>^</b> Charles Pierre Trémaux (1859–1882) École Polytechnique of Paris (X:1876), French engineer of the telegraph<br>
+in Public conference, December 2, 2010 – by professor Jean Pelletier-Thibert in Académie de Macon (Burgundy – France) – (Abstract published in the Annals academic, March 2011 – ISSN: 0980-6032)</li>
+<li><b>^</b> Even, Shimon (2011), <i>Graph Algorithms</i> (2nd ed.), Cambridge University Press, pp. 46–48, ISBN 978-0-521-73653-4 .</li>
+<li><b>^</b> Sedgewick, Robert (2002), <i>Algorithms in C++: Graph Algorithms</i> (3rd ed.), Pearson Education, ISBN 978-0-201-36118-6 .</li>
+<li><b>^</b> Cormen, Thomas H., Charles E. Leiserson, and Ronald L. Rivest. p.597</li>
+<li><b>^</b> Goodrich and Tamassia; Cormen, Leiserson, Rivest, and Stein</li>
+<li><b>^</b> Kleinberg and Tardos</li>
+<li><b>^</b> Hopcroft, John; Tarjan, Robert E. (1974), <i>Efficient planarity testing</i>, <i>Journal of the Association for Computing Machinery</i> <b>21</b> (4): 549–568, doi:10.1145/321850.321852 .</li>
+<li><b>^</b> de Fraysseix, H.; Ossona de Mendez, P.; Rosenstiehl, P. (2006), <i>Trémaux Trees and Planarity</i>, <i>International Journal of Foundations of Computer Science</i> <b>17</b> (5): 1017–1030, doi:10.1142/S0129054106004248 .</li>
+</ol>
+</body>
+</html>

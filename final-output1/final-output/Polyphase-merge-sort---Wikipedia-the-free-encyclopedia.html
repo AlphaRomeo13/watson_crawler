@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Polyphase-merge-sort---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Polyphase merge sort</h1>
+<p>A <b>polyphase merge sort</b> is an algorithm which decreases the number of <i>runs</i> at every iteration of the main loop by merging runs into larger runs. It is used for external sorting.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Ordinary merge sort</li>
+<li>2 Polyphase merge</li>
+<li>3 Perfect 3 file polyphase merge sort</li>
+<li>4 References</li>
+<li>5 External links</li>
+</ul>
+<p></p>
+<h2>Ordinary merge sort</h2>
+<p>Typically, a merge sort splits items into sorted runs and then recursively merges each run into larger runs. When there's only one run left, that is the sorted result.</p>
+<p>An ordinary merge sort could use four working files organized as a pair of input files and a pair of output files. At each iteration, two input files are read. The odd numbered runs of the two input files are merged to the first output file, and the even numbered runs are merged to the second output file. When the input is exhausted, the new output files are used as the input for the next iteration. The number of runs decreases by a factor of 2 at each iteration. At each iteration, the same level/phase of merge occurs—a file is either completely read or completely written during an iteration.</p>
+<p>If the four files were on four separate tape drives, watching an ordinary merge sort would show some interesting details. On the first iteration, only one input drive is used—the other input file is empty. On subsequent iterations, each input drive runs at half speed, while one output drive runs at full speed and the second output drive stands idle waiting for the next run. The situation is even worse when six tape drives are used—at least two will stand idle. Someone watching the tapes spin would wonder if the idle drives could be more useful.</p>
+<p>The polyphase merge found a way to use the idle drives. It can sort using just three sequential files rather than the four required by merge sort.</p>
+<h2>Polyphase merge</h2>
+<p>The polyphase merge changes the game. There might be <img class="mwe-math-fallback-image-inline tex" alt="N" src="//upload.wikimedia.org/math/8/d/9/8d9c307cb7f3c4a32822a51922d1ceaa.png"> files, but the polyphase merge will read from <img class="mwe-math-fallback-image-inline tex" alt="N-1" src="//upload.wikimedia.org/math/5/b/1/5b1ba2fe7e642d05d58d3df27466b069.png"> files and write only one output file at a time. The writing to that output file continues until an input file is exhausted, and then that input file becomes the new output file. The number of runs in each file is related to Fibonacci numbers and Fibonacci numbers of higher order.</p>
+<h2>Perfect 3 file polyphase merge sort</h2>
+<p>It is easiest to look at the polyphase merge starting from its ending conditions and working backwards. At the start of each iteration, there will be two input files and one output file. At the end of the iteration, one input file will have been completely consumed and will become the output file for the next iteration. The current output file will become an input file for the next iteration. The remaining files (just one in the 3 file case) have only been partially consumed and their remaining runs will be input for the next iteration.</p>
+<p>File 1 just emptied and became the new output file. One run is left on each input tape, and merging those runs together will make the sorted file.</p>
+<p>WHATSON? 988cca4d-cbbf-4ba7-b294-510dc8d6af6b</p>
+<pre>
+File 1 (out):                                           &lt;1 run&gt; *        (the sorted file)
+File 2 (in ): ... | &lt;1 run&gt; *               --&gt;     ... &lt;1 run&gt; | *          (consumed)
+File 3 (in ):     | &lt;1 run&gt; *                           &lt;1 run&gt; | *          (consumed)
+
+...  possible runs that have already been read
+|    marks the read pointer of the file
+*    marks end of file
+</pre>
+<p>Stepping back to the previous iteration, we were reading from 1 and 2. One run is merged from 1 and 2 before file 1 goes empty. Notice that file 2 is not completely consumed—it has one run left to match the final merge (above).</p>
+<p>WHATSON? 014d58a8-6e19-4e48-b679-b21b46457318</p>
+<pre>
+File 1 (in ): ... | &lt;1 run&gt; *                      ... &lt;1 run&gt; | *
+File 2 (in ):     | &lt;2 run&gt; *           --&gt;            &lt;1 run&gt; | &lt;1 run&gt; *
+File 3 (out):                                          &lt;1 run&gt; *
+</pre>
+<p>Stepping back another iteration, 2 runs are merged from 1 and 3 before file 3 goes empty.</p>
+<p>WHATSON? e3cfaf47-4084-4759-95ff-4f5a57be4427</p>
+<pre>
+File 1 (in ):     | &lt;3 run&gt;                        ... &lt;2 run&gt; | &lt;1 run&gt; *
+File 2 (out):                               --&gt;        &lt;2 run&gt; *
+File 3 (in ): ... | &lt;2 run&gt; *                          &lt;2 run&gt; | *
+</pre>
+<p>Stepping back another iteration, 3 runs are merged from 2 and 3 before file 2 goes empty.</p>
+<p>WHATSON? c3f31d73-bea8-48e0-8df1-3606c06394d2</p>
+<pre>
+File 1 (out):                                          &lt;3 run&gt; *
+File 2 (in ): ... | &lt;3 run&gt; *               --&gt;    ... &lt;3 run&gt; | *
+File 3 (in ):     | &lt;5 run&gt; *                          &lt;3 run&gt; | &lt;2 run&gt; *
+</pre>
+<p>Stepping back another iteration, 5 runs are merged from 1 and 2 before file 1 goes empty.</p>
+<p>WHATSON? 6ce165ec-2030-4125-a7c8-7be39c0c936a</p>
+<pre>
+File 1 (in ): ... | &lt;5 run&gt; *                      ... &lt;5 run&gt; | *
+File 2 (in ):     | &lt;8 run&gt; *               --&gt;        &lt;5 run&gt; | &lt;3 run&gt; *
+File 3 (out):                                          &lt;5 run&gt; *
+</pre>
+<p>Looking at the number of runs merged working backwards: 1, 1, 2, 3, 5, ... reveals a Fibonacci sequence.</p>
+<p>For everything to work out right, the initial file to be sorted must be distributed to the proper input files and each input file must have the correct number of runs on it. In the example, that would mean an input file with 13 runs would write 5 runs to file 1 and 8 runs to file 2.</p>
+<p>In practice, the input file won't happen to have a Fibonacci number of runs it (and the number of runs won't be known until after the file has been read). The fix is to pad the input files with dummy runs to make the required Fibonacci sequence.</p>
+<p>For comparison, the ordinary merge sort will combine 16 runs in 4 passes using 4 files. The polyphase merge will combine 13 runs in 5 passes using only 3 files. Alternatively, a polyphase merge will combine 17 runs in 4 passes using 4 files. (Sequence: 1, 1, 1, 3, 5, 9, 17, 31, 57, 105, 193, 355, 653, 1201, ...)</p>
+<p>An iteration (or pass) in ordinary merge sort involves reading and writing the entire file. An iteration in a polyphase sort does not read or write the entire file, so a typical polyphase iteration will take less time than a merge sort iteration. Additionally, on tapes that can be read backward (even if they can only be written forward) there will be no intermediate rewinds: after the distribution phase (where the input tape contents are distributed among the other tapes) all tapes are read only backward. This means "straight runs" and "reversed runs" have to be set up correctly so that the last run on each tape is a reversed run which, read backward, produces one sorted forward run on the final output tape.</p>
+</body>
+</html>

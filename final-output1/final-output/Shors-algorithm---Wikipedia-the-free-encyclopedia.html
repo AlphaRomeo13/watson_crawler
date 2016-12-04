@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Shors-algorithm---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Shor's algorithm</h1>
+<p><b>Shor's algorithm</b>, named after mathematician Peter Shor, is a quantum algorithm (an algorithm that runs on a quantum computer) for integer factorization formulated in 1994. Informally it solves the following problem: Given an integer <i>N</i>, find its prime factors.</p>
+<p>On a quantum computer, to factor an integer <i>N</i>, Shor's algorithm runs in polynomial time (the time taken is polynomial in log <i>N</i>, which is the size of the input). Specifically it takes time O((log <i>N</i>)), demonstrating that the integer factorization problem can be efficiently solved on a quantum computer and is thus in the complexity class <b>BQP</b>. This is substantially faster than the most efficient known classical factoring algorithm, the general number field sieve, which works in sub-exponential time — about O(e (log log N)</sup>). The efficiency of Shor's algorithm is due to the efficiency of the quantum Fourier transform, and modular exponentiation by repeated squarings.</p>
+<p>The factorization also needs huge numbers of quantum gates. It increases with <i>N</i> as (log <i>N</i>). Thus factoring of a 4096-bit number requires 4,947,802,324,992 quantum gates.</p>
+<p>If a quantum computer with a sufficient number of qubits could operate without succumbing to noise and other quantum decoherence phenomena, Shor's algorithm could be used to break public-key cryptography schemes such as the widely used RSA scheme. RSA is based on the assumption that factoring large numbers is computationally intractable. So far as is known, this assumption is valid for classical (non-quantum) computers; no classical algorithm is known that can factor in polynomial time. However, Shor's algorithm shows that factoring is efficient on an ideal quantum computer, so it may be feasible to defeat RSA by constructing a large quantum computer. It was also a powerful motivator for the design and construction of quantum computers and for the study of new quantum computer algorithms. It has also facilitated research on new cryptosystems that are secure from quantum computers, collectively called post-quantum cryptography.</p>
+<p>In 2001, Shor's algorithm was demonstrated by a group at IBM, who factored 15 into 3 × 5, using an NMR implementation of a quantum computer with 7 qubits. However, some doubts have been raised as to whether IBM's experiment was a true demonstration of quantum computation, since no entanglement was observed. Since IBM's implementation, several other groups have implemented Shor's algorithm using photonic qubits, emphasizing that entanglement was observed. In 2012, the factorization of 15 was repeated. Also in 2012, the factorization of 21 was achieved, setting the record for the largest number factored with a quantum computer. In April 2012, the factorization of 143 was achieved, although this used adiabatic quantum computation rather than Shor's algorithm. [1]</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Procedure
+<ul>
+<li>1.1 Classical part</li>
+<li>1.2 Quantum part: Period-finding subroutine</li>
+</ul>
+</li>
+<li>2 Explanation of the algorithm
+<ul>
+<li>2.1 Obtaining factors from period</li>
+<li>2.2 Finding the period</li>
+<li>2.3 The bottleneck</li>
+</ul>
+</li>
+<li>3 Discrete logarithms</li>
+<li>4 In popular culture</li>
+<li>5 References</li>
+<li>6 Further reading</li>
+</ul>
+<ul>
+<li>1.1 Classical part</li>
+<li>1.2 Quantum part: Period-finding subroutine</li>
+</ul>
+<ul>
+<li>2.1 Obtaining factors from period</li>
+<li>2.2 Finding the period</li>
+<li>2.3 The bottleneck</li>
+</ul>
+<p></p>
+<h2>Procedure</h2>
+<p>The problem we are trying to solve is: given an odd composite number <img class="mwe-math-fallback-image-inline tex" alt="N" src="//upload.wikimedia.org/math/8/d/9/8d9c307cb7f3c4a32822a51922d1ceaa.png">, find an integer <img class="mwe-math-fallback-image-inline tex" alt="d" src="//upload.wikimedia.org/math/8/2/7/8277e0910d750195b448797616e091ad.png">, strictly between <img class="mwe-math-fallback-image-inline tex" alt="1" src="//upload.wikimedia.org/math/c/4/c/c4ca4238a0b923820dcc509a6f75849b.png"> and <img class="mwe-math-fallback-image-inline tex" alt="N" src="//upload.wikimedia.org/math/8/d/9/8d9c307cb7f3c4a32822a51922d1ceaa.png">, that divides <img class="mwe-math-fallback-image-inline tex" alt="N" src="//upload.wikimedia.org/math/8/d/9/8d9c307cb7f3c4a32822a51922d1ceaa.png">. We are interested in odd values of <img class="mwe-math-fallback-image-inline tex" alt="N" src="//upload.wikimedia.org/math/8/d/9/8d9c307cb7f3c4a32822a51922d1ceaa.png"> because any even value of <img class="mwe-math-fallback-image-inline tex" alt="N" src="//upload.wikimedia.org/math/8/d/9/8d9c307cb7f3c4a32822a51922d1ceaa.png"> trivially has the number <img class="mwe-math-fallback-image-inline tex" alt="2" src="//upload.wikimedia.org/math/c/8/1/c81e728d9d4c2f636f067f89cc14862c.png"> as a prime factor. We can use a primality testing algorithm to make sure that <img class="mwe-math-fallback-image-inline tex" alt="N" src="//upload.wikimedia.org/math/8/d/9/8d9c307cb7f3c4a32822a51922d1ceaa.png"> is indeed composite.</p>
+<p>Moreover, for the algorithm to work, we need <img class="mwe-math-fallback-image-inline tex" alt="N" src="//upload.wikimedia.org/math/8/d/9/8d9c307cb7f3c4a32822a51922d1ceaa.png"> not to be the power of a prime. This can be tested by taking square, cubic, ..., <img class="mwe-math-fallback-image-inline tex" alt="k" src="//upload.wikimedia.org/math/8/c/e/8ce4b16b22b58894aa86c421e8759df3.png">-roots of <img class="mwe-math-fallback-image-inline tex" alt="N" src="//upload.wikimedia.org/math/8/d/9/8d9c307cb7f3c4a32822a51922d1ceaa.png">, for <img class="mwe-math-fallback-image-inline tex" alt="k \le \log_{3}(N)" src="//upload.wikimedia.org/math/6/0/c/60c7df45e7b2d994c49fbcc3b8d01d1c.png">, and checking that none of these is an integer. (This actually excludes that <img class="mwe-math-fallback-image-inline tex" alt="N = M^{k}" src="//upload.wikimedia.org/math/a/4/e/a4ee3d1ef17ce9d2b0feea05c137d69e.png"> for some integer <img class="mwe-math-fallback-image-inline tex" alt="M" src="//upload.wikimedia.org/math/6/9/6/69691c7bdcc3ce6d5d8a1361f22d04ac.png"> and <img class="mwe-math-fallback-image-inline tex" alt="k &gt; 1" src="//upload.wikimedia.org/math/d/3/7/d37c0d918e9117937016dc3dd13c2faa.png">.)</p>
+<p>Since <img class="mwe-math-fallback-image-inline tex" alt="N" src="//upload.wikimedia.org/math/8/d/9/8d9c307cb7f3c4a32822a51922d1ceaa.png"> is not a power of a prime, it is the product of two coprime numbers greater than <img class="mwe-math-fallback-image-inline tex" alt="1" src="//upload.wikimedia.org/math/c/4/c/c4ca4238a0b923820dcc509a6f75849b.png">. As a consequence of the Chinese remainder theorem, the number <img class="mwe-math-fallback-image-inline tex" alt="1" src="//upload.wikimedia.org/math/c/4/c/c4ca4238a0b923820dcc509a6f75849b.png"> has at least four distinct square roots modulo <img class="mwe-math-fallback-image-inline tex" alt="N" src="//upload.wikimedia.org/math/8/d/9/8d9c307cb7f3c4a32822a51922d1ceaa.png">, two of them being <img class="mwe-math-fallback-image-inline tex" alt="1" src="//upload.wikimedia.org/math/c/4/c/c4ca4238a0b923820dcc509a6f75849b.png"> and <img class="mwe-math-fallback-image-inline tex" alt="-1" src="//upload.wikimedia.org/math/6/b/b/6bb61e3b7bce0931da574d19d1d82c88.png">. The aim of the algorithm is to find a square root <img class="mwe-math-fallback-image-inline tex" alt="b" src="//upload.wikimedia.org/math/9/2/e/92eb5ffee6ae2fec3ad71c777531578f.png"> of one, other than <img class="mwe-math-fallback-image-inline tex" alt="1" src="//upload.wikimedia.org/math/c/4/c/c4ca4238a0b923820dcc509a6f75849b.png"> and <img class="mwe-math-fallback-image-inline tex" alt="-1" src="//upload.wikimedia.org/math/6/b/b/6bb61e3b7bce0931da574d19d1d82c88.png">; such a <img class="mwe-math-fallback-image-inline tex" alt="b" src="//upload.wikimedia.org/math/9/2/e/92eb5ffee6ae2fec3ad71c777531578f.png"> will lead to a factorization of <img class="mwe-math-fallback-image-inline tex" alt="N" src="//upload.wikimedia.org/math/8/d/9/8d9c307cb7f3c4a32822a51922d1ceaa.png">, as in other factoring algorithms like the quadratic sieve.</p>
+<p>In turn, finding such a <img class="mwe-math-fallback-image-inline tex" alt="b" src="//upload.wikimedia.org/math/9/2/e/92eb5ffee6ae2fec3ad71c777531578f.png"> is reduced to finding an element <img class="mwe-math-fallback-image-inline tex" alt="a" src="//upload.wikimedia.org/math/0/c/c/0cc175b9c0f1b6a831c399e269772661.png"> of even period with a certain additional property (as explained below, it is required that the condition of Step 6 of the classical part does not hold). The quantum algorithm is used for finding the period of randomly chosen elements <img class="mwe-math-fallback-image-inline tex" alt="a" src="//upload.wikimedia.org/math/0/c/c/0cc175b9c0f1b6a831c399e269772661.png">, as order-finding is a hard problem on a classical computer.</p>
+<p>Shor's algorithm consists of two parts:</p>
+<ol>
+<li>A reduction, which can be done on a classical computer, of the factoring problem to the problem of order-finding.</li>
+<li>A quantum algorithm to solve the order-finding problem.</li>
+</ol>
+<h3>Classical part</h3>
+<ol>
+<li>Pick a random number <i>a</i> &lt; <i>N</i>.</li>
+<li>Compute gcd(<i>a</i>, <i>N</i>). This may be done using the Euclidean algorithm.</li>
+<li>If gcd(<i>a</i>, <i>N</i>) ≠ 1, then there is a nontrivial factor of <i>N</i>, so we are done.</li>
+<li>Otherwise, use the period-finding subroutine (below) to find <i>r</i>, the period of the following function:
+<dl>
+<dd><img class="mwe-math-fallback-image-inline tex" alt="f(x) = a^x \bmod N," src="//upload.wikimedia.org/math/d/1/0/d10c684726a618620674d78a1fcd04f3.png"></dd>
+</dl>
+i.e. the order <img class="mwe-math-fallback-image-inline tex" alt="r" src="//upload.wikimedia.org/math/4/b/4/4b43b0aee35624cd95b910189b3dc231.png"> of <img class="mwe-math-fallback-image-inline tex" alt="a" src="//upload.wikimedia.org/math/0/c/c/0cc175b9c0f1b6a831c399e269772661.png"> in <img class="mwe-math-fallback-image-inline tex" alt="(\mathbb{Z}_N)^\times" src="//upload.wikimedia.org/math/2/9/f/29f03a2feb50109c5d66a94054f15245.png">, which is the smallest positive integer <i>r</i> for which <img class="mwe-math-fallback-image-inline tex" alt="f(x+r) = f(x)" src="//upload.wikimedia.org/math/e/7/f/e7f750f60375c2fcd683162b16ee5609.png">, or <img class="mwe-math-fallback-image-inline tex" alt="f(x+r) = a^{x+r} \bmod N = a^x \bmod N." src="//upload.wikimedia.org/math/7/a/b/7ab0c573da884672ce650c15121a0982.png"></li>
+<li>If <i>r</i> is odd, go back to step 1.</li>
+<li>If <i>a</i>  ≡ −1 (mod <i>N</i>), go back to step 1.</li>
+<li>gcd(<i>a</i> ± 1, <i>N</i>) is a nontrivial factor of <i>N</i>. We are done.</li>
+</ol>
+<p>For example: <img class="mwe-math-fallback-image-inline tex" alt="N = 15, a = 7, r = 4" src="//upload.wikimedia.org/math/4/d/d/4dd0869f79c5de77dec7fdddc4ed9e55.png">, <img class="mwe-math-fallback-image-inline tex" alt="gcd(7^2 \pm 1, 15) = gcd(49 \pm 1, 15)" src="//upload.wikimedia.org/math/0/e/e/0eed3183e9a9b994c95239350dc64926.png">, where <img class="mwe-math-fallback-image-inline tex" alt="gcd(48, 15) = 3" src="//upload.wikimedia.org/math/9/5/f/95fec724d678d3aa17a1ac98765692c0.png">, and <img class="mwe-math-fallback-image-inline tex" alt="gcd(50, 15) = 5" src="//upload.wikimedia.org/math/a/b/4/ab4db99228b87ec996a720f83469ce66.png">.</p>
+<h3>Quantum part: Period-finding subroutine</h3>
+<p>The quantum circuits used for this algorithm are custom designed for each choice of <i>N</i> and each choice of the random <i>a</i> used in <i>f</i>(<i>x</i>) = <i>a</i> mod <i>N</i>. Given <i>N</i>, find <i>Q</i> = 2 such that <img class="mwe-math-fallback-image-inline tex" alt="N^2 \le Q &lt; 2N^2" src="//upload.wikimedia.org/math/a/6/a/a6ac9025a1924a47d89291e5284bc09e.png">, which implies <img class="mwe-math-fallback-image-inline tex" alt="Q/r &gt; N" src="//upload.wikimedia.org/math/6/8/1/6815a26e9592eeec8f4e0af72540a9f6.png">. The input and output qubit registers need to hold superpositions of values from 0 to <i>Q</i> − 1, and so have <i>q</i> qubits each. Using what might appear to be twice as many qubits as necessary guarantees that there are at least <i>N</i> different <i>x</i> which produce the same <i>f</i>(<i>x</i>), even as the period <i>r</i> approaches <i>N</i>/2.</p>
+<p>Proceed as follows:</p>
+<ol>
+<li>Initialize the registers to
+<dl>
+<dd><img class="mwe-math-fallback-image-inline tex" alt="Q^{-1/2} \sum_{x=0}^{Q-1} \left|x\right\rangle \left|0\right\rangle" src="//upload.wikimedia.org/math/2/1/a/21a8eb00b2d14da47200318b0cec00ec.png"></dd>
+</dl>
+where <i>x</i> runs from 0 to <i>Q</i> − 1. This initial state is a superposition of <i>Q</i> states.</li>
+<li>Construct <i>f</i>(<i>x</i>) as a quantum function and apply it to the above state, to obtain
+<dl>
+<dd><img class="mwe-math-fallback-image-inline tex" alt="Q^{-1/2} \sum_x \left|x, f(x)\right\rangle." src="//upload.wikimedia.org/math/c/0/e/c0e4c250d17ae39dcd020985f0eadfa9.png"></dd>
+</dl>
+This is still a superposition of <i>Q</i> states.</li>
+<li>Apply the quantum Fourier transform to the input register. This transform (operating on a superposition of power-of-two <i>Q</i> = 2 states) uses a <i>Q</i> root of unity such as <img class="mwe-math-fallback-image-inline tex" alt="\omega = e^{2 \pi i /Q}" src="//upload.wikimedia.org/math/7/c/8/7c88461b2ff1da7c8ff9f268c041bf7f.png"> to distribute the amplitude of any given <img class="mwe-math-fallback-image-inline tex" alt="\left|x\right\rangle" src="//upload.wikimedia.org/math/9/5/f/95f07234bf62baa41869086e19d5dc01.png"> state equally among all <i>Q</i> of the <img class="mwe-math-fallback-image-inline tex" alt="\left|y\right\rangle" src="//upload.wikimedia.org/math/4/3/f/43fedad668764f46ce064b6f7a156fcf.png"> states, and to do so in a different way for each different <i>x</i>.
+<ul>
+<li>Let <i>y</i> be one of the <i>r</i> possible integers modulo <i>N</i> such that <i>yr/Q</i> is an integer; then</li>
+</ul>
+<dl>
+<dd><img class="mwe-math-fallback-image-inline tex" alt="U_{QFT} \left|x\right\rangle
+= Q^{-1/2} \sum_y \omega^{x y} \left|y\right\rangle." src="//upload.wikimedia.org/math/1/a/6/1a6df9ea41647ea6155810e11e5d6d95.png"></dd>
+</dl>
+<p>This leads to the final state</p>
+<dl>
+<dd><img class="mwe-math-fallback-image-inline tex" alt=" Q^{-1} \sum_x \sum_y \omega^{x y} \left|y, f(x)\right\rangle." src="//upload.wikimedia.org/math/9/8/9/98957af341be71c6e208bc949c7913e2.png"></dd>
+</dl>
+<p>Now we reorder this sum as</p>
+<dl>
+<dd><img class="mwe-math-fallback-image-inline tex" alt=" Q^{-1} \sum_{z} \sum_y \left|y, z\right\rangle \sum_{x:\, f(x)=z} \omega^{x y}." src="//upload.wikimedia.org/math/b/3/6/b36edf1507fec518bc3b77529ae629f9.png"></dd>
+</dl>
+<p>This is a superposition of many more than <i>Q</i> states, but many fewer than <i>Q</i> states, since there are fewer than <i>Q</i> distinct values of <img class="mwe-math-fallback-image-inline tex" alt="z = f(z)" src="//upload.wikimedia.org/math/d/2/4/d2429ff54675c923a6f0f253664bb9a1.png">. Let</p>
+<ul>
+<li><img class="mwe-math-fallback-image-inline tex" alt="\omega = e^{2 \pi i /Q}" src="//upload.wikimedia.org/math/7/c/8/7c88461b2ff1da7c8ff9f268c041bf7f.png"> be a <i>Q</i> root of unity,</li>
+<li><i>r</i> be the period of <i>f</i>,</li>
+<li><i>x</i><sub>0</sub> be the smallest of the <i>x</i> which have <i>f</i>(<i>x</i>) = <i>z</i> (we have <i>x</i><sub>0</sub> &lt; <i>r</i>), and</li>
+<li><i>b</i> indexes these <i>x</i>, running from 0 to <img class="mwe-math-fallback-image-inline tex" alt="\lfloor(Q-x_0-1)/r\rfloor" src="//upload.wikimedia.org/math/5/4/0/540cb0c5d9c75ce1278672ad5d105150.png"> so that <img class="mwe-math-fallback-image-inline tex" alt="x_0 + rb &lt; Q." src="//upload.wikimedia.org/math/1/f/3/1f30c68b335f38621524a70307fbb92a.png"></li>
+</ul>
+<p>Then <img class="mwe-math-fallback-image-inline tex" alt="\omega^{ry}" src="//upload.wikimedia.org/math/5/f/2/5f2c9df1564b4af7b4c67b92bc812c93.png"> is a unit vector in the complex plane (<img class="mwe-math-fallback-image-inline tex" alt="\omega" src="//upload.wikimedia.org/math/4/d/1/4d1b7b74aba3cfabd624e898d86b4602.png"> is a root of unity and <i>r</i> and <i>y</i> are integers), and the coefficient of <img class="mwe-math-fallback-image-inline tex" alt="Q^{-1}\left|y, z\right\rangle" src="//upload.wikimedia.org/math/5/5/4/554a18ccc9f5cd52ac213e6b28e7f9a9.png"> in the final state is</p>
+<dl>
+<dd><img class="mwe-math-fallback-image-inline tex" alt=" \sum_{x:\, f(x)=z} \omega^{x y} = \sum_{b} \omega^{(x_0 + r b) y} = \omega^{x_0y} \sum_{b} \omega^{r b y}." src="//upload.wikimedia.org/math/4/e/4/4e4fe6fab3e48ce7a4738f8a5a71c26a.png"></dd>
+</dl>
+Each term in this sum represents a <i>different path to the same result</i>, and quantum interference occurs—constructive when the unit vectors <img class="mwe-math-fallback-image-inline tex" alt="\omega^{ryb}" src="//upload.wikimedia.org/math/d/4/6/d46eaad23a4d083c137f17acd0f51702.png"> point in nearly the same direction in the complex plane, which requires that <img class="mwe-math-fallback-image-inline tex" alt="\omega^{ry}" src="//upload.wikimedia.org/math/5/f/2/5f2c9df1564b4af7b4c67b92bc812c93.png"> point along the positive real axis.</li>
+<li>Perform a measurement. We obtain some outcome <i>y</i> in the input register and <i>z</i> in the output register. Since <i>f</i> is periodic, the probability of measuring some pair <i>y</i> and <i>z</i> is given by
+<dl>
+<dd><img class="mwe-math-fallback-image-inline tex" alt=" \left| Q^{-1} \sum_{x:\, f(x)=z} \omega^{x y} \right|^2
+= Q^{-2} \left| \sum_{b} \omega^{(x_0 + r b) y} \right|^2 = Q^{-2} \left| \sum_{b} \omega^{ b r y} \right|^2.
+" src="//upload.wikimedia.org/math/7/e/d/7ed15e5bed01389daef0dc54ce973757.png"></dd>
+</dl>
+Analysis now shows that this probability is higher the closer the unit vector <img class="mwe-math-fallback-image-inline tex" alt="\omega^{ry}" src="//upload.wikimedia.org/math/5/f/2/5f2c9df1564b4af7b4c67b92bc812c93.png"> is to the positive real axis, or the closer <i>yr/Q</i> is to an integer. Unless r is a power of 2, it won't be a factor of Q.</li>
+<li>Since <img class="mwe-math-fallback-image-inline tex" alt="yr/Q" src="//upload.wikimedia.org/math/8/8/1/8817de55b16157356f3c41fe87943cd3.png"> is close to some integer <i>c</i>, the known value <i>y</i>/<i>Q</i> is close to the unknown value <i>c</i>/<i>r</i>. Performing [classical] continued fraction expansion on <i>y/Q</i> allows us to find approximations <i>d/s</i> of it which satisfy two conditions:
+<ul>
+<li>A: s&lt;N</li>
+<li>B: |y/Q - d/s| &lt; 1/2Q.</li>
+</ul>
+Given these conditions (and assuming <i>d</i>/<i>s</i> is irreducible), <i>s</i> is very likely to be the appropriate period <i>r</i>, or at least a factor of it.</li>
+<li>Check [classically] if <img class="mwe-math-fallback-image-inline tex" alt="f(x) = f(x + s) \Leftrightarrow a^r \equiv 1 \pmod{N}" src="//upload.wikimedia.org/math/6/a/7/6a766dd2085ed0ab4e3026cf4c4ccb73.png"> If so, we are done.</li>
+<li>Otherwise, [classically] obtain more candidates for <i>r</i> by using multiples of <i>s</i>, or by using other <i>s</i> with <i>d/s</i> near <i>y</i>/<i>Q</i>. If any candidate works, we are done.</li>
+<li>Otherwise, try again starting from step 1 of this subroutine.</li>
+</ol>
+<ul>
+<li>Let <i>y</i> be one of the <i>r</i> possible integers modulo <i>N</i> such that <i>yr/Q</i> is an integer; then</li>
+</ul>
+<p>This leads to the final state</p>
+<p>Now we reorder this sum as</p>
+<p>This is a superposition of many more than <i>Q</i> states, but many fewer than <i>Q</i> states, since there are fewer than <i>Q</i> distinct values of <img class="mwe-math-fallback-image-inline tex" alt="z = f(z)" src="//upload.wikimedia.org/math/d/2/4/d2429ff54675c923a6f0f253664bb9a1.png">. Let</p>
+<ul>
+<li><img class="mwe-math-fallback-image-inline tex" alt="\omega = e^{2 \pi i /Q}" src="//upload.wikimedia.org/math/7/c/8/7c88461b2ff1da7c8ff9f268c041bf7f.png"> be a <i>Q</i> root of unity,</li>
+<li><i>r</i> be the period of <i>f</i>,</li>
+<li><i>x</i><sub>0</sub> be the smallest of the <i>x</i> which have <i>f</i>(<i>x</i>) = <i>z</i> (we have <i>x</i><sub>0</sub> &lt; <i>r</i>), and</li>
+<li><i>b</i> indexes these <i>x</i>, running from 0 to <img class="mwe-math-fallback-image-inline tex" alt="\lfloor(Q-x_0-1)/r\rfloor" src="//upload.wikimedia.org/math/5/4/0/540cb0c5d9c75ce1278672ad5d105150.png"> so that <img class="mwe-math-fallback-image-inline tex" alt="x_0 + rb &lt; Q." src="//upload.wikimedia.org/math/1/f/3/1f30c68b335f38621524a70307fbb92a.png"></li>
+</ul>
+<p>Then <img class="mwe-math-fallback-image-inline tex" alt="\omega^{ry}" src="//upload.wikimedia.org/math/5/f/2/5f2c9df1564b4af7b4c67b92bc812c93.png"> is a unit vector in the complex plane (<img class="mwe-math-fallback-image-inline tex" alt="\omega" src="//upload.wikimedia.org/math/4/d/1/4d1b7b74aba3cfabd624e898d86b4602.png"> is a root of unity and <i>r</i> and <i>y</i> are integers), and the coefficient of <img class="mwe-math-fallback-image-inline tex" alt="Q^{-1}\left|y, z\right\rangle" src="//upload.wikimedia.org/math/5/5/4/554a18ccc9f5cd52ac213e6b28e7f9a9.png"> in the final state is</p>
+<ul>
+<li>A: s&lt;N</li>
+<li>B: |y/Q - d/s| &lt; 1/2Q.</li>
+</ul>
+<h2>Explanation of the algorithm</h2>
+<p>The algorithm is composed of two parts. The first part of the algorithm turns the factoring problem into the problem of finding the period of a function, and may be implemented classically. The second part finds the period using the quantum Fourier transform, and is responsible for the quantum speedup.</p>
+<h3>Obtaining factors from period</h3>
+<p>The integers less than <i>N</i> and coprime with <i>N</i> form a finite Abelian group <img class="mwe-math-fallback-image-inline tex" alt="G" src="//upload.wikimedia.org/math/d/f/c/dfcf28d0734569a6a693bc8194de62bf.png"> under multiplication modulo <i>N</i>. The size is given by Euler's totient function <img class="mwe-math-fallback-image-inline tex" alt="\phi(N)" src="//upload.wikimedia.org/math/1/f/4/1f46c48e97f65fa678d7df2dfaa2cb89.png">. By the end of step 3, we have an integer <i>a</i> in this group. Since the group is finite, <i>a</i> must have a finite order <i>r</i>, the smallest positive integer such that</p>
+<p>Therefore, <i>N</i> divides (also written | ) <i>a</i>  − 1 . Suppose we are able to obtain <i>r</i>, and it is even. (If <i>r</i> is odd, see step 5.) Now <img class="mwe-math-fallback-image-inline tex" alt="b \equiv a^{r/2} \pmod{N}" src="//upload.wikimedia.org/math/f/a/7/fa7c40c815b8f4ba9c0555ab0c72f855.png"> is a square root of 1 modulo <img class="mwe-math-fallback-image-inline tex" alt="N" src="//upload.wikimedia.org/math/8/d/9/8d9c307cb7f3c4a32822a51922d1ceaa.png">, different from 1. This is because <img class="mwe-math-fallback-image-inline tex" alt="r" src="//upload.wikimedia.org/math/4/b/4/4b43b0aee35624cd95b910189b3dc231.png"> is the order of <img class="mwe-math-fallback-image-inline tex" alt="a" src="//upload.wikimedia.org/math/0/c/c/0cc175b9c0f1b6a831c399e269772661.png"> modulo <img class="mwe-math-fallback-image-inline tex" alt="N" src="//upload.wikimedia.org/math/8/d/9/8d9c307cb7f3c4a32822a51922d1ceaa.png">, so <img class="mwe-math-fallback-image-inline tex" alt="a^{r/2} \not\equiv 1 \pmod{N}" src="//upload.wikimedia.org/math/0/0/0/000f26214c3ad96fc36f2626ae322132.png">, else the order of <img class="mwe-math-fallback-image-inline tex" alt="a" src="//upload.wikimedia.org/math/0/c/c/0cc175b9c0f1b6a831c399e269772661.png"> in this group would be <img class="mwe-math-fallback-image-inline tex" alt="r/2" src="//upload.wikimedia.org/math/0/1/a/01af897a5f8a1e5cd17232f87c20c21a.png">. If <img class="mwe-math-fallback-image-inline tex" alt="a^{r/2} \equiv -1 \pmod{N}" src="//upload.wikimedia.org/math/5/7/6/576deb7e02e549a5fa7977d3f6331aa2.png">, by step 6 we have to restart the algorithm with a different random number <img class="mwe-math-fallback-image-inline tex" alt="a" src="//upload.wikimedia.org/math/0/c/c/0cc175b9c0f1b6a831c399e269772661.png">.</p>
+<p>Eventually, we must hit an <img class="mwe-math-fallback-image-inline tex" alt="a" src="//upload.wikimedia.org/math/0/c/c/0cc175b9c0f1b6a831c399e269772661.png">, of order <img class="mwe-math-fallback-image-inline tex" alt="r" src="//upload.wikimedia.org/math/4/b/4/4b43b0aee35624cd95b910189b3dc231.png"> in <img class="mwe-math-fallback-image-inline tex" alt="G" src="//upload.wikimedia.org/math/d/f/c/dfcf28d0734569a6a693bc8194de62bf.png">, such that <img class="mwe-math-fallback-image-inline tex" alt="b \equiv a^{r/2} \not\equiv 1, -1 \pmod{N}" src="//upload.wikimedia.org/math/3/3/b/33b39b738e3348acfcaab64bf040c4ba.png">. This is because such a <img class="mwe-math-fallback-image-inline tex" alt="b" src="//upload.wikimedia.org/math/9/2/e/92eb5ffee6ae2fec3ad71c777531578f.png"> is a square root of 1 modulo <img class="mwe-math-fallback-image-inline tex" alt="N" src="//upload.wikimedia.org/math/8/d/9/8d9c307cb7f3c4a32822a51922d1ceaa.png">, other than 1 and <img class="mwe-math-fallback-image-inline tex" alt="-1" src="//upload.wikimedia.org/math/6/b/b/6bb61e3b7bce0931da574d19d1d82c88.png">, whose existence is guaranteed by the Chinese remainder theorem, since <img class="mwe-math-fallback-image-inline tex" alt="N" src="//upload.wikimedia.org/math/8/d/9/8d9c307cb7f3c4a32822a51922d1ceaa.png"> is not a prime power.</p>
+<p>We claim that <img class="mwe-math-fallback-image-inline tex" alt="d = \operatorname{gcd}(b-1, N)" src="//upload.wikimedia.org/math/8/6/e/86eea3cd200939326792b71d5b7f44bd.png"> is a proper factor of <img class="mwe-math-fallback-image-inline tex" alt="N" src="//upload.wikimedia.org/math/8/d/9/8d9c307cb7f3c4a32822a51922d1ceaa.png">, that is, <img class="mwe-math-fallback-image-inline tex" alt="d \ne 1, N" src="//upload.wikimedia.org/math/3/5/d/35db32d5e490aa9d15dedbac14b7e371.png">. In fact if <img class="mwe-math-fallback-image-inline tex" alt="d = N" src="//upload.wikimedia.org/math/b/3/3/b33eae535793295d1badfe1d0cb19d9a.png">, then <img class="mwe-math-fallback-image-inline tex" alt="N" src="//upload.wikimedia.org/math/8/d/9/8d9c307cb7f3c4a32822a51922d1ceaa.png"> divides <img class="mwe-math-fallback-image-inline tex" alt="b - 1" src="//upload.wikimedia.org/math/b/1/d/b1d10db2016c2f83c13b25fcb170cdeb.png">, so that <img class="mwe-math-fallback-image-inline tex" alt="b \equiv 1 \pmod{N}" src="//upload.wikimedia.org/math/6/3/1/631d6f8251d7719c59eb5e285f40e29c.png">, against the construction of <img class="mwe-math-fallback-image-inline tex" alt="b" src="//upload.wikimedia.org/math/9/2/e/92eb5ffee6ae2fec3ad71c777531578f.png">. If on the other hand <img class="mwe-math-fallback-image-inline tex" alt="d = \operatorname{gcd}(b-1, N) = 1" src="//upload.wikimedia.org/math/b/b/6/bb6a357e432b3d86ac713cf0188374b4.png">, then by Bézout's identity there are integers <img class="mwe-math-fallback-image-inline tex" alt="u, v" src="//upload.wikimedia.org/math/7/0/3/703f259d2f1a609d112d61c642e0f17d.png"> such that</p>
+<p>Multiplying both sides by <img class="mwe-math-fallback-image-inline tex" alt="b+1" src="//upload.wikimedia.org/math/d/a/2/da2be8cd66e7887ab99184eb222fb515.png"> we obtain</p>
+<p>Since <img class="mwe-math-fallback-image-inline tex" alt="N" src="//upload.wikimedia.org/math/8/d/9/8d9c307cb7f3c4a32822a51922d1ceaa.png"> divides <img class="mwe-math-fallback-image-inline tex" alt="b^{2} - 1 \equiv a^{r} - 1 \pmod{N}" src="//upload.wikimedia.org/math/3/e/6/3e6cba646f0967acb92ac3dae39ea456.png">, we obtain that <img class="mwe-math-fallback-image-inline tex" alt="N" src="//upload.wikimedia.org/math/8/d/9/8d9c307cb7f3c4a32822a51922d1ceaa.png"> divides <img class="mwe-math-fallback-image-inline tex" alt="b+1" src="//upload.wikimedia.org/math/d/a/2/da2be8cd66e7887ab99184eb222fb515.png">, so that <img class="mwe-math-fallback-image-inline tex" alt="b \equiv -1 \pmod{N}" src="//upload.wikimedia.org/math/7/3/6/73641e7144ff06c209cd4402d2be3bf3.png">, again contradicting the construction of <img class="mwe-math-fallback-image-inline tex" alt="b" src="//upload.wikimedia.org/math/9/2/e/92eb5ffee6ae2fec3ad71c777531578f.png">.</p>
+<p>Thus <img class="mwe-math-fallback-image-inline tex" alt="d" src="//upload.wikimedia.org/math/8/2/7/8277e0910d750195b448797616e091ad.png"> is the required proper factor of <img class="mwe-math-fallback-image-inline tex" alt="N" src="//upload.wikimedia.org/math/8/d/9/8d9c307cb7f3c4a32822a51922d1ceaa.png">.</p>
+<h3>Finding the period</h3>
+<p>Shor's period-finding algorithm relies heavily on the ability of a quantum computer to be in many states simultaneously. Physicists call this behavior a "superposition" of states. To compute the period of a function <i>f</i>, we evaluate the function at all points simultaneously.</p>
+<p>Quantum physics does not allow us to access all this information directly, though. A measurement will yield only one of all possible values, destroying all others. If not for the no cloning theorem, we could first measure <i>f</i>(<i>x</i>) without measuring <i>x</i>, and then make a few copies of the resulting state (which is a superposition of states all having the same <i>f</i>(<i>x</i>)). Measuring <i>x</i> on these states would provide different <i>x</i> values which give the same <i>f</i>(<i>x</i>), leading to the period. Because we cannot make exact copies of a quantum state, this method does not work. Therefore we have to carefully transform the superposition to another state that will return the correct answer with high probability. This is achieved by the quantum Fourier transform.</p>
+<p>Shor thus had to solve three "implementation" problems. All of them had to be implemented "fast", which means that they can be implemented with a number of quantum gates that is polynomial in <img class="mwe-math-fallback-image-inline tex" alt="\log N" src="//upload.wikimedia.org/math/e/2/8/e28e4a7a696eb600b22afb350ee13065.png">.</p>
+<ol>
+<li>Create a superposition of states. This can be done by applying Hadamard gates to all qubits in the input register. Another approach would be to use the quantum Fourier transform (see below).</li>
+<li>Implement the function <i>f</i> as a quantum transform. To achieve this, Shor used repeated squaring for his modular exponentiation transformation. It is important to note that this step is more difficult to implement than the quantum Fourier transform, in that it requires ancillary qubits and substantially more gates to accomplish.</li>
+<li>Perform a quantum Fourier transform. By using controlled rotation gates and Hadamard gates, Shor designed a circuit for the quantum Fourier transform (with <i>Q</i> = 2) that uses just <img class="mwe-math-fallback-image-inline tex" alt="q(q-1)/2 = O((\log Q)^2)" src="//upload.wikimedia.org/math/4/a/3/4a361604e9f901d7567ebd15a6e7c609.png"> gates.</li>
+</ol>
+<p>After all these transformations a measurement will yield an approximation to the period <i>r</i>. For simplicity assume that there is a <i>y</i> such that <i>yr/Q</i> is an integer. Then the probability to measure <i>y</i> is 1. To see that we notice that then</p>
+<p>for all integers <i>b</i>. Therefore the sum whose square gives us the probability to measure <i>y</i> will be <i>Q/r</i> since <i>b</i> takes roughly <i>Q/r</i> values and thus the probability is <img class="mwe-math-fallback-image-inline tex" alt="1/r^2" src="//upload.wikimedia.org/math/f/9/0/f905d700fc1410610c8b8fe7b5aaa859.png">. There are <i>r</i> <i>y</i> such that <i>yr/Q</i> is an integer and also <i>r</i> possibilities for <img class="mwe-math-fallback-image-inline tex" alt="f(x_0)" src="//upload.wikimedia.org/math/0/b/b/0bbcaf3f1a7e30c9240b9ed39ee7c78d.png">, so the probabilities sum to 1.</p>
+<p>Note: another way to explain Shor's algorithm is by noting that it is just the quantum phase estimation algorithm in disguise.</p>
+<h3>The bottleneck</h3>
+<p>The runtime bottleneck of Shor's algorithm is quantum modular exponentiation, which is by far slower than the quantum Fourier transform and classical pre-/post-processing. There are several approaches to constructing and optimizing circuits for modular exponentiation. The simplest and (currently) most practical approach is to mimic conventional arithmetic circuits with reversible gates, starting with ripple-carry adders. Knowing the base and the modulus of exponentiation facilitates further optimizations. Reversible circuits typically use on the order of <img class="mwe-math-fallback-image-inline tex" alt="n^3" src="//upload.wikimedia.org/math/e/5/5/e55ad3a069f00d4c8d543e9477467208.png"> gates for <img class="mwe-math-fallback-image-inline tex" alt="n" src="//upload.wikimedia.org/math/7/b/8/7b8b965ad4bca0e41ab51de7b31363a1.png"> qubits. Alternative techniques asymptotically improve gate counts by using quantum Fourier transforms, but are not competitive with less than 600 qubits due to high constants.</p>
+<h2>Discrete logarithms</h2>
+<p>Given prime <img class="mwe-math-fallback-image-inline tex" alt="p" src="//upload.wikimedia.org/math/8/3/8/83878c91171338902e0fe0fb97a8c47a.png"> with generator <img class="mwe-math-fallback-image-inline tex" alt="g" src="//upload.wikimedia.org/math/b/2/f/b2f5ff47436671b6e533d8dc3614845d.png"> where <img class="mwe-math-fallback-image-inline tex" alt="1 &lt; g &lt;p-1" src="//upload.wikimedia.org/math/3/7/1/371e9445af7963f0e51bdcd84215abc2.png">, suppose we know that <img class="mwe-math-fallback-image-inline tex" alt="x = g^r \pmod{p}" src="//upload.wikimedia.org/math/1/3/d/13dd04d7e697f15448a8789d309d24bc.png">, for some <i>r</i>, and we wish to compute <i>r</i>, which is the discrete logarithm: <img class="mwe-math-fallback-image-inline tex" alt="r = \log_g x \pmod{p}" src="//upload.wikimedia.org/math/7/2/6/7263e88184cadd3f7630b243c0d85484.png">. Consider the Abelian group <img class="mwe-math-fallback-image-inline tex" alt="\left( \mathbb{Z}_{p} \right)^\times \times \left(\mathbb{Z}_p\right)^\times" src="//upload.wikimedia.org/math/e/9/7/e97d5cdfb9b45ae99ce61ace84f32f4f.png"> where each factor corresponds to modular multiplication of nonzero values, assuming p is prime. Now, consider the function</p>
+<p>This gives us an Abelian hidden subgroup problem, as <i>f</i> corresponds to a group homomorphism. The kernel corresponds to modular multiples of (<i>r</i>,1). So, if we can find the kernel, we can find <i>r</i>.</p>
+<h2>In popular culture</h2>
+<p>On the television show <i>Stargate Universe</i>, the lead scientist, Dr. Nicholas Rush, hoped to use Shor's algorithm to crack <i>Destiny'</i>s master code. He taught a quantum cryptography class at the University of California, Berkeley, in which Shor's algorithm was studied.</p>
+<p>Shor's algorithm was also a correct answer to a question in a Physics Bowl competition in the episode "The Bat Jar Conjecture" of the TV series <i>The Big Bang Theory</i>.</p>
+</body>
+</html>

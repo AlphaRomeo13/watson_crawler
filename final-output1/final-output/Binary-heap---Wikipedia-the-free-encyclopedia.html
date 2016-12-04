@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Binary-heap---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Binary heap</h1>
+<p>A <b>binary heap</b> is a heap data structure created using a binary tree. It can be seen as a binary tree with two additional constraints:</p>
+<p>Heaps with a mathematical "greater than or equal to" (≥) comparison predicate are called <i>max-heaps</i>; those with a mathematical "less than or equal to" (≤) comparison predicate are called <i>min-heaps</i>. Min-heaps are often used to implement priority queues.</p>
+<p>Since the ordering of siblings in a heap is not specified by the heap property, a single node's two children can be freely interchanged unless doing so violates the shape property (compare with treap).</p>
+<p>The binary heap is a special case of the d-ary heap in which d = 2.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Heap operations
+<ul>
+<li>1.1 Insert</li>
+<li>1.2 Delete</li>
+</ul>
+</li>
+<li>2 Building a heap</li>
+<li>3 Heap implementation</li>
+<li>4 Derivation of index equations
+<ul>
+<li>4.1 Child nodes</li>
+<li>4.2 Parent node</li>
+</ul>
+</li>
+<li>5 See also</li>
+<li>6 Notes</li>
+<li>7 References</li>
+<li>8 External links</li>
+</ul>
+<ul>
+<li>1.1 Insert</li>
+<li>1.2 Delete</li>
+</ul>
+<ul>
+<li>4.1 Child nodes</li>
+<li>4.2 Parent node</li>
+</ul>
+<p></p>
+<h2>Heap operations</h2>
+<p>Both the insert and remove operations modify the heap to conform to the shape property first, by adding or removing from the end of the heap. Then the heap property is restored by traversing up or down the heap. Both operations take O(log <i>n</i>) time.</p>
+<h3>Insert</h3>
+<p>To add an element to a heap we must perform an <i>up-heap</i> operation (also known as <i>bubble-up</i>, <i>percolate-up</i>, <i>sift-up</i>, <i>trickle-up</i>, <i>heapify-up</i>, or <i>cascade-up</i>), by following this algorithm:</p>
+<ol>
+<li>Add the element to the bottom level of the heap.</li>
+<li>Compare the added element with its parent; if they are in the correct order, stop.</li>
+<li>If not, swap the element with its parent and return to the previous step.</li>
+</ol>
+<p>The number of operations required is dependent on the number of levels the new element must rise to satisfy the heap property, thus the insertion operation has a time complexity of O(log <i>n</i>). However, in 1974, Thomas Porter and Istvan Simon proved that the function for the average number of levels an inserted node moves up is upper bounded by the constant 1.6067. The average number of operations required for an insertion into a binary heap is 2.6067 since one additional comparison is made that does not result in the inserted node moving up a level. Thus, on average, binary heap insertion has a constant, O(1), time complexity. Intuitively, this makes sense since approximately 50% of the elements are leaves and approximately 75% of the elements are in the bottom two levels, it is likely that the new element to be inserted will only move a few levels upwards to maintain the heap.</p>
+<p>As an example of binary heap insertion, say we have a max-heap</p>
+<p>and we want to add the number 15 to the heap. We first place the 15 in the position marked by the X. However, the heap property is violated since 15 is greater than 8, so we need to swap the 15 and the 8. So, we have the heap looking as follows after the first swap:</p>
+<p>However the heap property is still violated since 15 is greater than 11, so we need to swap again:</p>
+<p>which is a valid max-heap. There is no need to check the children after this. Before we placed 15 on X, the heap was valid, meaning 11 is greater than 5. If 15 is greater than 11, and 11 is greater than 5, then 15 must be greater than 5, because of the transitive relation.</p>
+<h3>Delete</h3>
+<p>The procedure for deleting the root from the heap (effectively extracting the maximum element in a max-heap or the minimum element in a min-heap) and restoring the properties is called <i>down-heap</i> (also known as <i>bubble-down</i>, <i>percolate-down</i>, <i>sift-down</i>, <i>trickle down</i>, <i>heapify-down</i>, <i>cascade-down</i> and <i>extract-min/max</i>).</p>
+<ol>
+<li>Replace the root of the heap with the last element on the last level.</li>
+<li>Compare the new root with its children; if they are in the correct order, stop.</li>
+<li>If not, swap the element with one of its children and return to the previous step. (Swap with its smaller child in a min-heap and its larger child in a max-heap.)</li>
+</ol>
+<p>So, if we have the same max-heap as before</p>
+<p>We remove the 11 and replace it with the 4.</p>
+<p>Now the heap property is violated since 8 is greater than 4. In this case, swapping the two elements, 4 and 8, is enough to restore the heap property and we need not swap elements further:</p>
+<p>The downward-moving node is swapped with the <i>larger</i> of its children in a max-heap (in a min-heap it would be swapped with its smaller child), until it satisfies the heap property in its new position. This functionality is achieved by the <b>Max-Heapify</b> function as defined below in pseudocode for an array-backed heap <i>A</i> of length <i>heap_length</i>[<i>A</i>]. Note that "A" is indexed starting at 1, not 0 as is common in many real programming languages.</p>
+<p><b>Max-Heapify</b> (<i>A</i>, <i>i</i>):<br>
+ <i>left</i> ← 2<i>i</i><br>
+ <i>right</i> ← 2<i>i</i> + 1<br>
+ <i>largest</i> ← <i>i</i><br>
+ <b>if</b> <i>left</i> ≤ <i>heap_length</i>[<i>A</i>] <b>and</b> <i>A</i>[<i>left</i>] &gt; A[<i>largest</i>] <b>then</b>:<br>
+ <i>largest</i> ← <i>left</i><br>
+ <b>if</b> <i>right</i> ≤ <i>heap_length</i>[<i>A</i>] <b>and</b> <i>A</i>[<i>right</i>] &gt; <i>A</i>[<i>largest</i>] <b>then</b>:<br>
+ <i>largest</i> ← <i>right</i><br>
+ <b>if</b> <i>largest</i> ≠ <i>i</i> <b>then</b>:<br>
+ <b>swap</b> <i>A[</i>i<i>] ↔</i> A<i>[</i>largest<i>]<br></i>  Max-Heapify(<i>A</i>, <i>largest</i>)</p>
+<p>For the above algorithm to correctly re-heapify the array, the node at index <i>i</i> and its two direct children must violate the heap property. If they do not, the algorithm will fall through with no change to the array. The down-heap operation (without the preceding swap) can also be used to modify the value of the root, even when an element is not being deleted.</p>
+<p>In the worst case, the new root has to be swapped with its child on each level until it reaches the bottom level of the heap, meaning that the delete operation has a time complexity relative to the height of the tree, or O(log <i>n</i>).</p>
+<h2>Building a heap</h2>
+<p>A heap could be built by successive insertions. This approach requires <img class="mwe-math-fallback-image-inline tex" alt="O(n \log n)" src="//upload.wikimedia.org/math/f/4/9/f49341ab621f12e8cb93d0146ea51d34.png"> time because each insertion takes <img class="mwe-math-fallback-image-inline tex" alt="O(\log n)" src="//upload.wikimedia.org/math/0/c/a/0ca47d9a481af371d1210a620c1945db.png"> time and there are <img class="mwe-math-fallback-image-inline tex" alt="n" src="//upload.wikimedia.org/math/7/b/8/7b8b965ad4bca0e41ab51de7b31363a1.png"> elements. However this is not the optimal method. The optimal method starts by arbitrarily putting the elements on a binary tree, respecting the shape property (the tree could be represented by an array, see below). Then starting from the lowest level and moving upwards, shift the root of each subtree downward as in the deletion algorithm until the heap property is restored. More specifically if all the subtrees starting at some height <img class="mwe-math-fallback-image-inline tex" alt="h" src="//upload.wikimedia.org/math/2/5/1/2510c39011c5be704182423e3a695e91.png"> (measured from the bottom) have already been "heapified", the trees at height <img class="mwe-math-fallback-image-inline tex" alt="h+1" src="//upload.wikimedia.org/math/f/9/0/f903d33b9ff801b886bf719b3c694d4d.png"> can be heapified by sending their root down along the path of maximum valued children when building a max-heap, or minimum valued children when building a min-heap. This process takes <img class="mwe-math-fallback-image-inline tex" alt="O(h)" src="//upload.wikimedia.org/math/0/b/a/0ba11ebdc4068356183c1d861d1c0bd8.png"> operations (swaps) per node. In this method most of the heapification takes place in the lower levels. Since the height of the heap is <img class="mwe-math-fallback-image-inline tex" alt=" \left\lfloor \lg (n) \right\rfloor" src="//upload.wikimedia.org/math/2/8/e/28e8a4ae0af159d2b6df31b28d8c727e.png">, the number of nodes at height <img class="mwe-math-fallback-image-inline tex" alt="h" src="//upload.wikimedia.org/math/2/5/1/2510c39011c5be704182423e3a695e91.png"> is <img class="mwe-math-fallback-image-inline tex" alt="\le \left\lceil 2^{\left(\lg n - h\right) - 1} \right\rceil = \left\lceil \frac{2^{\lg n}}{2^{h+1}}\right\rceil = \left\lceil\frac{n}{2^{h+1}}\right\rceil" src="//upload.wikimedia.org/math/9/e/0/9e0b35471a7c35952352abe0977062ec.png">. Therefore, the cost of heapifying all subtrees is:</p>
+<p>This uses the fact that the given infinite series <i>h</i> / 2 converges to 2.</p>
+<p>The exact value of the above (the worst-case number of comparisons during the heap construction) is known to be equal to:</p>
+<p>where s<sub>2</sub>(n) is the sum of all digits of the binary representation of n and e<sub>2</sub>(n) is the exponent of 2 in the prime factorization of n.</p>
+<p>The <b>Build-Max-Heap</b> function that follows, converts an array <i>A</i> which stores a complete binary tree with n nodes to a max-heap by repeatedly using <b>Max-Heapify</b> in a bottom up manner. It is based on the observation that the array elements indexed by <i>floor</i>(n/2) + 1, <i>floor</i>(n/2) + 2, ..., n are all leaves for the tree, thus each is a one-element heap. <b>Build-Max-Heap</b> runs <b>Max-Heapify</b> on each of the remaining tree nodes.</p>
+<p><b>Build-Max-Heap</b> (<i>A</i>):<br>
+ <i>heap_length</i>[<i>A</i>] ← <i>length</i>[<i>A</i>]<br>
+ <b>for</b> <i>i</i> ← <i>floor</i>(<i>length</i>[<i>A</i>]/2) <b>downto</b> 1 <b>do</b><br>
+ <b>Max-Heapify</b>(<i>A</i>, <i>i</i>)</p>
+<h2>Heap implementation</h2>
+<p>Heaps are commonly implemented with an array. Any binary tree can be stored in an array, but because a binary heap is always a complete binary tree, it can be stored compactly. No space is required for pointers; instead, the parent and children of each node can be found by arithmetic on array indices. These properties make this heap implementation a simple example of an implicit data structure or Ahnentafel list. Details depend on the root position, which in turn may depend on constraints of a programming language used for implementation, or programmer preference. Specifically, sometimes the root is placed at index 1, sacrificing space in order to simplify arithmetic. The <i>peek</i> operation (<i>find-min</i> or <i>find-max</i>) simply returns the value of the root, and is thus O(1).</p>
+<p>Let <i>n</i> be the number of elements in the heap and <i>i</i> be an arbitrary valid index of the array storing the heap. If the tree root is at index 0, with valid indices 0 through <i>n −</i> 1, then each element <i>a</i> at index <i>i</i> has</p>
+<ul>
+<li>children at indices 2<i>i</i> + 1 and 2<i>i</i> + 2</li>
+<li>its parent <i>floor</i>((<i>i</i> − 1) ∕ 2).</li>
+</ul>
+<p>Alternatively, if the tree root is at index 1, with valid indices 1 through <i>n</i>, then each element <i>a</i> at index <i>i</i> has</p>
+<ul>
+<li>children at indices 2<i>i</i> and 2<i>i</i> +1</li>
+<li>its parent at index <i>floor</i>(<i>i ∕</i> 2).</li>
+</ul>
+<p>This implementation is used in the heapsort algorithm, where it allows the space in the input array to be reused to store the heap (i.e. the algorithm is done in-place). The implementation is also useful for use as a Priority queue where use of a dynamic array allows insertion of an unbounded number of items.</p>
+<p>The upheap/downheap operations can then be stated in terms of an array as follows: suppose that the heap property holds for the indices <i>b</i>, <i>b</i>+1, ..., <i>e</i>. The sift-down function extends the heap property to <i>b</i>−1, <i>b</i>, <i>b</i>+1, ..., <i>e</i>. Only index <i>i</i> = <i>b</i>−1 can violate the heap property. Let <i>j</i> be the index of the largest child of <i>a</i>[<i>i</i>] (for a max-heap, or the smallest child for a min-heap) within the range <i>b</i>, ..., <i>e</i>. (If no such index exists because 2<i>i</i> &gt; <i>e</i> then the heap property holds for the newly extended range and nothing needs to be done.) By swapping the values <i>a</i>[<i>i</i>] and <i>a</i>[<i>j</i>] the heap property for position <i>i</i> is established. At this point, the only problem is that the heap property might not hold for index <i>j</i>. The sift-down function is applied tail-recursively to index <i>j</i> until the heap property is established for all elements.</p>
+<p>The sift-down function is fast. In each step it only needs two comparisons and one swap. The index value where it is working doubles in each iteration, so that at most log<sub>2</sub> <i>e</i> steps are required.</p>
+<p>For big heaps and using virtual memory, storing elements in an array according to the above scheme is inefficient: (almost) every level is in a different page. B-heaps are binary heaps that keep subtrees in a single page, reducing the number of pages accessed by up to a factor of ten.</p>
+<p>The operation of merging two binary heaps takes Θ(<i>n</i>) for equal-sized heaps. The best you can do is (in case of array implementation) simply concatenating the two heap arrays and build a heap of the result. A heap on <i>n</i> elements can be merged with a heap on <i>k</i> elements using O(log <i>n</i> log <i>k</i>) key comparisons, or, in case of a pointer-based implementation, in O(log <i>n</i> log <i>k</i>) time. An algorithm for splitting a heap on <i>n</i> elements into two heaps on <i>k</i> and <i>n-k</i> elements, respectively, based on a new view of heaps as an ordered collections of subheaps was presented in. The algorithm requires O(log <i>n</i> * log <i>n</i>) comparisons. The view also presents a new and conceptually simple algorithm for merging heaps. When merging is a common task, a different heap implementation is recommended, such as binomial heaps, which can be merged in O(log <i>n</i>).</p>
+<p>Additionally, a binary heap can be implemented with a traditional binary tree data structure, but there is an issue with finding the adjacent element on the last level on the binary heap when adding an element. This element can be determined algorithmically or by adding extra data to the nodes, called "threading" the tree—instead of merely storing references to the children, we store the inorder successor of the node as well.</p>
+<p>It is possible to modify the heap structure to allow extraction of both the smallest and largest element in <img class="mwe-math-fallback-image-inline tex" alt="O" src="//upload.wikimedia.org/math/f/1/8/f186217753c37b9b9f958d906208506e.png"><img class="mwe-math-fallback-image-inline tex" alt="(\log n)" src="//upload.wikimedia.org/math/d/3/5/d358618227e99a5720f7d5d6c13e4792.png"> time. To do this, the rows alternate between min heap and max heap. The algorithms are roughly the same, but, in each step, one must consider the alternating rows with alternating comparisons. The performance is roughly the same as a normal single direction heap. This idea can be generalised to a min-max-median heap.</p>
+<h2>Derivation of index equations</h2>
+<p>In an array-based heap, the children and parent of a node can be located via simple arithmetic on the node's index. This section derives the relevant equations for heaps with their root at index 0, with additional notes on heaps with their root at index 1.</p>
+<p>To avoid confusion, we'll define the <b>level</b> of a node as its distance from the root, such that the root itself occupies level 0.</p>
+<h3>Child nodes</h3>
+<p>For a general node located at index <img class="mwe-math-fallback-image-inline tex" alt="i" src="//upload.wikimedia.org/math/8/6/5/865c0c0b4ab0e063e5caa3387c1a8741.png"> (beginning from 0), we will first derive the index of its right child, <img class="mwe-math-fallback-image-inline tex" alt="\text{right} = 2i + 2" src="//upload.wikimedia.org/math/7/4/2/742922dcc9255fa13322798777f84ea7.png">.</p>
+<p>Let node <img class="mwe-math-fallback-image-inline tex" alt="i" src="//upload.wikimedia.org/math/8/6/5/865c0c0b4ab0e063e5caa3387c1a8741.png"> be located in level <img class="mwe-math-fallback-image-inline tex" alt="L" src="//upload.wikimedia.org/math/d/2/0/d20caec3b48a1eef164cb4ca81ba2587.png">, and note that any level <img class="mwe-math-fallback-image-inline tex" alt="l" src="//upload.wikimedia.org/math/2/d/b/2db95e8e1a9267b7a1188556b2013b33.png"> contains exactly <img class="mwe-math-fallback-image-inline tex" alt="2^l" src="//upload.wikimedia.org/math/c/0/9/c095463c78ef0972e0ccf653efd26dce.png"> nodes. Furthermore, there are exactly <img class="mwe-math-fallback-image-inline tex" alt="2^{l + 1} - 1" src="//upload.wikimedia.org/math/0/b/7/0b766121dd3bb954ccbccea8f1984f3c.png"> nodes contained in the layers up to and including layer <img class="mwe-math-fallback-image-inline tex" alt="l" src="//upload.wikimedia.org/math/2/d/b/2db95e8e1a9267b7a1188556b2013b33.png"> (think of binary arithmetic; 0111...111 = 1000...000 - 1). Because the root is stored at 0, the <img class="mwe-math-fallback-image-inline tex" alt="k" src="//upload.wikimedia.org/math/8/c/e/8ce4b16b22b58894aa86c421e8759df3.png">th node will be stored at index <img class="mwe-math-fallback-image-inline tex" alt="(k - 1)" src="//upload.wikimedia.org/math/2/2/1/221825347b108bed93476c58a740404c.png">. Putting these observations together yields the following expression for the <b>index of the last node in layer l</b>.</p>
+<p>Let there be <img class="mwe-math-fallback-image-inline tex" alt="j" src="//upload.wikimedia.org/math/3/6/3/363b122c528f54df4a0446b6bab05515.png"> nodes after node <img class="mwe-math-fallback-image-inline tex" alt="i" src="//upload.wikimedia.org/math/8/6/5/865c0c0b4ab0e063e5caa3387c1a8741.png"> in layer L, such that</p>
+<p>Each of these <img class="mwe-math-fallback-image-inline tex" alt="j" src="//upload.wikimedia.org/math/3/6/3/363b122c528f54df4a0446b6bab05515.png"> nodes must have exactly 2 children, so there must be <img class="mwe-math-fallback-image-inline tex" alt="2j" src="//upload.wikimedia.org/math/5/6/3/56386229d290d4d1eab8236d0cfbf1b1.png"> nodes separating <img class="mwe-math-fallback-image-inline tex" alt="i" src="//upload.wikimedia.org/math/8/6/5/865c0c0b4ab0e063e5caa3387c1a8741.png">'s right child from the end of its layer (<img class="mwe-math-fallback-image-inline tex" alt="L + 1" src="//upload.wikimedia.org/math/a/9/e/a9e609c5a34a52fad64ef3b719bcae58.png">).</p>
+<p>As required.</p>
+<p>Noting that the left child of any node is always 1 place before its right child, we get <img class="mwe-math-fallback-image-inline tex" alt="\text{left} = 2i + 1" src="//upload.wikimedia.org/math/a/9/1/a917b85b73b3ba29e8a2fd871a28a443.png">.</p>
+<p>If the root is located at index 1 instead of 0, the last node in each level is instead at index <img class="mwe-math-fallback-image-inline tex" alt="2^{l + 1} - 1" src="//upload.wikimedia.org/math/0/b/7/0b766121dd3bb954ccbccea8f1984f3c.png">. Using this throughout yields <img class="mwe-math-fallback-image-inline tex" alt="\text{left} = 2i" src="//upload.wikimedia.org/math/9/5/e/95e37f2d548b508bf16b83ad16135e5b.png"> and <img class="mwe-math-fallback-image-inline tex" alt="\text{right} = 2i + 1" src="//upload.wikimedia.org/math/1/c/e/1ce9fb3e83d0c586dd710fa6e0bbbcc9.png"> for heaps with their root at 1.</p>
+<h3>Parent node</h3>
+<p>Every node is either the left or right child of its parent, so we know that either of the following is true.</p>
+<ol>
+<li><img class="mwe-math-fallback-image-inline tex" alt="i = 2 \times (\text{parent}) + 1" src="//upload.wikimedia.org/math/d/4/2/d42e3d680e9abb5d3f15cc461c3612c0.png"></li>
+<li><img class="mwe-math-fallback-image-inline tex" alt="i = 2 \times (\text{parent}) + 2" src="//upload.wikimedia.org/math/c/d/b/cdb875d5d458cecb2032f94a8b638161.png"></li>
+</ol>
+<p>Hence,</p>
+<p>Now consider the expression <img class="mwe-math-fallback-image-inline tex" alt="\left\lfloor \dfrac{i - 1}{2} \right\rfloor" src="//upload.wikimedia.org/math/e/c/9/ec95f1eb1a661a7393682eb56991350d.png">.</p>
+<p>If node <img class="mwe-math-fallback-image-inline tex" alt="i" src="//upload.wikimedia.org/math/8/6/5/865c0c0b4ab0e063e5caa3387c1a8741.png"> is a left child, this gives the result immediately, however, it also gives the correct result if node <img class="mwe-math-fallback-image-inline tex" alt="i" src="//upload.wikimedia.org/math/8/6/5/865c0c0b4ab0e063e5caa3387c1a8741.png"> is a right child. In this case, <img class="mwe-math-fallback-image-inline tex" alt="(i - 2)" src="//upload.wikimedia.org/math/5/4/b/54b465d61b8f906ecff540bcff770851.png"> must be even, and hence <img class="mwe-math-fallback-image-inline tex" alt="(i - 1)" src="//upload.wikimedia.org/math/5/b/3/5b3e54e819d62009c3d146a7a12b0d5c.png"> must be odd.</p>
+<p>Therefore, irrespective of whether a node is a left or right child, its parent can be found by the expression:</p>
+<h2>See also</h2>
+<ul>
+<li>Heap</li>
+<li>Heapsort</li>
+</ul>
+<h2>Notes</h2>
+</body>
+</html>

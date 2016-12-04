@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>FIFO---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>FIFO</h1>
+<p><b>FIFO</b> is an acronym for <b>First In, First Out</b>, a method for organizing and manipulating a data buffer, where the oldest (first) entry, or 'head' of the queue, is processed first. It is analogous to processing a queue with first-come, first-served (<b>FCFS</b>) behaviour: where the people leave the queue in the order in which they arrive.</p>
+<p>FCFS is also the jargon term for the FIFO operating system scheduling algorithm, which gives every process CPU time in the order in which it is demanded.</p>
+<p>FIFO's opposite is LIFO, Last-In-First-Out, where the youngest entry or 'top of the stack' is processed first.</p>
+<p>A priority queue is neither FIFO or LIFO but may adopt similar behaviour temporarily or by default.</p>
+<p>Queueing theory encompasses these methods for processing data structures, as well as interactions between strict-FIFO queues.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Computer science
+<ul>
+<li>1.1 Data structure</li>
+<li>1.2 Head or tail first</li>
+<li>1.3 Pipes</li>
+<li>1.4 Disk scheduling</li>
+<li>1.5 Communications and networking</li>
+</ul>
+</li>
+<li>2 Electronics
+<ul>
+<li>2.1 FIFO full/empty</li>
+</ul>
+</li>
+<li>3 See also</li>
+<li>4 Notes and references</li>
+</ul>
+<ul>
+<li>1.1 Data structure</li>
+<li>1.2 Head or tail first</li>
+<li>1.3 Pipes</li>
+<li>1.4 Disk scheduling</li>
+<li>1.5 Communications and networking</li>
+</ul>
+<ul>
+<li>2.1 FIFO full/empty</li>
+</ul>
+<p></p>
+<h2>Computer science</h2>
+<h3>Data structure</h3>
+<p>A typical data structure in the C++ language will look like this:</p>
+<p>WHATSON? e9bd3bca-c5e5-4091-b07a-5cc21b731051</p>
+<pre>
+#include &lt;iostream&gt;
+#include &lt;stdexcept&gt;
+ 
+template &lt;typename T&gt;
+class FIFO
+{
+private:
+ 
+    struct Node
+    {
+        T value;
+        Node *next;
+ 
+        Node() : next (NULL) {}
+ 
+        void set(T newValue, Node *newNext)
+        { 
+            value = newValue;
+            next = newNext;
+        }
+ 
+        void setNext(Node *newNext)
+        {
+            next = newNext;
+        }
+    };
+ 
+    Node *tail;
+    Node *head;
+ 
+public:
+ 
+    FIFO() : tail (NULL), head (NULL) {}
+ 
+    void enqueue(T _value)
+    {
+        Node *newNode = new Node;
+ 
+        newNode-&gt;set(_value, NULL);
+        if (tail == NULL)
+        {
+            tail = newNode;
+        }
+        else
+        {
+            head-&gt;setNext(newNode);
+        }
+        head = newNode;
+    }
+ 
+    Node *dequeue()
+    {
+        if (tail == NULL)
+        {
+           throw std::underflow_error("Nothing to dequeue.");
+        }
+ 
+        Node *result = tail;
+        tail = tail-&gt;next;
+        return result;
+    }
+};
+</pre>
+<p>(For information on the abstract data structure, see Queue. For details of a common implementation, see Circular buffer.)</p>
+<p>Popular Unix systems include a sys/queue.h C/C++ header file which provides macros usable by applications which need to create FIFO queues.</p>
+<h3>Head or tail first</h3>
+<p>Controversy over the terms "head" and "tail" exists in reference to FIFO queues. To many people, items should enter a queue at the tail, remain in the queue until they reach the head and leave the queue from there. This point of view is justified by analogy with queues of people waiting for some kind of service and parallels the use of "front" and "back" in the above example. Other people believe that objects enter a queue at the head and leave at the tail, in the manner of food passing through a snake.</p>
+<h3>Pipes</h3>
+<p>In computing environments that support the pipes and filters model for interprocess communication, a FIFO is another name for a named pipe.</p>
+<h3>Disk scheduling</h3>
+<p>Disk controllers can use the FIFO as a disk scheduling algorithm to determine the order to service disk I/O requests.</p>
+<h3>Communications and networking</h3>
+<p>Communications bridges, switches and routers used in Computer networks use FIFOs to hold data packets en route to their next destination. Typically at least one FIFO structure is used per network connection. Some devices feature multiple FIFOs for simultaneously and independently queuing different types of information.</p>
+<h2>Electronics</h2>
+<p>FIFOs are commonly used in electronic circuits for buffering and flow control which is from hardware to software. In its hardware form, a FIFO primarily consists of a set of read and write pointers, storage and control logic. Storage may be SRAM, flip-flops, latches or any other suitable form of storage. For FIFOs of non-trivial size, a dual-port SRAM is usually used, where one port is dedicated to writing and the other to reading.</p>
+<p>A synchronous FIFO is a FIFO where the same clock is used for both reading and writing. An asynchronous FIFO uses different clocks for reading and writing. Asynchronous FIFOs introduce metastability issues. A common implementation of an asynchronous FIFO uses a Gray code (or any unit distance code) for the read and write pointers to ensure reliable flag generation. One further note concerning flag generation is that one must necessarily use pointer arithmetic to generate flags for asynchronous FIFO implementations. Conversely, one may use either a "leaky bucket" approach or pointer arithmetic to generate flags in synchronous FIFO implementations.</p>
+<p>Examples of FIFO status flags include: full, empty, almost full, almost empty, etc.</p>
+<p>The first known FIFO implemented in electronics was done by Peter Alfke in 1969 at Fairchild Semiconductors. Peter Alfke was later a Director at Xilinx.</p>
+<h3>FIFO full/empty</h3>
+<p>A hardware FIFO is used for synchronization purposes. It is often implemented as a circular queue, and thus has two pointers:</p>
+<ol>
+<li>Read Pointer/Read Address Register</li>
+<li>Write Pointer/Write Address Register</li>
+</ol>
+<p>Read and write addresses are initially both at the first memory location and the FIFO queue is <b>Empty</b>.</p>
+<p>In both cases, the read and write addresses end up being equal. To distinguish between the two situations, a simple and robust solution is to add one extra bit for each read and write address which is inverted each time the address wraps. With this set up, the conditions are:</p>
+<h2>See also</h2>
+<ul>
+<li>LIFO (Last in, first out)</li>
+<li>GIGO (Garbage In, Garbage Out)</li>
+<li>FINO (First in, never out)</li>
+<li>Queueing theory, the study of waiting lines</li>
+<li>Queue (data structure), in computing is an abstract data type</li>
+</ul>
+<h2>Notes and references</h2>
+<ol>
+<li><b>^</b> Kruse, Robert L. (1987) [1984]. <i>Data Structures &amp; Program Design (second edition)</i>. Joan L. Stone, Kenny Beck, Ed O'Dougherty (production process staff workers) (second (hc) textbook ed.). Englewood Cliffs, New Jersey 07632: Prentice-Hall, Inc. div. of Simon &amp; Schuster. p. 150. ISBN 0-13-195884-4. "The definition of a finite sequence immediately makes it possible for us to attempt a definition of a list: A 'list' of terms of type T is simply a finite sequence of elements of the set T. ... The only difference among stacks and queues and more general lists is the <b>operations</b> by which changes or accesses can be made to the list." </li>
+</ol>
+<ul>
+<li>Cummings et al., Simulation and Synthesis Techniques for Asynchronous FIFO Design with Asynchronous Pointer Comparisons, SNUG San Jose 2002</li>
+<li>Ronen Perry &amp; Tal Zarsky, Queues in Law, Iowa Law Review (August 10, 2012)</li>
+</ul>
+</body>
+</html>

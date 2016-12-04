@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>DFA-minimization---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>DFA minimization</h1>
+<p>In automata theory (a branch of computer science), <b>DFA minimization</b> is the task of transforming a given deterministic finite automaton (DFA) into an equivalent DFA that has a minimum number of states. Here, two DFAs are called equivalent if they recognize the same regular language. Several different algorithms accomplishing this task are known and described in standard textbooks on automata theory.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Minimum DFA</li>
+<li>2 Unreachable states</li>
+<li>3 Nondistinguishable states
+<ul>
+<li>3.1 Hopcroft's algorithm</li>
+<li>3.2 Moore's algorithm</li>
+<li>3.3 Brzozowski's algorithm</li>
+</ul>
+</li>
+<li>4 NFA minimization</li>
+<li>5 Notes</li>
+<li>6 References</li>
+<li>7 External links</li>
+</ul>
+<ul>
+<li>3.1 Hopcroft's algorithm</li>
+<li>3.2 Moore's algorithm</li>
+<li>3.3 Brzozowski's algorithm</li>
+</ul>
+<p></p>
+<h2>Minimum DFA</h2>
+<p>For each regular language that can be accepted by a DFA, there exists a <b>minimal automaton</b>, a DFA with a minimum number of states and this DFA is unique (except that states can be given different names.) The minimal DFA ensures minimal computational cost for tasks such as pattern matching.</p>
+<p>There are two classes of states that can be removed/merged from the original DFA without affecting the language it accepts to minimize it.</p>
+<ul>
+<li><b>Unreachable states</b> are those states that are not reachable from the initial state of the DFA, for any input string.</li>
+<li><b>Nondistinguishable states</b> are those that cannot be distinguished from one another for any input string.</li>
+</ul>
+<p>DFA minimization is usually done in three steps, corresponding to the removal/merger of the relevant states. Since the elimination of nondistinguishable states is computationally the most expensive one, it is usually done as the last step.</p>
+<h2>Unreachable states</h2>
+<p>The state <i>p</i> of DFA <i>M=</i>(<i>Q</i>, Σ, δ, <i>q</i><sub><i>0</i></sub>, <i>F</i>) is unreachable if no such string <i>w</i> in ∑ exists for which <i>p=</i>δ(<i>q</i><sub><i>0</i></sub>, <i>w</i>). Reachable states can be obtained with the following algorithm:</p>
+<p>WHATSON? 9aa94757-4d8d-4e25-8273-59de04717380</p>
+<pre>
+let reachable_states:= {q0};
+let new_states:= {q0};
+do {
+    temp := the empty set;
+    for each q in new_states do
+        for all c in ∑ do
+            temp := temp ∪ {p such that p=δ(q,c)};
+        end;
+    end;
+    new_states := temp \ reachable_states;
+    reachable_states := reachable_states ∪ new_states;
+} while(new_states ≠ the empty set);
+unreachable_states := Q \ reachable_states;
+</pre>
+<p>Unreachable states can be removed from the DFA without affecting the language that it accepts.</p>
+<h2>Nondistinguishable states</h2>
+<h3>Hopcroft's algorithm</h3>
+<p>One algorithm for merging the nondistinguishable states of a DFA, due to Hopcroft (1971), is based on partition refinement, partitioning the DFA states into groups by their behavior. These groups represent equivalence classes of the Myhill–Nerode equivalence relation, whereby every two states of the same partition are equivalent if they have the same behavior for all the input sequences. That is, for every two states <i>p</i><sub>1</sub> and <i>p</i><sub>2</sub> that belong to the same equivalence class within the partition P, it will be the case that for every input word w, if one follows the transitions determined by w from the two states <i>p</i><sub>1</sub> and <i>p</i><sub>2</sub> one will either be led to accepting states in both cases or be led to rejecting states in both cases; it should not be possible for w to take <i>p</i><sub>1</sub> to an accepting state and <i>p</i><sub>2</sub> to a rejecting state or vice versa.</p>
+<p>The following pseudocode describes the algorithm:</p>
+<p>WHATSON? 7eea2efc-42cc-4780-ac1a-23ce095b32a6</p>
+<pre>
+P := {F, Q \ F};
+W := {F};
+while (W is not empty) do
+     choose and remove a set A from W
+     for each c in ∑ do
+          let X be the set of states for which a transition on c leads to a state in A
+          for each set Y in P for which X ∩ Y is nonempty and Y \ X is nonempty do
+               replace Y in P by the two sets X ∩ Y and Y \ X
+               if Y is in W
+                    replace Y in W by the same two sets
+               else
+                    if |X ∩ Y| &lt;= |Y \ X|
+                         add X ∩ Y to W
+                    else
+                         add Y \ X to W
+          end;
+     end;
+end;
+</pre>
+<p>The algorithm starts with a partition that is too coarse: every pair of states that are equivalent according to the Myhill–Nerode relation belong to the same set in the partition, but pairs that are inequivalent might also belong to the same set. It gradually refines the partition into a larger number of smaller sets, at each step splitting sets of states into pairs of subsets that are necessarily inequivalent. The initial partition is a separation of the states into two subsets of states that clearly do not have the same behavior as each other: the accepting states and the rejecting states. The algorithm then repeatedly chooses a set A from the current partition and an input symbol c, and splits each of the sets of the partition into two (possibly empty) subsets: the subset of states that lead to A on input symbol c, and the subset of states that do not lead to A. Since A is already known to have different behavior than the other sets of the partition, the subsets that lead to A also have different behavior than the subsets that do not lead to A. When no more splits of this type can be found, the algorithm terminates.</p>
+<p>Lemma. Given a fixed character c and an equivalence class Y that splits into equivalence classes B and C, only one of B or C is necessary to refine the whole partition.</p>
+<p>Example: Suppose we have an equivalence class Y that splits into equivalence classes B and C. Suppose we also have classes D, E, and F; D and E have states with transitions into B on character c, while F has transitions into C on character c. By the Lemma, we can choose either B or C as the distinguisher, let's say B. Then the states of D and E are split by their transitions into B. But F, which doesn't point into B, simply doesn't split during the current iteration of the algorithm; it will be refined by other distinguisher(s).</p>
+<p>Observation. All of B or C is necessary to split referring classes like D, E, and F correctly-- subsets won't do.</p>
+<p>The purpose of the outermost <tt>if</tt> statement (<tt>if Y is in W</tt>) is to patch up W, the set of distinguishers. We see in the previous statement in the algorithm that Y has just been split. If Y is in W, it has just become obsolete as a means to split classes in future iterations. So Y must be replaced by both splits because of the Observation above. If Y is not in W, however, only one of the two splits, not both, needs to be added to W because of the Lemma above. Choosing the smaller of the two splits guarantees that the new addition to W is no more than half the size of Y; this is the core of the Hopcroft algorithm: how it gets its speed, as explained in the next paragraph.</p>
+<p>The worst case running time of this algorithm is <i>O</i>(<i>ns</i> log <i>n</i>), where n is the number of states and s is the size of the alphabet. This bound follows from the fact that, for each of the <i>ns</i> transitions of the automaton, the sets drawn from Q that contain the target state of the transition have sizes that decrease relative to each other by a factor of two or more, so each transition participates in <i>O</i>(log <i>n</i>) of the splitting steps in the algorithm. The partition refinement data structure allows each splitting step to be performed in time proportional to the number of transitions that participate in it. This remains the most efficient algorithm known for solving the problem, and for certain distributions of inputs its average-case complexity is even better, <i>O</i>(<i>n</i> log log <i>n</i>).</p>
+<p>Once Hopcroft's algorithm has been used to group the states of the input DFA into equivalence classes, the minimum DFA can be constructed by forming one state for each equivalence class. If S is a set of states in P, s is a state in S, and c is an input character, then the transition in the minimum DFA from the state for S, on input c, goes to the set containing the state that the input automaton would go to from state s on input c. The initial state of the minimum DFA is the one containing the initial state of the input DFA, and the accepting states of the minimum DFA are the ones whose members are accepting states of the input DFA.</p>
+<h3>Moore's algorithm</h3>
+<p>Moore's algorithm for DFA minimization is due to Edward F. Moore (1956). Like Hopcroft's algorithm, it maintains a partition that starts off separating the accepting from the rejecting states, and repeatedly refines the partition until no more refinements can be made. At each step, it replaces the current partition with the coarsest common refinement of <i>s</i> + 1 partitions, one of which is the current one and the others are the preimages of the current partition under the transition functions for each of the input symbols. The algorithm terminates when this replacement does not change the current partition. Its worst-case time complexity is <i>O</i>(<i>n</i><i>s</i>): each step of the algorithm may be performed in time <i>O</i>(<i>ns</i>) using a variant of radix sort to reorder the states so that states in the same set of the new partition are consecutive in the ordering, and there are at most n steps since each one but the last increases the number of sets in the partition. The instances of the DFA minimization problem that cause the worst-case behavior are the same as for Hopcroft's algorithm. The number of steps that the algorithm performs can be much smaller than n, so on average (for constant s) its performance is <i>O</i>(<i>n</i> log <i>n</i>) or even <i>O</i>(<i>n</i> log log <i>n</i>) depending on the random distribution on automata chosen to model the algorithm's average-case behavior.</p>
+<h3>Brzozowski's algorithm</h3>
+<p>As Brzozowski (1963) observed, reversing the edges of a DFA produces a non-deterministic finite automaton (NFA) for the reversal of the original language, and converting this NFA to a DFA using the standard powerset construction (constructing only the reachable states of the converted DFA) leads to a minimal DFA for the same reversed language. Repeating this reversal operation a second time produces a minimal DFA for the original language. The worst-case complexity of Brzozowski's algorithm is exponential, as there are regular languages for which the minimal DFA of the reversal is exponentially larger than the minimal DFA of the language, but it frequently performs better than this worst case would suggest.</p>
+<h2>NFA minimization</h2>
+<p>While the above procedures work for DFAs, the method of partitioning does not work for non-deterministic finite automata (NFAs). While an exhaustive search may minimize an NFA, finding a polynomial-time algorithm to minimize NFAs is impossible, unless the unsolved conjecture P=PSPACE in computational complexity theory is true. This conjecture is widely believed to be false.</p>
+<h2>Notes</h2>
+<ol>
+<li><b>^</b> Hopcroft, Ullman (1979)</li>
+<li><b>^</b> Hopcroft, Motwani &amp; Ullman (2001), Section 4.4.3, "Minimization of DFA's", p. 159.</li>
+<li><b>^</b> Based on Corollary 10 of Knuutila (2001)</li>
+<li><b>^</b> Hopcroft (1971); Aho, Hopcroft &amp; Ullman (1974)</li>
+<li>^    Berstel et al. (2010).</li>
+<li><b>^</b> For instance, the language of binary strings whose nth symbol is a one requires only <i>n</i> + 1 states, but its reversal requires 2 states. Leiss (1981) provides a ternary n-state DFA whose reversal requires 2 states, the maximum possible. For additional examples and the observation of the connection between these examples and the worst-case analysis of Brzozowski's algorithm, see Câmpeanu et al. (2001).</li>
+<li><b>^</b> Hopcroft, Motwani &amp; Ullman (2001), Section 4.4, Figure labeled "Minimizing the States of an NFA", p. 163.</li>
+</ol>
+</body>
+</html>

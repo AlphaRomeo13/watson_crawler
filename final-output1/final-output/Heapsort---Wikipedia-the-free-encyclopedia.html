@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Heapsort---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Heapsort</h1>
+<p>In computer programming, <b>heapsort</b> is a comparison-based sorting algorithm. Heapsort can be thought of as an improved selection sort: like that algorithm, it divides its input into a sorted and an unsorted region, and it iteratively shrinks the unsorted region by extracting the smallest element and moving that to the sorted region. The improvement consists of the use of a heap data structure rather than a linear-time search to find the minimum.</p>
+<p>Although somewhat slower in practice on most machines than a well-implemented quicksort, it has the advantage of a more favorable worst-case O(<i>n</i> log <i>n</i>) runtime. Heapsort is an in-place algorithm, but it is not a stable sort.</p>
+<p>Heapsort was invented by J. W. J. Williams in 1964. This was also the birth of the heap, presented already by Williams as a useful data structure in its own right. In the same year, R. W. Floyd published an improved version that could sort an array in-place, continuing his earlier research into the treesort algorithm.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Overview
+<ul>
+<li>1.1 Pseudocode</li>
+</ul>
+</li>
+<li>2 Variations
+<ul>
+<li>2.1 Bottom-up heapsort</li>
+</ul>
+</li>
+<li>3 Comparison with other sorts</li>
+<li>4 Example</li>
+<li>5 Notes</li>
+<li>6 References</li>
+<li>7 External links</li>
+</ul>
+<ul>
+<li>1.1 Pseudocode</li>
+</ul>
+<ul>
+<li>2.1 Bottom-up heapsort</li>
+</ul>
+<p></p>
+<h2>Overview</h2>
+<p>The heapsort algorithm can be divided into two parts.</p>
+<p>In the first step, a heap is built out of the data. The heap is often placed in an array with the layout of a complete binary tree. The complete binary tree maps the binary tree structure into the array indices; each array index represents a node; the index of the node's parent, left child branch, or right child branch are simple expressions. For a zero-based array, the root node is stored at index 0; if <code>i</code> is the index of the current node, then</p>
+<p>WHATSON? 9fee76d4-5877-420c-8ef5-dc9af2c2378f</p>
+<pre>
+  iParent     = floor((i-1) / 2)
+  iLeftChild  = 2*i + 1
+  iRightChild = 2*i + 2
+</pre>
+<p>In the second step, a sorted array is created by repeatedly removing the largest element from the heap (the root of the heap), and inserting it into the array. The heap is updated after each removal to maintain the heap. Once all objects have been removed from the heap, the result is a sorted array.</p>
+<p>Heapsort can be performed in place. The array can be split into two parts, the sorted array and the heap. The storage of heaps as arrays is diagrammed here. The heap's invariant is preserved after each extraction, so the only cost is that of extraction.</p>
+<h3>Pseudocode</h3>
+<p>The following is the "simple" way to implement the algorithm in pseudocode. Arrays are <b>zero-based</b> and <i>swap</i> is used to exchange two elements of the array. Movement 'down' means from the root towards the leaves, or from lower indices to higher. Note that during the sort, the largest element is at the root of the heap at a[0], while at the end of the sort, the largest element is in a[end].</p>
+<p>WHATSON? 4a599f55-a9ca-4462-ac7f-5f134a22b982</p>
+<pre>
+<b>function</b> heapsort(a, count) <b>is</b>
+    <b>input:</b> an unordered array <i>a</i> of length <i>count</i>
+ 
+    <i>(Build the heap in array a so that largest value is at the root)</i>
+    heapify(a, count)
+
+    <i>(The following loop maintains the invariants that a[0:end] is a heap and every element</i>
+     <i>beyond end is greater than everything before it (so a[end:count] is in sorted order))</i>
+    end ← count - 1
+    <b>while</b> end &gt; 0 <b>do</b>
+        <i>(a[0] is the root and largest value. The swap moves it in front of the sorted elements.)</i>
+        swap(a[end], a[0])
+        <i>(the heap size is reduced by one)</i>
+        end ← end - 1
+        <i>(the swap ruined the heap property, so restore it)</i>
+        siftDown(a, 0, end)
+</pre>
+<p>The sorting routine uses two subroutines, <i>heapify</i> and <i>siftDown</i>. The former is the common in-place heap construction routine, while the second is a common subroutine for implementing <i>heapify</i>.</p>
+<p>WHATSON? be4d4cae-8471-4683-b76a-3d08e030d972</p>
+<pre>
+<i>(Put elements of 'a' in heap order, in-place)</i>
+<b>function</b> heapify(a, count) <b>is</b>
+    <i>(start is assigned the index in 'a' of the last parent node)</i>
+    <i>(the last element in a 0-based array is at index count-1; find the parent of that element)</i>
+    start ← floor ((count - 2) / 2)
+    
+    <b>while</b> start ≥ 0 <b>do</b>
+        <i>(sift down the node at index 'start' to the proper place such that all nodes below</i>
+        <i> the start index are in heap order)</i>
+        siftDown(a, start, count - 1)
+        <i>(go to the next parent node)</i>
+        start ← start - 1
+    <i>(after sifting down the root all nodes/elements are in heap order)</i>
+
+<i>(Repair the heap whose root element is at index 'start', assuming the heaps rooted at its children are valid)</i>
+<b>function</b> siftDown(a, start, end) <b>is</b>
+    root ← start
+
+    <b>while</b> root * 2 + 1 ≤ end <b>do</b>    <i>(While the root has at least one child)</i>
+        child ← root * 2 + 1       <i>(Left child)</i>
+        swap ← root                <i>(Keeps track of child to swap with)</i>
+
+        <b>if</b> a[swap] &lt; a[child]
+            swap ← child
+        <i>(If there is a right child and that child is greater)</i>
+        <b>if</b> child+1 ≤ end <b>and</b> a[swap] &lt; a[child+1]
+            swap ← child + 1
+        <b>if</b> swap = root
+            <i>(The root holds the largest element. Since we assume the heaps rooted at the</i>
+            <i> children are valid, this means that we are done.)</i>
+            <b>return</b>
+        swap(a[root], a[swap])
+        root ← swap            <i>(repeat to continue sifting down the child now)</i>
+</pre>
+<p>The heapify function can be thought of as building a heap from the bottom up, successively shifting downward to establish the heap property. An alternative version (shown below) that builds the heap top-down and sifts upward may be conceptually simpler to grasp. This "siftUp" version can be visualized as starting with an empty heap and successively inserting elements, whereas the "siftDown" version given above treats the entire input array as a full, "broken" heap and "repairs" it starting from the last non-trivial sub-heap (that is, the last parent node).</p>
+<p>Also, the "siftDown" version of heapify has <i>O</i>(<i>n</i>) time complexity, while the "siftUp" version given below has <i>O</i>(<i>n</i> log <i>n</i>) time complexity due to its equivalence with inserting each element, one at a time, into an empty heap. This may seem counter-intuitive since, at a glance, it is apparent that the former only makes half as many calls to its logarithmic-time sifting function as the latter; i.e., they seem to differ only by a constant factor, which never has an impact on asymptotic analysis.</p>
+<p>To grasp the intuition behind this difference in complexity, note that the number of swaps that may occur during any one siftUp call <i>increases</i> with the depth of the node on which the call is made. The crux is that there are many (exponentially many) more "deep" nodes than there are "shallow" nodes in a heap, so that siftUp may have its full logarithmic running-time on the approximately linear number of calls made on the nodes at or near the "bottom" of the heap. On the other hand, the number of swaps that may occur during any one siftDown call <i>decreases</i> as the depth of the node on which the call is made increases. Thus, when the "siftDown" heapify begins and is calling siftDown on the bottom and most numerous node-layers, each sifting call will incur, at most, a number of swaps equal to the "height" (from the bottom of the heap) of the node on which the sifting call is made. In other words, about half the calls to siftDown will have at most only one swap, then about a quarter of the calls will have at most two swaps, etc.</p>
+<p>The heapsort algorithm itself has <i>O</i>(<i>n</i> log <i>n</i>) time complexity using either version of heapify.</p>
+<p>WHATSON? f6968fa4-b8c6-4223-bc69-bee6fe7217b1</p>
+<pre>
+ <b>function</b> heapify(a,count) is
+     <i>(end is assigned the index of the first (left) child of the root)</i>
+     end := 1
+     
+     <b>while</b> end &lt; count
+         <i>(sift up the node at index end to the proper place such that all nodes above</i>
+         <i> the end index are in heap order)</i>
+         siftUp(a, 0, end)
+         end := end + 1
+     <i>(after sifting up the last node all nodes are in heap order)</i>
+ 
+ <b>function</b> siftUp(a, start, end) <b>is</b>
+     <b>input: </b> <i>start represents the limit of how far up the heap to sift.</i>
+                   <i>end is the node to sift up.</i>
+     child := end 
+     <b>while</b> child &gt; start
+         parent := floor((child-1) / 2)
+         <b>if</b> a[parent] &lt; a[child] <b>then</b> <i>(out of max-heap order)</i>
+             swap(a[parent], a[child])
+             child := parent <i>(repeat to continue sifting up the parent now)</i>
+         <b>else</b>
+             <b>return</b>
+</pre>
+<h2>Variations</h2>
+<ul>
+<li>The most important variation to the simple variant is an improvement by Floyd that uses only one comparison in each siftup run, which must be followed by a siftdown for the original child. The worst-case number of comparisons during the Floyd's heap-construction phase of Heapsort is known to be equal to 2N − 2s<sub>2</sub>(N) − e<sub>2</sub>(N), where s<sub>2</sub>(N) is the sum of all digits of the binary representation of N and e<sub>2</sub>(N) is the exponent of 2 in the prime factorization of N.</li>
+<li>Ternary heapsort uses a ternary heap instead of a binary heap; that is, each element in the heap has three children. It is more complicated to program, but does a constant number of times fewer swap and comparison operations. This is because each step in the shift operation of a ternary heap requires three comparisons and one swap, whereas in a binary heap two comparisons and one swap are required. The ternary heap does two steps in less time than the binary heap requires for three steps, which multiplies the index by a factor of 9 instead of the factor 8 of three binary steps.</li>
+<li>The <b>smoothsort</b> algorithm is a variation of heapsort developed by Edsger Dijkstra in 1981. Like heapsort, smoothsort's upper bound is O(<i>n</i> log <i>n</i>). The advantage of smoothsort is that it comes closer to O(<i>n</i>) time if the input is already sorted to some degree, whereas heapsort averages O(<i>n</i> log <i>n</i>) regardless of the initial sorted state. Due to its complexity, smoothsort is rarely used.</li>
+<li>Levcopoulos and Petersson describe a variation of heapsort based on a Cartesian tree that does not add an element to the heap until smaller values on both sides of it have already been included in the sorted output. As they show, this modification can allow the algorithm to sort more quickly than O(<i>n</i> log <i>n</i>) for inputs that are already nearly sorted.</li>
+</ul>
+<h3>Bottom-up heapsort</h3>
+<p>Bottom-up heapsort was announced as beating quicksort (with median-of-three pivot selection) on arrays of size ≥16000. This version of heapsort keeps the linear-time heap-building phase, but changes the second phase, as follows. Ordinary heapsort extracts the top of the heap, <i>a</i>[0], and fills the gap it leaves with <i>a</i>[<i>end</i>], then sifts this latter element down the heap; but this element comes from the lowest level of the heap, meaning it is one of the smallest elements in the heap, so the sift-down will likely take many steps to move it back down. Bottom-up heapsort instead finds the element to fill the gap, by tracing a path of maximum children down the heap as before, but then sifts that element <i>up</i> the heap, which is likely to take fewer steps.</p>
+<p>WHATSON? dc4f6413-e826-4164-82d3-e530a140cf29</p>
+<pre>
+<b>function</b> leafSearch(a, end, i) <b>is</b>
+    j ← i
+    <b>while</b> 2×j ≤ end <b>do</b>
+        <i>(Determine which of j's children is the greater)</i>
+        <b>if</b> 2×j+1 &lt; end <b>and</b> a[2×j+1] &gt; a[2×j] <b>then</b>
+            j ← 2×j+1
+        <b>else</b>
+            j ← 2×j
+    <b>return</b> j
+</pre>
+<p>The return value of the <code>leafSearch</code> is used in a replacement for the <code>siftDown</code> routine:</p>
+<p>WHATSON? 1e141333-87a8-4733-8742-eec57f05c69a</p>
+<pre>
+<b>function</b> siftDown(a, end, i) <b>is</b>
+    j ← leafSearch(a, end, i)
+    <b>while</b> a[i] &gt; a[j] <b>do</b>
+        j ← parent(j)
+    x ← a[j]
+    a[j] ← a[i]
+    <b>while</b> j &gt; i <b>do</b>
+        swap x, a[parent(j)]
+        j ← parent(j)
+</pre>
+<p>Bottom-up heapsort requires only 1.5 <i>n</i> log <i>n</i> + <i>O</i>(<i>n</i>) comparisons in the worst case and <i>n</i> log <i>n</i> + <i>O</i>(1) on average. A 2008 re-evaluation of this algorithm showed it to be no faster than ordinary heapsort, though, presumably because modern branch prediction nullifies the cost of the comparisons that bottom-up heapsort manages to avoid.</p>
+<h2>Comparison with other sorts</h2>
+<p>Heapsort primarily competes with quicksort, another very efficient general purpose nearly-in-place comparison-based sort algorithm.</p>
+<p>Quicksort is typically somewhat faster due to some factors, but the worst-case running time for quicksort is O(<i>n</i>), which is unacceptable for large data sets and can be deliberately triggered given enough knowledge of the implementation, creating a security risk. See quicksort for a detailed discussion of this problem and possible solutions.</p>
+<p>Thus, because of the O(<i>n</i> log <i>n</i>) upper bound on heapsort's running time and constant upper bound on its auxiliary storage, embedded systems with real-time constraints or systems concerned with security often use heapsort.</p>
+<p>Heapsort also competes with merge sort, which has the same time bounds. Merge sort requires Ω(n) auxiliary space, but heapsort requires only a constant amount. Heapsort typically runs faster in practice on machines with small or slow data caches. On the other hand, merge sort has several advantages over heapsort:</p>
+<ul>
+<li>Merge sort on arrays has considerably better data cache performance, often outperforming heapsort on modern desktop computers because merge sort frequently accesses contiguous memory locations (good locality of reference); heapsort references are spread throughout the heap.</li>
+<li>Heapsort is not a stable sort; merge sort is stable.</li>
+<li>Merge sort parallelizes well and can achieve close to linear speedup with a trivial implementation; heapsort is not an obvious candidate for a parallel algorithm.</li>
+<li>Merge sort can be adapted to operate on <b>singly</b> linked lists with O(1) extra space. Heapsort can be adapted to operate on <b>doubly</b> linked lists with only O(1) extra space overhead.</li>
+<li>Merge sort is used in external sorting; heapsort is not. Locality of reference is the issue.</li>
+</ul>
+<p>Introsort is an alternative to heapsort that combines quicksort and heapsort to retain advantages of both: worst case speed of heapsort and average speed of quicksort.</p>
+<h2>Example</h2>
+<p>Let { 6, 5, 3, 1, 8, 7, 2, 4 } be the list that we want to sort from the smallest to the largest. (NOTE, for 'Building the Heap' step: Larger nodes don't stay below smaller node parents. They are swapped with parents, and then recursively checked if another swap is needed, to keep larger numbers above smaller numbers on the heap binary tree.)</p>
+<p><b>1. Build the heap</b></p>
+<p><b>2. Sorting.</b></p>
+<h2>Notes</h2>
+<ol>
+<li><b>^</b> http://dx.doi.org/10.1006/jagm.1993.1031</li>
+<li><b>^</b> Skiena, Steven (2008). <i>The Algorithm Design Manual</i>. Springer. p. 109. doi:10.1007/978-1-84800-070-4_4. "[H]eapsort is nothing but an implementation of selection sort using the right data structure." </li>
+<li><b>^</b> Williams 1964</li>
+<li>^   Brass, Peter (2008). <i>Advanced Data Structures</i>. Cambridge University Press. p. 209. ISBN 9780521880374. </li>
+<li><b>^</b> "Priority Queues". Retrieved 24 May 2011. </li>
+<li><b>^</b> Suchenek, Marek A. (2012), <i>Elementary Yet Precise Worst-Case Analysis of Floyd's Heap-Construction Program</i>, <i>Fundamenta Informaticae</i> (IOS Press) <b>120</b> (1): 75–92, doi:10.3233/FI-2012-751 </li>
+<li><b>^</b> "Data Structures Using Pascal", 1991, page 405, gives a ternary heapsort as a student exercise. "Write a sorting routine similar to the heapsort except that it uses a ternary heap."</li>
+<li><b>^</b> http://www.cs.utexas.edu/users/EWD/ewd07xx/EWD796a.PDF</li>
+<li><b>^</b> http://www.cs.utexas.edu/~EWD/transcriptions/EWD07xx/EWD796a.html</li>
+<li><b>^</b> Levcopoulos, Christos; Petersson, Ola (1989), "Heapsort—Adapted for Presorted Files", <i>WADS '89: Proceedings of the Workshop on Algorithms and Data Structures</i>, Lecture Notes in Computer Science <b>382</b>, London, UK: Springer-Verlag, pp. 499–509, doi:10.1007/3-540-51542-9_41 .</li>
+<li><b>^</b> Wegener, Ingo (1993). "Bottom-up heapsort, a new variant of heapsort beating, on an average, quicksort (if n is not very small)". <i>Theoretical Computer Science</i> <b>118</b> (1): 81–98. </li>
+<li>^   Fleischer, Rudolf (1994). "A tight lower bound for the worst case of Bottom-Up-Heapsort". <i>Algorithmica</i> <b>11</b> (2): 104–115. </li>
+<li><b>^</b> Mehlhorn, Kurt; Sanders, Peter (2008). <i>Algorithms and data structures: The basic toolbox</i>. Springer. p. 142. </li>
+</ol>
+</body>
+</html>

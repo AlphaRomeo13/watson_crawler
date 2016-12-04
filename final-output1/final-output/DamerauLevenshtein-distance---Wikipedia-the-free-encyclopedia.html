@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>DamerauLevenshtein-distance---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Damerau–Levenshtein distance</h1>
+<p>In information theory and computer science, the <b>Damerau–Levenshtein distance</b> (named after Frederick J. Damerau and Vladimir I. Levenshtein) is a distance (string metric) between two strings, i.e., finite sequence of symbols, given by counting the minimum number of operations needed to transform one string into the other, where an operation is defined as an insertion, deletion, or substitution of a single character, or a transposition of two <b>adjacent</b> characters. In his seminal paper, Damerau not only distinguished these four edit operations but also stated that they correspond to more than 80% of all human misspellings. Damerau's paper considered only misspellings that could be corrected with at most one edit operation.</p>
+<p>The corresponding edit distance, i.e., dealing with multiple edit operations, known as the Levenshtein distance, was introduced by Levenshtein, but it did not include transpositions in the set of basic operations. The name <i>Damerau–Levenshtein distance</i> is used to refer to the edit distance that allows multiple edit operations including transpositions, although it is not clear whether the term <i>Damerau–Levenshtein distance</i> is sometimes used in some sources as to take into account <i>non-adjacent</i> transpositions or not.</p>
+<p>While the original motivation was to measure distance between human misspellings to improve applications such as spell checkers, Damerau–Levenshtein distance has also seen uses in biology to measure the variation between DNA.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Definition</li>
+<li>2 Algorithm
+<ul>
+<li>2.1 Optimal string alignment distance</li>
+<li>2.2 Distance with adjacent transpositions</li>
+</ul>
+</li>
+<li>3 Applications
+<ul>
+<li>3.1 DNA</li>
+<li>3.2 Fraud detection</li>
+</ul>
+</li>
+<li>4 See also</li>
+<li>5 References</li>
+<li>6 Further reading</li>
+</ul>
+<ul>
+<li>2.1 Optimal string alignment distance</li>
+<li>2.2 Distance with adjacent transpositions</li>
+</ul>
+<ul>
+<li>3.1 DNA</li>
+<li>3.2 Fraud detection</li>
+</ul>
+<p></p>
+<h2>Definition</h2>
+<p>The Damerau-Levenshtein distance between two strings <img class="mwe-math-fallback-image-inline tex" alt="a" src="//upload.wikimedia.org/math/0/c/c/0cc175b9c0f1b6a831c399e269772661.png"> and <img class="mwe-math-fallback-image-inline tex" alt="b" src="//upload.wikimedia.org/math/9/2/e/92eb5ffee6ae2fec3ad71c777531578f.png"> is given by <img class="mwe-math-fallback-image-inline tex" alt="d_{a,b}(|a|,|b|)" src="//upload.wikimedia.org/math/6/3/0/630ff77bf83954cfe4e710ff5a3ba928.png"> where:</p>
+<p><img class="mwe-math-fallback-image-inline tex" alt="\qquad d_{a,b}(i,j) = \begin{cases}
+  \max(i,j) &amp; \text{ if} \min(i,j)=0, \\
+\min \begin{cases}
+          d_{a,b}(i-1,j) + 1 \\
+          d_{a,b}(i,j-1) + 1 \\
+          d_{a,b}(i-1,j-1) + 1_{(a_i \neq b_j)} \\
+          d_{a,b}(i-2,j-2) + 1 
+       \end{cases} &amp; \text{ if } i,j &gt; 1 \text{ and } a_i = b_{j-1} \text{ and } a_{i-1} = b_j \\
+  \min \begin{cases}
+          d_{a,b}(i-1,j) + 1 \\
+          d_{a,b}(i,j-1) + 1 \\
+          d_{a,b}(i-1,j-1) + 1_{(a_i \neq b_j)}
+       \end{cases} &amp; \text{ otherwise.}
+\end{cases}" src="//upload.wikimedia.org/math/4/e/9/4e9f6fb468fd977d50b773ccbafb5ff9.png"></p>
+<p>where <img class="mwe-math-fallback-image-inline tex" alt="1_{(a_i \neq b_j)}" src="//upload.wikimedia.org/math/7/b/6/7b6e29afdb8c0ec65faabb63dd881f84.png"> is the indicator function equal to 0 when <img class="mwe-math-fallback-image-inline tex" alt="a_i = b_j" src="//upload.wikimedia.org/math/a/b/e/abe230c6676cfc34157d05840a678877.png"> and equal to 1 otherwise.</p>
+<h2>Algorithm</h2>
+<p>Presented here are two algorithms: the first, simpler one, computes what is known as the optimal string alignment (sometimes called the <i>restricted edit distance</i>), while the second one computes the Damerau–Levenshtein distance with adjacent transpositions. Adding transpositions adds significant complexity. The difference between the two algorithms consists in that the <i>optimal string alignment algorithm</i> computes the number of edit operations needed to make the strings equal under the condition that <b>no substring is edited more than once</b>, whereas the second one presents no such restriction.</p>
+<p>Take for example the edit distance between <b>CA</b> and <b>ABC</b>. The Damerau–Levenshtein distance LD(<b>CA</b>,<b>ABC</b>) = 2 because <b>CA</b> → <b>AC</b> → <b>ABC</b>, but the optimal string alignment distance OSA(<b>CA</b>,<b>ABC</b>) = 3 because if the operation <b>CA</b> → <b>AC</b> is used, it is not possible to use <b>AC</b> → <b>ABC</b> because that would require the substring to be edited more than once, which is not allowed in OSA, and therefore the shortest sequence of operations is <b>CA</b> → <b>A</b> → <b>AB</b> → <b>ABC</b>. Note that for the optimal string alignment distance, the triangle inequality does not hold: OSA(<b>CA</b>,<b>AC</b>) + OSA(<b>AC</b>,<b>ABC</b>) &lt; OSA(<b>CA</b>,<b>ABC</b>), and so it is not a true metric.</p>
+<h3>Optimal string alignment distance</h3>
+<p>Firstly, let us consider a direct extension of the formula used to calculate Levenshtein distance. Below is pseudocode for a function <i>OptimalStringAlignmentDistance</i> that takes two strings, <i>str1</i> of length <i>lenStr1</i>, and <i>str2</i> of length <i>lenStr2</i>, and computes the optimal string alignment distance between them:</p>
+<p>WHATSON? 72096372-33a0-4fe8-a0ba-abb0ecdec306</p>
+<pre>
+ int OptimalStringAlignmentDistance(char str1[1..lenStr1], char str2[1..lenStr2])
+    // d is a table with lenStr1+1 rows and lenStr2+1 columns
+    declare int d[0..lenStr1, 0..lenStr2]
+ 
+    // i and j are used to iterate over str1 and str2
+    declare int i, j, cost
+ 
+    // for loop is inclusive, need table 1 row/column larger than string length
+    for i from 0 to lenStr1
+        d[i, 0] := i
+    for j from 1 to lenStr2
+        d[0, j] := j
+ 
+    // pseudo-code assumes string indices start at 1, not 0
+    // if implemented, make sure to start comparing at 1st letter of strings
+    for i from 1 to lenStr1
+        for j from 1 to lenStr2
+            if str1[i] = str2[j] then cost := 0
+                                 else cost := 1
+            d[i, j] := minimum(
+                                 d[i-1, j  ] + 1,     // deletion
+                                 d[i  , j-1] + 1,     // insertion
+                                 d[i-1, j-1] + cost   // substitution
+                             )
+            if(i &gt; 1 and j &gt; 1 and str1[i] = str2[j-1] and str1[i-1] = str2[j]) then
+                d[i, j] := minimum(
+                                 d[i, j],
+                                 d[i-2, j-2] + cost   // transposition
+                              )                        
+ 
+    return d[lenStr1, lenStr2]
+</pre>
+<p>Basically this is the algorithm to compute Levenshtein distance with one additional recurrence:</p>
+<p>WHATSON? cb25f894-eec9-4317-9a88-a64c4b50d6e4</p>
+<pre>
+            if(i &gt; 1 and j &gt; 1 and str1[i] = str2[j-1] and str1[i-1] = str2[j]) then
+                d[i, j] := minimum(
+                                 d[i, j],
+                                 d[i-2, j-2] + cost   // transposition
+                              )
+</pre>
+<h3>Distance with adjacent transpositions</h3>
+<p>Here is the second algorithm that computes the true Damerau–Levenshtein distance with adjacent transpositions (ActionScript 3.0); this function requires as an additional parameter the size of the alphabet (<i>C</i>), so that all entries of the arrays are in 0..(<i>C</i>−1):</p>
+<p>WHATSON? c258515c-69e4-4216-acdf-6d64c87fc560</p>
+<pre>
+static public function damerauLevenshteinDistance(a:Array, b:Array, C:uint):uint
+{
+    // "infinite" distance is just the max possible distance
+    var INF:uint = a.length + b.length;
+ 
+    // make and initialize the character array indices            
+    var DA:Array = new Array(C);
+    for (var k:uint = 0; k &lt; C; ++k) DA[k]=0;
+ 
+    // make the distance matrix H[-1..a.length][-1..b.length]
+    var H:matrix = new matrix(a.length+2,b.length+2);
+ 
+    // initialize the left and top edges of H
+    H[-1][-1] = INF;
+    for (var i:uint = 0; i &lt;= a.length; ++i)
+    {
+        H[i][-1] = INF;
+        H[i][ 0] = i;
+    }
+    for (var j:uint = 0; j &lt;= b.length; ++j)
+    {
+        H[-1][j] = INF;
+        H[ 0][j] = j;
+    }
+ 
+    // fill in the distance matrix H
+    // look at each character in a
+    for (var i:uint = 1; i &lt;= a.length; ++i)
+    {
+        var DB:uint = 0;
+        // look at each character in b
+        for (var j:uint = 1; j &lt;= b.length; ++j)
+        {
+            var i1:uint = DA[b[j-1]];
+            var j1:uint = DB;
+            var cost:uint;
+            if (a[i-1] == b[j-1])
+               {
+                 cost = 0;
+                 DB   = j;
+               }
+            else
+               cost = 1;
+            H[i][j] = Math.min(    H[i-1 ][j-1 ] + cost,  // substitution
+                                   H[i   ][j-1 ] + 1,     // insertion
+                                   H[i-1 ][j   ] + 1,     // deletion
+                                   H[i1-1][j1-1] + (i-i1-1) + 1 + (j-j1-1));
+        }
+        DA[a[i-1]] = i;
+    }
+    return H[a.length][b.length];
+}
+</pre>
+<p>To devise a proper algorithm to calculate unrestricted Damerau–Levenshtein distance note that there always exists an optimal sequence of edit operations, where once-transposed letters are never modified afterwards. (This holds as long as the cost of a transposition, <img class="mwe-math-fallback-image-inline tex" alt="W_T" src="//upload.wikimedia.org/math/e/5/a/e5a69e5a2f9cfec4ee1945c6beab59ef.png">, is at least the average of the cost of an insertion and deletion, i.e., <img class="mwe-math-fallback-image-inline tex" alt="2W_T \ge W_I+W_D" src="//upload.wikimedia.org/math/e/a/f/eaf27c27e3f2dc0a0c867b1c7fac2007.png">.) Thus, we need to consider only two symmetric ways of modifying a substring more than once: (1) transpose letters and insert an arbitrary number of characters between them, or (2) delete a sequence of characters and transpose letters that become adjacent after deletion. The straightforward implementation of this idea gives an algorithm of cubic complexity: <img class="mwe-math-fallback-image-inline tex" alt="O\left (M \cdot N \cdot \max(M, N) \right )" src="//upload.wikimedia.org/math/0/8/2/082e09e110ae1cef1f508873cdfd4339.png">, where <i>M</i> and <i>N</i> are string lengths. Using the ideas of Lowrance and Wagner, this naive algorithm can be improved to be <img class="mwe-math-fallback-image-inline tex" alt="O\left (M \cdot N \right)" src="//upload.wikimedia.org/math/9/7/7/9774c67d6c39eae5ba6c2c991786e81b.png"> in the worst case.</p>
+<p>It is interesting that the bitap algorithm can be modified to process transposition. See the information retrieval section of for an example of such an adaptation.</p>
+<h2>Applications</h2>
+<p>Damerau–Levenshtein distance plays an important role in natural language processing. In natural languages, strings are short and the number of errors (misspellings) rarely exceeds 2. In such circumstances, restricted and real edit distance differ very rarely. Oommen and Loke even mitigated the limitation of the restricted edit distance by introducing <i>generalized transpositions</i>. Nevertheless, one must remember that the restricted edit distance usually does not satisfy the triangle inequality and, thus, cannot be used with metric trees.</p>
+<h3>DNA</h3>
+<p>Since DNA frequently undergoes insertions, deletions, substitutions, and transpositions, and each of these operations occurs on approximately the same timescale, the Damerau–Levenshtein distance is an appropriate metric of the variation between two strands of DNA. More common in DNA, protein, and other bioinformatics related alignment tasks is the use of closely related algorithms such as Needleman–Wunsch algorithm or Smith–Waterman algorithm.</p>
+<h3>Fraud detection</h3>
+<p>The algorithm can be used with any set of words, like vendor names. Since entry is manual by nature there is a risk of entering false vendor. A fraudster employee may enter one real vendor such as "Rich Heir Estate Services" versus a false vendor "Rich Hier State Services". The fraudster would then create a false bank account and have the company route checks to the real vendor and false vendor. The Damerau–Levenshtein algorithm will detect the transposed and dropped letter and bring attention of the items to a fraud examiner.</p>
+<h2>See also</h2>
+<ul>
+<li>Approximate string matching</li>
+<li>Levenshtein automata</li>
+<li>Typosquatting</li>
+</ul>
+</body>
+</html>

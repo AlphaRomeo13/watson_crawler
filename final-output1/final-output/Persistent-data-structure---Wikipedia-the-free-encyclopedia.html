@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Persistent-data-structure---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Persistent data structure</h1>
+<p>In computing, a <b>persistent data structure</b> is a data structure that always preserves the previous version of itself when it is modified. Such data structures are effectively immutable, as their operations do not (visibly) update the structure in-place, but instead always yield a new updated structure. (A persistent data structure is <i>not</i> a data structure committed to persistent storage, such as a disk; this is a different and unrelated sense of the word "persistent.")</p>
+<p>A data structure is partially persistent if all versions can be accessed but only the newest version can be modified. The data structure is fully persistent if every version can be both accessed and modified. If there is also a meld or merge operation that can create a new version from two previous versions, the data structure is called confluently persistent. Structures that are not persistent are called ephemeral.</p>
+<p>These types of data structures are particularly common in logical and functional programming, and in a purely functional program all data is immutable, so all data structures are automatically fully persistent. Persistent data structures can also be created using in-place updating of data and these may, in general, use less time or storage space than their purely functional counterparts.</p>
+<p>While persistence can be achieved by simple copying, this is inefficient in CPU and RAM usage, because most operations make only small changes to a data structure. A better method is to exploit the similarity between the new and old versions to share structure between them, such as using the same subtree in a number of tree structures. However, because it rapidly becomes infeasible to determine how many previous versions share which parts of the structure, and because it is often desirable to discard old versions, this necessitates an environment with garbage collection.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Partially persistent
+<ul>
+<li>1.1 Fat Node
+<ul>
+<li>1.1.1 Complexity of Fat Node</li>
+</ul>
+</li>
+<li>1.2 Path Copying
+<ul>
+<li>1.2.1 Complexity of Path Copying</li>
+</ul>
+</li>
+<li>1.3 A combination
+<ul>
+<li>1.3.1 Complexity of the combination</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>2 Fully persistent</li>
+<li>3 Confluently persistent</li>
+<li>4 Examples of persistent data structures
+<ul>
+<li>4.1 Linked lists</li>
+<li>4.2 Trees</li>
+</ul>
+</li>
+<li>5 Reference cycles</li>
+<li>6 See also</li>
+<li>7 References</li>
+<li>8 Further reading</li>
+<li>9 External links</li>
+</ul>
+<ul>
+<li>1.1 Fat Node
+<ul>
+<li>1.1.1 Complexity of Fat Node</li>
+</ul>
+</li>
+<li>1.2 Path Copying
+<ul>
+<li>1.2.1 Complexity of Path Copying</li>
+</ul>
+</li>
+<li>1.3 A combination
+<ul>
+<li>1.3.1 Complexity of the combination</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li>1.1.1 Complexity of Fat Node</li>
+</ul>
+<ul>
+<li>1.2.1 Complexity of Path Copying</li>
+</ul>
+<ul>
+<li>1.3.1 Complexity of the combination</li>
+</ul>
+<ul>
+<li>4.1 Linked lists</li>
+<li>4.2 Trees</li>
+</ul>
+<p></p>
+<h2>Partially persistent</h2>
+<p>In the partial persistence model, we may query any previous version of the data structure, but we may only update the latest version. This implies a linear ordering among the versions.</p>
+<p><i>Three methods on balanced binary search tree:</i></p>
+<h3>Fat Node</h3>
+<p>Fat node method is to record all changes made to node fields in the nodes themselves, without erasing old values of the fields. This requires that we allow nodes to become arbitrarily “fat”. In other words, each fat node contains the same information and pointer fields as an ephemeral node, along with space for an arbitrary number of extra field values. Each extra field value has an associated field name and a version stamp which indicates the version in which the named field was changed to have the specified value. Besides, each fat node has its own version stamp, indicating the version in which the node was created. The only purpose of nodes having version stamps is to make sure that each node only contains one value per field name per version. In order to navigate through the structure, each original field value in a node has a version stamp of zero.</p>
+<h4>Complexity of Fat Node</h4>
+<p>With using fat node method, it requires O(1) space for every modification: just store the new data. Each modification takes O(1) additional time to store the modification at the end of the modification history. This is an amortized time bound, assuming we store the modification history in a growable array. For access time, we must find the right version at each node as we traverse the structure. If we made m modifications, then each access operation has O(log m) slowdown resulting from the cost of finding the nearest modification in the array.</p>
+<h3>Path Copying</h3>
+<p>Path copy is to make a copy of all nodes on the path which contains the node we are about to insert or delete. Then we must cascade the change back through the data structure: all nodes that pointed to the old node must be modified to point to the new node instead. These modifications cause more cascading changes, and so on, until we reach to the root. We maintain an array of roots indexed by timestamp. The data structure pointed to by time t’s root is exactly time t’s date structure.</p>
+<h4>Complexity of Path Copying</h4>
+<p>With m modifications, this costs O(log m) additive lookup time. Modification time and space are bounded by the size of the structure, since a single modification may cause the entire structure to be copied. That is O(m) for one update, and thus O(n²) preprocessing time.</p>
+<h3>A combination</h3>
+<p>Sleator, Tarjan et al. came up with a way to combine the advantages of fat nodes and path copying, getting O(1) access slowdown and O(1) modification space and time.</p>
+<p>In each node, we store one modification box. This box can hold one modification to the node—either a modification to one of the pointers, or to the node’s key, or to some other piece of node-specific data—and a timestamp for when that modification was applied. Initially, every node’s modification box is empty.</p>
+<p>Whenever we access a node, we check the modification box, and compare its timestamp against the access time. (The access time specifies the version of the data structure that we care about.) If the modification box is empty, or the access time is before the modification time, then we ignore the modification box and just deal with the normal part of the node. On the other hand, if the access time is after the modification time, then we use the value in the modification box, overriding that value in the node. (Say the modification box has a new left pointer. Then we’ll use it instead of the normal left pointer, but we’ll still use the normal right pointer.)</p>
+<p>Modifying a node works like this. (We assume that each modification touches one pointer or similar field.) If the node’s modification box is empty, then we fill it with the modification. Otherwise, the modification box is full. We make a copy of the node, but using only the latest values.(That is, we overwrite one of the node’s fields with the value that was stored in the modification box.) Then we perform the modification directly on the new node, without using the modification box. (We overwrite one of the new node’s fields, and its modification box stays empty.) Finally, we cascade this change to the node’s parent, just like path copying. (This may involve filling the parent’s modification box, or making a copy of the parent recursively. If the node has no parent—it’s the root—we add the new root to a sorted array of roots.)</p>
+<p>With this algorithm, given any time t, at most one modification box exists in the data structure with time t. Thus, a modification at time t splits the tree into three parts: one part contains the data from before time t, one part contains the data from after time t, and one part was unaffected by the modification.</p>
+<h4>Complexity of the combination</h4>
+<p>Time and space for modifications require amortized analysis. A modification takes O(1) amortized space, and O(1) amortized time. To see why, use a potential function ϕ,where ϕ(T)is the number of full live nodes in T . The live nodes of T are just the nodes that are reachable from the current root at the current time (that is, after the last modification). The full live nodes are the live nodes whose modification boxes are full.</p>
+<p>Each modification involves some number of copies, say k, followed by 1 change to a modification box. (Well, not quite—you could add a new root—but that doesn’t change the argument.) Consider each of the k copies. Each costs O(1) space and time, but decreases the potential function by one. (First, the node we copy must be full and live, so it contributes to the potential function. The potential function will only drop, however, if the old node isn’t reachable in the new tree. But we know it isn’t reachable in the new tree—the next step in the algorithm will be to modify the node’s parent to point at the copy. Finally, we know the copy’s modification box is empty. Thus, we’ve replaced a full live node with an empty live node, and ϕ goes down by one.) The final step fills a modification box, which costs O(1) time and increases ϕ by one.</p>
+<p>Putting it all together, the change in ϕ is Δϕ =1− k.Thus, we’ve paid O(k +Δϕ)= O(1) space and O(k +Δϕ +1) = O(1) time.</p>
+<h2>Fully persistent</h2>
+<p>In fully persistent model, both updates and queries are allowed on any version of the data structure.</p>
+<h2>Confluently persistent</h2>
+<p>In confluently persistent model, we use combinators to combine input of more than one previous version to output a new single version. Rather than a branching tree, combinations of versions induce a DAG (directed acyclic graph) structure on the version graph.</p>
+<h2>Examples of persistent data structures</h2>
+<p>Perhaps the simplest persistent data structure is the singly linked list or <i>cons</i>-based list, a simple list of objects formed by each carrying a reference to the next in the list. This is persistent because we can take a <i>tail</i> of the list, meaning the last <i>k</i> items for some <i>k</i>, and add new nodes on to the front of it. The tail will not be duplicated, instead becoming shared between both the old list and the new list. So long as the contents of the tail are immutable, this sharing will be invisible to the program.</p>
+<p>Many common reference-based data structures, such as red-black trees, stacks, and treaps, can easily be adapted to create a persistent version. Some others need slightly more effort, for example: queues, deques, and extensions including min-deques (which have an additional <i>O</i>(1) operation <i>min</i> returning the minimal element) and random access deques (which have an additional operation of random access with sub-linear, most often logarithmic, complexity).</p>
+<p>There also exist persistent data structures which use destructible operations, making them impossible to implement efficiently in purely functional languages (like Haskell outside specialized monads like state or IO), but possible in languages like C or Java. These types of data structures can often be avoided with a different design. One primary advantage to using purely persistent data structures is that they often behave better in multi-threaded environments.</p>
+<h3>Linked lists</h3>
+<p><i>This example is taken from Okasaki. See the bibliography.</i></p>
+<p>Singly linked lists are the bread-and-butter data structure in functional languages. In ML-derived languages and Haskell, they are purely functional because once a node in the list has been allocated, it cannot be modified, only copied or destroyed. Note that ML itself is <b>not</b> purely functional.</p>
+<p>Consider the two lists:</p>
+<p>WHATSON? 760f9789-dc37-494c-aae7-1118db40160a</p>
+<pre>
+xs = [0, 1, 2]
+ys = [3, 4, 5]
+</pre>
+<p>These would be represented in memory by:</p>
+<p><img alt="Purely functional list before.svg" src="//upload.wikimedia.org/wikipedia/commons/thumb/9/98/Purely_functional_list_before.svg/168px-Purely_functional_list_before.svg.png" width="168" height="325" srcset="//upload.wikimedia.org/wikipedia/commons/thumb/9/98/Purely_functional_list_before.svg/252px-Purely_functional_list_before.svg.png 1.5x, //upload.wikimedia.org/wikipedia/commons/thumb/9/98/Purely_functional_list_before.svg/336px-Purely_functional_list_before.svg.png 2x" data-file-width="168" data-file-height="325"></p>
+<p>where a circle indicates a node in the list (the arrow out representing the second element of the node which is a pointer to another node).</p>
+<p>Now concatenating the two lists:</p>
+<p>WHATSON? 37f864e7-a50c-435f-95b6-25525d8f3345</p>
+<pre>
+zs = xs ++ ys
+</pre>
+<p>results in the following memory structure:</p>
+<p><img alt="Purely functional list after.svg" src="//upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Purely_functional_list_after.svg/258px-Purely_functional_list_after.svg.png" width="258" height="595" srcset="//upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Purely_functional_list_after.svg/387px-Purely_functional_list_after.svg.png 1.5x, //upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Purely_functional_list_after.svg/516px-Purely_functional_list_after.svg.png 2x" data-file-width="258" data-file-height="595"></p>
+<p>Notice that the nodes in list <code>xs</code> have been copied, but the nodes in <code>ys</code> are shared. As a result, the original lists (<code>xs</code> and <code>ys</code>) persist and have not been modified.</p>
+<p>The reason for the copy is that the last node in <code>xs</code> (the node containing the original value <code>2</code>) cannot be modified to point to the start of <code>ys</code>, because that would change the value of <code>xs</code>.</p>
+<h3>Trees</h3>
+<p><i>This example is taken from Okasaki. See the bibliography.</i></p>
+<p>Consider a binary tree used for fast searching, where every node has the recursive invariant that subnodes on the left are less than the node, and subnodes on the right are greater than the node.</p>
+<p>For instance, the set of data</p>
+<p>WHATSON? 430bcb9d-9c01-4098-9852-758c30c1dcbc</p>
+<pre>
+xs = [a, b, c, d, f, g, h]
+</pre>
+<p>might be represented by the following binary search tree:</p>
+<p><img alt="Purely functional tree before.svg" src="//upload.wikimedia.org/wikipedia/commons/thumb/9/9c/Purely_functional_tree_before.svg/348px-Purely_functional_tree_before.svg.png" width="348" height="325" srcset="//upload.wikimedia.org/wikipedia/commons/thumb/9/9c/Purely_functional_tree_before.svg/522px-Purely_functional_tree_before.svg.png 1.5x, //upload.wikimedia.org/wikipedia/commons/thumb/9/9c/Purely_functional_tree_before.svg/696px-Purely_functional_tree_before.svg.png 2x" data-file-width="348" data-file-height="325"></p>
+<p>A function which inserts data into the binary tree and maintains the invariant is:</p>
+<p>WHATSON? 99c1f001-fe1e-4ef2-aaa3-6309e3b25d8a</p>
+<pre>
+fun insert (x, E) = T (E, x, E)
+  | insert (x, s as T (a, y, b)) =
+       if x &lt; y then T (insert (x, a), y, b)
+       else if x &gt; y then T (a, y, insert (x, b))
+       else s
+</pre>
+<p>After executing</p>
+<p>WHATSON? db0e9e80-baf3-4eb8-ad41-563c9d2cacf0</p>
+<pre>
+ys = insert ("e", xs)
+</pre>
+<p>we end up with the following:</p>
+<p><img alt="Purely functional tree after.svg" src="//upload.wikimedia.org/wikipedia/commons/thumb/5/56/Purely_functional_tree_after.svg/438px-Purely_functional_tree_after.svg.png" width="438" height="415" srcset="//upload.wikimedia.org/wikipedia/commons/thumb/5/56/Purely_functional_tree_after.svg/657px-Purely_functional_tree_after.svg.png 1.5x, //upload.wikimedia.org/wikipedia/commons/thumb/5/56/Purely_functional_tree_after.svg/876px-Purely_functional_tree_after.svg.png 2x" data-file-width="438" data-file-height="415"></p>
+<p>Notice two points: Firstly the original tree (<code>xs</code>) persists. Secondly many common nodes are shared between the old tree and the new tree. Such persistence and sharing is difficult to manage without some form of garbage collection (GC) to automatically free up nodes which have no live references, and this is why GC is a feature commonly found in functional programming languages.</p>
+<h2>Reference cycles</h2>
+<p>Since every value in a purely functional computation is built up out of existing values, it would seem that it is impossible to create a cycle of references. In that case, the reference graph (the graph of the references from object to object) could only be a directed acyclic graph. However, in most functional languages, functions can be defined recursively; this capability allows recursive structures using functional suspensions. In lazy languages, such as Haskell, all data structures are represented as implicitly suspended thunks; in these languages any data structure can be recursive because a value can be defined in terms of itself. Some other languages, such as OCaml, allow the explicit definition of recursive values.</p>
+<h2>See also</h2>
+<ul>
+<li>Persistent data</li>
+<li>Navigational database</li>
+<li>Copy-on-write</li>
+<li>Retroactive data structures</li>
+</ul>
+</body>
+</html>

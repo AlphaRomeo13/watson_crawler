@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Dynamic-array---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Dynamic array</h1>
+<p>In computer science, a <b>dynamic array</b>, <b>growable array</b>, <b>resizable array</b>, <b>dynamic table</b>, <b>mutable array</b>, or <b>array list</b> is a random access, variable-size list data structure that allows elements to be added or removed. It is supplied with standard libraries in many modern mainstream programming languages.</p>
+<p>A dynamic array is not the same thing as a dynamically allocated array, which is a fixed-size array whose size is fixed when the array is allocated, although a dynamic array may use such a fixed-size array as a back end.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Bounded-size dynamic arrays and capacity</li>
+<li>2 Geometric expansion and amortized cost</li>
+<li>3 Performance</li>
+<li>4 Variants</li>
+<li>5 Language support</li>
+<li>6 References</li>
+<li>7 External links</li>
+</ul>
+<p></p>
+<h2>Bounded-size dynamic arrays and capacity</h2>
+<p>The simplest dynamic array is constructed by allocating a fixed-size array and then dividing it into two parts: the first stores the elements of the dynamic array and the second is reserved, or unused. We can then add or remove elements at the end of the dynamic array in constant time by using the reserved space, until this space is completely consumed. The number of elements used by the dynamic array contents is its <i>logical size</i> or <i>size</i>, while the size of the underlying array is called the dynamic array's <i>capacity</i> or <i>physical size</i>, which is the maximum possible size without relocating data.</p>
+<p>In applications where the logical size is bounded, the fixed-size data structure suffices. This may be short-sighted, as more space may be needed later. A philosophical programmer may prefer to write the code to make every array capable of resizing from the outset, then return to using fixed-size arrays during program optimization. Resizing the underlying array is an expensive task, typically involving copying the entire contents of the array.</p>
+<h2>Geometric expansion and amortized cost</h2>
+<p>To avoid incurring the cost of resizing many times, dynamic arrays resize by a large amount, such as doubling in size, and use the reserved space for future expansion. The operation of adding an element to the end might work as follows:</p>
+<p>WHATSON? 6cb048eb-8abf-48bd-b16c-df222787ebbb</p>
+<pre>
+function insertEnd(dynarray a, element e)
+    if (a.size = a.capacity)
+        // resize a to twice its current capacity:
+        a.capacity ← a.capacity * 2 
+        // (copy the contents to the new memory location here)
+    a[a.size] ← e
+    a.size ← a.size + 1
+</pre>
+<p>As <i>n</i> elements are inserted, the capacities form a geometric progression. Expanding the array by any constant proportion ensures that inserting <i>n</i> elements takes <i>O</i>(<i>n</i>) time overall, meaning that each insertion takes amortized constant time. The value of this proportion <i>a</i> leads to a time-space tradeoff: the average time per insertion operation is about <i>a</i>/(<i>a</i>−1), while the number of wasted cells is bounded above by (<i>a</i>−1)<i>n</i>. The choice of <i>a</i> depends on the library or application: some textbooks use <i>a</i> = 2, but Java's ArrayList implementation uses <i>a</i> = 3/2 and the C implementation of Python's list data structure uses <i>a</i> = 9/8.</p>
+<p>Many dynamic arrays also deallocate some of the underlying storage if its size drops below a certain threshold, such as 30% of the capacity. This threshold must be strictly smaller than 1/<i>a</i> in order to support mixed sequences of insertions and removals with amortized constant cost.</p>
+<p>Dynamic arrays are a common example when teaching amortized analysis.</p>
+<h2>Performance</h2>
+<p>The dynamic array has performance similar to an array, with the addition of new operations to add and remove elements:</p>
+<ul>
+<li>Getting or setting the value at a particular index (constant time)</li>
+<li>Iterating over the elements in order (linear time, good cache performance)</li>
+<li>Inserting or deleting an element in the middle of the array (linear time)</li>
+<li>Inserting or deleting an element at the end of the array (constant amortized time)</li>
+</ul>
+<p>Dynamic arrays benefit from many of the advantages of arrays, including good locality of reference and data cache utilization, compactness (low memory use), and random access. They usually have only a small fixed additional overhead for storing information about the size and capacity. This makes dynamic arrays an attractive tool for building cache-friendly data structures. However, in languages like Python or Java that enforce reference semantics, the dynamic array generally will not store the actual data, but rather it will store references to the data that resides in other areas of memory. In this case, accessing items in the array sequentially will actually involve accessing multiple non-contiguous areas of memory, so the many advantages of the cache-friendliness of this data structure are lost.</p>
+<p>Compared to linked lists, dynamic arrays have faster indexing (constant time versus linear time) and typically faster iteration due to improved locality of reference; however, dynamic arrays require linear time to insert or delete at an arbitrary location, since all following elements must be moved, while linked lists can do this in constant time. This disadvantage is mitigated by the gap buffer and <i>tiered vector</i> variants discussed under <i>Variants</i> below. Also, in a highly fragmented memory region, it may be expensive or impossible to find contiguous space for a large dynamic array, whereas linked lists do not require the whole data structure to be stored contiguously.</p>
+<p>A balanced tree can store a list while providing all operations of both dynamic arrays and linked lists reasonably efficiently, but both insertion at the end and iteration over the list are slower than for a dynamic array, in theory and in practice, due to non-contiguous storage and tree traversal/manipulation overhead.</p>
+<h2>Variants</h2>
+<p>Gap buffers are similar to dynamic arrays but allow efficient insertion and deletion operations clustered near the same arbitrary location. Some deque implementations use array deques, which allow amortized constant time insertion/removal at both ends, instead of just one end.</p>
+<p>Goodrich presented a dynamic array algorithm called <i>Tiered Vectors</i> that provided O(n) performance for order preserving insertions or deletions from the middle of the array.</p>
+<p>Hashed Array Tree (HAT) is a dynamic array algorithm published by Sitarski in 1996. Hashed Array Tree wastes order n amount of storage space, where n is the number of elements in the array. The algorithm has O(1) amortized performance when appending a series of objects to the end of a Hashed Array Tree.</p>
+<p>In a 1999 paper, Brodnik et al. describe a tiered dynamic array data structure, which wastes only n space for <i>n</i> elements at any point in time, and they prove a lower bound showing that any dynamic array must waste this much space if the operations are to remain amortized constant time. Additionally, they present a variant where growing and shrinking the buffer has not only amortized but worst-case constant time.</p>
+<p>Bagwell (2002) presented the VList algorithm, which can be adapted to implement a dynamic array.</p>
+<h2>Language support</h2>
+<p>C++'s <code>std::vector</code> is an implementation of dynamic arrays, as are the <code>ArrayList</code> classes supplied with the Java API and the .NET Framework. The generic <code>List&lt;&gt;</code> class supplied with version 2.0 of the .NET Framework is also implemented with dynamic arrays. Smalltalk's <code>OrderedCollection</code> is a dynamic array with dynamic start and end-index, making the removal of the first element also O(1). Python's <code>list</code> datatype implementation is a dynamic array. Delphi and D implement dynamic arrays at the language's core. Ada's <code>Ada.Containers.Vectors</code> generic package provides dynamic array implementation for a given subtype. Many scripting languages such as Perl and Ruby offer dynamic arrays as a built-in primitive data type. Several cross-platform frameworks provide dynamic array implementations for C: <code>CFArray</code> and <code>CFMutableArray</code> in Core Foundation; <code>GArray</code> and <code>GPtrArray</code> in GLib.</p>
+</body>
+</html>

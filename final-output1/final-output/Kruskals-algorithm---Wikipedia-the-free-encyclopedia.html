@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Kruskals-algorithm---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Kruskal's algorithm</h1>
+<ul>
+<li>α–β</li>
+<li>A*</li>
+<li>B*</li>
+<li>Backtracking</li>
+<li>Beam</li>
+<li>Bellman–Ford</li>
+<li>Best-first</li>
+<li>Bidirectional</li>
+<li>Borůvka</li>
+<li>Branch &amp; bound</li>
+<li>BFS</li>
+<li>British Museum</li>
+<li>D*</li>
+<li>DFS</li>
+<li>Depth-limited</li>
+<li>Dijkstra</li>
+<li>Edmonds</li>
+<li>Floyd–Warshall</li>
+<li>Fringe search</li>
+<li>Hill climbing</li>
+<li>IDA*</li>
+<li>Iterative deepening</li>
+<li>Johnson</li>
+<li>Jump point</li>
+<li><strong class="selflink">Kruskal</strong></li>
+<li>Lexicographic BFS</li>
+<li>Prim</li>
+<li>SMA*</li>
+<li>Uniform-cost</li>
+</ul>
+<ul>
+<li><i>Graph algorithms</i></li>
+<li><i>Search algorithms</i></li>
+<li><i>List of graph algorithms</i></li>
+</ul>
+<ul>
+<li>Dynamic programming</li>
+<li>Graph traversal</li>
+<li>Tree traversal</li>
+<li>Search games</li>
+</ul>
+<ul>
+<li>v</li>
+<li>t</li>
+<li>e</li>
+</ul>
+<p><b>Kruskal's algorithm</b> is a greedy algorithm in graph theory that finds a minimum spanning tree for a connected weighted graph. This means it finds a subset of the edges that forms a tree that includes every vertex, where the total weight of all the edges in the tree is minimized. If the graph is not connected, then it finds a <i>minimum spanning forest</i> (a minimum spanning tree for each connected component).</p>
+<p>This algorithm first appeared in <i>Proceedings of the American Mathematical Society</i>, pp. 48–50 in 1956, and was written by Joseph Kruskal.</p>
+<p>Other algorithms for this problem include Prim's algorithm, Reverse-delete algorithm, and Borůvka's algorithm.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Description</li>
+<li>2 Pseudocode</li>
+<li>3 Complexity</li>
+<li>4 Example</li>
+<li>5 Proof of correctness
+<ul>
+<li>5.1 Spanning tree</li>
+<li>5.2 Minimality</li>
+</ul>
+</li>
+<li>6 See also</li>
+<li>7 References</li>
+<li>8 External links</li>
+</ul>
+<ul>
+<li>5.1 Spanning tree</li>
+<li>5.2 Minimality</li>
+</ul>
+<p></p>
+<h2>Description</h2>
+<ul>
+<li>create a forest <i>F</i> (a set of trees), where each vertex in the graph is a separate tree</li>
+<li>create a set <i>S</i> containing all the edges in the graph</li>
+<li>while <i>S</i> is nonempty and F is not yet spanning
+<ul>
+<li>remove an edge with minimum weight from <i>S</i></li>
+<li>if that edge connects two different trees, then add it to the forest, combining two trees into a single tree</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li>remove an edge with minimum weight from <i>S</i></li>
+<li>if that edge connects two different trees, then add it to the forest, combining two trees into a single tree</li>
+</ul>
+<p>At the termination of the algorithm, the forest forms a minimum spanning forest of the graph. If the graph is connected, the forest has a single component and forms a minimum spanning tree.</p>
+<h2>Pseudocode</h2>
+<p>The following code is implemented with disjoint-set data structure:</p>
+<p>WHATSON? 2c60c0ff-045e-44ce-bcf7-bcce742acc2f</p>
+<pre>
+<code>KRUSKAL(G):
+1 A = ∅
+2 <b>foreach</b> v ∈ G.V:
+3   MAKE-SET(v)
+4 <b>foreach</b> (u, v) ordered by weight(u, v), increasing:
+5    <b>if</b> FIND-SET(u) ≠ FIND-SET(v):
+6       A = A ∪ {(u, v)}
+7       UNION(u, v)
+8 <b>return</b> A</code>
+</pre>
+<h2>Complexity</h2>
+<p>Where <i>E</i> is the number of edges in the graph and <i>V</i> is the number of vertices, Kruskal's algorithm can be shown to run in <i>O</i>(<i>E</i> log <i>E</i>) time, or equivalently, <i>O</i>(<i>E</i> log <i>V</i>) time, all with simple data structures. These running times are equivalent because:</p>
+<ul>
+<li><i>E</i> is at most <i>V</i> and <img class="mwe-math-fallback-image-inline tex" alt="\log V^2 = 2 \log V" src="//upload.wikimedia.org/math/5/6/4/56468429503b5aba72806f921638c82e.png"> <img class="mwe-math-fallback-image-inline tex" alt="\;" src="//upload.wikimedia.org/math/f/b/f/fbf51caf31f5aefd6f4adcea411e68ee.png"> is <i>O</i>(log <i>V</i>).</li>
+<li>Each isolated vertex is a separate component of the minimum spanning forest. If we ignore isolated vertices we obtain <i>V</i> ≤ <i>E</i>+1, so log <i>V</i> is <i>O</i>(log <i>E</i>).</li>
+</ul>
+<p>We can achieve this bound as follows: first sort the edges by weight using a comparison sort in <i>O</i>(<i>E</i> log <i>E</i>) time; this allows the step "remove an edge with minimum weight from <i>S</i>" to operate in constant time. Next, we use a disjoint-set data structure (Union&amp;Find) to keep track of which vertices are in which components. We need to perform O(<i>V</i>) operations, as in each iteration we connects a vertex to the spanning tree, two 'find' operations and possibly one union for each edge. Even a simple disjoint-set data structure such as disjoint-set forests with union by rank can perform O(<i>V</i>) operations in <i>O</i>(<i>V</i> log <i>V</i>) time. Thus the total time is <i>O</i>(<i>E</i> log <i>E</i>) = <i>O</i>(<i>E</i> log <i>V</i>).</p>
+<p>Provided that the edges are either already sorted or can be sorted in linear time (for example with counting sort or radix sort), the algorithm can use more sophisticated disjoint-set data structure to run in <i>O</i>(<i>E</i> α(<i>V</i>)) time, where α is the extremely slowly growing inverse of the single-valued Ackermann function.</p>
+<h2>Example</h2>
+<p>Download the example data.</p>
+<h2>Proof of correctness</h2>
+<p>The proof consists of two parts. First, it is proved that the algorithm produces a spanning tree. Second, it is proved that the constructed spanning tree is of minimal weight.</p>
+<h3>Spanning tree</h3>
+<p>Let <img class="mwe-math-fallback-image-inline tex" alt="P" src="//upload.wikimedia.org/math/4/4/c/44c29edb103a2872f519ad0c9a0fdaaa.png"> be a connected, weighted graph and let <img class="mwe-math-fallback-image-inline tex" alt="Y" src="//upload.wikimedia.org/math/5/7/c/57cec4137b614c87cb4e24a3d003a3e0.png"> be the subgraph of <img class="mwe-math-fallback-image-inline tex" alt="P" src="//upload.wikimedia.org/math/4/4/c/44c29edb103a2872f519ad0c9a0fdaaa.png"> produced by the algorithm. <img class="mwe-math-fallback-image-inline tex" alt="Y" src="//upload.wikimedia.org/math/5/7/c/57cec4137b614c87cb4e24a3d003a3e0.png"> cannot have a cycle, being within one subtree and not between two different trees. <img class="mwe-math-fallback-image-inline tex" alt="Y" src="//upload.wikimedia.org/math/5/7/c/57cec4137b614c87cb4e24a3d003a3e0.png"> cannot be disconnected, since the first encountered edge that joins two components of <img class="mwe-math-fallback-image-inline tex" alt="Y" src="//upload.wikimedia.org/math/5/7/c/57cec4137b614c87cb4e24a3d003a3e0.png"> would have been added by the algorithm. Thus, <img class="mwe-math-fallback-image-inline tex" alt="Y" src="//upload.wikimedia.org/math/5/7/c/57cec4137b614c87cb4e24a3d003a3e0.png"> is a spanning tree of <img class="mwe-math-fallback-image-inline tex" alt="P" src="//upload.wikimedia.org/math/4/4/c/44c29edb103a2872f519ad0c9a0fdaaa.png">.</p>
+<h3>Minimality</h3>
+<p>We show that the following proposition <i><b>P</b></i> is true by induction: If <i>F</i> is the set of edges chosen at any stage of the algorithm, then there is some minimum spanning tree that contains <i>F</i>.</p>
+<ul>
+<li>Clearly <i><b>P</b></i> is true at the beginning, when <i>F</i> is empty: any minimum spanning tree will do, and there exists one because a weighted connected graph always has a minimum spanning tree.</li>
+<li>Now assume <i><b>P</b></i> is true for some non-final edge set <i>F</i> and let <i>T</i> be a minimum spanning tree that contains <i>F</i>. If the next chosen edge <i>e</i> is also in <i>T</i>, then <i><b>P</b></i> is true for <i>F</i> + <i>e</i>. Otherwise, <i>T</i> + <i>e</i> has a cycle <i>C</i> and there is another edge <i>f</i> that is in <i>C</i> but not <i>F</i>. (If there were no such edge <i>f</i>, then <i>e</i> could not have been added to <i>F</i>, since doing so would have created the cycle <i>C</i>.) Then <i>T</i> − <i>f</i> + <i>e</i> is a tree, and it has the same weight as <i>T</i>, since <i>T</i> has minimum weight and the weight of <i>f</i> cannot be less than the weight of <i>e</i>, otherwise the algorithm would have chosen <i>f</i> instead of <i>e</i>. So <i>T</i> − <i>f</i> + <i>e</i> is a minimum spanning tree containing <i>F</i> + <i>e</i> and again <i><b>P</b></i> holds.</li>
+<li>Therefore, by the principle of induction, <i><b>P</b></i> holds when <i>F</i> has become a spanning tree, which is only possible if <i>F</i> is a minimum spanning tree itself.</li>
+</ul>
+<h2>See also</h2>
+<ul>
+<li>Dijkstra's algorithm</li>
+<li>Prim's algorithm</li>
+<li>Reverse-delete algorithm</li>
+<li>Single-linkage clustering</li>
+</ul>
+</body>
+</html>

@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Buddy-memory-allocation---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Buddy memory allocation</h1>
+<p>The <b>buddy memory allocation</b> technique is a memory allocation algorithm that divides memory into partitions to try to satisfy a memory request as suitably as possible. This system makes use of splitting memory into halves to try to give a best-fit. According to Donald Knuth, the buddy system was invented in 1963 by Harry Markowitz, who won the 1990 Nobel Memorial Prize in Economics, and was first described by Kenneth C. Knowlton (published 1965). Buddy memory allocation is relatively easy to implement. It supports limited but efficient splitting and coalescing of memory blocks.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 How it works</li>
+<li>2 In practice</li>
+<li>3 Implementation and efficiency</li>
+<li>4 See also</li>
+<li>5 References</li>
+</ul>
+<p></p>
+<h2>How it works</h2>
+<p>There are various forms of the buddy system, but binary buddies, in which each block is subdivided into two smaller blocks, are the simplest and most common variety. Every memory block in this system has an <i>order</i>, where the order is an integer ranging from 0 to a specified upper limit. The size of a block of order n is proportional to 2, so that the blocks are exactly twice the size of blocks that are one order lower. Power-of-two block sizes make address computation simple, because all buddies are aligned on memory address boundaries that are powers of two. When a larger block is split, it is divided into two smaller blocks, and each smaller block becomes a unique buddy to the other. A split block can only be merged with its unique buddy block, which then reforms the larger block they were split from.</p>
+<p>Starting off, the size of the smallest possible block is determined, i.e. the smallest memory block that can be allocated. If no lower limit existed at all (e.g., bit-sized allocations were possible), there would be a lot of memory and computational overhead for the system to keep track of which parts of the memory are allocated and unallocated. However, a rather low limit may be desirable, so that the average memory waste per allocation (concerning allocations that are, in size, not multiples of the smallest block) is minimized. Typically the lower limit would be small enough to minimize the average wasted space per allocation, but large enough to avoid excessive overhead. The smallest block size is then taken as the size of an order-0 block, so that all higher orders are expressed as power-of-two multiples of this size.</p>
+<p>The programmer then has to decide on, or to write code to obtain, the highest possible order that can fit in the remaining available memory space. Since the total available memory in a given computer system may not be a power-of-two multiple of the minimum block size, the largest block size may not span the entire memory of the system. For instance, if the system had 2000K of physical memory and the order-0 block size was 4K, the upper limit on the order would be 8, since an order-8 block (256 order-0 blocks, 1024K) is the biggest block that will fit in memory. Consequently it is impossible to allocate the entire physical memory in a single chunk; the remaining 976K of memory would have to be allocated in smaller blocks.</p>
+<h2>In practice</h2>
+<p>The following is an example of what happens when a program makes requests for memory. Let's say in this system, the smallest possible block is 64 kilobytes in size, and the upper limit for the order is 4, which results in a largest possible allocatable block, 2 times 64K = 1024K in size. The following shows a possible state of the system after various memory requests.</p>
+<p>This allocation could have occurred in the following manner</p>
+<ol>
+<li>The initial situation.</li>
+<li>Program A requests memory 34K, order 0.
+<ol>
+<li>No order 0 blocks are available, so an order 4 block is split, creating two order 3 blocks.</li>
+<li>Still no order 0 blocks available, so the first order 3 block is split, creating two order 2 blocks.</li>
+<li>Still no order 0 blocks available, so the first order 2 block is split, creating two order 1 blocks.</li>
+<li>Still no order 0 blocks available, so the first order 1 block is split, creating two order 0 blocks.</li>
+<li>Now an order 0 block is available, so it is allocated to A.</li>
+</ol>
+</li>
+<li>Program B requests memory 66K, order 1. An order 1 block is available, so it is allocated to B.</li>
+<li>Program C requests memory 35K, order 0. An order 0 block is available, so it is allocated to C.</li>
+<li>Program D requests memory 67K, order 1.
+<ol>
+<li>No order 1 blocks are available, so an order 2 block is split, creating two order 1 blocks.</li>
+<li>Now an order 1 block is available, so it is allocated to D.</li>
+</ol>
+</li>
+<li>Program B releases its memory, freeing one order 1 block.</li>
+<li>Program D releases its memory.
+<ol>
+<li>One order 1 block is freed.</li>
+<li>Since the buddy block of the newly freed block is also free, the two are merged into one order 2 block.</li>
+</ol>
+</li>
+<li>Program A releases its memory, freeing one order 0 block.</li>
+<li>Program C releases its memory.
+<ol>
+<li>One order 0 block is freed.</li>
+<li>Since the buddy block of the newly freed block is also free, the two are merged into one order 1 block.</li>
+<li>Since the buddy block of the newly formed order 1 block is also free, the two are merged into one order 2 block.</li>
+<li>Since the buddy block of the newly formed order 2 block is also free, the two are merged into one order 3 block.</li>
+<li>Since the buddy block of the newly formed order 3 block is also free, the two are merged into one order 4 block.</li>
+</ol>
+</li>
+</ol>
+<ol>
+<li>No order 0 blocks are available, so an order 4 block is split, creating two order 3 blocks.</li>
+<li>Still no order 0 blocks available, so the first order 3 block is split, creating two order 2 blocks.</li>
+<li>Still no order 0 blocks available, so the first order 2 block is split, creating two order 1 blocks.</li>
+<li>Still no order 0 blocks available, so the first order 1 block is split, creating two order 0 blocks.</li>
+<li>Now an order 0 block is available, so it is allocated to A.</li>
+</ol>
+<ol>
+<li>No order 1 blocks are available, so an order 2 block is split, creating two order 1 blocks.</li>
+<li>Now an order 1 block is available, so it is allocated to D.</li>
+</ol>
+<ol>
+<li>One order 1 block is freed.</li>
+<li>Since the buddy block of the newly freed block is also free, the two are merged into one order 2 block.</li>
+</ol>
+<ol>
+<li>One order 0 block is freed.</li>
+<li>Since the buddy block of the newly freed block is also free, the two are merged into one order 1 block.</li>
+<li>Since the buddy block of the newly formed order 1 block is also free, the two are merged into one order 2 block.</li>
+<li>Since the buddy block of the newly formed order 2 block is also free, the two are merged into one order 3 block.</li>
+<li>Since the buddy block of the newly formed order 3 block is also free, the two are merged into one order 4 block.</li>
+</ol>
+<p>As you can see, what happens when a memory request is made is as follows:</p>
+<ul>
+<li>If memory is to be allocated</li>
+</ul>
+<ol>
+<li>Look for a memory slot of a suitable size (the minimal 2 block that is larger or equal to that of the requested memory)
+<ol>
+<li>If it is found, it is allocated to the program</li>
+<li>If not, it tries to make a suitable memory slot. The system does so by trying the following:
+<ol>
+<li>Split a free memory slot larger than the requested memory size into half</li>
+<li>If the lower limit is reached, then allocate that amount of memory</li>
+<li>Go back to step 1 (look for a memory slot of a suitable size)</li>
+<li>Repeat this process until a suitable memory slot is found</li>
+</ol>
+</li>
+</ol>
+</li>
+</ol>
+<ol>
+<li>If it is found, it is allocated to the program</li>
+<li>If not, it tries to make a suitable memory slot. The system does so by trying the following:
+<ol>
+<li>Split a free memory slot larger than the requested memory size into half</li>
+<li>If the lower limit is reached, then allocate that amount of memory</li>
+<li>Go back to step 1 (look for a memory slot of a suitable size)</li>
+<li>Repeat this process until a suitable memory slot is found</li>
+</ol>
+</li>
+</ol>
+<ol>
+<li>Split a free memory slot larger than the requested memory size into half</li>
+<li>If the lower limit is reached, then allocate that amount of memory</li>
+<li>Go back to step 1 (look for a memory slot of a suitable size)</li>
+<li>Repeat this process until a suitable memory slot is found</li>
+</ol>
+<ul>
+<li>If memory is to be freed</li>
+</ul>
+<ol>
+<li>Free the block of memory</li>
+<li>Look at the neighboring block - is it free too?</li>
+<li>If it is, combine the two, and go back to step 2 and repeat this process until either the upper limit is reached (all memory is freed), or until a non-free neighbour block is encountered</li>
+</ol>
+<h2>Implementation and efficiency</h2>
+<p>In comparison to other simpler techniques such as dynamic allocation, the buddy memory system has little external fragmentation, and allows for compaction of memory with little overhead. The buddy method of freeing memory is fast, with the maximal number of compactions required equal to log<sub>2</sub>(highest order). Typically the buddy memory allocation system is implemented with the use of a binary tree to represent used or unused split memory blocks. The "buddy" of each block can be found with an exclusive OR of the block's address and the block's size.</p>
+<p>However, there still exists the problem of internal fragmentation — memory wasted because the memory requested is a little larger than a small block, but a lot smaller than a large block. Because of the way the buddy memory allocation technique works, a program that requests 66K of memory would be allocated 128K, which results in a waste of 62K of memory. This problem can be solved by slab allocation, which may be layered on top of the more coarse buddy allocator to provide more fine-grained allocation.</p>
+<p>One version of the buddy allocation algorithm was described in detail by Donald Knuth in volume 1 of <i>The Art of Computer Programming</i>. The Linux kernel also uses the buddy system, with further modifications to minimise external fragmentation, along with various other allocators to manage the memory within blocks.</p>
+<p><code>jemalloc</code> is a modern memory allocator that employs, among others, the buddy technique.</p>
+<h2>See also</h2>
+<ul>
+<li>Memory pool</li>
+<li>Stack-based memory allocation</li>
+</ul>
+</body>
+</html>

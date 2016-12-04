@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Radix-sort---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Radix sort</h1>
+<p>In computer science, <b>radix sort</b> is a non-comparative integer sorting algorithm that sorts data with integer keys by grouping keys by the individual digits which share the same significant position and value. A positional notation is required, but because integers can represent strings of characters (e.g., names or dates) and specially formatted floating point numbers, radix sort is not limited to integers. Radix sort dates back as far as 1887 to the work of Herman Hollerith on tabulating machines.</p>
+<p>Most digital computers internally represent all of their data as electronic representations of binary numbers, so processing the digits of integer representations by groups of binary digit representations is most convenient. Two classifications of radix sorts are least significant digit (LSD) radix sorts and most significant digit (MSD) radix sorts. LSD radix sorts process the integer representations starting from the least digit and move towards the most significant digit. MSD radix sorts work the other way around.</p>
+<p><br>
+LSD radix sorts typically use the following sorting order: short keys come before longer keys, and keys of the same length are sorted lexicographically. This coincides with the normal order of integer representations, such as the sequence 1, 2, 3, 4, 5, 6, 7, 8, 9, 10.</p>
+<p>MSD radix sorts use lexicographic order, which is suitable for sorting strings, such as words, or fixed-length integer representations. A sequence such as "b, c, d, e, f, g, h, i, j, ba" would be lexicographically sorted as "b, ba, c, d, e, f, g, h, i, j". If lexicographic ordering is used to sort variable-length integer representations, then the representations of the numbers from 1 to 10 would be output as 1, 10, 2, 3, 4, 5, 6, 7, 8, 9, as if the shorter keys were left-justified and padded on the right with blank characters to make the shorter keys as long as the longest key for the purpose of determining sorted order.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Efficiency</li>
+<li>2 Least significant digit radix sorts
+<ul>
+<li>2.1 Definition</li>
+<li>2.2 An example</li>
+<li>2.3 Iterative version using queues</li>
+<li>2.4 Example in C</li>
+<li>2.5 Example in C++</li>
+<li>2.6 Example in Python</li>
+<li>2.7 Example in Java</li>
+</ul>
+</li>
+<li>3 Most significant digit radix sorts
+<ul>
+<li>3.1 Recursion</li>
+<li>3.2 Recursive forward radix sort example</li>
+<li>3.3 In-place MSD radix sort implementations</li>
+<li>3.4 Stable MSD radix sort implementations</li>
+<li>3.5 Hybrid approaches</li>
+<li>3.6 Application to parallel computing</li>
+<li>3.7 Incremental trie-based radix sort
+<ul>
+<li>3.7.1 Snow White analogy</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>4 See also</li>
+<li>5 References</li>
+<li>6 External links</li>
+</ul>
+<ul>
+<li>2.1 Definition</li>
+<li>2.2 An example</li>
+<li>2.3 Iterative version using queues</li>
+<li>2.4 Example in C</li>
+<li>2.5 Example in C++</li>
+<li>2.6 Example in Python</li>
+<li>2.7 Example in Java</li>
+</ul>
+<ul>
+<li>3.1 Recursion</li>
+<li>3.2 Recursive forward radix sort example</li>
+<li>3.3 In-place MSD radix sort implementations</li>
+<li>3.4 Stable MSD radix sort implementations</li>
+<li>3.5 Hybrid approaches</li>
+<li>3.6 Application to parallel computing</li>
+<li>3.7 Incremental trie-based radix sort
+<ul>
+<li>3.7.1 Snow White analogy</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li>3.7.1 Snow White analogy</li>
+</ul>
+<p></p>
+<h2>Efficiency</h2>
+<p>The topic of the efficiency of radix sort compared to other sorting algorithms is somewhat tricky and subject to quite a lot of misunderstandings. Whether radix sort is equally efficient, less efficient or more efficient than the best comparison-based algorithms depends on the details of the assumptions made. Radix sort efficiency is O(<i>d</i>·<i>n</i>) for n keys which have <i>d</i> or fewer digits. Sometimes <i>d</i> is presented as a constant, which would make radix sort better (for sufficiently large <i>n</i>) than the best comparison-based sorting algorithms, which are all O(<i>n</i>·log(<i>n</i>)) number of comparisons needed. However, in general <i>d</i> cannot be considered a constant. In particular, under the common (but sometimes implicit) assumption that all keys are distinct, then <i>d</i> must be at least of the order of log(<i>n</i>), which gives at best (with densely packed keys) a time complexity O(<i>n</i>·log(<i>n</i>)). That would seem to make radix sort at most equally efficient as the best comparison-based sorts (and worse if keys are much longer than log(<i>n</i>)).</p>
+<p>The counter argument is the comparison-based algorithms are measured in number of comparisons, not actual time complexity. Under some assumptions the comparisons will be constant time on average, under others they will not. Comparisons of randomly-generated keys takes constant time on average, as keys differ on the very first bit in half the cases, and differ on the second bit in half of the remaining half, and so on, resulting in an average of two bits that need to be compared. In a sorting algorithm the first comparisons made satisfies the randomness condition, but as the sort progresses the keys compared are clearly not randomly chosen anymore. For example, consider a bottom-up merge sort. The first pass will compare pairs of random keys, but the last pass will compare keys that are very close in the sorting order.</p>
+<p>The deciding factor is how the keys are distributed. The best case for radix sort is that they are taken as consecutive bit patterns. This will make the keys as short as they can be, still assuming they are distinct. This makes radix sort O(<i>n</i>·log(<i>n</i>)), but the comparison based sorts will not be as efficient, as the comparisons will not be constant time under this assumption. If we instead assume that the keys are bit patterns of length <i>k</i>·log(<i>n</i>) for a constant <i>k</i> &gt; 1 and base 2 log, and that they are uniformly random, then radix sort will still be O(<i>n</i>·log(<i>n</i>)), but so will the comparison based sorts, as the "extra" length makes even the keys that are consecutive in the sorted result differ enough that comparisons are constant time on average. If keys are longer than O(log(<i>n</i>)), but random, then radix sort will be inferior. There are many other assumptions that can be made as well, and most require careful study to make a correct comparison.</p>
+<h2>Least significant digit radix sorts</h2>
+<p>A least significant digit (LSD) radix sort is a fast stable sorting algorithm which can be used to sort keys in integer representation order. Keys may be a string of characters, or numerical digits in a given 'radix'. The processing of the keys begins at the least significant digit (i.e., the rightmost digit), and proceeds to the most significant digit (i.e., the leftmost digit). The sequence in which digits are processed by an LSD radix sort is the opposite of the sequence in which digits are processed by a most significant digit (MSD) radix sort.</p>
+<p>An LSD radix sort operates in O(<i>nk</i>) time, where <i>n</i> is the number of keys, and <i>k</i> is the average key length. This kind of performance for variable-length keys can be achieved by grouping all of the keys that have the same length together and separately performing an LSD radix sort on each group of keys for each length, from shortest to longest, in order to avoid processing the whole list of keys on every sorting pass.</p>
+<p>A radix sorting algorithm was originally used to sort punched cards in several passes. A computer algorithm was invented for radix sort in 1954 at MIT by Harold H. Seward. In many large applications needing speed, the computer radix sort is an improvement on (slower) comparison sorts.</p>
+<p>LSD radix sorts have resurfaced as an alternative to high performance comparison-based sorting algorithms (like heapsort and mergesort) that require O(<i>n</i> · log <i>n</i>) comparisons, where <i>n</i> is the number of items to be sorted. Comparison sorts can do no better than O(<i>n</i> · log <i>n</i>) execution time but offer the flexibility of being able to sort with respect to more complicated orderings than a lexicographic one; however, this ability is of little importance in many practical applications.</p>
+<h3>Definition</h3>
+<p>Each key is first figuratively dropped into one level of buckets corresponding to the value of the rightmost digit. Each bucket preserves the original order of the keys as the keys are dropped into the bucket. There is a one-to-one correspondence between the buckets and the values that can be represented by the rightmost digit. Then, the process repeats with the next neighbouring more significant digit until there are no more digits to process. In other words:</p>
+<ol>
+<li>Take the least significant digit (or group of bits, both being examples of radices) of each key.</li>
+<li>Group the keys based on that digit, but otherwise keep the original order of keys. (This is what makes the LSD radix sort a stable sort.)</li>
+<li>Repeat the grouping process with each more significant digit.</li>
+</ol>
+<p>The sort in step 2 is usually done using bucket sort or counting sort, which are efficient in this case since there are usually only a small number of digits.</p>
+<h3>An example</h3>
+<p>Original, unsorted list:</p>
+<p>Sorting by least significant digit (1s place) gives:</p>
+<p>Sorting by next digit (10s place) gives:</p>
+<p>Sorting by most significant digit (100s place) gives:</p>
+<p>It is important to realize that each of the above steps requires just a single pass over the data, since each item can be placed in its correct bucket without having to be compared with other items.</p>
+<p>Some radix sort implementations allocate space for buckets by first counting the number of keys that belong in each bucket before moving keys into those buckets. The number of times that each digit occurs is stored in an array. Consider the previous list of keys viewed in a different way:</p>
+<p>The first counting pass starts on the least significant digit of each key, producing an array of bucket sizes:</p>
+<p>A second counting pass on the next more significant digit of each key will produce an array of bucket sizes:</p>
+<p>A third and final counting pass on the most significant digit of each key will produce an array of bucket sizes:</p>
+<p>At least one LSD radix sort implementation now counts the number of times that each digit occurs in each column for all columns in a single counting pass. (See the external links section.) Other LSD radix sort implementations allocate space for buckets dynamically as the space is needed.</p>
+<h3>Iterative version using queues</h3>
+<p>A simple version of an LSD radix sort can be achieved using queues as buckets. The following process is repeated for a number of times equal to the length of the longest key:</p>
+<ol>
+<li>The integers are enqueued into an array of ten separate queues based on their digits from right to left. Computers often represent integers internally as fixed-length binary digits. Here, we will do something analogous with fixed-length decimal digits. So, using the numbers from the previous example, the queues for the 1st pass would be:
+<dl>
+<dd>0: 17<u>0</u>, 09<u>0</u></dd>
+<dd>1: none</dd>
+<dd>2: 00<u>2</u>, 80<u>2</u></dd>
+<dd>3: none</dd>
+<dd>4: 02<u>4</u></dd>
+<dd>5: 04<u>5</u>, 07<u>5</u></dd>
+<dd>6: 06<u>6</u></dd>
+<dd>7–9: none</dd>
+</dl>
+</li>
+<li>The queues are dequeued back into an array of integers, in increasing order. Using the same numbers, the array will look like this after the first pass:
+<dl>
+<dd>170, 090, 002, 802, 024, 045, 075, 066</dd>
+</dl>
+</li>
+<li>For the second pass:
+<dl>
+<dd>Queues:
+<dl>
+<dd>0: 0<u>0</u>2, 8<u>0</u>2</dd>
+<dd>1: none</dd>
+<dd>2: 0<u>2</u>4</dd>
+<dd>3: none</dd>
+<dd>4: 0<u>4</u>5</dd>
+<dd>5: none</dd>
+<dd>6: 0<u>6</u>6</dd>
+<dd>7: 1<u>7</u>0, 0<u>7</u>5</dd>
+<dd>8: none</dd>
+<dd>9: 0<u>9</u>0</dd>
+</dl>
+</dd>
+<dd>Array:
+<dl>
+<dd>002, 802, 024, 045, 066, 170, 075, 090<br>
+(note that at this point only 802 and 170 are out of order)</dd>
+</dl>
+</dd>
+</dl>
+</li>
+<li>For the third pass:
+<dl>
+<dd>Queues:
+<dl>
+<dd>0: <u>0</u>02, <u>0</u>24, <u>0</u>45, <u>0</u>66, <u>0</u>75, <u>0</u>90</dd>
+<dd>1: <u>1</u>70</dd>
+<dd>2–7: none</dd>
+<dd>8: <u>8</u>02</dd>
+<dd>9: none</dd>
+</dl>
+</dd>
+<dd>Array:
+<dl>
+<dd>002, 024, 045, 066, 075, 090, 170, 802 (sorted)</dd>
+</dl>
+</dd>
+</dl>
+</li>
+</ol>
+<p>While this may not be the most efficient radix sort algorithm, it is relatively simple, and still quite efficient. During all tests on 100M or fewer random 64-bit integers, qsort algorithm behaves faster. The following code in C is based on the counting sort algorithm provided in Cormen et al, with some improvements concerning memory allocation.</p>
+<h3>Example in C</h3>
+<p>WHATSON? 5e9c2a45-20ca-4660-af5c-40a9b9b28754</p>
+<pre>
+#include &lt;stdio.h&gt;
+#include &lt;stdlib.h&gt;
+#include &lt;string.h&gt;
+ 
+#define SHOWPASS
+ 
+void print(int *a, int n) {
+  int i;
+  for (i = 0; i &lt; n; i++) {
+    printf("%d\t", a[i]);
+  }
+}
+ 
+void radixsort(int *a, int n) {
+  int i, m = a[0], exp = 1;
+  const int base = 10;
+  int *b = malloc(n * sizeof(int*));
+  int *bucket = calloc(base, sizeof(int*));
+ 
+  //Get the greatest value in the array a and assign it to m
+  for (i = 1; i &lt; n; i++) {
+    if (a[i] &gt; m)
+      m = a[i];
+  }
+ 
+  //Loop until exp is bigger than the largest number
+  while (m / exp &gt; 0) {
+    memset(bucket, 0, base * sizeof(int*));
+ 
+    //Count the number of keys that will go into each bucket
+    for (i = 0; i &lt; n; i++) {
+      bucket[(a[i] / exp) % base]++;
+    }
+ 
+    //Add the count of the previous buckets to acquire the indexes after the end of each bucket location in the array
+    for (i = 1; i &lt; base; i++) {
+      bucket[i] += bucket[i - 1]; //similar to count sort algorithm i.e. c[i]=c[i]+c[i-1];
+    }
+ 
+    //Starting at the end of the list, get the index corresponding to the a[i]'s key, decrement it, and use it to place a[i] into array b.
+    for (i = n - 1; i &gt;= 0; i--) {
+      b[--bucket[(a[i] / exp) % base]] = a[i];
+    }
+ 
+    //Copy array b to array a
+    for (i = 0; i &lt; n; i++) {
+      a[i] = b[i];
+    }
+ 
+    //Multiply exp by the BASE to get the next group of keys
+    exp *= base;
+ 
+    #ifdef SHOWPASS
+      printf("\nPASS   : ");
+      print(a, n);
+    #endif
+  }
+ 
+  free(bucket);
+  free(b);
+}
+ 
+int main() {
+  int i, n;
+  printf("Enter total elements: ");
+  scanf("%d", &amp;n);
+  int *arr = malloc(n * sizeof(int*));
+ 
+  printf("Enter %d Elements: ", n);
+  for (i = 0; i &lt; n; i++) {
+    scanf("%d", &amp;arr[i]);
+  }
+ 
+  printf("\nARRAY  : ");
+  print(arr, n);
+ 
+  radixsort(arr, n);
+ 
+  printf("\nSORTED : ");
+  print(&amp;arr[0], n);
+  printf("\n");
+ 
+  return 0;
+}
+</pre>
+<h3>Example in C++</h3>
+<p>This is a highly optimized version in the C++ language that reduces the number of statements to be executed and lines of code for increased readability. This algorithm also manages memory more efficiently than other radix algorithms through the application of the list datatype and its iterator.</p>
+<p>WHATSON? aadb5cd6-a586-456f-bad8-9b935444eada</p>
+<pre>
+#include &lt;iostream&gt; /* cout */
+#include &lt;cstdlib&gt; /* srand, rand */
+#include &lt;ctime&gt; /* time() */
+#include &lt;list&gt; /* list */
+ 
+#define BASE 10 // # of buckets to use
+#define ARRAY_SIZE 50 // max # of elements in array
+ 
+using namespace std;
+ 
+// function prototypes
+void radix(int* nums, int length, int max);
+ 
+int main() {
+	int nums[ARRAY_SIZE];
+	int i;
+	int max=0;
+	srand(time(NULL));
+ 
+	// store random numbers to array, print their current order
+	cout &lt;&lt; "Before:\r\n";
+	for (i=0; i&lt;ARRAY_SIZE; i++) {
+		// generate random #, 1-1000
+		nums[i] = rand()%1000 + 1;
+ 
+		// determine max element upon addition to array
+		max = (nums[i] &gt; max)? nums[i]: max;
+		cout &lt;&lt; "\t" &lt;&lt; nums[i] &lt;&lt; "\r\n";
+	}
+	cout &lt;&lt; endl &lt;&lt; endl;
+ 
+	// sort using radix algorithm, passing max element
+	radix(nums,ARRAY_SIZE,max);
+ 
+	// print sorted array
+	cout &lt;&lt; "After:\r\n";
+	for (int i=0; i&lt;ARRAY_SIZE; i++)
+		cout &lt;&lt; "\t" &lt;&lt; nums[i] &lt;&lt; "\r\n";
+ 
+	return 0;
+}
+ 
+void radix(int* nums, int length, int max) {
+	list&lt;int&gt; bucket[BASE];
+	int i;
+ 
+	// iterate through each radix until n&gt;max
+	for (int n=1; max &gt;= n; n *= BASE) {
+		// sort list of numbers into buckets
+		for (i=0; i&lt;length; i++)
+			bucket[(nums[i]/n)%BASE].push_back(nums[i]);
+ 
+		// merge buckets back to list
+		for (int k=i=0; i&lt;BASE; bucket[i++].clear())
+			for (list&lt;int&gt;::iterator j = bucket[i].begin(); j != bucket[i].end(); nums[k++] = *(j++));
+	}
+}
+</pre>
+<p>The following example is written in a more modern style and features of C++14. It uses an unsigned octet as the radix to an unsigned integral type.</p>
+<p>WHATSON? e43cc5fe-21f2-4fdd-8290-3a60e0df40c3</p>
+<pre>
+#include &lt;iostream&gt;
+#include &lt;algorithm&gt;
+#include &lt;array&gt;
+#include &lt;vector&gt;
+#include &lt;random&gt;
+ 
+int main()
+{
+  using INT = std::mt19937_64::result_type;
+  std::array&lt;INT, 200000&gt; randoms;
+  std::generate(randoms.begin(), randoms.end(), [engine = std::mt19937_64{}]() mutable {return engine();});
+  std::array&lt;std::vector&lt;INT&gt;, 256&gt; buckets;
+ 
+  for (auto r : randoms) std::cout &lt;&lt; r &lt;&lt; std::endl;
+  std::cout &lt;&lt; std::endl;
+ 
+  for (int i = 0; i &lt; sizeof(INT); ++i)
+  {
+    for (auto r : randoms) buckets[(r &gt;&gt; (i &lt;&lt; 3)) &amp; 0xFF].push_back(r);
+ 
+    auto j = randoms.begin();
+    for (auto&amp; bucket : buckets)
+    {
+      for (auto b : bucket) *(j++) = b;
+      bucket.clear();
+    }
+  }
+ 
+  for (auto r : randoms) std::cout &lt;&lt; r &lt;&lt; std::endl;
+ 
+  return 0;
+}
+</pre>
+<h3>Example in Python</h3>
+<p>This example written in the Python programming language will perform the radix sort for any radix (base) of 2 or greater. Simplicity of exposition is chosen over clever programming, and so the <i>log</i> function is used instead of bit shifting techniques.</p>
+<p>WHATSON? 73fcd711-34b6-4e05-ab7b-f79c45373cd4</p>
+<pre>
+#python2.6 &lt;
+from math import log
+ 
+def getDigit(num, base, digit_num):
+    # pulls the selected digit
+    return (num // base ** digit_num) % base  
+ 
+def makeBlanks(size):
+    # create a list of empty lists to hold the split by digit
+    return [[] for _ in xrange(size)]  
+ 
+def split(a_list, base, digit_num):
+    buckets = makeBlanks(base)
+    for num in a_list:
+        # append the number to the list selected by the digit
+        buckets[getDigit(num, base, digit_num)].append(num)  
+    return buckets
+ 
+# concatenate the lists back in order for the next step
+def merge(a_list): 
+    new_list = []
+    for sublist in a_list:
+       new_list.extend(sublist)
+    return new_list
+ 
+def maxAbs(a_list):
+    # largest abs value element of a list
+    return max(abs(num) for num in a_list)  
+ 
+def radixSort(a_list, base):
+    # there are as many passes as there are digits in the longest number
+    passes = int(round(log(maxAbs(a_list), base)) + 1) 
+    new_list = a_list[:]
+    for digit_num in range(passes):
+        new_list = merge(split(new_list, base, digit_num))
+    return new_list
+</pre>
+<h3>Example in Java</h3>
+<p>WHATSON? 1aaec599-0c58-437c-b6fc-9a9e097b7a17</p>
+<pre>
+package com.arsenyko.algs;
+ 
+import java.util.Arrays;
+import java.util.LinkedList;
+ 
+/**
+ * A sample of base 10 radix sort algorithm.
+ * 
+ * @author Arseny Kovalchuk
+ *
+ */
+public class RadixSort {
+ 
+    @SuppressWarnings("unchecked")
+    // base 10
+    // LinkedList is also a Queue
+    private LinkedList&lt;Integer&gt;[] counter = new LinkedList[] {
+        new LinkedList&lt;Integer&gt;(),
+        new LinkedList&lt;Integer&gt;(),
+        new LinkedList&lt;Integer&gt;(),
+        new LinkedList&lt;Integer&gt;(),
+        new LinkedList&lt;Integer&gt;(),
+        new LinkedList&lt;Integer&gt;(),
+        new LinkedList&lt;Integer&gt;(),
+        new LinkedList&lt;Integer&gt;(),
+        new LinkedList&lt;Integer&gt;(),
+        new LinkedList&lt;Integer&gt;()
+    };
+ 
+    private RadixSort() {}
+ 
+    public static RadixSort createInstance() {
+        return new RadixSort();
+    }
+ 
+    public void sortLSD(int[] array, int maxDigitSymbols) {
+        int mod = 10;
+        int dev = 1;
+        for (int i = 0; i &lt; maxDigitSymbols; i++, dev *= 10, mod *= 10) {
+            //System.out.println(Arrays.toString(array));
+            for(int j = 0; j &lt; array.length; j++) {
+                int bucket = (array[j] % mod) / dev;
+                counter[bucket].add(array[j]);
+            }
+            int pos = 0;
+            for(int j = 0; j &lt; counter.length; j++) {
+                Integer value = null;
+                while ((value = counter[j].poll()) != null) {
+                    //System.out.println(value);
+                    array[pos++] = value;
+                }
+            }
+        }
+ 
+    }
+ 
+    public static void main(String[] args) {
+ 
+        int[] test = { 10, 1, 30, 156 };
+ 
+        RadixSort sorter = RadixSort.createInstance();
+        // we choose 3, because we have 156 with 3 digits
+        sorter.sortLSD(test, 3);
+ 
+        System.out.println(Arrays.toString(test));
+    }
+ 
+}
+</pre>
+<h2>Most significant digit radix sorts</h2>
+<p>A most significant digit (MSD) radix sort can be used to sort keys in lexicographic order. Unlike a least significant digit (LSD) radix sort, a most significant digit radix sort does not necessarily preserve the original order of duplicate keys. An MSD radix sort starts processing the keys from the most significant digit, leftmost digit, to the least significant digit, rightmost digit. This sequence is opposite that of least significant digit (LSD) radix sorts. An MSD radix sort stops rearranging the position of a key when the processing reaches a unique prefix of the key. Some MSD radix sorts use one level of buckets in which to group the keys. See the counting sort and pigeonhole sort articles. Other MSD radix sorts use multiple levels of buckets, which form a trie or a path in a trie. A postman's sort / postal sort is a kind of MSD radix sort.</p>
+<h3>Recursion</h3>
+<p>A recursively subdividing MSD radix sort algorithm works as follows:</p>
+<ol>
+<li>Take the most significant digit of each key.</li>
+<li>Sort the list of elements based on that digit, grouping elements with the same digit into one bucket.</li>
+<li>Recursively sort each bucket, starting with the next digit to the right.</li>
+<li>Concatenate the buckets together in order.</li>
+</ol>
+<h3>Recursive forward radix sort example</h3>
+<p>Sort the list:<br>
+170, 045, 075, 090, 002, 024, 802, 066</p>
+<ol>
+<li>Sorting by most significant digit (100s place) gives:<br>
+Zero hundreds bucket: <u>0</u>45, <u>0</u>75, <u>0</u>90, <u>0</u>02, <u>0</u>24, <u>0</u>66<br>
+One hundreds bucket: <u>1</u>70<br>
+Eight hundreds bucket: <u>8</u>02</li>
+<li>Sorting by next digit (10s place) is only needed for those numbers in the zero hundreds bucket (no other buckets contain more than one item):<br>
+Zero tens bucket: 0<u>0</u>2<br>
+Twenties bucket: 0<u>2</u>4<br>
+Forties bucket: 0<u>4</u>5<br>
+Sixties bucket: 0<u>6</u>6<br>
+Seventies bucket: 0<u>7</u>5<br>
+Nineties bucket: 0<u>9</u>0</li>
+</ol>
+<p>Sorting by least significant digit (1s place) is not needed, as there is no tens bucket with more than one number. Therefore, the now sorted zero hundreds bucket is concatenated, joined in sequence, with the one hundreds bucket and eight hundreds bucket to give:<br>
+002, 024, 045, 066, 075, 090, 170, 802</p>
+<p>This example used base ten digits for the sake of readability, but of course binary digits or perhaps bytes might make more sense for a binary computer to process.</p>
+<h3>In-place MSD radix sort implementations</h3>
+<p>Binary MSD radix sort, also called binary quicksort, can be implemented in-place by splitting the input array into two bins - the 0s bin and the 1s bin. The 0s bin is grown from the beginning of the array, whereas the 1s bin is grown from the end of the array. The 0s bin boundary is placed before the first array element. The 1s bin boundary is placed after the last array element. The most significant bit of the first array element is examined. If this bit is a 1, then the first element is swapped with the element in front of the 1s bin boundary (the last element of the array), and the 1s bin is grown by one element by decrementing the 1s boundary array index. If this bit is a 0, then the first element remains at its current location, and the 0s bin is grown by one element. The next array element examined is the one in front of the 0s bin boundary (i.e. the first element that is not in the 0s bin or the 1s bin). This process continues until the 0s bin and the 1s bin reach each other. The 0s bin and the 1s bin are then sorted recursively based on the next bit of each array element. Recursive processing continues until the least significant bit has been used for sorting. Handling signed integers requires treating the most significant bit with the opposite sense, followed by unsigned treatment of the rest of the bits.</p>
+<p>In-place MSD binary-radix sort can be extended to larger radix and retain in-place capability. Counting sort is used to determine the size of each bin and their starting index. Swapping is used to place the current element into its bin, followed by expanding the bin boundary. As the array elements are scanned the bins are skipped over and only elements between bins are processed, until the entire array has been processed and all elements end up in their respective bins. The number of bins is the same as the radix used - e.g. 16 bins for 16-Radix. Each pass is based on a single digit (e.g. 4-bits per digit in the case of 16-Radix), starting from the most significant digit. Each bin is then processed recursively using the next digit, until all digits have been used for sorting.</p>
+<p>Neither in-place binary-radix sort nor n-bit-radix sort, discussed in paragraphs above, are stable algorithms.</p>
+<h3>Stable MSD radix sort implementations</h3>
+<p>MSD Radix Sort can be implemented as a stable algorithm, but requires the use of a memory buffer of the same size as the input array. This extra memory allows the input buffer to be scanned from the first array element to last, and move the array elements to the destination bins in the same order. Thus, equal elements will be placed in the memory buffer in the same order they were in the input array. The MSD-based algorithm uses the extra memory buffer as the output on the first level of recursion, but swaps the input and output on the next level of recursion, to avoid the overhead of copying the output result back to the input buffer. Each of the bins are recursively processed, as is done for the in-place MSD Radix Sort. After the sort by the last digit has been completed, the output buffer is checked to see if it is the original input array, and if it's not, then a single copy is performed. If the digit size is chosen such that the key size divided by the digit size is an even number, the copy at the end is avoided.</p>
+<h3>Hybrid approaches</h3>
+<p>Radix sort, such as two pass method where counting sort is used during the first pass of each level of recursion, has a large constant overhead. Thus, when the bins get small, other sorting algorithms should be used, such as insertion sort. A good implementation of Insertion sort is fast for small arrays, stable, in-place, and can significantly speed up Radix Sort.</p>
+<h3>Application to parallel computing</h3>
+<p>Note that this recursive sorting algorithm has particular application to parallel computing, as each of the bins can be sorted independently. In this case, each bin is passed to the next available processor. A single processor would be used at the start (the most significant digit). By the second or third digit, all available processors would likely be engaged. Ideally, as each subdivision is fully sorted, fewer and fewer processors would be utilized. In the worst case, all of the keys will be identical or nearly identical to each other, with the result that there will be little to no advantage to using parallel computing to sort the keys.</p>
+<p>In the top level of recursion, opportunity for parallelism is in the Counting sort portion of the algorithm. Counting is highly parallel, amenable to the parallel_reduce pattern, and splits the work well across multiple cores until reaching memory bandwidth limit. This portion of the algorithm has data-independent parallelism. Processing each bin in subsequent recursion levels is data-dependent, however. For example, if all keys were of the same value, then there would be only a single bin with any elements in it, and no parallelism would be available. For random inputs all bins would be near equally populated and a large amount of parallelism opportunity would be available.</p>
+<p>Note that there are faster sorting algorithms available, for example optimal complexity O(log(<i>n</i>)) are those of the Three Hungarians and Richard Cole and Batcher's bitonic merge sort has an algorithmic complexity of O(log(<i>n</i>)), all of which have a lower algorithmic time complexity to radix sort on a CREW-PRAM. The fastest known PRAM sorts were described in 1991 by David Powers with a parallelized quicksort that can operate in O(log(n)) time on a CRCW-PRAM with <i>n</i> processors by performing partitioning implicitly, as well as a radixsort that operates using the same trick in O(<i>k</i>), where <i>k</i> is the maximum keylength. However, neither the PRAM architecture or a single sequential processor can actually be built in a way that will scale without the number of constant fanout gate delays per cycle increasing as O(log(<i>n</i>)), so that in effect a pipelined version of Batcher's bitonic mergesort and the O(log(<i>n</i>)) PRAM sorts are all O(log(<i>n</i>)) in terms of clock cycles, with Powers acknowledging that Batcher's would have lower constant in terms of gate delays than his Parallel quicksort and radix sort, or Cole's merge sort, for a keylength-independent sorting network of O(nlog(<i>n</i>)).</p>
+<h3>Incremental trie-based radix sort</h3>
+<p>Another way to proceed with an MSD radix sort is to use more memory to create a trie to represent the keys and then traverse the trie to visit each key in order. A depth-first traversal of a trie starting from the root node will visit each key in order. A depth-first traversal of a trie, or any other kind of acyclic tree structure, is equivalent to traversing a maze via the right-hand rule.</p>
+<p>A trie essentially represents a set of strings or numbers, and a radix sort which uses a trie structure is not necessarily stable, which means that the original order of duplicate keys is not necessarily preserved, because a set does not contain duplicate elements. Additional information will have to be associated with each key to indicate the population count or original order of any duplicate keys in a trie-based radix sort if keeping track of that information is important for a particular application. It may even be desirable to discard any duplicate strings as the trie creation proceeds if the goal is to find only unique strings in sorted order. Some people sort a list of strings first and then make a separate pass through the sorted list to discard duplicate strings, which can be slower than using a trie to simultaneously sort and discard duplicate strings in one pass.</p>
+<p>One of the advantages of maintaining the trie structure is that the trie makes it possible to determine quickly if a particular key is a member of the set of keys in a time that is proportional to the length of the key, <i>k</i>, in O(<i>k</i>) time, that is <i>independent</i> of the total number of keys. Determining set membership in a plain list, as opposed to determining set membership in a trie, requires binary search, O(<i>k log(n)</i>) time; linear search, O(<i>kn</i>) time; or some other method whose execution time is in some way <u>dependent</u> on the total number, <i>n</i>, of all of the keys in the worst case. It is sometimes possible to determine set membership in a plain list in O(<i>k</i>) time, in a time that is independent of the total number of keys, such as when the list is known to be in an arithmetic sequence or some other computable sequence.</p>
+<p>Maintaining the trie structure also makes it possible to insert new keys into the set incrementally or delete keys from the set incrementally while maintaining sorted order in O(<i>k</i>) time, in a time that is independent of the total number of keys. In contrast, other radix sorting algorithms must, in the worst case, re-sort the entire list of keys each time that a new key is added or deleted from an existing list, requiring O(<i>kn</i>) time.</p>
+<h4>Snow White analogy</h4>
+<p>If the nodes were rooms connected by hallways, then here is how Snow White might proceed to visit all of the dwarfs if the place were dark, keeping her right hand on a wall at all times:</p>
+<ol>
+<li>She travels down hall B to find Bashful.</li>
+<li>She continues moving forward with her right hand on the wall, which takes her around the room and back up hall B.</li>
+<li>She moves down halls D, O, and C to find Doc.</li>
+<li>Continuing to follow the wall with her right hand, she goes back up hall C, then down hall P, where she finds Dopey.</li>
+<li>She continues back up halls P, O, D, and then goes down hall G to find Grumpy.</li>
+<li>She goes back up hall G, with her right hand still on the wall, and goes down hall H to the room where Happy is.</li>
+<li>She travels back up hall H and turns right down halls S and L, where she finds Sleepy.</li>
+<li>She goes back up hall L, down hall N, where she finally finds Sneezy.</li>
+<li>She travels back up halls N and S to her starting point and knows that she is done.</li>
+</ol>
+<p>These series of steps serve to illustrate the path taken in the trie by Snow White via a depth-first traversal to visit the dwarfs by the ascending order of their names, Bashful, Doc, Dopey, Grumpy, Happy, Sleepy, and Sneezy. The algorithm for performing some operation on the data associated with each node of a tree first, such as printing the data, and then moving deeper into the tree is called a pre-order traversal, which is a kind of depth-first traversal. A pre-order traversal is used to process the contents of a trie in ascending order. If Snow White wanted to visit the dwarfs by the descending order of their names, then she could walk backwards while following the wall with her right hand, or, alternatively, walk forward while following the wall with her left hand. The algorithm for moving deeper into a tree first until no further descent to unvisited nodes is possible and then performing some operation on the data associated with each node is called post-order traversal, which is another kind of depth-first traversal. A post-order traversal is used to process the contents of a trie in descending order.</p>
+<p>The root node of the trie in the diagram essentially represents a null string, an empty string, which can be useful for keeping track of the number of blank lines in a list of words. The null string can be associated with a circularly linked list with the null string initially as its only member, with the forward and backward pointers both initially pointing to the null string. The circularly linked list can then be expanded as each new key is inserted into the trie. The circularly linked list is represented in the following diagram as thick, grey, horizontally linked lines:</p>
+<p>If a new key, other than the null string, is inserted into a leaf node of the trie, then the computer can go to the last preceding node where there was a key or a bifurcation to perform a depth-first search to find the lexicographic successor or predecessor of the inserted key for the purpose of splicing the new key into the circularly linked list. The last preceding node where there was a key or a bifurcation, a fork in the path, is a parent node in the type of trie shown here, where only unique string prefixes are represented as paths in the trie. If there is already a key associated with the parent node that would have been visited during a movement <i>away</i> from the root during a right-hand, forward-moving, depth-first traversal, then that immediately ends the depth-first search, as that key is the predecessor of the inserted key. For example, if Bashful is inserted into the trie, then the predecessor is the null string in the parent node, which is the root node in this case. In other words, if the key that is being inserted is on the leftmost branch of the parent node, then any string contained in the parent node is the lexicographic predecessor of the key that is being inserted, else the lexicographic predecessor of the key that is being inserted exists down the parent node's branch that is immediately to the left of the branch where the new key is being inserted. For example, if Grumpy were the last key inserted into the trie, then the computer would have a choice of trying to find either the predecessor, Dopey, or the successor, Happy, with a depth-first search starting from the parent node of Grumpy. With no additional information to indicate which path is longer, the computer might traverse the longer path, D, O, P. If Dopey were the last key inserted into the trie, then the depth-first search starting from the parent node of Dopey would soon find the predecessor, "Doc", because that would be the only choice.</p>
+<p>If a new key is inserted into an internal node, then a depth-first search can be started from the internal node to find the lexicographic successor. For example, if the literal string "DO" were inserted in the node at the end of the path D, O, then a depth-first search could be started from that internal node to find the successor, "DOC", for the purpose of splicing the new string into the circularly linked list.</p>
+<p>Forming the circularly linked list requires more memory but allows the keys to be visited more directly in either ascending or descending order via a linear traversal of the linked list rather than a depth-first traversal of the entire trie. This concept of a circularly linked trie structure is similar to the concept of a threaded binary tree. This structure will be called a circularly threaded trie.</p>
+<p>When a trie is used to sort numbers, the number representations must all be the same length unless you are willing to perform a breadth-first traversal. When the number representations will be visited via depth-first traversal, as in the above diagram, the number representations will always be on the leaf nodes of the trie. Note how similar in concept this particular example of a trie is to the recursive forward radix sort example which involves the use of buckets instead of a trie. Performing a radix sort with the buckets is like creating a trie and then discarding the non-leaf nodes.</p>
+<h2>See also</h2>
+<ul>
+<li>IBM 80 series Card Sorters</li>
+<li>Spaghetti sort</li>
+</ul>
+</body>
+</html>

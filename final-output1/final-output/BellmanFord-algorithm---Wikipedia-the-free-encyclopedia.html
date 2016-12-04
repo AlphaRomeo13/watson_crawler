@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>BellmanFord-algorithm---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Bellman–Ford algorithm</h1>
+<ul>
+<li>α–β</li>
+<li>A*</li>
+<li>B*</li>
+<li>Backtracking</li>
+<li>Beam</li>
+<li><strong class="selflink">Bellman–Ford</strong></li>
+<li>Best-first</li>
+<li>Bidirectional</li>
+<li>Borůvka</li>
+<li>Branch &amp; bound</li>
+<li>BFS</li>
+<li>British Museum</li>
+<li>D*</li>
+<li>DFS</li>
+<li>Depth-limited</li>
+<li>Dijkstra</li>
+<li>Edmonds</li>
+<li>Floyd–Warshall</li>
+<li>Fringe search</li>
+<li>Hill climbing</li>
+<li>IDA*</li>
+<li>Iterative deepening</li>
+<li>Johnson</li>
+<li>Jump point</li>
+<li>Kruskal</li>
+<li>Lexicographic BFS</li>
+<li>Prim</li>
+<li>SMA*</li>
+<li>Uniform-cost</li>
+</ul>
+<ul>
+<li><i>Graph algorithms</i></li>
+<li><i>Search algorithms</i></li>
+<li><i>List of graph algorithms</i></li>
+</ul>
+<ul>
+<li>Dynamic programming</li>
+<li>Graph traversal</li>
+<li>Tree traversal</li>
+<li>Search games</li>
+</ul>
+<ul>
+<li>v</li>
+<li>t</li>
+<li>e</li>
+</ul>
+<p>The <b>Bellman–Ford algorithm</b> is an algorithm that computes shortest paths from a single source vertex to all of the other vertices in a weighted digraph. It is slower than Dijkstra's algorithm for the same problem, but more versatile, as it is capable of handling graphs in which some of the edge weights are negative numbers. The algorithm is usually named after two of its developers, Richard Bellman and Lester Ford, Jr., who published it in 1958 and 1956, respectively; however, Edward F. Moore also published the same algorithm in 1957, and for this reason it is also sometimes called the <b>Bellman–Ford–Moore algorithm</b>.</p>
+<p>Negative edge weights are found in various applications of graphs, hence the usefulness of this algorithm. If a graph contains a "negative cycle" (i.e. a cycle whose edges sum to a negative value) that is reachable from the source, then there is no <i>cheapest</i> path: any path can be made cheaper by one more walk around the negative cycle. In such a case, the Bellman–Ford algorithm can detect negative cycles and report their existence. </p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Algorithm</li>
+<li>2 Proof of correctness</li>
+<li>3 Finding negative cycles</li>
+<li>4 Applications in routing</li>
+<li>5 Improvements</li>
+<li>6 Notes</li>
+<li>7 References
+<ul>
+<li>7.1 Original sources</li>
+<li>7.2 Secondary sources</li>
+</ul>
+</li>
+<li>8 External links</li>
+</ul>
+<ul>
+<li>7.1 Original sources</li>
+<li>7.2 Secondary sources</li>
+</ul>
+<p></p>
+<h2>Algorithm</h2>
+<p>Like Dijkstra's Algorithm, Bellman–Ford is based on the principle of relaxation, in which an approximation to the correct distance is gradually replaced by more accurate values until eventually reaching the optimum solution. In both algorithms, the approximate distance to each vertex is always an overestimate of the true distance, and is replaced by the minimum of its old value with the length of a newly found path. However, Dijkstra's algorithm greedily selects the minimum-weight node that has not yet been processed, and performs this relaxation process on all of its outgoing edges; by contrast, the Bellman–Ford algorithm simply relaxes <i>all</i> the edges, and does this <img class="mwe-math-fallback-image-inline tex" alt="|V|-1" src="//upload.wikimedia.org/math/c/f/5/cf51d4ccac4633495d83c06ce64bfb56.png"> times, where <img class="mwe-math-fallback-image-inline tex" alt="|V|" src="//upload.wikimedia.org/math/7/4/f/74fcb594bdd93c0f956682ae1ea013e6.png"> is the number of vertices in the graph. In each of these repetitions, the number of vertices with correctly calculated distances grows, from which it follows that eventually all vertices will have their correct distances. This method allows the Bellman–Ford algorithm to be applied to a wider class of inputs than Dijkstra.</p>
+<p>Bellman–Ford runs in <img class="mwe-math-fallback-image-inline tex" alt="O(|V|\cdot |E|)" src="//upload.wikimedia.org/math/8/d/c/8dc5b56c7a32af82a12adc278cb94d69.png"> time, where <img class="mwe-math-fallback-image-inline tex" alt="|V|" src="//upload.wikimedia.org/math/7/4/f/74fcb594bdd93c0f956682ae1ea013e6.png"> and <img class="mwe-math-fallback-image-inline tex" alt="|E|" src="//upload.wikimedia.org/math/c/b/d/cbdcf0e203060323ebcd0079f280f4b8.png"> are the number of vertices and edges respectively.</p>
+<p>WHATSON? bf3b41df-7fd1-43af-b718-493aa51da4fd</p>
+<pre>
+<b>function</b> BellmanFord(<i>list</i> vertices, <i>list</i> edges, <i>vertex</i> source)
+   ::weight[],predecessor[]
+
+   <i>// This implementation takes in a graph, represented as</i>
+   <i>// lists of vertices and edges, and fills two arrays</i>
+   <i>// (weight and predecessor) with shortest-path</i>
+   <i>// (less cost/weight/metric) information</i>
+
+   <i>// Step 1: initialize graph</i>
+   <b>for each</b> vertex v <b>in</b> vertices:
+       <b>if</b> v <b>is</b> source <b>then</b> weight[v] := 0
+       <b>else</b> weight[v] := <b>infinity</b>
+       predecessor[v] := <b>null</b>
+
+   <i>// Step 2: relax edges repeatedly</i>
+   <b>for</b> i <b>from</b> 1 <b>to</b> size(vertices)-1:
+       <b>for each</b> edge (u, v) <b>with</b> weight w <b>in</b> edges:
+           <b>if</b> weight[u] + w &lt; weight[v]:
+               weight[v] := weight[u] + w
+               predecessor[v] := u
+
+   <i>// Step 3: check for negative-weight cycles</i>
+   <b>for each</b> edge (u, v) <b>with</b> weight w <b>in</b> edges:
+       <b>if</b> weight[u] + w &lt; weight[v]:
+           <b>error</b> "Graph contains a negative-weight cycle"
+   <b>return</b> weight[], predecessor[]
+</pre>
+<p>Simply put, the algorithm initializes the distance to the source to 0 and all other nodes to infinity. Then for all edges, if the distance to the destination can be shortened by taking the edge, the distance is updated to the new lower value. At each iteration <img class="mwe-math-fallback-image-inline tex" alt="i" src="//upload.wikimedia.org/math/8/6/5/865c0c0b4ab0e063e5caa3387c1a8741.png"> that the edges are scanned, the algorithm finds all shortest paths of at most length <img class="mwe-math-fallback-image-inline tex" alt="i" src="//upload.wikimedia.org/math/8/6/5/865c0c0b4ab0e063e5caa3387c1a8741.png"> edges. Since the longest possible path without a cycle can be <img class="mwe-math-fallback-image-inline tex" alt="|V|-1" src="//upload.wikimedia.org/math/c/f/5/cf51d4ccac4633495d83c06ce64bfb56.png"> edges, the edges must be scanned <img class="mwe-math-fallback-image-inline tex" alt="|V|-1" src="//upload.wikimedia.org/math/c/f/5/cf51d4ccac4633495d83c06ce64bfb56.png"> times to ensure the shortest path has been found for all nodes. A final scan of all the edges is performed and if any distance is updated, then a path of length <img class="mwe-math-fallback-image-inline tex" alt="|V|" src="//upload.wikimedia.org/math/7/4/f/74fcb594bdd93c0f956682ae1ea013e6.png"> edges has been found which can only occur if at least one negative cycle exists in the graph.</p>
+<h2>Proof of correctness</h2>
+<p>The correctness of the algorithm can be shown by induction. The precise statement shown by induction is:</p>
+<p><b>Lemma</b>. After <i>i</i> repetitions of <i>for</i> cycle:</p>
+<ul>
+<li>If Distance(<i>u</i>) is not infinity, it is equal to the length of some path from <i>s</i> to <i>u</i>;</li>
+<li>If there is a path from <i>s</i> to <i>u</i> with at most <i>i</i> edges, then Distance(u) is at most the length of the shortest path from <i>s</i> to <i>u</i> with at most <i>i</i> edges.</li>
+</ul>
+<p><b>Proof</b>. For the base case of induction, consider <code>i=0</code> and the moment before <i>for</i> cycle is executed for the first time. Then, for the source vertex, <code>source.distance = 0</code>, which is correct. For other vertices <i>u</i>, <code>u.distance = <b>infinity</b></code>, which is also correct because there is no path from <i>source</i> to <i>u</i> with 0 edges.</p>
+<p>For the inductive case, we first prove the first part. Consider a moment when a vertex's distance is updated by <code>v.distance := u.distance + uv.weight</code>. By inductive assumption, <code>u.distance</code> is the length of some path from <i>source</i> to <i>u</i>. Then <code>u.distance + uv.weight</code> is the length of the path from <i>source</i> to <i>v</i> that follows the path from <i>source</i> to <i>u</i> and then goes to <i>v</i>.</p>
+<p>For the second part, consider the shortest path from <i>source</i> to <i>u</i> with at most <i>i</i> edges. Let <i>v</i> be the last vertex before <i>u</i> on this path. Then, the part of the path from <i>source</i> to <i>v</i> is the shortest path from <i>source</i> to <i>v</i> with at most <i>i-1</i> edges. By inductive assumption, <code>v.distance</code> after <i>i</i>−1 cycles is at most the length of this path. Therefore, <code>uv.weight + v.distance</code> is at most the length of the path from <i>s</i> to <i>u</i>. In the <i>i</i> cycle, <code>u.distance</code> gets compared with <code>uv.weight + v.distance</code>, and is set equal to it if <code>uv.weight + v.distance</code> was smaller. Therefore, after <i>i</i> cycles, <code>u.distance</code> is at most the length of the shortest path from <i>source</i> to <i>u</i> that uses at most <i>i</i> edges.</p>
+<p>If there are no negative-weight cycles, then every shortest path visits each vertex at most once, so at step 3 no further improvements can be made. Conversely, suppose no improvement can be made. Then for any cycle with vertices <i>v</i>[0], ..., <i>v</i>[<i>k</i>−1],</p>
+<p><code>v[i].distance &lt;= v[(i-1) mod k].distance + v[(i-1) mod k]v[i].weight</code></p>
+<p>Summing around the cycle, the <i>v</i>[<i>i</i>].distance terms and the <i>v</i>[<i>i</i>−1 (mod <i>k</i>)] distance terms cancel, leaving</p>
+<p><code>0 &lt;= sum from 1 to k of v[i-1 (mod k)]v[i].weight</code></p>
+<p>I.e., every cycle has nonnegative weight.</p>
+<h2>Finding negative cycles</h2>
+<p>When the algorithm is used to find shortest paths, the existence of negative cycles is a problem, preventing the algorithm from finding a correct answer. However, since it terminates upon finding a negative cycle, the Bellman–Ford algorithm can be used for applications in which this is the target to be sought - for example in cycle-cancelling techniques in network flow analysis.</p>
+<h2>Applications in routing</h2>
+<p>A distributed variant of the Bellman–Ford algorithm is used in distance-vector routing protocols, for example the Routing Information Protocol (RIP). The algorithm is distributed because it involves a number of nodes (routers) within an Autonomous system, a collection of IP networks typically owned by an ISP. It consists of the following steps:</p>
+<ol>
+<li>Each node calculates the distances between itself and all other nodes within the AS and stores this information as a table.</li>
+<li>Each node sends its table to all neighboring nodes.</li>
+<li>When a node receives distance tables from its neighbors, it calculates the shortest routes to all other nodes and updates its own table to reflect any changes.</li>
+</ol>
+<p>The main disadvantages of the Bellman–Ford algorithm in this setting are as follows:</p>
+<ul>
+<li>It does not scale well.</li>
+<li>Changes in network topology are not reflected quickly since updates are spread node-by-node.</li>
+<li>Count to infinity (if link or node failures render a node unreachable from some set of other nodes, those nodes may spend forever gradually increasing their estimates of the distance to it, and in the meantime there may be routing loops).</li>
+</ul>
+<h2>Improvements</h2>
+<p>The Bellman–Ford algorithm may be improved in practice (although not in the worst case) by the observation that, if an iteration of the main loop of the algorithm terminates without making any changes, the algorithm can be immediately terminated, as subsequent iterations will not make any more changes. With this early termination condition, the main loop may in some cases use many fewer than |<i>V</i>| − 1 iterations, even though the worst case of the algorithm remains unchanged.</p>
+<p>Yen (1970) described two more improvements to the Bellman–Ford algorithm for a graph without negative-weight cycles; again, while making the algorithm faster in practice, they do not change its O(|V|*|E|) worst case time bound. His first improvement reduces the number of relaxation steps that need to be performed within each iteration of the algorithm. If a vertex <i>v</i> has a distance value that has not changed since the last time the edges out of <i>v</i> were relaxed, then there is no need to relax the edges out of <i>v</i> a second time. In this way, as the number of vertices with correct distance values grows, the number whose outgoing edges need to be relaxed in each iteration shrinks, leading to a constant-factor savings in time for dense graphs.</p>
+<p>Yen's second improvement first assigns some arbitrary linear order on all vertices and then partitions the set of all edges into two subsets. The first subset, <i>E<sub>f</sub></i>, contains all edges (<i>v<sub>i</sub></i>, <i>v<sub>j</sub></i>) such that <i>i</i> &lt; <i>j</i>; the second, <i>E<sub>b</sub></i>, contains edges (<i>v<sub>i</sub></i>, <i>v<sub>j</sub></i>) such that <i>i</i> &gt; <i>j</i>. Each vertex is visited in the order <i>v<sub>1</sub></i>, <i>v<sub>2</sub></i>, ..., <i>v</i><sub>|<i>V</i>|</sub>, relaxing each outgoing edge from that vertex in <i>E<sub>f</sub></i>. Each vertex is then visited in the order <i>v</i><sub>|<i>V</i>|</sub>, <i>v</i><sub>|<i>V</i>|−1</sub>, ..., <i>v</i><sub>1</sub>, relaxing each outgoing edge from that vertex in <i>E<sub>b</sub></i>. Each iteration of the main loop of the algorithm, after the first one, adds at least two edges to the set of edges whose relaxed distances match the correct shortest path distances: one from <i>E<sub>f</sub></i> and one from <i>E<sub>b</sub></i>. This modification reduces the worst-case number of iterations of the main loop of the algorithm from |<i>V</i>| − 1 to |<i>V</i>|/2.</p>
+<p>Another improvement, by Bannister &amp; Eppstein (2012), replaces the arbitrary linear order of the vertices used in Yen's second improvement by a random permutation. This change makes the worst case for Yen's improvement (in which the edges of a shortest path strictly alternate between the two subsets <i>E<sub>f</sub></i> and <i>E<sub>b</sub></i>) very unlikely to happen. With a randomly permuted vertex ordering, the expected number of iterations needed in the main loop is at most |<i>V</i>|/3.</p>
+<h2>Notes</h2>
+<ol>
+<li>^     Bang-Jensen &amp; Gutin (2000)</li>
+<li><b>^</b> Sedgewick (2002).</li>
+<li><b>^</b> Kleinberg &amp; Tardos (2006).</li>
+<li><b>^</b> Cormen et al., 2nd ed., Problem 24-1, pp. 614–615.</li>
+<li>^   See Sedgewick's web exercises for <i>Algorithms</i>, 4th ed., exercises 5 and 11 (retrieved 2013-01-30).</li>
+</ol>
+</body>
+</html>

@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>RabinKarp-algorithm---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Rabin–Karp algorithm</h1>
+<p>In computer science, the <b>Rabin–Karp algorithm</b> or <b>Karp–Rabin algorithm</b> is a string searching algorithm created by Richard M. Karp and Michael O. Rabin (1987) that uses hashing to find any one of a set of pattern strings in a text. For text of length <i>n</i> and <i>p</i> patterns of combined length <i>m</i>, its average and best case running time is O(<i>n</i>+<i>m</i>) in space O(<i>p</i>), but its worst-case time is O(<i>nm</i>). In contrast, the Aho–Corasick string matching algorithm has asymptotic worst-time complexity O(<i>n</i>+<i>m</i>) in space O(<i>m</i>).</p>
+<p>A practical application of the algorithm is detecting plagiarism. Given source material, the algorithm can rapidly search through a paper for instances of sentences from the source material, ignoring details such as case and punctuation. Because of the abundance of the sought strings, single-string searching algorithms are impractical.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Shifting substrings search and competing algorithms</li>
+<li>2 Use of hashing for shifting substring search</li>
+<li>3 Hash function used</li>
+<li>4 Multiple pattern search</li>
+<li>5 See Also</li>
+<li>6 References</li>
+<li>7 External links</li>
+</ul>
+<p></p>
+<h2>Shifting substrings search and competing algorithms</h2>
+<p>A brute-force substring search algorithm checks all possible positions:</p>
+<ol>
+<li>
+<pre>
+function NaiveSearch(string s[1..n], string pattern[1..m])
+</pre></li>
+<li>
+<pre>
+   for i from 1 to n-m+1
+</pre></li>
+<li>
+<pre>
+      for j from 1 to m
+</pre></li>
+<li>
+<pre>
+         if s[i+j-1] ≠ pattern[j]
+</pre></li>
+<li>
+<pre>
+            jump to next iteration of outer loop
+</pre></li>
+<li>
+<pre>
+      return i
+</pre></li>
+<li>
+<pre>
+   return not found
+</pre></li>
+</ol>
+<p>WHATSON? 6152f6a2-2720-4989-90c3-b6ebe23620e2</p>
+<pre>
+function NaiveSearch(string s[1..n], string pattern[1..m])
+</pre>
+<p>WHATSON? 0f2f566c-8d02-4e0a-90af-0f631fd872e4</p>
+<pre>
+   for i from 1 to n-m+1
+</pre>
+<p>WHATSON? 02e3cfd8-ddc5-468d-bdbe-ba71ce17cfcb</p>
+<pre>
+      for j from 1 to m
+</pre>
+<p>WHATSON? 539a862d-c57d-4187-b667-d6314512011f</p>
+<pre>
+         if s[i+j-1] ≠ pattern[j]
+</pre>
+<p>WHATSON? b16d9773-fade-43f0-b9dd-468af70e6858</p>
+<pre>
+            jump to next iteration of outer loop
+</pre>
+<p>WHATSON? 542664e1-283c-4780-82a5-96634fc372c8</p>
+<pre>
+      return i
+</pre>
+<p>WHATSON? 9756ca25-a2ac-4bd0-8362-c91b8d7f173e</p>
+<pre>
+   return not found
+</pre>
+<p>This algorithm works well in many practical cases, but can exhibit relatively long running times on certain examples, such as searching for a pattern string of 10,000 "a"s followed by a single "b" in a search string of 10 million "a"s, in which case it exhibits its worst-case O(<i>mn</i>) time.</p>
+<p>The Knuth–Morris–Pratt algorithm reduces this to O(<i>n</i>) time using precomputation to examine each text character only once; the Boyer–Moore algorithm skips forward not by 1 character, but by as many as possible for the search to succeed, effectively decreasing the number of times we iterate through the outer loop, so that the number of characters examined can be as small as <i>n/m</i> in the best case. The Rabin–Karp algorithm focuses instead on speeding up lines 3-5.</p>
+<h2>Use of hashing for shifting substring search</h2>
+<p>Rather than pursuing more sophisticated skipping, the Rabin–Karp algorithm seeks to speed up the testing of equality of the pattern to the substrings in the text by using a hash function. A hash function is a function which converts every string into a numeric value, called its <i>hash value</i>; for example, we might have hash("hello")=5. The algorithm exploits the fact that if two strings are equal, their hash values are also equal. Thus, it would seem all we have to do is compute the hash value of the substring we're searching for, and then look for a substring with the same hash value.</p>
+<p>However, there are two problems with this. First, because there are so many different strings, to keep the hash values small we have to assign some strings the same number. This means that if the hash values match, the strings might not match; we have to verify that they do, which can take a long time for long substrings. Luckily, a good hash function promises us that on most reasonable inputs, this won't happen too often, which keeps the average search time within an acceptable range.</p>
+<p>The algorithm is as shown:</p>
+<ol>
+<li>
+<pre>
+function RabinKarp(string s[1..n], string pattern[1..m])
+</pre></li>
+<li>
+<pre>
+hpattern := hash(pattern[1..m]);  hs := hash(s[1..m])
+</pre></li>
+<li>
+<pre>
+for i from 1 to n-m+1
+</pre></li>
+<li>
+<pre>
+  if hs = hpattern
+</pre></li>
+<li>
+<pre>
+    if s[i..i+m-1] = pattern[1..m]
+</pre></li>
+<li>
+<pre>
+      return i
+</pre></li>
+<li>
+<pre>
+  hs := hash(s[i+1..i+m])
+</pre></li>
+<li>
+<pre>
+return not found
+</pre></li>
+</ol>
+<p>WHATSON? db6e6c64-1dcd-4478-a6ce-341c1b155596</p>
+<pre>
+function RabinKarp(string s[1..n], string pattern[1..m])
+</pre>
+<p>WHATSON? b6650f56-70a7-4ab2-aaae-3f6b454482f2</p>
+<pre>
+hpattern := hash(pattern[1..m]);  hs := hash(s[1..m])
+</pre>
+<p>WHATSON? c4843858-b07a-476f-86a1-977b1dbbf142</p>
+<pre>
+for i from 1 to n-m+1
+</pre>
+<p>WHATSON? 55823c87-28a8-407f-a926-37a8e1bede3f</p>
+<pre>
+  if hs = hpattern
+</pre>
+<p>WHATSON? 90f7fb45-0c86-46cf-a4a5-bc3e713e9fa8</p>
+<pre>
+    if s[i..i+m-1] = pattern[1..m]
+</pre>
+<p>WHATSON? 7430ac46-2dcd-48cf-9487-8e7e98e98c86</p>
+<pre>
+      return i
+</pre>
+<p>WHATSON? fdf70b97-1fe5-4d44-b8e0-32fa0a178a1a</p>
+<pre>
+  hs := hash(s[i+1..i+m])
+</pre>
+<p>WHATSON? ec53cd5e-f2ee-4597-aac0-948b929127ab</p>
+<pre>
+return not found
+</pre>
+<p>Lines 2, 5, and 7 each require O(m) time. However, line 2 is only executed once, and line 5 is only executed if the hash values match, which is unlikely to happen more than a few times. Line 4 is executed <i>n</i> times, but only requires constant time. So the only problem is line 7.</p>
+<p>If we naively recompute the hash value for the substring <code>s[i+1..i+m]</code>, this would require O(<i>m</i>) time, and since this is done on each loop, the algorithm would require O(mn) time, the same as the most naive algorithms. The trick to solving this is to note that the variable <code>hs</code> already contains the hash value of <code>s[i..i+m-1]</code>. If we can use this to compute the next hash value in constant time, then our problem will be solved.</p>
+<p>We do this using what is called a rolling hash. A rolling hash is a hash function specially designed to enable this operation. One simple example is adding up the values of each character in the substring. Then, we can use this formula to compute the next hash value in constant time:</p>
+<p>WHATSON? 4b2a9e9d-276c-4250-91b7-e55194df53f3</p>
+<pre>
+s[i+1..i+m] = s[i..i+m-1] - s[i] + s[i+m]
+</pre>
+<p>This simple function works, but will result in statement 5 being executed more often than other more sophisticated rolling hash functions such as those discussed in the next section.</p>
+<p>Notice that if we're very unlucky, or have a very bad hash function such as a constant function, line 5 might very well be executed <i>n</i> times, on every iteration of the loop. Because it requires O(m) time, the whole algorithm then takes a worst-case O(mn) time.</p>
+<h2>Hash function used</h2>
+<p>The key to the Rabin–Karp algorithm's performance is the efficient computation of hash values of the successive substrings of the text. One popular and effective rolling hash function treats every substring as a number in some base, the base being usually a large prime. For example, if the substring is "hi" and the base is 101, the hash value would be 104 × 101 + 105 × 101 = 10609 (ASCII of 'h' is 104 and of 'i' is 105).</p>
+<p>Technically, this algorithm is only similar to the true number in a non-decimal system representation, since for example we could have the "base" less than one of the "digits". See hash function for a much more detailed discussion. The essential benefit achieved by such representation is that it is possible to compute the hash value of the next substring from the previous one by doing only a constant number of operations, independent of the substrings' lengths.</p>
+<p>For example, if we have text "abracadabra" and we are searching for a pattern of length 3, the hash of the first substring, "abr", using 101 as base is:</p>
+<p>WHATSON? 7c3576ac-8084-4719-bcf2-b97a0dfdf9cf</p>
+<pre>
+// ASCII a = 97, b = 98, r = 114. 
+hash("abr") = (97 × 101) + (98 × 101) + (114 × 101) = 999,509 
+</pre>
+<p>We can then compute the hash of the next substring, "bra", from the hash of "abr" by subtracting the number added for the first 'a' of "abr", i.e. 97 × 101, multiplying by the base and adding for the last a of "bra", i.e. 97 × 101. Like so:</p>
+<p>WHATSON? 1ecb0c1d-6304-4b57-a3d4-e2a76b24f505</p>
+<pre>
+//             <i>base   old hash    old 'a'         new 'a'</i>
+hash("bra") = [101 × (999,509 - (97 × 101))] + (97 × 101) = 1,011,309
+</pre>
+<p>If the substrings in question are long, this algorithm achieves great savings compared with many other hashing schemes.</p>
+<p>Theoretically, there exist other algorithms that could provide convenient recomputation, e.g. multiplying together ASCII values of all characters so that shifting substring would only entail dividing by the first character and multiplying by the last. The limitation, however, is the limited size of the integer data type and the necessity of using modular arithmetic to scale down the hash results, (see hash function article). Meanwhile, naive hash functions do not produce large numbers quickly, but, just like adding ASCII values, are likely to cause many hash collisions and hence slow down the algorithm. Hence the described hash function is typically the preferred one in the Rabin–Karp algorithm.</p>
+<h2>Multiple pattern search</h2>
+<p>The Rabin–Karp algorithm is inferior for single pattern searching to Knuth–Morris–Pratt algorithm, Boyer–Moore string search algorithm and other faster single pattern string searching algorithms because of its slow worst case behavior. However, it is an algorithm of choice for multiple pattern search.</p>
+<p>That is, if we want to find any of a large number, say <i>k</i>, fixed length patterns in a text, we can create a simple variant of the Rabin–Karp algorithm that uses a Bloom filter or a set data structure to check whether the hash of a given string belongs to a set of hash values of patterns we are looking for:</p>
+<ol>
+<li>
+<pre>
+function RabinKarpSet(string s[1..n], set of string subs, m):
+</pre></li>
+<li>
+<pre>
+    set hsubs := emptySet
+</pre></li>
+<li>
+<pre>
+    foreach sub in subs
+</pre></li>
+<li>
+<pre>
+        insert hash(sub[1..m]) into hsubs
+</pre></li>
+<li>
+<pre>
+    hs := hash(s[1..m])
+</pre></li>
+<li>
+<pre>
+    for i from 1 to n-m+1
+</pre></li>
+<li>
+<pre>
+        if hs ∈ hsubs and s[i..i+m-1] ∈ subs
+</pre></li>
+<li>
+<pre>
+            return i
+</pre></li>
+<li>
+<pre>
+        hs := hash(s[i+1..i+m])
+</pre></li>
+<li>
+<pre>
+    return not found
+</pre></li>
+</ol>
+<p>WHATSON? 6979181b-93cb-4742-9f75-118b3017b2d7</p>
+<pre>
+function RabinKarpSet(string s[1..n], set of string subs, m):
+</pre>
+<p>WHATSON? 9e6968bb-5c31-4de3-8941-ec799c818fb8</p>
+<pre>
+    set hsubs := emptySet
+</pre>
+<p>WHATSON? 1b99b3ee-7f6f-4ee3-b6a3-b5c970e23355</p>
+<pre>
+    foreach sub in subs
+</pre>
+<p>WHATSON? b967d351-13ae-44a6-8e2e-b87cb607a494</p>
+<pre>
+        insert hash(sub[1..m]) into hsubs
+</pre>
+<p>WHATSON? 24c278b3-aa2a-43ef-9e46-2378766813df</p>
+<pre>
+    hs := hash(s[1..m])
+</pre>
+<p>WHATSON? b005e692-9be8-4310-8b45-b34b2a62a379</p>
+<pre>
+    for i from 1 to n-m+1
+</pre>
+<p>WHATSON? 9f907808-04ed-41c8-9117-3bb5cbc1399f</p>
+<pre>
+        if hs ∈ hsubs and s[i..i+m-1] ∈ subs
+</pre>
+<p>WHATSON? e152476f-b16e-4cfb-b1d3-c82f5c418200</p>
+<pre>
+            return i
+</pre>
+<p>WHATSON? 40f9992b-f586-4e60-b6e3-0ff8dfb83629</p>
+<pre>
+        hs := hash(s[i+1..i+m])
+</pre>
+<p>WHATSON? 15449da5-a282-485c-9d14-a45a2b9d1e32</p>
+<pre>
+    return not found
+</pre>
+<p>We assume all the substrings have a fixed length <i>m</i>.</p>
+<p>A naïve way to search for <i>k</i> patterns is to repeat a single-pattern search taking O(<i>n</i>) time, totalling in O(<i>n</i> <i>k</i>) time. In contrast, the variant algorithm above can find all <i>k</i> patterns in O(<i>n</i>+<i>k</i>) time in expectation, because a hash table checks whether a substring hash equals any of the pattern hashes in O(1) time.</p>
+<h2>See Also</h2>
+<p>Other multiple-pattern string search algorithms are:</p>
+<ul>
+<li>Aho–Corasick</li>
+<li>Commentz-Walter</li>
+</ul>
+</body>
+</html>

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Shellsort---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Shellsort</h1>
+<p><b>Shellsort</b>, also known as <b>Shell sort</b> or <b>Shell's method</b>, is an in-place comparison sort. It can be seen as either a generalization of sorting by exchange (bubble sort) or sorting by insertion (insertion sort). The method starts by sorting elements far apart from each other and progressively reducing the gap between them. Starting with far apart elements can move some out-of-place elements into position faster than a simple nearest neighbor exchange. Donald Shell published the first version of this sort in 1959. The running time of Shellsort is heavily dependent on the gap sequence it uses. For many practical variants, determining their time complexity remains an open problem.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Description</li>
+<li>2 Pseudocode</li>
+<li>3 Gap sequences</li>
+<li>4 Computational complexity</li>
+<li>5 Applications</li>
+<li>6 See also</li>
+<li>7 References</li>
+<li>8 Bibliography</li>
+<li>9 External links</li>
+</ul>
+<p></p>
+<h2>Description</h2>
+<p>Shellsort is a generalization of insertion sort that allows the exchange of items that are far apart. The idea is to arrange the list of elements so that, starting anywhere, considering every <i>h</i>th element gives a sorted list. Such a list is said to be <i>h</i>-sorted. Equivalently, it can be thought of as <i>h</i> interleaved lists, each individually sorted. Beginning with large values of <i>h</i>, this rearrangement allows elements to move long distances in the original list, reducing large amounts of disorder quickly, and leaving less work for smaller <i>h</i>-sort steps to do. If the file is then <i>k-sorted</i> for some smaller integer <i>k</i>, then the file remains <i>h</i>-sorted. Following this idea for a decreasing sequence of <i>h</i> values ending in 1 is guaranteed to leave a sorted list in the end.</p>
+<p>An example run of Shellsort with gaps 5, 3 and 1 is shown below.</p>
+<p><img class="mwe-math-fallback-image-inline tex" alt="
+\begin{array}{rcccccccccccc}
+    &amp;a_1&amp;a_2&amp;a_3&amp;a_4&amp;a_5&amp;a_6&amp;a_7&amp;a_8&amp;a_9&amp;a_{10}&amp;a_{11}&amp;a_{12}\\
+  \hbox{input data:}
+    &amp; 62&amp; 83&amp; 18&amp; 53&amp; 07&amp; 17&amp; 95&amp; 86&amp; 47&amp; 69&amp; 25&amp; 28\\
+  \hbox{after 5-sorting:}
+    &amp; 17&amp; 28&amp; 18&amp; 47&amp; 07&amp; 25&amp; 83&amp; 86&amp; 53&amp; 69&amp; 62&amp; 95\\
+  \hbox{after 3-sorting:}
+    &amp; 17&amp; 07&amp; 18&amp; 47&amp; 28&amp; 25&amp; 69&amp; 62&amp; 53&amp; 83&amp; 86&amp; 95\\
+  \hbox{after 1-sorting:}
+    &amp; 07&amp; 17&amp; 18&amp; 25&amp; 28&amp; 47&amp; 53&amp; 62&amp; 69&amp; 83&amp; 86&amp; 95\\
+\end{array}
+" src="//upload.wikimedia.org/math/9/8/a/98a5e472f889c0db4a6bdae9f56ed052.png"></p>
+<p>The first pass, 5-sorting, performs insertion sort on separate subarrays (<i>a</i><sub>1</sub>, <i>a</i><sub>6</sub>, <i>a</i><sub>11</sub>), (<i>a</i><sub>2</sub>, <i>a</i><sub>7</sub>, <i>a</i><sub>12</sub>), (<i>a</i><sub>3</sub>, <i>a</i><sub>8</sub>), (<i>a</i><sub>4</sub>, <i>a</i><sub>9</sub>), (<i>a</i><sub>5</sub>, <i>a</i><sub>10</sub>). For instance, it changes the subarray (<i>a</i><sub>1</sub>, <i>a</i><sub>6</sub>, <i>a</i><sub>11</sub>) from (62, 17, 25) to (17, 25, 62). The next pass, 3-sorting, performs insertion sort on the subarrays (<i>a</i><sub>1</sub>, <i>a</i><sub>4</sub>, <i>a</i><sub>7</sub>, <i>a</i><sub>10</sub>), (<i>a</i><sub>2</sub>, <i>a</i><sub>5</sub>, <i>a</i><sub>8</sub>, <i>a</i><sub>11</sub>), (<i>a</i><sub>3</sub>, <i>a</i><sub>6</sub>, <i>a</i><sub>9</sub>, <i>a</i><sub>12</sub>). The last pass, 1-sorting, is an ordinary insertion sort of the entire array (<i>a</i><sub>1</sub>,..., <i>a</i><sub>12</sub>).</p>
+<p>As the example illustrates, the subarrays that Shellsort operates on are initially short; later they are longer but almost ordered. In both cases insertion sort works efficiently.</p>
+<p>Shellsort is unstable: it may change the relative order of elements with equal values. It is an adaptive sorting algorithm in that it executes faster when the input is partially sorted.</p>
+<h2>Pseudocode</h2>
+<p>Using Marcin Ciura's gap sequence, with an inner insertion sort.</p>
+<p>WHATSON? d1b568b9-0151-4a61-92bb-5edecfcc8358</p>
+<pre>
+<i># Sort an array a[0...n-1].</i>
+gaps = [701, 301, 132, 57, 23, 10, 4, 1]
+
+<i># Start with the largest gap and work down to a gap of 1</i> 
+<b>foreach</b> (gap in gaps)
+{
+    <i># Do a gapped insertion sort for this gap size.</i>
+    <i># The first gap elements a[0..gap-1] are already in gapped order</i>
+    <i># keep adding one more element until the entire array is gap sorted</i> 
+    <b>for</b> (i = gap; i &lt; n; i += 1)
+    {
+        <i># add a[i] to the elements that have been gap sorted</i>
+        <i># save a[i] in temp and make a hole at position i</i>
+        temp = a[i]
+        <i># shift earlier gap-sorted elements up until the correct location for a[i] is found</i>
+        <b>for</b> (j = i; j &gt;= gap and a[j - gap] &gt; temp; j -= gap)
+        {
+            a[j] = a[j - gap]
+        }
+        <i># put temp (the original a[i]) in its correct location</i>
+        a[j] = temp
+    }
+
+}
+</pre>
+<h2>Gap sequences</h2>
+<p>The question of deciding which gap sequence to use is difficult. Every gap sequence that contains 1 yields a correct sort; however, the properties of thus obtained versions of Shellsort may be very different.</p>
+<p>The table below compares most proposed gap sequences published so far. Some of them have decreasing elements that depend on the size of the sorted array (<i>N</i>). Others are increasing infinite sequences, whose elements less than <i>N</i> should be used in reverse order.</p>
+<p>When the binary representation of <i>N</i> contains many consecutive zeroes, Shellsort using Shell's original gap sequence makes Θ(<i>N</i>) comparisons in the worst case. For instance, this case occurs for <i>N</i> equal to a power of two when elements greater and smaller than the median occupy odd and even positions respectively, since they are compared only in the last pass.</p>
+<p>Although it has higher complexity than the <i>O</i>(<i>N</i>log<i>N</i>) that is optimal for comparison sorts, Pratt's version lends itself to sorting networks and has the same asymptotic gate complexity as Batcher's bitonic sorter.</p>
+<p>Gonnet and Baeza-Yates observed that Shellsort makes the fewest comparisons on average when the ratios of successive gaps are roughly equal to 2.2. This is why their sequence with ratio 2.2 and Tokuda's sequence with ratio 2.25 prove efficient. However, it is not known why this is so. Sedgewick recommends to use gaps that have low greatest common divisors or are pairwise coprime.</p>
+<p>With respect to the average number of comparisons, the best known gap sequences are 1, 4, 10, 23, 57, 132, 301, 701 and similar, with gaps found experimentally. Optimal gaps beyond 701 remain unknown, but good results can be obtained by extending the above sequence according to the recursive formula <img class="mwe-math-fallback-image-inline tex" alt="h_k = \lfloor 2.25 h_{k-1} \rfloor" src="//upload.wikimedia.org/math/a/2/4/a24f62cdf909939fef2adab253a81f19.png">.</p>
+<p>Tokuda's sequence, defined by the simple formula <img class="mwe-math-fallback-image-inline tex" alt="h_k = \lceil h'_k \rceil" src="//upload.wikimedia.org/math/b/4/c/b4c4e84f73ae24c2d9fbc1872bce7800.png">, where <img class="mwe-math-fallback-image-inline tex" alt="h'_k = 2.25 h'_{k-1} + 1" src="//upload.wikimedia.org/math/8/1/4/8147e24bf35e241d7651eac0b3abcb18.png">, <img class="mwe-math-fallback-image-inline tex" alt="h'_1 = 1" src="//upload.wikimedia.org/math/2/1/a/21a06a4895e83037c8f83d6500896583.png">, can be recommended for practical applications.</p>
+<h2>Computational complexity</h2>
+<p>The following property holds: after <i>h</i><sub>2</sub>-sorting of any <i>h</i><sub>1</sub>-sorted array, the array remains <i>h</i><sub>1</sub>-sorted. Every <i>h</i><sub>1</sub>-sorted and <i>h</i><sub>2</sub>-sorted array is also (<i>a</i><sub>1</sub><i>h</i><sub>1</sub>+<i>a</i><sub>2</sub><i>h</i><sub>2</sub>)-sorted, for any nonnegative integers <i>a</i><sub>1</sub> and <i>a</i><sub>2</sub>. The worst-case complexity of Shellsort is therefore connected with the Frobenius problem: for given integers <i>h</i><sub>1</sub>,..., <i>h</i><sub><i>n</i></sub> with gcd = 1, the Frobenius number <i>g</i>(<i>h</i><sub>1</sub>,..., <i>h</i><sub><i>n</i></sub>) is the greatest integer that cannot be represented as <i>a</i><sub>1</sub><i>h</i><sub>1</sub>+ ... +<i>a</i><sub><i>n</i></sub><i>h</i><sub><i>n</i></sub> with nonnegative integer <i>a</i><sub>1</sub>,..., <i>a</i><sub><i>n</i></sub>. Using known formulae for Frobenius numbers, we can determine the worst-case complexity of Shellsort for several classes of gap sequences. Proven results are shown in the above table.</p>
+<p>With respect to the average number of operations, none of proven results concerns a practical gap sequence. For gaps that are powers of two, Espelid computed this average as <img class="mwe-math-fallback-image-inline tex" alt="0.5349N\sqrt{N}-0.4387N-0.097\sqrt{N}+O(1)" src="//upload.wikimedia.org/math/b/0/d/b0d9b9ebbd4c17b69e50354789137718.png">. Knuth determined the average complexity of sorting an <i>N</i>-element array with two gaps (<i>h</i>, 1) to be <img class="mwe-math-fallback-image-inline tex" alt="2N^2/h + \sqrt{\pi N^3 h}" src="//upload.wikimedia.org/math/4/0/3/40376b949c468bc8c66b4c5052a83780.png">. It follows that a two-pass Shellsort with <i>h</i> = Θ(<i>N</i>) makes on average <i>O</i>(<i>N</i>) comparisons. Yao found the average complexity of a three-pass Shellsort. His result was refined by Janson and Knuth: the average number of comparisons made during a Shellsort with three gaps (<i>ch</i>, <i>cg</i>, 1), where <i>h</i> and <i>g</i> are coprime, is <img class="mwe-math-fallback-image-inline tex" alt="\frac{N^2}{4ch}+O(N)" src="//upload.wikimedia.org/math/1/e/5/1e5dd7231f0f669680699e24d4b2f2f6.png"> in the first pass, <img class="mwe-math-fallback-image-inline tex" alt="\frac{1}{8g}\sqrt{\frac{\pi}{ch}}(h-1)N^{3/2}+O(hN)" src="//upload.wikimedia.org/math/1/7/a/17a58b92b629255a72bf12ddaffd2e81.png"> in the second pass and <img class="mwe-math-fallback-image-inline tex" alt="\psi(h, g)N + \frac{1}{8}\sqrt{\frac{\pi}{c}}(c-1)N^{3/2}+O((c-1)gh^{1/2}N) + O(c^2g^3h^2)" src="//upload.wikimedia.org/math/2/6/d/26da678109620478cc7e8c808cd0fa4d.png"> in the third pass. <i>ψ</i>(<i>h</i>, <i>g</i>) in the last formula is a complicated function asymptotically equal to <img class="mwe-math-fallback-image-inline tex" alt="\sqrt{\frac{\pi h}{128}}g + O(g^{-1/2}h^{1/2}) + O(gh^{-1/2})" src="//upload.wikimedia.org/math/b/2/4/b24621e48fda2ea6e0be5519da56b53d.png">. In particular, when <i>h</i> = Θ(<i>N</i>) and <i>g</i> = Θ(<i>h</i>), the average time of sorting is <i>O</i>(<i>N</i>).</p>
+<p>Based on experiments, it is conjectured that Shellsort with Hibbard's and Knuth's gap sequences runs in <i>O</i>(<i>N</i>) average time, and that Gonnet and Baeza-Yates's sequence requires on average 0.41<i>N</i>ln<i>N</i>(ln ln<i>N</i>+1/6) element moves. Approximations of the average number of operations formerly put forward for other sequences fail when sorted arrays contain millions of elements.</p>
+<p>The graph below shows the average number of element comparisons in various variants of Shellsort, divided by the theoretical lower bound, i.e. log<sub>2</sub><i>N</i>!, where the sequence 1, 4, 10, 23, 57, 132, 301, 701 has been extended according to the formula <img class="mwe-math-fallback-image-inline tex" alt="h_k = \lfloor2.25 h_{k-1}\rfloor" src="//upload.wikimedia.org/math/a/2/4/a24f62cdf909939fef2adab253a81f19.png">.</p>
+<p>Applying the theory of Kolmogorov complexity, Jiang, Li, and Vitányi proved the following lower bounds for the order of the average number of operations in an <i>m</i>-pass Shellsort: Ω(<i>mN</i>) when <i>m</i>≤log<sub>2</sub><i>N</i> and Ω(<i>mN</i>) when <i>m</i>&gt;log<sub>2</sub><i>N</i>. Therefore Shellsort has prospects of running in an average time that asymptotically grows like <i>N</i>log<i>N</i> only when using gap sequences whose number of gaps grows in proportion to the logarithm of the array size. It is, however, unknown whether Shellsort can reach this asymptotic order of average-case complexity, which is optimal for comparison sorts.</p>
+<p>The worst-case complexity of any version of Shellsort is of higher order: Plaxton, Poonen, and Suel showed that it grows at least as rapidly as Ω(<i>N</i>(log<i>N</i>/log log<i>N</i>)).</p>
+<h2>Applications</h2>
+<p>Shellsort is now rarely used in serious applications. It performs more operations and has higher cache miss ratio than quicksort. However, since it can be implemented using little code and does not use the call stack, some implementations of the qsort function in the C standard library targeted at embedded systems use it instead of quicksort. Shellsort is, for example, used in the uClibc library. For similar reasons, an implementation of Shellsort is present in the Linux kernel.</p>
+<p>Shellsort can also serve as a sub-algorithm of introspective sort, to sort short subarrays and to prevent a pathological slowdown when the recursion depth exceeds a given limit. This principle is employed, for instance, in the bzip2 compressor.</p>
+<h2>See also</h2>
+<ul>
+<li>Comb sort</li>
+</ul>
+</body>
+</html>

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Ternary-search---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Ternary search</h1>
+<p>A <b>ternary search algorithm</b> is a technique in computer science for finding the minimum or maximum of an increasing or decreasing function. A ternary search determines either that the minimum or maximum cannot be in the first third of the domain or that it cannot be in the last third of the domain, then repeats on the remaining two-thirds. A ternary search is an example of a divide and conquer algorithm (see search algorithm).</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 The function</li>
+<li>2 Algorithm
+<ul>
+<li>2.1 Run time order</li>
+</ul>
+</li>
+<li>3 Recursive algorithm</li>
+<li>4 See also</li>
+<li>5 References</li>
+</ul>
+<ul>
+<li>2.1 Run time order</li>
+</ul>
+<p></p>
+<h2>The function</h2>
+<p>Assume we are looking for a maximum of <i>f</i>(<i>x</i>) and that we know the maximum lies somewhere between <i>A</i> and <i>B</i>. For the algorithm to be applicable, there must be some value <i>x</i> such that</p>
+<ul>
+<li>for all <i>a</i>,<i>b</i> with A ≤ <i>a</i> &lt; <i>b</i> ≤ <i>x</i>, we have <i>f</i>(<i>a</i>) &lt; <i>f</i>(<i>b</i>), and</li>
+<li>for all <i>a</i>,<i>b</i> with <i>x</i> ≤ <i>a</i> &lt; <i>b</i> ≤ B, we have <i>f</i>(<i>a</i>) &gt; <i>f</i>(<i>b</i>).</li>
+</ul>
+<h2>Algorithm</h2>
+<p>Let a unimodal function <i>f</i>(<i>x</i>) on some interval [<i>l</i>; <i>r</i>]. Take any two points <i>m1</i> and <i>m2</i> in this segment: <i>l</i> &lt; <i>m1</i> &lt; <i>m2</i> &lt; <i>r</i>. Then there are three possibilities:</p>
+<ul>
+<li>if <i>f(m1) &lt; f(m2)</i>, then the required maximum can not be located on the left side - [<i>l</i>; <i>m1</i>]. It means that the maximum further makes sense to look only in the interval (<i>m1</i>;<i>r</i>]</li>
+<li>if <i>f(m1) &gt; f(m2)</i>, that the situation is similar to the previous, up to symmetry. Now, the required maximum can not be in the right side - [<i>m2</i>; <i>r</i>], so go to the segment [<i>l</i>; <i>m2</i>]</li>
+<li>if <i>f(m1) = f(m2)</i>, then the search should be conducted in [<i>m1</i>; <i>m2</i>], but this case can be attributed to any of the previous two (in order to simplify the code). Sooner or later the length of the segment will be a little less than a predetermined constant, and the process can be stopped.</li>
+</ul>
+<p>choice points <i>m1</i> and <i>m2</i>:</p>
+<ul>
+<li><i>m1</i> = <i>l</i> + (<i>r</i>-<i>l</i>)/3</li>
+<li><i>m2</i> = <i>r</i> - (<i>r</i>-<i>l</i>)/3</li>
+</ul>
+<p><br></p>
+<p>WHATSON? ab90ffec-e2b4-4346-9299-82abb2aef973</p>
+<pre>
+def ternarySearch(f, left, right, absolutePrecision):
+    """
+    Find maximum of unimodal function f() within [left, right]
+    To find the minimum, revert the if/else statement or revert the comparison.
+    """
+    while True:
+        #left and right are the current bounds; the maximum is between them
+        if abs(right - left) &lt; absolutePrecision:
+            return (left + right)/2
+ 
+        leftThird = left + (right - left)/3
+        rightThird = right - (right - left)/3
+ 
+        if f(leftThird) &lt; f(rightThird):
+            left = leftThird
+        else:
+            right = rightThird
+</pre>
+<h3>Run time order</h3>
+<p>WHATSON? dec3da85-68dd-4c9f-8860-990f882ee83e</p>
+<pre>
+<img class="mwe-math-fallback-image-inline tex" alt="T(n) = T(2n/3) + 1
+            = \Theta(\log n)" src="//upload.wikimedia.org/math/2/3/8/238c0ed0ebcae923f7ab8b18be349cb4.png">
+</pre>
+<h2>Recursive algorithm</h2>
+<p>WHATSON? 9242d176-00b9-458a-aacd-27fa14c1e50a</p>
+<pre>
+def ternarySearch(f, left, right, absolutePrecision):
+    #left and right are the current bounds; the maximum is between them
+    if abs(right - left) &lt; absolutePrecision:
+        return (left + right)/2
+ 
+    leftThird = (2*left + right)/3
+    rightThird = (left + 2*right)/3
+ 
+    if f(leftThird) &lt; f(rightThird):
+        return ternarySearch(f, leftThird, right, absolutePrecision)
+    else:
+        return ternarySearch(f, left, rightThird, absolutePrecision)
+</pre>
+<h2>See also</h2>
+<ul>
+<li>Binary search (can be used to search for where the derivative changes in sign)</li>
+<li>Newton's method in optimization (can be used to search for where the derivative is zero)</li>
+<li>Golden section search (similar to ternary search, useful if evaluating f takes most of the time per iteration)</li>
+<li>Interpolation search</li>
+<li>Linear search</li>
+</ul>
+</body>
+</html>

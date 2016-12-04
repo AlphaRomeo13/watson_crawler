@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Interpolation-search---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Interpolation search</h1>
+<p><b>Interpolation search</b> (sometimes referred to as <b>extrapolation search</b>) is an algorithm for searching for a given key value in an indexed array that has been ordered by the values of the key. It parallels how humans search through a telephone book for a particular name, the key value by which the book's entries are ordered. In each search step it calculates where in the remaining search space the sought item might be, based on the key values at the bounds of the search space and the value of the sought key, usually via a linear interpolation. The key value actually found at this estimated position is then compared to the key value being sought. If it is not equal, then depending on the comparison, the remaining search space is reduced to the part before or after the estimated position. This method will only work if calculations on the size of differences between key values are sensible.</p>
+<p>By comparison, the binary search always chooses the middle of the remaining search space, discarding one half or the other, again depending on the comparison between the key value found at the estimated position and the key value sought. The remaining search space is reduced to the part before or after the estimated position. The linear search uses equality only as it compares elements one-by-one from the start, ignoring any sorting.</p>
+<p>On average the interpolation search makes about log(log(<i>n</i>)) comparisons (if the elements are uniformly distributed), where <i>n</i> is the number of elements to be searched. In the worst case (for instance where the numerical values of the keys increase exponentially) it can make up to O(<i>n</i>) comparisons.</p>
+<p>In interpolation-sequential search, interpolation is used to find an item near the one being searched for, then linear search is used to find the exact item.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Performance</li>
+<li>2 Adaptation to different datasets</li>
+<li>3 Book-based searching</li>
+<li>4 Sample implementation</li>
+<li>5 See also</li>
+<li>6 References</li>
+<li>7 External links</li>
+</ul>
+<p></p>
+<h2>Performance</h2>
+<p>Using big-O notation, the performance of the interpolation algorithm on a data set of size <i>N</i> is <i>O</i>(<i>N</i>); however under the assumption of a uniform distribution of the data on the linear scale used for interpolation, the performance can be shown to be <i>O</i>(log log <i>N</i>). However, Dynamic Interpolation Search is possible in <i>o</i>(log log <i>n</i>) time using a novel data structure.</p>
+<p>Practical performance of interpolation search depends on whether the reduced number of probes is outweighed by the more complicated calculations needed for each probe. It can be useful for locating a record in a large sorted file on disk, where each probe involves a disk seek and is much slower than the interpolation arithmetic.</p>
+<p>Index structures like B-trees also reduce the number of disk accesses, and are more often used to index on-disk data in part because they can index many types of data and can be updated online. Still, interpolation search may be useful when one is forced to search certain sorted but unindexed on-disk datasets.</p>
+<h2>Adaptation to different datasets</h2>
+<p>When sort keys for a dataset are uniformly distributed numbers, linear interpolation is straightforward to implement and will find an index very near the sought value.</p>
+<p>On the other hand, for a phone book sorted by name, the straightforward approach to interpolation search does not apply. The same high-level principles can still apply, though: one can estimate a name's position in the phone book using the relative frequencies of letters in names and use that as a probe location.</p>
+<p>Some interpolation search implementations may not work as expected when a run of equal key values exists. The simplest implementation of interpolation search won't necessarily select the first (or last) element of such a run.</p>
+<h2>Book-based searching</h2>
+<p>The conversion of names in a telephone book to some sort of number clearly will not provide numbers having a uniform distribution (except via immense effort such as sorting the names and calling them name #1, name #2, etc.) and further, it is well known that some names are much more common than others (Smith, Jones,) Similarly with dictionaries, where there are many more words starting with some letters than others. Some publishers go to the effort of preparing marginal annotations or even cutting into the side of the pages to show markers for each letter so that at a glance a segmented interpolation can be performed.</p>
+<h2>Sample implementation</h2>
+<p>The following code example for the Java programming language is a simple implementation. At each stage it computes a probe position then as with the binary search, moves either the upper or lower bound in to define a smaller interval containing the sought value. Unlike the binary search which guarantees a halving of the interval's size with each stage, a misled interpolation may reduce/increase the mid index by only one, thus resulting in a worst-case efficiency of O(<i>n</i>).</p>
+<p>WHATSON? 1c1c351f-a962-4381-9a65-24409b13702b</p>
+<pre>
+ public int interpolationSearch(int[] sortedArray, int toFind){
+  // Returns index of toFind in sortedArray, or -1 if not found
+  int low = 0;
+  int high = sortedArray.length - 1;
+  int mid;
+ 
+  while (sortedArray[low] &lt;= toFind &amp;&amp; sortedArray[high] &gt;= toFind) {
+   mid = low +
+         ((toFind - sortedArray[low]) * (high - low)) /
+         (sortedArray[high] - sortedArray[low]);  //out of range is possible  here
+ 
+   if (sortedArray[mid] &lt; toFind)
+    low = mid + 1;
+   else if (sortedArray[mid] &gt; toFind)
+    // Repetition of the comparison code is forced by syntax limitations.
+    high = mid - 1;
+   else
+    return mid;
+  }
+ 
+  if (sortedArray[low] == toFind)
+   return low;
+  else
+   return -1; // Not found
+ }
+</pre>
+<p>Notice that having probed the list at index <i>mid</i>, for reasons of loop control administration, this code sets either <i>high</i> or <i>low</i> to be not <i>mid</i> but an adjacent index, which location is then probed during the next iteration. Since an adjacent entry's value will not be much different the interpolation calculation is not much improved by this one step adjustment, at the cost of an additional reference to distant memory such as disc.</p>
+<p>Each iteration of the above code requires between five and six comparisons (the extra is due to the repetitions needed to distinguish the three states of &lt; &gt; and = via binary comparisons in the absence of a three-way comparison) plus some messy arithmetic, while the binary search algorithm can be written with one comparison per iteration and uses only trivial integer arithmetic. It would thereby search an array of a million elements with no more than twenty comparisons (involving accesses to slow memory where the array elements are stored); to beat that the interpolation search as written above would be allowed no more than three iterations.</p>
+<h2>See also</h2>
+<ul>
+<li>Linear search</li>
+<li>Binary search</li>
+<li>Ternary search</li>
+<li>Hash table</li>
+</ul>
+</body>
+</html>

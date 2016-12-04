@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Set-abstract-data-type---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Set (abstract data type)</h1>
+<p>In computer science, a <b>set</b> is an abstract data type that can store certain values, without any particular order, and no repeated values. It is a computer implementation of the mathematical concept of a finite set. Unlike most other collection types, rather than retrieving a specific element from a set, one typically tests a value for membership in a set.</p>
+<p>Some set data structures are designed for <b>static</b> or <b>frozen sets</b> that do not change after they are constructed. Static sets allow only query operations on their elements — such as checking whether a given value is in the set, or enumerating the values in some arbitrary order. Other variants, called <b>dynamic</b> or <b>mutable sets</b>, allow also the insertion and deletion of elements from the set.</p>
+<p>An abstract data structure is a collection, or aggregate, of data. The data may be booleans, numbers, characters, or other data structures. If one considers the structure yielded by packaging or indexing, there are four basic data structures:</p>
+<ol>
+<li>unpackaged, unindexed: bunch</li>
+<li>packaged, unindexed: set</li>
+<li>unpackaged, indexed: string (sequence)</li>
+<li>packaged, indexed: list (array)</li>
+</ol>
+<p>In this view, the contents of a set are a bunch, and isolated data items are elementary bunches (elements). Whereas sets <i>contain</i> elements, bunches <i>consist of</i> elements.</p>
+<p>Further structuring may be achieved by considering the multiplicity of elements (sets become multisets, bunches become hyperbunches) or their homogeneity (a record is a set of fields, not necessarily all of the same type).</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Type theory</li>
+<li>2 Operations
+<ul>
+<li>2.1 Core set-theoretical operations</li>
+<li>2.2 Static sets</li>
+<li>2.3 Dynamic sets</li>
+<li>2.4 Additional operations</li>
+</ul>
+</li>
+<li>3 Implementations</li>
+<li>4 Language support
+<ul>
+<li>4.1 In C++</li>
+</ul>
+</li>
+<li>5 Multiset
+<ul>
+<li>5.1 Multisets in SQL</li>
+</ul>
+</li>
+<li>6 See also</li>
+<li>7 Notes</li>
+<li>8 References</li>
+</ul>
+<ul>
+<li>2.1 Core set-theoretical operations</li>
+<li>2.2 Static sets</li>
+<li>2.3 Dynamic sets</li>
+<li>2.4 Additional operations</li>
+</ul>
+<ul>
+<li>4.1 In C++</li>
+</ul>
+<ul>
+<li>5.1 Multisets in SQL</li>
+</ul>
+<p></p>
+<h2>Type theory</h2>
+<p>In type theory, sets are generally identified with their indicator function (characteristic function): accordingly, a set of values of type <img class="mwe-math-fallback-image-inline tex" alt="A" src="//upload.wikimedia.org/math/7/f/c/7fc56270e7a70fa81a5935b72eacbe29.png"> may be denoted by <img class="mwe-math-fallback-image-inline tex" alt="2^{A}" src="//upload.wikimedia.org/math/4/f/6/4f60f733e883ce28b46a73ee0b2c336f.png"> or <img class="mwe-math-fallback-image-inline tex" alt="\mathcal{P}(A)" src="//upload.wikimedia.org/math/6/a/a/6aa5e2cb028a37f318151e3207c7dba9.png">. (Subtypes and subsets may be modeled by refinement types, and quotient sets may be replaced by setoids.) The characteristic function <img class="mwe-math-fallback-image-inline tex" alt="F" src="//upload.wikimedia.org/math/8/0/0/800618943025315f869e4e1f09471012.png"> of a set <img class="mwe-math-fallback-image-inline tex" alt="S" src="//upload.wikimedia.org/math/5/d/b/5dbc98dcc983a70728bd082d1a47546e.png"> is defined as:</p>
+<p>In theory, many other abstract data structures can be viewed as set structures with additional operations and/or additional axioms imposed on the standard operations. For example, an abstract heap can be viewed as a set structure with a <code>min(<i>S</i>)</code> operation that returns the element of smallest value.</p>
+<h2>Operations</h2>
+<h3>Core set-theoretical operations</h3>
+<p>One may define the operations of the algebra of sets:</p>
+<ul>
+<li><code>union(<i>S</i>,<i>T</i>)</code>: returns the union of sets <i>S</i> and <i>T</i>.</li>
+<li><code>intersection(<i>S</i>,<i>T</i>)</code>: returns the intersection of sets <i>S</i> and <i>T</i>.</li>
+<li><code>difference(<i>S</i>,<i>T</i>)</code>: returns the difference of sets <i>S</i> and <i>T</i>.</li>
+<li><code>subset(<i>S</i>,<i>T</i>)</code>: a predicate that tests whether the set <i>S</i> is a subset of set <i>T</i>.</li>
+</ul>
+<h3>Static sets</h3>
+<p>Typical operations that may be provided by a static set structure <i>S</i> are:</p>
+<ul>
+<li><code>is_element_of(<i>x</i>,<i>S</i>)</code>: checks whether the value <i>x</i> is in the set <i>S</i>.</li>
+<li><code>is_empty(<i>S</i>)</code>: checks whether the set <i>S</i> is empty.</li>
+<li><code>size(<i>S</i>)</code> or <code>cardinality(<i>S</i>)</code>: returns the number of elements in <i>S</i>.</li>
+<li><code>iterate(<i>S</i>)</code>: returns a function that returns one more value of <i>S</i> at each call, in some arbitrary order.</li>
+<li><code>enumerate(<i>S</i>)</code>: returns a list containing the elements of <i>S</i> in some arbitrary order.</li>
+<li><code>build(<i>x</i><sub>1</sub>,<i>x</i><sub>2</sub>,…,<i>x</i><sub><i>n</i></sub>,)</code>: creates a set structure with values <i>x</i><sub>1</sub>,<i>x</i><sub>2</sub>,…,<i>x</i><sub><i>n</i></sub>.</li>
+<li><code>create_from(<i>collection</i>)</code>: creates a new set structure containing all the elements of the given collection or all the elements returned by the given iterator.</li>
+</ul>
+<h3>Dynamic sets</h3>
+<p>Dynamic set structures typically add:</p>
+<ul>
+<li><code>create()</code>: creates a new, initially empty set structure.
+<ul>
+<li><code>create_with_capacity(<i>n</i>)</code>: creates a new set structure, initially empty but capable of holding up to <i>n</i> elements.</li>
+</ul>
+</li>
+<li><code>add(<i>S</i>,<i>x</i>)</code>: adds the element <i>x</i> to <i>S</i>, if it is not present already.</li>
+<li><code>remove(<i>S</i>, <i>x</i>)</code>: removes the element <i>x</i> from <i>S</i>, if it is present.</li>
+<li><code>capacity(<i>S</i>)</code>: returns the maximum number of values that <i>S</i> can hold.</li>
+</ul>
+<ul>
+<li><code>create_with_capacity(<i>n</i>)</code>: creates a new set structure, initially empty but capable of holding up to <i>n</i> elements.</li>
+</ul>
+<p>Some set structures may allow only some of these operations. The cost of each operation will depend on the implementation, and possibly also on the particular values stored in the set, and the order in which they are inserted.</p>
+<h3>Additional operations</h3>
+<p>There are many other operations that can (in principle) be defined in terms of the above, such as:</p>
+<ul>
+<li><code>pop(<i>S</i>)</code>: returns an arbitrary element of <i>S</i>, deleting it from <i>S</i>.</li>
+<li><code>pick(<i>S</i>)</code>: returns an arbitrary element of <i>S</i>. Functionally, the mutator <code>pop</code> can be interpreted as the pair of selectors <code>(pick, rest),</code> where <code>rest</code> returns the set consisting of all elements except for the arbitrary element. Can be interpreted in terms of <code>iterate</code>.</li>
+<li><code>map(<i>F</i>,<i>S</i>)</code>: returns the set of distinct values resulting from applying function <i>F</i> to each element of <i>S</i>.</li>
+<li><code>filter(<i>P</i>,<i>S</i>)</code>: returns the subset containing all elements of <i>S</i> that satisfy a given predicate <i>P</i>.</li>
+<li><code>fold(<i>A<sub>0</sub></i>,<i>F</i>,<i>S</i>)</code>: returns the value <i>A</i><sub>|<i>S</i>|</sub> after applying <code><i>A<sub>i+1</sub></i> := <i>F</i>(<i>A<sub>i</sub></i>, <i>e</i>)</code> for each element <i>e</i> of <i>S,</i> for some binary operation <i>F.</i> <i>F</i> must be associative and commutative for this to be well-defined.</li>
+<li><code>clear(<i>S</i>)</code>: delete all elements of <i>S</i>.</li>
+<li><code>equal(<i>S<sub>1</sub></i>, <i>S<sub>2</sub></i>)</code>: checks whether the two given sets are equal (i.e. contain all and only the same elements).</li>
+<li><code>hash(<i>S</i>)</code>: returns a hash value for the static set <i>S</i> such that if <code>equal(<i>S<sub>1</sub></i>, <i>S<sub>2</sub></i>)</code> then <code>hash(<i>S<sub>1</sub></i>) = hash(<i>S<sub>2</sub></i>)</code></li>
+</ul>
+<p>Other operations can be defined for sets with elements of a special type:</p>
+<ul>
+<li><code>sum(<i>S</i>)</code>: returns the sum of all elements of <i>S</i> for some definition of "sum". For example, over integers or reals, it may be defined as <code>fold(0, add, <i>S</i>)</code>.</li>
+<li><code>collapse(<i>S</i>)</code>: given a set of sets, return the union. For example, <code>collapse({{1}, {2, 3}}) == {1, 2, 3}</code>. May be considered a kind of <code>sum</code>.</li>
+<li><code>flatten(<i>S</i>)</code>: given a set consisting of sets and atomic elements (elements that are not sets), returns a set whose elements are the atomic elements of the original top-level set or elements of the sets it contains. In other words, remove a level of nesting – like <code>collapse,</code> but allow atoms. This can be done a single time, or recursively flattening to obtain a set of only atomic elements. For example, <code>flatten({1, {2, 3}}) == {1, 2, 3}</code>.</li>
+<li><code>nearest(<i>S</i>,<i>x</i>)</code>: returns the element of <i>S</i> that is closest in value to <i>x</i> (by some metric).</li>
+<li><code>min(<i>S</i>)</code>, <code>max(<i>S</i>)</code>: returns the minimum/maximum element of <i>S</i>.</li>
+</ul>
+<h2>Implementations</h2>
+<p>Sets can be implemented using various data structures, which provide different time and space trade-offs for various operations. Some implementations are designed to improve the efficiency of very specialized operations, such as <code>nearest</code> or <code>union</code>. Implementations described as "general use" typically strive to optimize the <code>element_of</code>, <code>add</code>, and <code>delete</code> operations. A simple implementation is to use a list, ignoring the order of the elements and taking care to avoid repeated values. This is simple but inefficient, as operations like set membership or element deletion are <i>O</i>(<i>n</i>), as they require scanning the entire list. Sets are often instead implemented using more efficient data structures, particularly various flavors of trees, tries, or hash tables.</p>
+<p>As sets can be interpreted as a kind of map (by the indicator function), sets are commonly implemented in the same way as (partial) maps (associative arrays) – in this case in which the value of each key-value pair has the unit type or a sentinel value (like 1) – namely, a self-balancing binary search tree for sorted sets (which has O(log n) for most operations), or a hash table for unsorted sets (which has O(1) average-case, but O(n) worst-case, for most operations). A sorted linear hash table may be used to provide deterministically ordered sets.</p>
+<p>Further, in languages that support maps but not sets, sets can be implemented in terms of maps. For example, a common programming idiom in Perl that converts an array to a hash whose values are the sentinel value 1, for use as a set, is:</p>
+<p>WHATSON? 18823df9-3dfe-4326-b99b-06aa8a6d74ef</p>
+<pre>
+my %elements = map { $_ =&gt; 1 } @elements;
+</pre>
+<p>Other popular methods include arrays. In particular a subset of the integers 1..<i>n</i> can be implemented efficiently as an <i>n</i>-bit bit array, which also support very efficient union and intersection operations. A Bloom map implements a set probabilistically, using a very compact representation but risking a small chance of false positives on queries.</p>
+<p>The Boolean set operations can be implemented in terms of more elementary operations (<code>pop</code>, <code>clear</code>, and <code>add</code>), but specialized algorithms may yield lower asymptotic time bounds. If sets are implemented as sorted lists, for example, the naive algorithm for <code>union(<i>S</i>,<i>T</i>)</code> will take code proportional to the length <i>m</i> of <i>S</i> times the length <i>n</i> of <i>T</i>; whereas a variant of the list merging algorithm will do the job in time proportional to <i>m</i>+<i>n</i>. Moreover, there are specialized set data structures (such as the union-find data structure) that are optimized for one or more of these operations, at the expense of others.</p>
+<h2>Language support</h2>
+<p>One of the earliest languages to support sets was Pascal; many languages now include it, whether in the core language or in a standard library.</p>
+<ul>
+<li>Java offers the <code>Set</code> interface to support sets (with the <code>HashSet</code> class implementing it using a hash table), and the <code>SortedSet</code> sub-interface to support sorted sets (with the <code>TreeSet</code> class implementing it using a binary search tree).</li>
+<li>Apple's Foundation framework (part of Cocoa) provides the Objective-C classes <code>NSSet</code>, <code>NSMutableSet</code>, <code>NSCountedSet</code>, <code>NSOrderedSet</code>, and <code>NSMutableOrderedSet</code>. The CoreFoundation APIs provide the CFSet and CFMutableSet types for use in C.</li>
+<li>Python has built-in <code>set</code> and <code>frozenset</code> types since 2.4, and since Python 3.0 and 2.7, supports non-empty set literals using a curly-bracket syntax, e.g.: <code>{x, y, z}</code>.</li>
+<li>The .NET Framework provides the generic <code>HashSet</code> and <code>SortedSet</code> classes that implement the generic <code>ISet</code> interface.</li>
+<li>Smalltalk's class library includes <code>Set</code> and <code>IdentitySet</code>, using equality and identity for inclusion test respectively. Many dialects provide variations for compressed storage (<code>NumberSet</code>, <code>CharacterSet</code>), for ordering (<code>OrderedSet</code>, <code>SortedSet</code>, etc.) or for weak references (<code>WeakIdentitySet</code>).</li>
+<li>Ruby's standard library includes a <code>set</code> module which contains <code>Set</code> and <code>SortedSet</code> classes that implement sets using hash tables, the latter allowing iteration in sorted order.</li>
+<li>OCaml's standard library contains a <code>Set</code> module, which implements a functional set data structure using binary search trees.</li>
+<li>The GHC implementation of Haskell provides a <code>Data.Set</code> module, which implements a functional set data structure using binary search trees.</li>
+<li>The Tcl Tcllib package provides a set module which implements a set data structure based upon TCL lists.</li>
+</ul>
+<p>As noted in the previous section, in languages which do not directly support sets but do support associative arrays, sets can be emulated using associative arrays, by using the elements as keys, and using a dummy value as the values, which are ignored.</p>
+<h3>In C++</h3>
+<p>In C++, the Standard Template Library (STL) provides the <code>set</code> template class, which implements a sorted set using a binary search tree; SGI's STL also provides the <code>hash_set</code> template class, which implements a set using a hash table.</p>
+<p>In sets, the elements themselves are the keys, in contrast to sequenced containers, where elements are accessed using their (relative or absolute) position. Set elements must have a strict weak ordering.</p>
+<h2>Multiset</h2>
+<p>A generalization of the notion of a set is that of a <b>multiset</b> or <b>bag</b>, which is similar to a set but allows repeated ("equal") values (duplicates). This is used in two distinct senses: either equal values are considered <i>identical,</i> and are simply counted, or equal values are considered <i>equivalent,</i> and are stored as distinct items. For example, given a list of people (by name) and ages (in years), one could construct a multiset of ages, which simply counts the number of people of a given age. Alternatively, one can construct a multiset of people, where two people are considered equivalent if their ages are the same (but may be different people and have different names), in which case each pair (name, age) must be stored, and selecting on a given age gives all the people of a given age.</p>
+<p>Formally, it is possible for objects in computer science to be considered "equal" under some equivalence relation but still distinct under another relation. Some types of multiset implementations will store distinct equal objects as separate items in the data structure; while others will collapse it down to one version (the first one encountered) and keep a positive integer count of the multiplicity of the element.</p>
+<p>As with sets, multisets can naturally be implemented using hash table or trees, which yield different performance characteristics.</p>
+<p>The set of all bags over type T is given by the expression bag T. If by multiset one considers equal items identical and simply counts them, then a multiset can be interpreted as a function from the input domain to the non-negative integers (natural numbers), generalizing the identification of a set with its indicator function. In some cases a multiset in this counting sense may be generalized to allow negative values, as in Python.</p>
+<ul>
+<li>C++'s Standard Template Library implements both sorted and unsorted multisets. It provides the <code>multiset</code> class for the sorted multiset, as a kind of associative container, which implements this multiset using a self-balancing binary search tree. It provides the <code>unordered_multiset</code> class for the unsorted multiset, as a kind of unordered associative containers, which implements this multiset using a hash table. The unsorted multiset is standard as of C++11; previously SGI's STL provides the <code>hash_multiset</code> class, which was copied and eventually standardized.</li>
+<li>For Java, third-party libraries provide multiset functionality:
+<ul>
+<li>Apache Commons Collections provides the <code>Bag</code> and <code>SortedBag</code> interfaces, with implementing classes like <code>HashBag</code> and <code>TreeBag</code>.</li>
+<li>Google Guava provides the <code>Multiset</code> interface, with implementing classes like <code>HashMultiset</code> and <code>TreeMultiset</code>.</li>
+</ul>
+</li>
+<li>Apple provides the <code>NSCountedSet</code> class as part of Cocoa, and the <code>CFBag</code> and <code>CFMutableBag</code> types as part of CoreFoundation.</li>
+<li>Python's standard library includes <code>collections.Counter</code>, which is similar to a multiset.</li>
+<li>Smalltalk includes the <code>Bag</code> class, which can be instantiated to use either identity or equality as predicate for inclusion test.</li>
+</ul>
+<ul>
+<li>Apache Commons Collections provides the <code>Bag</code> and <code>SortedBag</code> interfaces, with implementing classes like <code>HashBag</code> and <code>TreeBag</code>.</li>
+<li>Google Guava provides the <code>Multiset</code> interface, with implementing classes like <code>HashMultiset</code> and <code>TreeMultiset</code>.</li>
+</ul>
+<p>Where a multiset data structure is not available, a workaround is to use a regular set, but override the equality predicate of its items to always return "not equal" on distinct objects (however, such will still not be able to store multiple occurrences of the same object) or use an associative array mapping the values to their integer multiplicities (this will not be able to distinguish between equal elements at all).</p>
+<p>Typical operations on bags:</p>
+<ul>
+<li><code>contains(<i>B</i>, <i>x</i>)</code>: checks whether the element <i>x</i> is present (at least once) in the bag <i>B</i></li>
+<li><code>is_sub_bag(<i>B<sub>1</sub></i>, <i>B<sub>2</sub></i>)</code>: checks whether each element in the bag <i>B<sub>1</sub></i> occurs in <i>B<sub>1</sub></i> no more often than it occurs in the bag <i>B<sub>2</sub></i>; sometimes denoted as <i>B<sub>1</sub></i> ⊑ <i>B<sub>2</sub></i>.</li>
+<li><code>count(<i>B</i>, <i>x</i>)</code>: returns the number of times that the element <i>x</i> occurs in the bag <i>B</i>; sometimes denoted as <i>B</i> # <i>x</i>.</li>
+<li><code>scaled_by(<i>B</i>, <i>n</i>)</code>: given a natural number <i>n</i>, returns a bag which contains the same elements as the bag <i>B</i>, except that every element that occurs <i>m</i> times in <i>B</i> occurs <i>n</i> * <i>m</i> times in the resulting bag; sometimes denoted as n ⊗ B.</li>
+<li><code>union(<i>B<sub>1</sub></i>, <i>B<sub>2</sub></i>)</code>: returns a bag that containing just those values that occur in either the bag <i>B<sub>1</sub></i> or the bag <i>B<sub>2</sub></i>, except that the number of times a value <i>x</i> occurs in the resulting bag is equal to (<i>B<sub>1</sub></i> # x) + (<i>B<sub>2</sub></i> # x); sometimes denoted as <i>B<sub>1</sub></i> ⊎ <i>B<sub>2</sub></i>.</li>
+</ul>
+<h3>Multisets in SQL</h3>
+<p>In relational databases, a table can be a (mathematical) set or a multiset, depending on the presence on unicity constraints on some columns (which turns it into a candidate key).</p>
+<p>SQL allows the selection of rows from a relational table: this operation will in general yield a multiset, unless the keyword <code>DISTINCT</code> is used to force the rows to be all different, or the selection includes the primary (or a candidate) key.</p>
+<p>In ANSI SQL the <code>MULTISET</code> keyword can be used to transform a subquery into a collection expression:</p>
+<p>WHATSON? ec3d5284-6303-4b70-bf94-5a7d1c13e253</p>
+<pre>
+SELECT expression1, expression2... FROM TABLE_NAME...
+</pre>
+<p>is a general select that can be used as <i>subquery expression</i> of another more general query, while</p>
+<p>WHATSON? 3c4b6a26-2eec-4d6c-a855-c31eb3e04b72</p>
+<pre>
+MULTISET(SELECT expression1, expression2... FROM TABLE_NAME...)
+</pre>
+<p>transforms the subquery into a <i>collection expression</i> that can be used in another query, or in assignment to a column of appropriate collection type.</p>
+<h2>See also</h2>
+<ul>
+<li>Bloom filter</li>
+<li>Disjoint set</li>
+</ul>
+<h2>Notes</h2>
+<ol>
+<li><b>^</b> "Packaging" consists in supplying a container for an aggregation of objects in order to turn them into a single object. Consider a function call: without packaging, a function can be called to act upon a bunch only by passing each bunch element as a separate argument, which complicates the function's signature considerably (and is just not possible in some programming languages). By packaging the bunch's elements into a set, the function may now be called upon a single, elementary argument: the set object (the bunch's package).</li>
+<li><b>^</b> Indexing is possible when the elements being considered are totally ordered. Being without order, the elements of a multiset (for example) do not have lesser/greater or preceding/succeeding relationships: they can only be compared in absolute terms (same/different).</li>
+<li><b>^</b> For example, in Python <code>pick</code> can be implemented on a derived class of the built-in <code>set</code> as follows:
+<div dir="ltr" class="mw-geshi mw-code mw-content-ltr">
+<div class="python source-python">
+<pre>
+class Set(set):
+    def pick(self):
+        return next(iter(self))
+</pre></div>
+</div>
+</li>
+<li><b>^</b> Element insertion can be done in <i>O</i>(1) time by simply inserting at an end, but if one avoids duplicates this takes <i>O</i>(<i>n</i>) time.</li>
+</ol>
+<p>WHATSON? 5376428e-f80d-4f9e-a005-fd3ecda4bebc</p>
+<pre>
+class Set(set):
+    def pick(self):
+        return next(iter(self))
+</pre>
+</body>
+</html>

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Approximate-string-matching---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Approximate string matching</h1>
+<p>In computer science, <b>approximate string matching</b> (often colloquially referred to as <b>fuzzy string searching</b>) is the technique of finding strings that match a pattern approximately (rather than exactly). The problem of approximate string matching is typically divided into two sub-problems: finding approximate substring matches inside a given string and finding dictionary strings that match the pattern approximately.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Overview</li>
+<li>2 Problem formulation and algorithms</li>
+<li>3 On-line versus off-line</li>
+<li>4 Applications</li>
+<li>5 See also</li>
+<li>6 External links</li>
+<li>7 References</li>
+</ul>
+<p></p>
+<h2>Overview</h2>
+<p>The closeness of a match is measured in terms of the number of primitive operations necessary to convert the string into an exact match. This number is called the edit distance between the string and the pattern. The usual primitive operations are:</p>
+<ul>
+<li>insertion: <i>cot</i> → <i>co<b>a</b>t</i></li>
+<li>deletion: <i>co<b>a</b>t</i> → <i>cot</i></li>
+<li>substitution: <i>co<b>a</b>t</i> → <i>co<b>s</b>t</i></li>
+</ul>
+<p>These three operations may be generalized as forms of substitution by adding a NULL character (here symbolized by *) wherever a character has been deleted or inserted:</p>
+<ul>
+<li>insertion: <i>co<b>*</b>t</i> → <i>co<b>a</b>t</i></li>
+<li>deletion: <i>co<b>a</b>t</i> → <i>co<b>*</b>t</i></li>
+<li>substitution: <i>co<b>a</b>t</i> → <i>co<b>s</b>t</i></li>
+</ul>
+<p>Some approximate matchers also treat <i>transposition</i>, in which the positions of two letters in the string are swapped, to be a primitive operation. Changing <i>cost</i> to <i>cots</i> is an example of a transposition.</p>
+<p>Different approximate matchers impose different constraints. Some matchers use a single global unweighted cost, that is, the total number of primitive operations necessary to convert the match to the pattern. For example, if the pattern is <i>coil</i>, <i>foil</i> differs by one substitution, <i>coils</i> by one insertion, <i>oil</i> by one deletion, and <i>foal</i> by two substitutions. If all operations count as a single unit of cost and the limit is set to one, <i>foil</i>, <i>coils</i>, and <i>oil</i> will count as matches while <i>foal</i> will not.</p>
+<p>Other matchers specify the number of operations of each type separately, while still others set a total cost but allow different weights to be assigned to different operations. Some matchers permit separate assignments of limits and weights to individual groups in the pattern.</p>
+<h2>Problem formulation and algorithms</h2>
+<p>One possible definition of the approximate string matching problem is the following: Given a pattern string <img class="mwe-math-fallback-image-inline tex" alt="P = p_1p_2...p_m" src="//upload.wikimedia.org/math/2/c/0/2c0d8611d1cf5ce74f7568a0e7029d3f.png"> and a text string <img class="mwe-math-fallback-image-inline tex" alt="T = t_1t_2\dots t_n" src="//upload.wikimedia.org/math/a/f/e/afea3bac63bec79b21763ab08deaa0a7.png">, find a substring <img class="mwe-math-fallback-image-inline tex" alt="T_{j',j} = t_{j'}\dots t_j" src="//upload.wikimedia.org/math/9/6/9/96981526b555301bc45374e6564e487f.png"> in <i>T</i>, which, of all substrings of <i>T</i>, has the smallest edit distance to the pattern <i>P</i>.</p>
+<p>A brute-force approach would be to compute the edit distance to P for all substrings of T, and then choose the substring with the minimum distance. However, this algorithm would have the running time <i>O</i>(<i>n</i> <i>m</i>).</p>
+<p>A better solution, which was proposed by Sellers , relies on dynamic programming. It uses an alternative formulation of the problem: for each position <i>j</i> in the text <i>T</i> and each position <i>i</i> in the pattern <i>P</i>, compute the minimum edit distance between the <i>i</i> first characters of the pattern, <img class="mwe-math-fallback-image-inline tex" alt="P_i" src="//upload.wikimedia.org/math/9/e/5/9e5fb72f12371dd00668ac0423d3aec1.png">, and any substring <img class="mwe-math-fallback-image-inline tex" alt="T_{j',j}" src="//upload.wikimedia.org/math/d/f/e/dfee40a4592769621b1864efa3f0aec1.png"> of <i>T</i> that ends at position <i>j</i>.</p>
+<p>For each position <i>j</i> in the text <i>T</i>, and each position <i>i</i> in the pattern <i>P</i>, go through all substrings of <i>T</i> ending at position <i>j</i>, and determine which one of them has the minimal edit distance to the <i>i</i> first characters of the pattern <i>P</i>. Write this minimal distance as <i>E</i>(<i>i</i>, <i>j</i>). After computing <i>E</i>(<i>i</i>, <i>j</i>) for all <i>i</i> and <i>j</i>, we can easily find a solution to the original problem: it is the substring for which <i>E</i>(<i>m</i>, <i>j</i>) is minimal (<i>m</i> being the length of the pattern <i>P</i>.)</p>
+<p>Computing <i>E</i>(<i>m</i>, <i>j</i>) is very similar to computing the edit distance between two strings. In fact, we can use the Levenshtein distance computing algorithm for <i>E</i>(<i>m</i>, <i>j</i>), the only difference being that we must initialize the first row with zeros, and save the path of computation, that is, whether we used <i>E</i>(<i>i</i> − 1,<i>j</i>), E(<i>i</i>,<i>j</i> − 1) or <i>E</i>(<i>i</i> − 1,<i>j</i> − 1) in computing <i>E</i>(<i>i</i>, <i>j</i>).</p>
+<p>In the array containing the <i>E</i>(<i>x</i>, <i>y</i>) values, we then choose the minimal value in the last row, let it be <i>E</i>(<i>x</i><sub>2</sub>, <i>y</i><sub>2</sub>), and follow the path of computation backwards, back to the row number 0. If the field we arrived at was <i>E</i>(0, <i>y</i><sub>1</sub>), then <i>T</i>[<i>y</i><sub>1</sub> + 1] ... <i>T</i>[<i>y</i><sub>2</sub>] is a substring of T with the minimal edit distance to the pattern <i>P</i>.</p>
+<p>Computing the <i>E</i>(<i>x</i>, <i>y</i>) array takes <i>O</i>(<i>mn</i>) time with the dynamic programming algorithm, while the backwards-working phase takes <i>O</i>(<i>n</i> + <i>m</i>) time.</p>
+<h2>On-line versus off-line</h2>
+<p>Traditionally, approximate string matching algorithms are classified into two categories: on-line and off-line. With on-line algorithms the pattern can be processed before searching but the text cannot. In other words, on-line techniques do searching without an index. Early algorithms for on-line approximate matching were suggested by Wagner and Fisher and by Sellers.  Both algorithms are based on dynamic programming but solve different problems. Sellers' algorithm searches approximately for a substring in a text while the algorithm of Wagner and Fisher calculates Levenshtein distance, being appropriate for dictionary fuzzy search only.</p>
+<p>On-line searching techniques have been repeatedly improved. Perhaps the most famous improvement is the bitap algorithm (also known as the shift-or and shift-and algorithm), which is very efficient for relatively short pattern strings. The Bitap algorithm is the heart of the Unix searching utility agrep. A review of on-line searching algorithms was done by G. Navarro.</p>
+<p>Although very fast on-line techniques exist, their performance on large data is unacceptable. Text preprocessing or indexing makes searching dramatically faster. Today, a variety of indexing algorithms have been presented. Among them are suffix trees, metric trees and n-gram methods. A detailed survey of indexing techniques that allows one to find an arbitrary substring in a text is given by Navarro <i>et al.</i>. A computational survey of dictionary methods (i.e., methods that permit finding all dictionary words that approximately match a search pattern) is given by Boytsov .</p>
+<h2>Applications</h2>
+<p>The most common application of approximate matchers until recently has been spell checking. With the availability of large amounts of DNA data, matching of nucleotide sequences has become an important application. Approximate matching is also used to identify pieces of music from small snatches and in spam filtering.</p>
+<h2>See also</h2>
+<ul>
+<li>String metric</li>
+<li>Locality-sensitive hashing</li>
+<li>Needleman–Wunsch algorithm</li>
+<li>Smith–Waterman algorithm</li>
+<li>Jaro-Winkler distance</li>
+<li>Levenshtein distance</li>
+<li>Concept Search</li>
+<li>Approximate matching with addition of regular expressions ability</li>
+<li>Regular expressions for non-fuzzy (exact) matching</li>
+<li>Metaphone</li>
+<li>Soundex</li>
+<li>Agrep</li>
+<li>Plagiarism detection</li>
+</ul>
+<h2>External links</h2>
+<ul>
+<li>Flamingo Project</li>
+<li>Efficient Similarity Query Processing Project with recent advances in approximate string matching based on an edit distance threshold.</li>
+<li>StringMetric project a Scala library of string metrics and phonetic algorithms</li>
+<li>Natural project a JavaScript natural language processing library which includes implementations of popular string metrics</li>
+</ul>
+</body>
+</html>

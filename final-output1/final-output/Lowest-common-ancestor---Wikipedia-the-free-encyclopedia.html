@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Lowest-common-ancestor---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Lowest common ancestor</h1>
+<p>In graph theory and computer science, the <b>lowest common ancestor</b> (<b>LCA</b>) of two nodes v and w in a tree or directed acyclic graph (DAG) is the lowest (i.e. deepest) node that has both v and w as descendants, where we define each node to be a descendant of itself (so if v has a direct connection from w, w is the lowest common ancestor).</p>
+<p>The LCA of <i>v</i> and <i>w</i> in <i>T</i> is the shared ancestor of <i>v</i> and <i>w</i> that is located farthest from the root. Computation of lowest common ancestors may be useful, for instance, as part of a procedure for determining the distance between pairs of nodes in a tree: the distance from <i>v</i> to <i>w</i> can be computed as the distance from the root to <i>v</i>, plus the distance from the root to <i>w</i>, minus twice the distance from the root to their lowest common ancestor (Djidjev, Pantziou &amp; Zaroliagis 1991). In ontologies, the lowest common ancestor is also known as the <b>least common subsumer</b>.</p>
+<p>In a tree data structure where each node points to its parent, the lowest common ancestor can be easily determined by finding the first intersection of the paths from <i>v</i> and <i>w</i> to the root. In general, the computational time required for this algorithm is O(<i>h</i>) where <i>h</i> is the height of the tree (length of longest path from a leaf to the root). However, there exist several algorithms for processing trees so that lowest common ancestors may be found more quickly. Tarjan's off-line lowest common ancestors algorithm, for example, preprocesses a tree in linear time to provide constant-time LCA queries. In general DAGs, similar algorithms exist, but with super-linear complexity.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 History</li>
+<li>2 Extension to directed acyclic graphs</li>
+<li>3 Applications</li>
+<li>4 See also</li>
+<li>5 References</li>
+<li>6 External links</li>
+</ul>
+<p></p>
+<h2>History</h2>
+<p>The lowest common ancestor problem was defined by Alfred Aho, John Hopcroft, and Jeffrey Ullman (1973), but Dov Harel and Robert Tarjan (1984) were the first to develop an optimally efficient lowest common ancestor data structure. Their algorithm processes any tree in linear time, using a heavy path decomposition, so that subsequent lowest common ancestor queries may be answered in constant time per query. However, their data structure is complex and difficult to implement. Tarjan also found a simpler but less efficient algorithm, based on the union-find data structure, for computing lowest common ancestors of an offline batch of pairs of nodes.</p>
+<p>Baruch Schieber and Uzi Vishkin (1988) simplified the data structure of Harel and Tarjan, leading to an implementable structure with the same asymptotic preprocessing and query time bounds. Their simplification is based on the principle that, in two special kinds of trees, lowest common ancestors are easy to determine: if the tree is a path, then the lowest common ancestor can be computed simply from the minimum of the levels of the two queried nodes, while if the tree is a complete binary tree, the nodes may be indexed in such a way that lowest common ancestors reduce to simple binary operations on the indices. The structure of Schieber and Vishkin decomposes any tree into a collection of paths, such that the connections between the paths have the structure of a binary tree, and combines both of these two simpler indexing techniques.</p>
+<p>Omer Berkman and Uzi Vishkin (1993) discovered a completely new way to answer lowest common ancestor queries, again achieving linear preprocessing time with constant query time. Their method involves forming an Euler tour of a graph formed from the input tree by doubling every edge, and using this tour to write a sequence of level numbers of the nodes in the order the tour visits them; a lowest common ancestor query can then be transformed into a query that seeks the minimum value occurring within some subinterval of this sequence of numbers. They then handle this range minimum query problem by combining two techniques, one technique based on precomputing the answers to large intervals that have sizes that are powers of two, and the other based on table lookup for small-interval queries. This method was later presented in a simplified form by Michael Bender and Martin Farach-Colton (2000). As had been previously observed by Gabow, Bentley &amp; Tarjan (1984), the range minimum problem can in turn be transformed back into a lowest common ancestor problem using the technique of Cartesian trees.</p>
+<p>Further simplifications were made by Alstrup et al. (2004) and Fischer &amp; Heun (2006).</p>
+<p>A variant of the problem is the dynamic LCA problem in which the data structure should be prepared to handle LCA queries intermixed with operations that change the tree (that is, rearrange the tree by adding and removing edges) This variant can be solved using O(logN) time for all modifications and queries. This is done by maintaining the forest using the dynamic trees data structure with partitioning by size; this then maintains a heavy-;light decomposition of each tree, and allows LCA queries to be carried out in logarithmic time in the size of the tree.</p>
+<p>Without preprocessing you can also improve the naïve online algorithm's computation time to O(log <i>h</i>) by storing the paths through the tree using skew-binary random access lists, while still permitting the tree to be extended in constant time (Edward Kmett (2012)). This allows LCA queries to be carried out in logarithmic time in the height of the tree.</p>
+<h2>Extension to directed acyclic graphs</h2>
+<p>While originally studies in the context of trees, the notion of lowest common ancestors can be defined for directed acyclic graphs (DAGs), using either of two possible definitions. In both, the edges of the DAG are assumed to point from parents to children.</p>
+<ul>
+<li>Given <i>G</i> = (<i>V</i>, <i>E</i>), Aït-Kaci et al. (1989) define a poset (<i>V</i>, ≤) such that <i>x</i> ≤ <i>y</i> iff x is in the reflexive transitive closure of y. The lowest common ancestors of x and y are then the maximum elements under ≤ of the common ancestor set {<i>z</i> ∈ <i>V</i> | <i>z</i> ≤ <i>x</i> and <i>z</i> ≤ <i>y</i>}.</li>
+<li>Bender et al. (2005) give an equivalent definition, where the lowest common ancestors of x and y are the nodes of out-degree zero in a the subgraph of G induced by the set of common ancestors of x and y.</li>
+</ul>
+<p>In a tree, the lowest common ancestor is unique; in a DAG of n nodes, each pair of nodes may have as much as <i>n</i>-2 LCAs (Bender et al. 2005), while the existence of an LCA for a pair of nodes is not even guaranteed in arbitrary connected DAGs.</p>
+<p>A brute-force algorithm for finding lowest common ancestors is given by Aït-Kaci et al. (1989): find all ancestors of x and y, then return the maximum element of the intersection of the two sets. Better algorithms exist that, analogous to the LCA algorithms on trees, preprocess a graph to enable constant-time LCA queries. The problem of <i>LCA existence</i> can be solved optimally for sparse DAGs by means of an O(|<i>V</i>||<i>E</i>|) algorithm due to Kowaluk &amp; Lingas (2005).</p>
+<h2>Applications</h2>
+<p>The problem of computing lowest common ancestors of classes in an inheritance hierarchy arises in the implementation of object-oriented programming systems (Aït-Kaci et al. 1989). The LCA problem also finds applications in models of complex systems found in distributed computing (Bender et al. 2005).</p>
+<h2>See also</h2>
+<ul>
+<li>Level ancestor problem</li>
+<li>Semilattice</li>
+</ul>
+</body>
+</html>

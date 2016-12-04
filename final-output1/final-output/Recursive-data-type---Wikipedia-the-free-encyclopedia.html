@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Recursive-data-type---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Recursive data type</h1>
+<p>In computer programming languages, a <b>recursive data type</b> (also known as a <b>recursively-defined</b>, <b>inductively-defined</b> or <b>inductive data type</b>) is a data type for values that may contain other values of the same type. Data of recursive types are usually viewed as directed graphs.</p>
+<p>An important application of recursion in computer science is in defining dynamic data structures such as Lists and Trees. Recursive data structures can dynamically grow to a theoretically infinite size in response to runtime requirements; in contrast, a static array's size requirements must be set at compile time.</p>
+<p>Sometimes the term "inductive data type" is used for algebraic data types which are not necessarily recursive.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Example
+<ul>
+<li>1.1 Mutually recursive data types</li>
+</ul>
+</li>
+<li>2 Theory
+<ul>
+<li>2.1 Isorecursive types</li>
+<li>2.2 Equirecursive types
+<ul>
+<li>2.2.1 In type synonyms</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>3 See also</li>
+<li>4 Notes</li>
+</ul>
+<ul>
+<li>1.1 Mutually recursive data types</li>
+</ul>
+<ul>
+<li>2.1 Isorecursive types</li>
+<li>2.2 Equirecursive types
+<ul>
+<li>2.2.1 In type synonyms</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li>2.2.1 In type synonyms</li>
+</ul>
+<p></p>
+<h2>Example</h2>
+<p>An example is the list type, in Haskell:</p>
+<p>WHATSON? 3270a677-8c93-4430-a77a-462f393ce723</p>
+<pre>
+data List a = Nil | Cons a (List a)
+</pre>
+<p>This indicates that a list of a's is either an empty list or a <b>cons cell</b> containing an 'a' (the "head" of the list) and another list (the "tail").</p>
+<p>Another example is a similar singly linked type in Java:</p>
+<p>WHATSON? 8a832676-9e70-4c64-9a3a-951606157e38</p>
+<pre>
+class List&lt;E&gt; {
+    E value;
+    List&lt;E&gt; next;
+}
+</pre>
+<p>This indicates that non-empty list of type E contains a data member of type E, and a reference to another List object for the rest of the list (or a null reference to indicate an empty rest of the list).</p>
+<h3>Mutually recursive data types</h3>
+<p>Data types can also be defined by mutual recursion. The most important basic example of this is a tree, which can be defined mutually recursively in terms of a forest (a list of trees). Symbolically:</p>
+<p>WHATSON? c685bb24-8a67-45d2-83be-dadc775f02af</p>
+<pre>
+f: [t[1], ..., t[k]]
+t: v f
+</pre>
+<p>A forest <i>f</i> consists of a list of trees, while a tree <i>t</i> consists of a pair of a value <i>v</i> and a forest <i>f</i> (its children). This definition is elegant and easy to work with abstractly (such as when proving theorems about properties of trees), as it expresses a tree in simple terms: a list of one type, and a pair of two types.</p>
+<p>This mutually recursive definition can be converted to a singly recursive definition by inlining the definition of a forest:</p>
+<p>WHATSON? 7e75d2d1-6071-469f-b2ca-91f2ed70e925</p>
+<pre>
+t: v [t[1], ..., t[k]]
+</pre>
+<p>A tree <i>t</i> consists of a pair of a value <i>v</i> and a list of trees (its children). This definition is more compact, but somewhat messier: a tree consists of a pair of one type and a list another, which require disentangling to prove results about.</p>
+<p>In Standard ML, the tree and forest data types can be mutually recursively defined as follows, allowing empty trees:</p>
+<p>WHATSON? 8815d8ca-03ff-42f7-8858-c8d7cf9571a5</p>
+<pre>
+datatype 'a tree = Empty | Node of 'a * 'a forest
+and      'a forest = Nil | Cons of 'a tree * 'a forest
+</pre>
+<h2>Theory</h2>
+<p>In type theory, a recursive type has the general form μα.T where the type variable α may appear in the type T and stands for the entire type itself.</p>
+<p>For example, the natural number (see Peano arithmetic) may be defined by the Haskell datatype:</p>
+<p>WHATSON? 77458398-2bcb-4127-8e00-776aced55320</p>
+<pre>
+data Nat = Zero | Succ Nat
+</pre>
+<p>In type theory, we would say: <img class="mwe-math-fallback-image-inline tex" alt="nat = \mu \alpha. 1 + \alpha" src="//upload.wikimedia.org/math/4/4/3/4436b3fd6ca36989ca2d7ba90d8d5b73.png"> where the two arms of the sum type represent the Zero and Succ data constructors. Zero takes no arguments (thus represented by the unit type) and Succ takes another Nat (thus another element of <img class="mwe-math-fallback-image-inline tex" alt="\mu \alpha. 1 + \alpha" src="//upload.wikimedia.org/math/c/f/c/cfc0c1634602aa7b3bfb7a0b83e05509.png">).</p>
+<p>There are two forms of recursive types: the so-called isorecursive types, and equirecursive types. The two forms differ in how terms of a recursive type are introduced and eliminated.</p>
+<h3>Isorecursive types</h3>
+<p>With isorecursive types, the recursive type <img class="mwe-math-fallback-image-inline tex" alt="\mu \alpha . T" src="//upload.wikimedia.org/math/9/0/c/90c2a1a3a1915a30baede02dafc4e9c3.png"> and its expansion (or <i>unrolling</i>) <img class="mwe-math-fallback-image-inline tex" alt="T[\mu \alpha.T / \alpha]" src="//upload.wikimedia.org/math/c/2/a/c2ac2263a58eb620fe3d05bef98f4f1b.png"> (Where the notation<img class="mwe-math-fallback-image-inline tex" alt="X[Y/Z]" src="//upload.wikimedia.org/math/1/0/f/10f6053ad1dd29614967d5da8ecb36c2.png"> indicates that all instances of Z are replaced with Y in X) are distinct (and disjoint) types with special term constructs, usually called <i>roll</i> and <i>unroll</i>, that form an isomorphism between them. To be precise: <img class="mwe-math-fallback-image-inline tex" alt="roll : T[\mu\alpha.T/\alpha] \to \mu\alpha.T" src="//upload.wikimedia.org/math/1/f/d/1fd62d81f21fd44a7f85856b9f98cd30.png"> and <img class="mwe-math-fallback-image-inline tex" alt="unroll : \mu\alpha.T \to T[\mu\alpha.T/\alpha]" src="//upload.wikimedia.org/math/7/1/a/71a0676467e0b676787d24776ed2d24d.png">, and these two are inverse functions.</p>
+<h3>Equirecursive types</h3>
+<p>Under equirecursive rules, a recursive type <img class="mwe-math-fallback-image-inline tex" alt="\mu \alpha . T" src="//upload.wikimedia.org/math/9/0/c/90c2a1a3a1915a30baede02dafc4e9c3.png"> and its unrolling <img class="mwe-math-fallback-image-inline tex" alt="T[\mu\alpha.T/\alpha]" src="//upload.wikimedia.org/math/c/2/a/c2ac2263a58eb620fe3d05bef98f4f1b.png"> are <i>equal</i> -- that is, those two type expressions are understood to denote the same type. In fact, most theories of equirecursive types go further and essentially stipulate that any two type expressions with the same "infinite expansion" are equivalent. As a result of these rules, equirecursive types contribute significantly more complexity to a type system than isorecursive types do. Algorithmic problems such as type checking and type inference are more difficult for equirecursive types as well. Since direct comparison does not make sense on an equirecursive type, they can be converted into a canonical form in O(n log n) time, which can easily be compared.</p>
+<p>Equirecursive types capture the form of self-referential (or mutually referential) type definitions seen in procedural and object-oriented programming languages, and also arise in type-theoretic semantics of objects and classes. In functional programming languages, isorecursive types (in the guise of datatypes) are far more ubiquitous.</p>
+<h4>In type synonyms</h4>
+<p>Recursion is not allowed in type synonyms in Miranda, OCaml (unless -rectypes flag is used), and Haskell; so for example the following Haskell types are illegal:</p>
+<p>WHATSON? efc21390-b9f7-4e2a-bb7a-145c0781d3d3</p>
+<pre>
+type Bad = (Int, Bad)
+type Evil = Bool -&gt; Evil
+</pre>
+<p>Instead, you must wrap it inside an algebraic data type (even if it only has one constructor):</p>
+<p>WHATSON? e13e6345-ee27-4071-a8df-c9b556e0c31f</p>
+<pre>
+data Good = Pair Int Good
+data Fine = Fun (Bool-&gt;Fine)
+</pre>
+<p>This is because type synonyms, like typedefs in C, are replaced with their definition at compile time. (Type synonyms are not "real" types; they are just "aliases" for convenience of the programmer.) But if you try to do this with a recursive type, it will loop infinitely because no matter how many times you substitute it, it still refers to itself, e.g. "Bad" will grow indefinitely: (Int, (Int, (Int, ... .</p>
+<p>Another way to see it is that a level of indirection (the algebraic data type) is required to allow the isorecursive type system to figure out when to <i>roll</i> and <i>unroll</i>.</p>
+<h2>See also</h2>
+<ul>
+<li>Recursive definition</li>
+<li>Algebraic data type</li>
+<li>Node (computer science)</li>
+</ul>
+<h2>Notes</h2>
+<ol>
+<li><b>^</b> Harper 2000, "Data Types".</li>
+<li><b>^</b> "Numbering Matters: First-Order Canonical Forms for Second-Order Recursive Types". </li>
+</ol>
+<ul>
+<li>v</li>
+<li>t</li>
+<li>e</li>
+</ul>
+<ul>
+<li>Bit</li>
+<li>Byte</li>
+<li>Trit</li>
+<li>Tryte</li>
+<li>Word</li>
+</ul>
+<ul>
+<li>Bignum</li>
+<li>Complex</li>
+<li>Decimal</li>
+<li>Fixed-point</li>
+<li>Floating-point</li>
+<li>Integer
+<ul>
+<li>signedness</li>
+</ul>
+</li>
+<li>Interval</li>
+<li>Rational</li>
+</ul>
+<ul>
+<li>signedness</li>
+</ul>
+<ul>
+<li>Character</li>
+<li>String
+<ul>
+<li>null-terminated</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li>null-terminated</li>
+</ul>
+<ul>
+<li>Address
+<ul>
+<li>physical</li>
+<li>virtual</li>
+</ul>
+</li>
+<li>Reference</li>
+</ul>
+<ul>
+<li>physical</li>
+<li>virtual</li>
+</ul>
+<ul>
+<li>Algebraic data type
+<ul>
+<li>generalized</li>
+</ul>
+</li>
+<li>Array</li>
+<li>Associative array</li>
+<li>Class</li>
+<li>Dependent</li>
+<li>Equality</li>
+<li>Inductive</li>
+<li>List</li>
+<li>Object
+<ul>
+<li>metaobject</li>
+</ul>
+</li>
+<li>Option type</li>
+<li>Product</li>
+<li>Record</li>
+<li>Set</li>
+<li>Union
+<ul>
+<li>tagged</li>
+</ul>
+</li>
+</ul>
+<ul>
+<li>generalized</li>
+</ul>
+<ul>
+<li>metaobject</li>
+</ul>
+<ul>
+<li>tagged</li>
+</ul>
+<ul>
+<li>Boolean</li>
+<li>Bottom type</li>
+<li>Collection</li>
+<li>Enumerated type</li>
+<li>Exception</li>
+<li>Function type</li>
+<li>Opaque data type</li>
+<li><strong class="selflink">Recursive data type</strong></li>
+<li>Semaphore</li>
+<li>Stream</li>
+<li>Top type</li>
+<li>Type class</li>
+<li>Unit type</li>
+<li>Void</li>
+</ul>
+<ul>
+<li>Abstract data type</li>
+<li>Data structure</li>
+<li>Generic</li>
+<li>Kind
+<ul>
+<li>metaclass</li>
+</ul>
+</li>
+<li>Parametric polymorphism</li>
+<li>Primitive data type</li>
+<li>Protocol
+<ul>
+<li>interface</li>
+</ul>
+</li>
+<li>Subtyping</li>
+<li>Type constructor</li>
+<li>Type conversion</li>
+<li>Type system</li>
+</ul>
+<ul>
+<li>metaclass</li>
+</ul>
+<ul>
+<li>interface</li>
+</ul>
+<p>This article is based on material taken from the Free On-line Dictionary of Computing prior to 1 November 2008 and incorporated under the "relicensing" terms of the GFDL, version 1.3 or later.</p>
+</body>
+</html>

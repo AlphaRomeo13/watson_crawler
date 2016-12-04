@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Zellers-congruence---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Zeller's congruence</h1>
+<p><b>Zeller's congruence</b> is an algorithm devised by Christian Zeller to calculate the day of the week for any Julian or Gregorian calendar date. It can be considered to be based on the conversion between Julian day and the calendar date.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Formula
+<ul>
+<li>1.1 Implementation in software</li>
+</ul>
+</li>
+<li>2 Analysis</li>
+<li>3 Examples</li>
+<li>4 Other algorithms</li>
+<li>5 See also</li>
+<li>6 References</li>
+<li>7 External links</li>
+</ul>
+<ul>
+<li>1.1 Implementation in software</li>
+</ul>
+<p></p>
+<h2>Formula</h2>
+<p>For the Gregorian calendar, Zeller's congruence is</p>
+<p>for the Julian calendar it is</p>
+<p>where</p>
+<ul>
+<li><i>h</i> is the day of the week (0 = Saturday, 1 = Sunday, 2 = Monday, ..., 6 = Friday)</li>
+<li><i>q</i> is the day of the month</li>
+<li><i>m</i> is the month (3 = March, 4 = April, 5 = May, ..., 14 = February)</li>
+<li><i>K</i> the year of the century (<img class="mwe-math-fallback-image-inline tex" alt="year \mod 100" src="//upload.wikimedia.org/math/c/3/7/c37c08d217b9e9f8ede5ae9368350094.png">).</li>
+<li><i>J</i> is the century (actually <img class="mwe-math-fallback-image-inline tex" alt="\lfloor year/100 \rfloor" src="//upload.wikimedia.org/math/5/3/f/53f3adfbb6ce32472ac653fa05c2f9d3.png">) (For example, in 1995 the century would be 19, even though it was the 20th century.)</li>
+</ul>
+<p><b>NOTE</b>: In this algorithm January and February are counted as months 13 and 14 of the previous year. E.g. if it is 2 February 2010, the algorithm counts the date as the second day of the fourteenth month of 2009 (02/14/2009 in DD/MM/YYYY format)</p>
+<p>For an ISO week date Day-of-Week <i>d</i> (1 = Monday to 7 = Sunday), use</p>
+<h3>Implementation in software</h3>
+<p>The formulas rely on the mathematician's definition of modulo division, which means that −2 mod 7 is equal to positive 5. Unfortunately, the way most computer languages implement the remainder function, −2 mod 7 returns a result of −2. So, to implement Zeller's congruence on a computer, the formulas should be altered slightly to ensure a positive numerator. The simplest way to do this is to replace − 2<i>J</i> by + 5<i>J</i> and − <i>J</i> by + 6<i>J</i>. So the formulas become:</p>
+<p>for the Gregorian calendar, and</p>
+<p>for the Julian calendar.</p>
+<p>One can readily see that, in a given year, March 1 (if that is a Saturday, then March 2) is a good test date; and that, in a given century, the best test year is that which is a multiple of 100.</p>
+<p>Zeller used decimal arithmetic, and found it convenient to use <i>J</i> and <i>K</i> in representing the year. But when using a computer, it is simpler to handle the modified year <i>Y</i>, which is <i>Y</i> - 1 during January and February:</p>
+<p>for the Gregorian calendar, and</p>
+<p>for the Julian calendar.</p>
+<h2>Analysis</h2>
+<p>These formulas are based on the observation that the day of the week progresses in a predictable manner based upon each subpart of that date. Each term within the formula is used to calculate the offset needed to obtain the correct day of the week.</p>
+<p>For the Gregorian calendar, the various parts of this formula can therefore be understood as follows:</p>
+<ul>
+<li><img class="mwe-math-fallback-image-inline tex" alt="q" src="//upload.wikimedia.org/math/7/6/9/7694f4a66316e53c8cdd9d9954bd611d.png"> represents the progression of the day of the week based on the day of the month, since each successive day results in an additional offset of 1 in the day of the week.</li>
+</ul>
+<ul>
+<li><img class="mwe-math-fallback-image-inline tex" alt="K" src="//upload.wikimedia.org/math/a/5/f/a5f3c6a11b03839d46af9fb43c97c188.png"> represents the progression of the day of the week based on the year. Assuming that each year is 365 days long, the same date on each succeeding year will be offset by a value of <img class="mwe-math-fallback-image-inline tex" alt="365\mod 7 = 1" src="//upload.wikimedia.org/math/c/b/2/cb25ba99e3d2043afbab36d575b7ef4d.png">.</li>
+</ul>
+<ul>
+<li>Since there are 366 days in each leap year, this needs to be accounted for by adding another day to the day of the week offset value. This is accomplished by adding <img class="mwe-math-fallback-image-inline tex" alt="\left\lfloor\frac{K}{4}\right\rfloor" src="//upload.wikimedia.org/math/a/e/d/aed869e3bea213f647bb72e869ba61e3.png"> to the offset. This term is calculated as an integer result. Any remainder is discarded.</li>
+</ul>
+<ul>
+<li>Using similar logic, the progression of the day of the week for each century may be calculated by observing that there are 36524 days in a normal century and 36525 days in each century divisible by 400. Since <img class="mwe-math-fallback-image-inline tex" alt="36525\mod 7 = 6" src="//upload.wikimedia.org/math/1/2/5/12521bdb8768ab22310082f7044fe89e.png"> and <img class="mwe-math-fallback-image-inline tex" alt="36524\mod 7 = 5" src="//upload.wikimedia.org/math/9/2/4/924013b11757513b476dc17e08bf5d5d.png">, the term :<img class="mwe-math-fallback-image-inline tex" alt="\left\lfloor\frac{J}{4}\right\rfloor - 2J" src="//upload.wikimedia.org/math/3/1/e/31ebff0805d78730bcc40e6c4425eac1.png"> accounts for this (again using integer division and discarding any fractional remainder). To avoid negative numbers, this term can be replaced with :<img class="mwe-math-fallback-image-inline tex" alt="\left\lfloor\frac{J}{4}\right\rfloor + 5J" src="//upload.wikimedia.org/math/e/f/d/efd55619fd3616317f06501636daff8f.png"> with equivalent results.</li>
+</ul>
+<ul>
+<li>The term <img class="mwe-math-fallback-image-inline tex" alt="\left\lfloor\frac{13(m+1)}{5}\right\rfloor" src="//upload.wikimedia.org/math/e/e/6/ee6c69df39ca4f1c69336f0c2b5ecc1a.png"> adjusts for the variation in the days of the month. Starting from January, the days in a month are {31, 28/29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}. February's 28 or 29 days is a problem, so the formula rolls January and February around to the end so February's short count will not cause a problem. The formula is interested in days of the week, so the numbers in the sequence can be taken modulo 7. Then the number of days in a month modulo 7 (still starting with January) would be {3, 0/1, 3, 2, 3, 2, 3, 3, 2, 3, 2, 3}. Starting in March, the sequence basically alternates 3, 2, 3, 2, 3, but every five months there are two 31-day months in a row (July-August and December-January). The fraction 13/5 = 2.6 and the floor function have that effect; the denominator of 5 sets a period of 5 months.</li>
+</ul>
+<ul>
+<li>The overall function, <img class="mwe-math-fallback-image-inline tex" alt="\mod 7" src="//upload.wikimedia.org/math/d/d/b/ddbae5a102bba83a1596973af90d62ad.png">, normalizes the result to reside in the range of 0 to 6, which yields the index of the correct day of the week for the date being analyzed.</li>
+</ul>
+<p>The reason that the formula differs for the Julian calendar is that this calendar does not have a separate rule for leap centuries and is offset from the Gregorian calendar by a fixed number of days each century.</p>
+<p>Since the Gregorian calendar was adopted at different times in different regions of the world, the location of an event is significant in determining the correct day of the week for a date that occurred during this transition period. This is only required through 1929, as this was the last year that the Julian calendar was still in use by any country on earth, and thus is not required for 1930 or later.</p>
+<p>The formulae can be used proleptically, but with care for years before Year 0. To accommodate this, one can add a sufficient multiple of 400 Gregorian or 28 Julian years.</p>
+<h2>Examples</h2>
+<p>For 1 January 2000, the date would be treated as the 13th month of 1999, so the values would be:</p>
+<p>So the formula evaluates as (1 + 36 + 99 + 24 + 4 − 38) mod 7 = 126 mod 7 = 0 = Saturday</p>
+<p>(The 36 comes from (13+1)*26/10 = 364/10, truncated to an integer.)</p>
+<p>However, for 1 March 2000, the date is treated as the 3rd month of 2000, so the values become</p>
+<p>so the formula evaluates as (1 + 10 + 0 + 0 + 5 − 40) mod 7 = −24 mod 7 = 4 = Wednesday</p>
+<h2>Other algorithms</h2>
+<p>There are other algorithms, and also one that uses Zeller's without the trailing mod 7 to arrive at day count, see Julian day.</p>
+<p>Find day number of (to) an epoch having first day of year as Sunday (use any of a few algorithms) (these are numbered from 0). Then Sunday is first day of 1-7 days using:</p>
+<p>WHATSON? 614ca928-232b-400f-8e23-2bff18fea092</p>
+<pre>
+ Modulus[daystoepoch, 7]+1
+</pre>
+<h2>See also</h2>
+<ul>
+<li>Determination of the day of the week</li>
+<li>Doomsday rule</li>
+<li>ISO week date</li>
+<li>Julian day</li>
+</ul>
+</body>
+</html>

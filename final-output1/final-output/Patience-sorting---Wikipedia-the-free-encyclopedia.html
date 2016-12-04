@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Patience-sorting---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Patience sorting</h1>
+<p><b>Patience sorting</b> is a sorting algorithm, based on a solitaire card game, that has the property of being able to efficiently compute the length of a longest increasing subsequence in a given array.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 The card game</li>
+<li>2 Algorithm for sorting
+<ul>
+<li>2.1 Complexity</li>
+</ul>
+</li>
+<li>3 Algorithm for finding a longest increasing subsequence</li>
+<li>4 Software Implementations
+<ul>
+<li>4.1 C++ Implementation</li>
+<li>4.2 Clojure Implementation</li>
+<li>4.3 Java Implementation</li>
+</ul>
+</li>
+<li>5 History</li>
+<li>6 Use</li>
+<li>7 References</li>
+</ul>
+<ul>
+<li>2.1 Complexity</li>
+</ul>
+<ul>
+<li>4.1 C++ Implementation</li>
+<li>4.2 Clojure Implementation</li>
+<li>4.3 Java Implementation</li>
+</ul>
+<p></p>
+<h2>The card game</h2>
+<p>The game begins with a shuffled deck of cards, labeled <img class="mwe-math-fallback-image-inline tex" alt="1, 2, \ldots, n" src="//upload.wikimedia.org/math/9/f/a/9faf2d3c0edeb35025e102bcb2f8537b.png">.</p>
+<p>The cards are dealt one by one into a sequence of piles on the table, according to the following rules.</p>
+<ol>
+<li>Initially, there are no piles. The first card dealt forms a new pile consisting of the single card.</li>
+<li>Each new card may be placed either on an existing pile whose top card has a value higher than the new card's value, thus increasing the number of cards in that pile, or to the right of all of the existing piles, thus forming a new pile.</li>
+<li>When there are no more cards remaining to deal, the game ends.</li>
+</ol>
+<p>The object of the game is to finish with as few piles as possible. D. Aldous and P. Diaconis suggest defining 9 or fewer piles as a winning outcome for <img class="mwe-math-fallback-image-inline tex" alt="n = 52" src="//upload.wikimedia.org/math/8/e/f/8efcbb31ae9408b35be6cfb5d4c8282a.png">, which has approximately 5% chance to happen.</p>
+<h2>Algorithm for sorting</h2>
+<p>Given an <img class="mwe-math-fallback-image-inline tex" alt="n" src="//upload.wikimedia.org/math/7/b/8/7b8b965ad4bca0e41ab51de7b31363a1.png">-element array with an ordering relation as an input for the sorting, consider it as a collection of cards, with the (unknown in the beginning) statistical ordering of each element serving as its index. Note that the game never uses the actual value of the card, except for comparison between two cards, and the relative ordering of any two array elements is known.</p>
+<p>Now simulate the patience sorting game, played with the <i>greedy strategy</i>, i.e., placing each new card on the leftmost pile that is legally possible to use. At each stage of the game, under this strategy, the labels on the top cards of the piles are increasing from left to right. To recover the sorted sequence, repeatedly remove the minimum visible card.</p>
+<h3>Complexity</h3>
+<p>If values of cards are in the range <img class="mwe-math-fallback-image-inline tex" alt="1, \ldots, n" src="//upload.wikimedia.org/math/5/b/3/5b37aa8a320773d5bef8220454c56436.png">, there is an efficient implementation with <img class="mwe-math-fallback-image-inline tex" alt="O(n \cdot \log \log n)" src="//upload.wikimedia.org/math/d/5/1/d510c9ce01f46b940fb5e574b2ef69ee.png"> worst-case running time for putting the cards into piles, relying on a van Emde Boas tree. A description is given in the work by S. Bespamyatnikh and M. Segal.</p>
+<p>When no assumption is made about values, the greedy strategy can be implemented in <img class="mwe-math-fallback-image-inline tex" alt="O(n \log n)" src="//upload.wikimedia.org/math/f/4/9/f49341ab621f12e8cb93d0146ea51d34.png"> comparisons in worst case. In fact, one can implement it with an array of stacks ordered by values of top cards and, for inserting a new card, use a binary search, which is <img class="mwe-math-fallback-image-inline tex" alt="O(\log p)" src="//upload.wikimedia.org/math/c/2/b/c2bfd79d2c8eab4bbf44b07f61414997.png"> comparisons in worst case, where <img class="mwe-math-fallback-image-inline tex" alt="p" src="//upload.wikimedia.org/math/8/3/8/83878c91171338902e0fe0fb97a8c47a.png"> is the number of piles. To complete the sorting in an efficient way (aka <img class="mwe-math-fallback-image-inline tex" alt="O(n \log n)" src="//upload.wikimedia.org/math/f/4/9/f49341ab621f12e8cb93d0146ea51d34.png"> worst case), each step will retrieve the card with the least value from the top of leftmost pile, and then some work has to be done. Finding the next card by searching it among all tops of piles, as in the wikibooks implementation suggested below, gives a <img class="mwe-math-fallback-image-inline tex" alt="O(n \sqrt n)" src="//upload.wikimedia.org/math/5/1/c/51c03f338419c316b72d73e56a7767f8.png"> worst case. However, we can use an efficient priority queue (for example, a binary heap) to maintain the piles so that we can extract the maximum data in <img class="mwe-math-fallback-image-inline tex" alt="O(\log n)" src="//upload.wikimedia.org/math/0/c/a/0ca47d9a481af371d1210a620c1945db.png"> time.</p>
+<h2>Algorithm for finding a longest increasing subsequence</h2>
+<p>First, execute the sorting algorithm as described above. The number of piles is the length of a longest subsequence. Whenever a card is placed on top of a pile, put a back-pointer to the top card in the previous pile (that, by assumption, has a lower value than the new card has). In the end, follow the back-pointers from the top card in the last pile to recover a decreasing subsequence of the longest length; its reverse is an answer to the longest increasing subsequence algorithm.</p>
+<p>S. Bespamyatnikh and M. Segal give a description of an efficient implementation of the algorithm, incurring no additional asymptotic cost over the sorting one (as the back-pointers storage, creation and traversal require linear time and space). They further show how to report <i>all</i> the longest increasing subsequences from the same resulting data structures.</p>
+<h2>Software Implementations</h2>
+<h3>C++ Implementation</h3>
+<p>This is an implementation using Patience Sorting to sort an array, performing <img class="mwe-math-fallback-image-inline tex" alt="O(n \log n)" src="//upload.wikimedia.org/math/f/4/9/f49341ab621f12e8cb93d0146ea51d34.png"> time complexity.</p>
+<p>WHATSON? ecfb2284-ae11-4d27-892d-80694e047d33</p>
+<pre>
+#include &lt;vector&gt;
+#include &lt;algorithm&gt;
+#include &lt;stack&gt;
+#include &lt;iterator&gt;
+ 
+template&lt;typename PileType&gt;
+bool pile_less(const PileType&amp; x, const PileType&amp; y)
+{
+    return x.top() &lt; y.top();
+}
+ 
+// reverse less predicate to turn max-heap into min-heap
+template&lt;typename PileType&gt;
+bool pile_more(const PileType&amp; x, const PileType&amp; y)
+{
+    return pile_less(y, x);
+}
+ 
+template&lt;typename Iterator&gt;
+void patience_sort(Iterator begin, Iterator end)
+{
+    typedef typename std::iterator_traits&lt;Iterator&gt;::value_type DataType;
+    typedef std::stack&lt;DataType&gt; PileType;
+    std::vector&lt;PileType&gt; piles;
+ 
+    for (Iterator it = begin; it != end; it++)
+    {
+        PileType new_pile;
+        new_pile.push(*it);
+        typename std::vector&lt;PileType&gt;::iterator insert_it =
+            std::lower_bound(piles.begin(), piles.end(), new_pile,
+                             pile_less&lt;PileType&gt;);
+        if (insert_it == piles.end())
+            piles.push_back(new_pile);
+        else
+            insert_it-&gt;push(*it);
+    }
+    // sorted array already satisfies heap property for min-heap
+ 
+    for (Iterator it = begin; it != end; it++)
+    {
+        std::pop_heap(piles.begin(), piles.end(), pile_more&lt;PileType&gt;);
+        *it = piles.back().top();
+        piles.back().pop();
+        if (piles.back().empty())
+            piles.pop_back();
+        else
+            std::push_heap(piles.begin(), piles.end(), pile_more&lt;PileType&gt;);
+    }
+}
+</pre>
+<h3>Clojure Implementation</h3>
+<p>Implementation using the Patience Sort approach. The elements (newelem) put on a pile combine the "card" with a reference to the top of the previous stack, as per the algorithm. The combination is done using cons, so what gets put on a pile is a list -- a descending subsequence. </p>
+<p>WHATSON? 05dcca31-ef04-4d50-8e37-cf7da82d5e6a</p>
+<pre>
+(defn place [piles card]
+  (let [[les gts] (-&gt;&gt; piles (split-with #(&lt;= (ffirst %) card)))
+        newelem (cons card (-&gt;&gt; les last first))
+        modpile (cons newelem (first gts))]
+    (concat les (cons modpile (rest gts)))))
+ 
+(defn a-longest [cards]
+  (let [piles (reduce place '() cards)]
+    (-&gt;&gt; piles last first reverse)))
+ 
+(println (a-longest [3 2 6 4 5 1]))
+(println (a-longest [0 8 4 12 2 10 6 14 1 9 5 13 3 11 7 15]))
+</pre>
+<p>Output:</p>
+<p>WHATSON? bb0fe672-ee03-4eb9-8e97-b6e10f360423</p>
+<pre>
+(2 4 5)
+(0 2 6 9 11 15)
+</pre>
+<p><br></p>
+<h3>Java Implementation</h3>
+<p>WHATSON? 9122468d-29cd-4657-b27e-5660cd4a7f5a</p>
+<pre>
+import java.util.*;
+public class PatienceSort
+{
+    public static &lt;E extends Comparable&lt;? super E&gt;&gt; void sort (E[] n)
+    {
+        List&lt;Pile&lt;E&gt;&gt; piles = new ArrayList&lt;Pile&lt;E&gt;&gt;();
+        // sort into piles
+        for (E x : n)
+        {
+            Pile&lt;E&gt; newPile = new Pile&lt;E&gt;();
+            newPile.push(x);
+            int i = Collections.binarySearch(piles, newPile);
+            if (i &lt; 0) i = ~i;
+            if (i != piles.size())
+                piles.get(i).push(x);
+            else
+                piles.add(newPile);
+        }
+        System.out.println("longest increasing subsequence has length = " + piles.size());
+ 
+        // priority queue allows us to retrieve least pile efficiently
+        PriorityQueue&lt;Pile&lt;E&gt;&gt; heap = new PriorityQueue&lt;Pile&lt;E&gt;&gt;(piles);
+        for (int c = 0; c &lt; n.length; c++)
+        {
+            Pile&lt;E&gt; smallPile = heap.poll();
+            n[c] = smallPile.pop();
+            if (!smallPile.isEmpty())
+                heap.offer(smallPile);
+        }
+        assert(heap.isEmpty());
+    }
+ 
+    private static class Pile&lt;E extends Comparable&lt;? super E&gt;&gt; extends Stack&lt;E&gt; implements Comparable&lt;Pile&lt;E&gt;&gt;
+    {
+        public int compareTo(Pile&lt;E&gt; y) { return peek().compareTo(y.peek()); }
+    }
+}
+</pre>
+<h2>History</h2>
+<p>According to D. Aldous and P. Diaconis, patience sorting was first recognized as an algorithm to compute the longest increasing subsequence length by Hammersley, and by A.S.C. Ross and independently Robert W. Floyd as a sorting algorithm. Initial analysis was done by Mallows.</p>
+<h2>Use</h2>
+<p>The Bazaar version control system uses the patience sorting algorithm for merge resolution. The patience sorting algorithm can also be applied to process control. Within a series of measurements, the existence of a long increasing subsequence can be used as a trend marker. A 2002 article in SQL Server magazine includes a SQL implementation, in this context, of the patience sorting algorithm for the length of the longest increasing subsequence.</p>
+</body>
+</html>

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>In-place-algorithm---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>In-place algorithm</h1>
+<p>In computer science, an <b>in-place algorithm</b> (or in Latin <b>in situ</b>) is an algorithm which transforms input using a data structure with a small, constant amount of extra storage space. The input is usually overwritten by the output as the algorithm executes. An algorithm which is not in-place is sometimes called <b>not-in-place</b> or <b>out-of-place</b> (or <b>ex situ</b> in Latin).</p>
+<p>An algorithm is sometimes, informally, called in-place as long as it overwrites its input with its output. In reality, this is not sufficient (as the case of quicksort demonstrates), nor is it necessary; the output space may be constant, or may not even be counted, for example if the output is to a stream. On the other hand, sometimes it may be more practical to count the output space in determining whether an algorithm is in-place, such as in the first reverse example below; this makes it difficult to strictly define in-place algorithms. In theory applications such as log-space reductions, it's more typical to always ignore output space (in these cases it's more essential that the output is <i>write-only</i>).</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Examples</li>
+<li>2 In computational complexity</li>
+<li>3 Role of randomness</li>
+<li>4 In functional programming</li>
+<li>5 See also</li>
+<li>6 References</li>
+</ul>
+<p></p>
+<h2>Examples</h2>
+<p>Given an array <code>a</code> of <i>n</i> items, suppose we want an array that holds the same elements in reversed order and dispose of the original. One seemingly simple way to do this is to create a new array of equal size, fill it with copies from <code>a</code> in appropriate order and then delete <code>a</code>.</p>
+<p>WHATSON? 15f5be2d-0333-432d-adb8-001f4f845720</p>
+<pre>
+ <b>function</b> reverse(a[0..n - 1])
+     allocate b[0..n - 1]
+     <b>for</b> i <b>from</b> 0 <b>to</b> n - 1
+         b[n − 1 − i] := a[i]
+     <b>return</b> b
+</pre>
+<p>Unfortunately, this requires O(<i>n</i>) extra space for having the arrays <code>a</code> and <code>b</code> available simultaneously. Also, allocation and deallocation are often slow operations. Since we no longer need <code>a</code>, we can instead overwrite it with its own reversal using this in-place algorithm which will only need constant additional storage for the auxiliary variables <code>i</code> and <code>tmp</code>, no matter how large the array is.</p>
+<p>WHATSON? 0ad89a27-9085-439c-9b1f-110b26ef0e56</p>
+<pre>
+ <b>function</b> reverse_in_place(a[0..n-1])
+     <b>for</b> i <b>from</b> 0 <b>to</b> floor((n-2)/2)
+         tmp := a[i]
+         a[i] := a[n − 1 − i]
+         a[n − 1 − i] := tmp
+</pre>
+<p>As another example, there are a number of sorting algorithms that can rearrange arrays into sorted order in-place, including: Bubble sort, Comb sort, Selection sort, Insertion sort, Heapsort, Shell sort.</p>
+<p>Quicksort operates in-place on the data to be sorted as it only ever swaps two elements. However, most implementations require O(log <i>n</i>) space to keep track of the recursive function calls as part of the divide and conquer strategy; so Quicksort is not an in-place algorithm.</p>
+<p>Most selection algorithms are also in-place, although some considerably rearrange the input array in the process of finding the final, constant-sized result.</p>
+<p>Some text manipulation algorithms such as trim and reverse may be done in-place.</p>
+<h2>In computational complexity</h2>
+<p>In computational complexity theory, in-place algorithms include all algorithms with O(1) space complexity, the class <b>DSPACE</b>(1). This class is very limited; it equals the regular languages. In fact, it does not even include any of the examples listed above.</p>
+<p>For this reason, we also consider algorithms in L, the class of problems requiring O(log <i>n</i>) additional space, to be in-place. Although this seems to contradict our earlier definition, we have to consider that in the abstract world our input can be arbitrarily large. On a real computer, a pointer requires only a small fixed amount of space, because the amount of physical memory is limited, but in general O(log <i>n</i>) bits are required to specify an index into a list of size <i>n</i>.</p>
+<p>Does this mean quicksort is in-place after all? Not at all—technically, it requires O(log <i>n</i>) space, since each of its O(log <i>n</i>) stack frames contains a constant number of pointers (each of size O(log <i>n</i>)).</p>
+<p>Identifying the in-place algorithms with L has some interesting implications; for example, it means that there is a (rather complex) in-place algorithm to determine whether a path exists between two nodes in an undirected graph, a problem that requires O(<i>n</i>) extra space using typical algorithms such as depth-first search (a visited bit for each node). This in turn yields in-place algorithms for problems such as determining if a graph is bipartite or testing whether two graphs have the same number of connected components. See SL for more information.</p>
+<h2>Role of randomness</h2>
+<p>In many cases, the space requirements for an algorithm can be drastically cut by using a randomized algorithm. For example, say we wish to know if two vertices in a graph of <i>n</i> vertices are in the same connected component of the graph. There is no known simple, deterministic, in-place algorithm to determine this, but if we simply start at one vertex and perform a random walk of about 20<i>n</i> steps, the chance that we will stumble across the other vertex provided that it's in the same component is very high. Similarly, there are simple randomized in-place algorithms for primality testing such as the Miller-Rabin primality test, and there are also simple in-place randomized factoring algorithms such as Pollard's rho algorithm. See RL and BPL for more discussion of this phenomenon.</p>
+<h2>In functional programming</h2>
+<p>Functional programming languages often discourage or don't support explicit in-place algorithms that overwrite data, since this is a type of side effect; instead, they only allow new data to be constructed. However, good functional language compilers will often recognize when an object very similar to an existing one is created and then the old one thrown away, and will optimize this into a simple mutation "under-the-hood".</p>
+<p>Note that it is possible in principle to carefully construct in-place algorithms that don't modify data (unless the data is no longer being used), but this is rarely done in practice. See purely functional data structures.</p>
+<h2>See also</h2>
+<ul>
+<li>Table of in-place and not-in-place sorting algorithms</li>
+</ul>
+</body>
+</html>

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Pairing-heap---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Pairing heap</h1>
+<p>A <b>pairing heap</b> is a type of heap data structure with relatively simple implementation and excellent practical amortized performance. Pairing heaps are heap-ordered multiway tree structures, and can be considered simplified Fibonacci heaps. They are considered a "robust choice" for implementing such algorithms as Prim's MST algorithm,, and support the following operations (assuming a min-heap):</p>
+<ul>
+<li><i>find-min</i>: simply return the top element of the heap.</li>
+<li><i>merge</i>: compare the two root elements, the smaller remains the root of the result, the larger element and its subtree is appended as a child of this root.</li>
+<li><i>insert</i>: create a new heap for the inserted element and <i>merge</i> into the original heap.</li>
+<li><i>decrease-key</i> (optional): remove the subtree rooted at the key to be decreased, replace the key with a smaller key, then <i>merge</i> the result back into the heap.</li>
+<li><i>delete-min</i>: remove the root and <i>merge</i> its subtrees. Various strategies are employed.</li>
+</ul>
+<p>The analysis of pairing heaps' time complexity was initially inspired by that of splay trees. The amortized time per <i>delete-min</i> is <i>O</i>(log <i>n</i>). The operations <i>find-min</i>, <i>merge</i>, and <i>insert</i> run in constant time, <i>O</i>(1).</p>
+<p>Determining the precise asymptotic running time of pairing heaps when a <i>decrease-key</i> operation is needed has turned out to be difficult. Initially, the time complexity of this operation was conjectured on empirical grounds to be <i>O</i>(1), but Fredman proved that the amortized time per <i>decrease-key</i> is at least <img class="mwe-math-fallback-image-inline tex" alt="\Omega(\log\log n)" src="//upload.wikimedia.org/math/b/c/a/bcaa9d755628236941fd3dbdb085e2bb.png"> for some sequences of operations. Pettie then derived an upper bound of <img class="mwe-math-fallback-image-inline tex" alt="O(2^{2\sqrt{\log\log n}})" src="//upload.wikimedia.org/math/1/1/6/116501efce73c18d813f9ba43a0d0d77.png"> amortized time for <i>decrease-key</i>, which is <img class="mwe-math-fallback-image-inline tex" alt="o(\log n)" src="//upload.wikimedia.org/math/9/c/e/9ce8211f195187c6f6338cf720c4440d.png">. No tight <img class="mwe-math-fallback-image-inline tex" alt="\Theta(\log\log n)" src="//upload.wikimedia.org/math/e/c/5/ec5aa66dafca7814fad8d1d14707e535.png"> bound is known.</p>
+<p>Although this is worse than other priority queue algorithms such as Fibonacci heaps, which perform <i>decrease-key</i> in <img class="mwe-math-fallback-image-inline tex" alt="O(1)" src="//upload.wikimedia.org/math/5/e/0/5e079a28737d5dd019a3b8f6133ee55e.png"> amortized time, the performance in practice is excellent. Stasko and Vitter and Moret and Shapiro conducted experiments on pairing heaps and other heap data structures. They concluded that the pairing heap is as fast as, and often faster than, other efficient data structures like the binary heaps.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Structure</li>
+<li>2 Operations
+<ul>
+<li>2.1 <i>find-min</i></li>
+<li>2.2 <i>merge</i></li>
+<li>2.3 <i>insert</i></li>
+<li>2.4 <i>delete-min</i></li>
+</ul>
+</li>
+<li>3 Summary of running times</li>
+<li>4 References</li>
+<li>5 External links</li>
+</ul>
+<ul>
+<li>2.1 <i>find-min</i></li>
+<li>2.2 <i>merge</i></li>
+<li>2.3 <i>insert</i></li>
+<li>2.4 <i>delete-min</i></li>
+</ul>
+<p></p>
+<h2>Structure</h2>
+<p>A pairing heap is either an empty heap, or a pair consisting of a root element and a possibly empty list of pairing heaps. The heap ordering property requires that all the root elements of the subheaps in the list are not smaller than the root element of the heap. The following description assumes a purely functional heap that does not support the <i>decrease-key</i> operation.</p>
+<p>WHATSON? c7fe2928-b4b6-4077-9532-e648e08688f9</p>
+<pre>
+<code><b>type</b> PairingHeap[Elem] = Empty | Heap(elem: Elem, subheaps: List[PairingHeap[Elem]])</code>
+</pre>
+<p>A pointer-based implementation for RAM machines, supporting <i>decrease-key</i>, can be achieved using three pointers per node, by representing the children of a node by a singly-linked list: a pointer to the node's first child, one to its next sibling, and one to the parent. Alternatively, the parent pointer can be omitted by letting the last child point back to the parent, if a single boolean flag is added to indicate "end of list". This achieves a more compact structure at the expense of a constant overhead factor per operation.</p>
+<h2>Operations</h2>
+<h3><i>find-min</i></h3>
+<p>The function <i>find-min</i> simply returns the root element of the heap:</p>
+<p>WHATSON? eae6f0aa-4e55-4a19-b443-20b4bef2ffd6</p>
+<pre>
+<code><b>function</b> find-min(heap)
+  <b>if</b> heap == Empty
+    <b>error</b>
+  <b>else</b>
+    <b>return</b> heap.elem
+</code>
+</pre>
+<h3><i>merge</i></h3>
+<p>Merging with an empty heap returns the other heap, otherwise a new heap is returned that has the minimum of the two root elements as its root element and just adds the heap with the larger root to the list of subheaps:</p>
+<p>WHATSON? 63add4d6-a98e-4099-b9bf-ffbdad7a3ff6</p>
+<pre>
+<code><b>function</b> merge(heap1, heap2)
+  <b>if</b> heap1 == Empty
+    <b>return</b> heap2
+  <b>elsif</b> heap2 == Empty
+    <b>return</b> heap1
+  <b>elsif</b> heap1.elem &lt; heap2.elem
+    <b>return</b> Heap(heap1.elem, heap2 :: heap1.subheaps)
+  <b>else</b>
+    <b>return</b> Heap(heap2.elem, heap1 :: heap2.subheaps)
+</code>
+</pre>
+<h3><i>insert</i></h3>
+<p>The easiest way to insert an element into a heap is to merge the heap with a new heap containing just this element and an empty list of subheaps:</p>
+<p>WHATSON? 3a04e01c-2848-4b39-807f-86327fa1bc32</p>
+<pre>
+<code><b>function</b> insert(elem, heap)
+  <b>return</b> merge(Heap(elem, []), heap)
+</code>
+</pre>
+<h3><i>delete-min</i></h3>
+<p>The only non-trivial fundamental operation is the deletion of the minimum element from the heap. The standard strategy first merges the subheaps in pairs (this is the step that gave this datastructure its name) from left to right and then merges the resulting list of heaps from right to left:</p>
+<p>WHATSON? 1f0ff92b-1de5-4be4-9ad6-a61dc8b4f149</p>
+<pre>
+<code><b>function</b> delete-min(heap)
+  <b>if</b> heap == Empty
+    <b>error</b>
+  <b>else</b>
+    <b>return</b> merge-pairs(heap.subheaps)
+</code>
+</pre>
+<p>This uses the auxiliary function <i>merge-pairs</i>:</p>
+<p>WHATSON? af4562e4-1e4f-4992-9008-bf328b939a2a</p>
+<pre>
+<code><b>function</b> merge-pairs(l)
+  <b>if</b> length(l) == 0
+    <b>return</b> Empty
+  <b>elsif</b> length(l) == 1
+    <b>return</b> l[0]
+  <b>else</b>
+    <b>return</b> merge(merge(l[0], l[1]), merge-pairs(l[2.. ]))
+</code>
+</pre>
+<p>That this does indeed implement the described two-pass left-to-right then right-to-left merging strategy can be seen from this reduction:</p>
+<p>WHATSON? f2caa0c8-8ce2-48ae-adf3-d7f9f2a986da</p>
+<pre>
+<code>   merge-pairs([H1, H2, H3, H4, H5, H6, H7])
+=&gt; merge(merge(H1, H2), merge-pairs([H3, H4, H5, H6, H7]))
+     # merge H1 and H2 to H12, then the rest of the list
+=&gt; merge(<b>H12</b>, merge(merge(H3, H4), merge-pairs([H5, H6, H7])))
+     # merge H3 and H4 to H34, then the rest of the list
+=&gt; merge(H12, merge(<b>H34</b>, merge(merge(H5, H6), merge-pairs([H7]))))
+     # merge H5 and H6 to H56, then the rest of the list
+=&gt; merge(H12, merge(H34, merge(<b>H56</b>, H7)))
+     # switch direction, merge the last two resulting heaps, giving H567
+=&gt; merge(H12, merge(H34, <b>H567</b>))
+     # merge the last two resulting heaps, giving H34567
+=&gt; merge(H12, <b>H34567</b>) 
+     # finally, merge the first merged pair with the result of merging the rest
+=&gt; <b>H1234567</b>
+</code>
+</pre>
+<h2>Summary of running times</h2>
+<p>In the following time complexities <i>O</i>(<i>f</i>) is an asymptotic upper bound and <i>Θ</i>(<i>f</i>) is an asymptotically tight bound (see Big O notation). Function names assume a min-heap.</p>
+<ol>
+<li><b>^</b> Brodal and Okasaki later describe a persistent variant with the same bounds except for decrease-key, which is not supported. Heaps with <i>n</i> elements can be constructed bottom-up in <i>O</i>(<i>n</i>).</li>
+<li>^        Amortized time.</li>
+<li><b>^</b> Bounded by <img class="mwe-math-fallback-image-inline tex" alt="\Omega(\log\log n), O(2^{2\sqrt{\log\log n}})" src="//upload.wikimedia.org/math/c/7/3/c73afc51ab84a9b0c213ee20d4a5fa41.png"></li>
+<li><b>^</b> <i>n</i> is the size of the larger heap and <i>m</i> is the size of the smaller heap.</li>
+<li><b>^</b> <i>n</i> is the size of the larger heap.</li>
+</ol>
+</body>
+</html>

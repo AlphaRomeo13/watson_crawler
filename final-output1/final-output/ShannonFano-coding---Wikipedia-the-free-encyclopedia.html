@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>ShannonFano-coding---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Shannon–Fano coding</h1>
+<p>In the field of data compression, <b>Shannon–Fano coding</b>, named after Claude Shannon and Robert Fano, is a technique for constructing a prefix code based on a set of symbols and their probabilities (estimated or measured). It is suboptimal in the sense that it does not achieve the lowest possible expected code word length like Huffman coding; however unlike Huffman coding, it does guarantee that all code word lengths are within one bit of their theoretical ideal <img class="mwe-math-fallback-image-inline tex" alt="{-\log}  P(x)" src="//upload.wikimedia.org/math/4/6/9/46960f6f3ed5cb515ecab0e8bc9f4d3f.png">. The technique was proposed in Shannon's "A Mathematical Theory of Communication", his 1948 article introducing the field of information theory. The method was attributed to Fano, who later published it as a technical report. Shannon–Fano coding should not be confused with Shannon coding, the coding method used to prove Shannon's noiseless coding theorem, or with Shannon–Fano–Elias coding (also known as Elias coding), the precursor to arithmetic coding.</p>
+<p>In Shannon–Fano coding, the symbols are arranged in order from most probable to least probable, and then divided into two sets whose total probabilities are as close as possible to being equal. All symbols then have the first digits of their codes assigned; symbols in the first set receive "0" and symbols in the second set receive "1". As long as any sets with more than one member remain, the same process is repeated on those sets, to determine successive digits of their codes. When a set has been reduced to one symbol, of course, this means the symbol's code is complete and will not form the prefix of any other symbol's code.</p>
+<p>The algorithm produces fairly efficient variable-length encodings; when the two smaller sets produced by a partitioning are in fact of equal probability, the one bit of information used to distinguish them is used most efficiently. Unfortunately, Shannon–Fano does not always produce optimal prefix codes; the set of probabilities {0.35, 0.17, 0.17, 0.16, 0.15} is an example of one that will be assigned non-optimal codes by Shannon–Fano coding.</p>
+<p>For this reason, Shannon–Fano is almost never used; Huffman coding is almost as computationally simple and produces prefix codes that always achieve the lowest expected code word length, under the constraints that each symbol is represented by a code formed of an integral number of bits. This is a constraint that is often unneeded, since the codes will be packed end-to-end in long sequences. If we consider groups of codes at a time, symbol-by-symbol Huffman coding is only optimal if the probabilities of the symbols are independent and are some power of a half, i.e., <img class="mwe-math-fallback-image-inline tex" alt="\textstyle \frac{1}{2^n}" src="//upload.wikimedia.org/math/5/8/f/58fa831c9b760c47e92841b6a52f195a.png">. In most situations, arithmetic coding can produce greater overall compression than either Huffman or Shannon–Fano, since it can encode in fractional numbers of bits which more closely approximate the actual information content of the symbol. However, arithmetic coding has not superseded Huffman the way that Huffman supersedes Shannon–Fano, both because arithmetic coding is more computationally expensive and because it is covered by multiple patents.</p>
+<p>Shannon–Fano coding is used in the <tt>IMPLODE</tt> compression method, which is part of the <tt>ZIP</tt> file format.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Shannon–Fano Algorithm
+<ul>
+<li>1.1 Example</li>
+</ul>
+</li>
+<li>2 Huffman Algorithm
+<ul>
+<li>2.1 Example</li>
+</ul>
+</li>
+<li>3 Notes</li>
+<li>4 References</li>
+<li>5 External links</li>
+</ul>
+<ul>
+<li>1.1 Example</li>
+</ul>
+<ul>
+<li>2.1 Example</li>
+</ul>
+<p></p>
+<h2>Shannon–Fano Algorithm</h2>
+<p>A Shannon–Fano tree is built according to a specification designed to define an effective code table. The actual algorithm is simple:</p>
+<ol>
+<li>For a given list of symbols, develop a corresponding list of probabilities or frequency counts so that each symbol’s relative frequency of occurrence is known.</li>
+<li>Sort the lists of symbols according to frequency, with the most frequently occurring symbols at the left and the least common at the right.</li>
+<li>Divide the list into two parts, with the total frequency counts of the left part being as close to the total of the right as possible.</li>
+<li>The left part of the list is assigned the binary digit 0, and the right part is assigned the digit 1. This means that the codes for the symbols in the first part will all start with 0, and the codes in the second part will all start with 1.</li>
+<li>Recursively apply the steps 3 and 4 to each of the two halves, subdividing groups and adding bits to the codes until each symbol has become a corresponding code leaf on the tree.</li>
+</ol>
+<h3>Example</h3>
+<p>The example shows the construction of the Shannon code for a small alphabet. The five symbols which can be coded have the following frequency:</p>
+<p>All symbols are sorted by frequency, from left to right (shown in Figure a). Putting the dividing line between symbols B and C results in a total of 22 in the left group and a total of 17 in the right group. This minimizes the difference in totals between the two groups.</p>
+<p>With this division, A and B will each have a code that starts with a 0 bit, and the C, D, and E codes will all start with a 1, as shown in Figure b. Subsequently, the left half of the tree gets a new division between A and B, which puts A on a leaf with code 00 and B on a leaf with code 01.</p>
+<p>After four division procedures, a tree of codes results. In the final tree, the three symbols with the highest frequencies have all been assigned 2-bit codes, and two symbols with lower counts have 3-bit codes as shown table below:</p>
+<p>Results in 2 bits for A, B and C and per 3 bits for D and E an average bit number of</p>
+<h2>Huffman Algorithm</h2>
+<p>The Shannon–Fano algorithm doesn't always generate an optimal code. In 1952, David A. Huffman gave a different algorithm that always produces an optimal tree for any given probabilities. While the Shannon–Fano tree is created from the root to the leaves, the Huffman algorithm works from leaves to the root in the opposite direction.</p>
+<ol>
+<li>Create a leaf node for each symbol and add it to frequency of occurrence.</li>
+<li>While there is more than one node in the queue:
+<ol>
+<li>Remove the two nodes of lowest probability or frequency from the queue</li>
+<li>Prepend 0 and 1 respectively to any code already assigned to these nodes</li>
+<li>Create a new internal node with these two nodes as children and with probability equal to the sum of the two nodes' probabilities.</li>
+<li>Add the new node to the queue.</li>
+</ol>
+</li>
+<li>The remaining node is the root node and the tree is complete.</li>
+</ol>
+<ol>
+<li>Remove the two nodes of lowest probability or frequency from the queue</li>
+<li>Prepend 0 and 1 respectively to any code already assigned to these nodes</li>
+<li>Create a new internal node with these two nodes as children and with probability equal to the sum of the two nodes' probabilities.</li>
+<li>Add the new node to the queue.</li>
+</ol>
+<h3>Example</h3>
+<p>Using the same frequencies as for the Shannon–Fano example above, viz:</p>
+<p>In this case D &amp; E have the lowest frequencies and so are allocated 0 and 1 respectively and grouped together with a combined probability of 0.28205128. The lowest pair now are B and C so they're allocated 0 and 1 and grouped together with a combined probability of 0.33333333. This leaves BC and DE now with the lowest probabilities so 0 and 1 are prepended to their codes and they are combined. This then leaves just A and BCDE, which have 0 and 1 prepended respectively and are then combined. This leaves us with a single node and our algorithm is complete.</p>
+<p>The code lengths for the different characters this time are 1 bit for A and 3 bits for all other characters.</p>
+<p>Results in 1 bit for A and per 3 bits for B, C, D and E an average bit number of</p>
+<h2>Notes</h2>
+<ol>
+<li><b>^</b> Fano 1949</li>
+<li><b>^</b> "<tt>APPNOTE.TXT</tt> - .ZIP File Format Specification". PKWARE Inc. 2007-09-28. Retrieved 2008-01-06. "The Imploding algorithm is actually a combination of two distinct algorithms. The first algorithm compresses repeated byte sequences using a sliding dictionary. The second algorithm is used to compress the encoding of the sliding dictionary output, using multiple Shannon–Fano trees." </li>
+</ol>
+</body>
+</html>

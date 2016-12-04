@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Random-access-machine---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Random-access machine</h1>
+<p>In computer science, <b>random-access machine</b> (RAM) is an abstract machine in the general class of register machines. The RAM is very similar to the counter machine but with the added capability of 'indirect addressing' of its registers. Like the counter machine the RAM has its instructions in the finite-state portion of the machine (the so-called Harvard architecture).</p>
+<p>The RAM's equivalent of the universal Turing machine – with its program in the registers as well as its data – is called the random-access stored-program machine or RASP. It is an example of the so-called von Neumann architecture and is closest to the common notion of computer.</p>
+<p>Together with the Turing machine and counter-machine models, the RAM and RASP models are used for computational complexity analysis. Van Emde Boas (1990) calls these three plus the pointer machine "sequential machine" models, to distinguish them from "parallel random-access machine" models.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Introduction to the model
+<ul>
+<li>1.1 Formal definition</li>
+<li>1.2 Refresher: The counter-machine model</li>
+<li>1.3 Creating "convenience instructions" from the base sets</li>
+</ul>
+</li>
+<li>2 The "indirect" operation
+<ul>
+<li>2.1 Example of indirect addressing</li>
+<li>2.2 Why the need for an indirect operation: Two major problems with the counter-machine model</li>
+<li>2.3 Bounded indirection and the primitive recursive functions</li>
+<li>2.4 Unbounded indirection and the partial recursive functions</li>
+<li>2.5 The indirect COPY instruction</li>
+</ul>
+</li>
+<li>3 The notion of "accumulator A"</li>
+<li>4 The notion of indirect address register "N"</li>
+<li>5 Turing equivalence of the RAM with indirection</li>
+<li>6 Example: Bounded indirection yields a machine that is not Turing equivalent</li>
+<li>7 Examples of models
+<ul>
+<li>7.1 Register-to-register ("read-modify-write") model of Cook and Reckhow (1973)</li>
+<li>7.2 Schönhage's RAM0 and RAM1 (1980)</li>
+</ul>
+</li>
+<li>8 Footnotes
+<ul>
+<li>8.1 Finite vs unbounded</li>
+</ul>
+</li>
+<li>9 See also</li>
+<li>10 External links</li>
+<li>11 References</li>
+</ul>
+<ul>
+<li>1.1 Formal definition</li>
+<li>1.2 Refresher: The counter-machine model</li>
+<li>1.3 Creating "convenience instructions" from the base sets</li>
+</ul>
+<ul>
+<li>2.1 Example of indirect addressing</li>
+<li>2.2 Why the need for an indirect operation: Two major problems with the counter-machine model</li>
+<li>2.3 Bounded indirection and the primitive recursive functions</li>
+<li>2.4 Unbounded indirection and the partial recursive functions</li>
+<li>2.5 The indirect COPY instruction</li>
+</ul>
+<ul>
+<li>7.1 Register-to-register ("read-modify-write") model of Cook and Reckhow (1973)</li>
+<li>7.2 Schönhage's RAM0 and RAM1 (1980)</li>
+</ul>
+<ul>
+<li>8.1 Finite vs unbounded</li>
+</ul>
+<p></p>
+<h2>Introduction to the model</h2>
+<p>The concept of a random-access machine (RAM) starts with the simplest model of all, the so-called counter machine model. Two additions move it away from the counter machine, however. The first enhances the machine with the convenience of indirect addressing; the second moves the model toward the more conventional accumulator-based computer with the addition of one or more auxiliary (dedicated) registers, the most common of which is called "the accumulator".</p>
+<h3>Formal definition</h3>
+<p>A <i>random-access machine</i> (RAM) is an abstract computational-machine model identical to a multiple-register counter machine with the addition of indirect addressing. At the discretion of an instruction from its finite state machine's TABLE, the machine derives a "target" register's address either (i) directly from the instruction itself, or (ii) indirectly from the <i>contents</i> (e.g. number, label) of the "pointer" register specified in the instruction.</p>
+<p>By definition: A <i>register</i> is a location with both an <i>address</i> (a unique, distinguishable designation/locator equivalent to a natural number) and a <i>content</i> – a single natural number. For precision we will use the quasi-formal symbolism from Boolos-Burgess-Jeffrey (2002) to specify a register, its contents, and an operation on a register:</p>
+<ul>
+<li>[r] means "the contents of register with address r". The label "r" here is a "variable" that can be filled with a natural number or a letter (e.g. "A") or a name.</li>
+<li>→ means "copy/deposit into", or "replaces", but without destruction of the source</li>
+</ul>
+<p>Definition: A <i>direct</i> instruction is one that specifies <i>in the instruction itself</i> the address of the source or destination register whose contents will be the subject of the instruction. Definition: An <i>indirect instruction</i> is one that specifies an "pointer register", the contents of which is the address of a "target" register. The target register can be either a source or a destination (the various COPY instructions provide examples of this). A register can address itself indirectly.</p>
+<p>Definition: The contents of <i>source register</i> is used by the instruction. The source register's address can be specified either (i) directly by the instruction, or (ii) indirectly by the pointer register specified by the instruction.</p>
+<p>Definition: The contents of the <i>pointer register</i> is the <i>address</i> of the "target" register.</p>
+<p>Definition: The contents of the <i>pointer register</i> points to the <i>target register</i> – the "target" may be either a source or a destination register.</p>
+<p>Definition: The <i>destination register</i> is where the instruction deposits its result. The source register's address can be specified either (i) directly by the instruction, or (ii) indirectly by the pointer register specified by the instruction. The source and destination registers can be one</p>
+<h3>Refresher: The counter-machine model</h3>
+<p>The register machine has, for a memory external to its finite-state machine – an unbounded (cf: footnote|countable and unbounded) collection of discrete and uniquely labelled locations with <i>unbounded</i> capacity, called "registers". These registers hold only natural numbers (zero and the positive integers). Per a list of sequential instructions in the finite state machine's TABLE, a few (e.g. 2) types of primitive operations operate on the contents of these "registers". Finally, a <i>conditional-expression</i> in the form of an <i>IF-THEN-ELSE</i> is available to test the contents of one or two registers and "branch/jump" the finite state machine out of the default instruction-sequence.</p>
+<p><b>Base model 1</b>: The model closest to Minsky's (1961) visualization and to Lambek (1961):</p>
+<ul>
+<li>{ INCrement contents of register r, DECrement contents of register r, <i>IF</i> contents of register r is Zero <i>THEN</i> Jump to instruction I<sub>z</sub> <i>ELSE</i> continue to next instruction }:</li>
+</ul>
+<p><b>Base model 2</b>: The "successor" model (named after the successor function of the Peano axioms):</p>
+<ul>
+<li>{ INCrement the contents of register r, CLeaR the contents of register r, <i>IF</i> contents of register r<sub>j</sub> Equals the contents of register r<sub>k</sub> <i>THEN</i> Jump to instruction I<sub>z</sub> <i>ELSE</i> goto to next instruction }</li>
+</ul>
+<p><b>Base model 3</b>: Used by Elgot-Robinson (1964) in their investigation of bounded and unbounded RASPs – the "successor" model with COPY in the place of CLEAR:</p>
+<ul>
+<li>{ INCrement the contents of register r, COPY the contents of register r<sub>j</sub> to register r<sub>k</sub>, <i>IF</i> contents of register r<sub>j</sub> Equals the contents of register r<sub>k</sub> <i>then</i> Jump to instruction I<sub>z</sub> <i>ELSE</i> goto to next instruction }</li>
+</ul>
+<h3>Creating "convenience instructions" from the base sets</h3>
+<p>The three base sets 1, 2, or 3 above are equivalent in the sense that one can create the instructions of one set using the instructions of another set (an interesting exercise: a hint from Minsky (1967) – declare a reserved register e.g. call it "0" (or Z for "zero" or E for "erase") to contain the number 0). The choice of model will depend on which an author finds easiest to use in a demonstration, or a proof, etc.</p>
+<p>Moreover, from base sets 1, 2, or 3 we can create <i>any</i> of the primitive recursive functions ( cf Minsky (1967), Boolos-Burgess-Jeffrey (2002) ). (How to cast the net wider to capture the <i>total</i> and <i>partial</i> mu recursive functions will be discussed in context of indirect addressing). However, building the primitive recursive functions is difficult because the instruction sets are so ... primitive (tiny). One solution is to expand a particular set with "convenience instructions" from another set:</p>
+<ul>
+<li>CLR (r) =<sub>equiv</sub></li>
+<li><i>loop</i>: JZ (r, <i>exit</i>)</li>
+</ul>
+<ul>
+<li>DEC (r)</li>
+<li>JZ (0, <i>loop</i>)</li>
+</ul>
+<ul>
+<li><i>exit</i>: etc.</li>
+</ul>
+<p>Again, all of this is for convenience only; none of this increases the model's intrinsic power.</p>
+<p>For example: the most expanded set would include each unique instruction from the three sets, plus unconditional jump J (z) i.e.:</p>
+<ul>
+<li>{ CLR (r), DEC (r), INC (r), CPY ( r<sub>s</sub>, r<sub>d</sub> ), JZ (r, z), JE ( r<sub>j</sub>, r<sub>k</sub>, z ), J(z) }</li>
+</ul>
+<p>Most authors pick one or the other of the conditional jumps, e.g. Shepherdson-Sturgis (1963) use the above set minus JE (to be perfectly accurate they use JNZ – Jump if <i>Not</i> Zero in place of JZ; yet another possible convenience instruction).</p>
+<h2>The "indirect" operation</h2>
+<h3>Example of indirect addressing</h3>
+<p>In our daily lives the notion of an "indirect operation" is not unusual.</p>
+<p>Indirection specifies a location identified as the pirate chest in "Tom_&amp;_Becky's_cave..." that acts as a <i>pointer</i> to any other location (including itself): its contents (the treasure map) provides the "address" of the <i>target</i> location "under_Thatcher's_front_porch" where the real action is occurring.</p>
+<h3>Why the need for an indirect operation: Two major problems with the counter-machine model</h3>
+<p>In the following one must remember that these models are abstract models with two fundamental differences from anything physically real: unbounded numbers of registers each with unbounded capacities. The problem appears most dramatically when one tries to use a counter-machine model to build a RASP that is Turing equivalent and thus compute any partial mu recursive function:</p>
+<ul>
+<li><i>Melzak (1961) added indirection to his "hole-and-pebble" model so that his model could modify itself with a "computed goto" and provides two examples of its use ("Decimal representation in the scale of d" and "Sorting by magnitude", whether these are used in his proof that the model is Turing equivalent is unclear since "the program itself is left to the reader as an exercise" (p. 292)). Minsky (1961, 1967) was able to demonstrate that, with suitable (but difficult-to-use) Gödel number encoding, the register model did not need indirection to be Turing equivalent; but it did need at least one unbounded register. As noted below, Minsky (1967) hints at the problem for a RASP but doesn't offer a solution. Elgot and Robinson (1964) proved that their RASP model P<sub>0</sub> – it has no indirection capability – cannot compute all "recursive sequential functions" (ones that have parameters of arbitrary length) if it does not have the capability of modifying its own instructions, but it can via Gödel numbers if it does (p. 395-397; in particular figure 2 and footnote p. 395). On the other hand their RASP model P'<sub>0</sub> equipped with an "index register" (indirect addressing) can compute all the "partial recursive sequential functions" ( the mu recursive functions ) ( p. 397-398).</i></li>
+</ul>
+<ul>
+<li><b>Unbounded <i>capacities</i> of registers versus bounded capacities of state-machine instructions</b>: The so-called <i>finite</i> state part of the machine is supposed to be – by the normal definition of algorithm – <i>very</i> finite both in the number of "states" (instructions) and the instructions' sizes (their capacity to hold symbols/signs). So how does a state machine move an arbitrarily large constant directly into a register, e.g. MOVE (k, r) (Move constant k to register r)? If huge constants are necessary they must either start out in the registers themselves or be created by the state machine using a finite number of instructions e.g. multiply and add subroutines using INC and DEC (but not a quasi-infinite number of these!).</li>
+</ul>
+<ul>
+<li><b>Unbounded <i>numbers</i> of registers versus bounded state-machine instructions</b>: This is more severe than the first problem. In particular, this problem arises when we attempt to build a so-called RASP, a "universal machine" (see more at Universal Turing machine) that uses its finite-state machine to interpret a "program of instructions" located in its registers – i.e. we are building what is nowadays called a computer with the von Neumann architecture.</li>
+</ul>
+<p>So how <i>do</i> we address a register beyond the bounds of the finite state machine? One approach would be to modify the <i>program</i>-instructions (the ones stored in the registers) so that they contain more than one command. But this too can be exhausted unless an instruction is of (potentially) unbounded size. So why not use just one "über-instruction" – one really really big number – that contains <i>all</i> the program instructions encoded into it! This is how Minsky solves the problem, but the Gödel numbering he uses represents a great inconvenience to the model, and the result is nothing at all like our intuitive notion of a "stored program computer".</p>
+<p>Elgot and Robinson (1964) come to a similar conclusion with respect to a RASP that is "finitely determined". Indeed it can access an unbounded number of registers (e.g. to fetch instructions from them) but only if the RASP allows "self modification" of its <i>program</i> instructions, and has encoded its "data" in a Gödel number (Fig. 2 p. 396).</p>
+<p>In the context of a more computer-like model using his RPT (repeat) instruction Minsky (1967) tantalizes us with a solution to the problem (cf p. 214, p. 259) but offers no firm resolution. He asserts:</p>
+<p>He offers us a <i>bounded</i> RPT that together with CLR (r) and INC (r) can compute any primitive recursive function, and he offers the unbounded RPT quoted above that as playing the role of μ operator; it together with CLR (r) and INC (r) can compute the mu recursive functions. But he does not discuss "indirection" or the RAM model per se.</p>
+<p>From the references in Hartmanis (1971) it appears that Cook (in his lecture notes while at UC Berkeley, 1970) has firmed up the notion of indirect addressing. This becomes clearer in the paper of Cook and Reckhow (1973) – Cook is Reckhow's Master's thesis advisor. Hartmanis' model – quite similar to Melzak's (1961) model – uses two and three-register adds and subtracts and two parameter copies; Cook and Reckhow's model reduce the number of parameters (registers called out in the program instructions) to one call-out by use of an accumulator "AC".</p>
+<p><b>The solution in a nutshell:</b> Design our machine/model with unbounded <b>indirection</b> – provide an <i>unbounded</i> "address" register that can potentially name (call out) any register no matter how many there are. For this to work, in general, the <i>unbounded</i> register requires an ability to be cleared and then incremented (and, possibly, decremented) by a potentially infinite loop. In this sense the solution represents the unbounded μ operator that can, if necessary, hunt ad infinitim along the unbounded string of registers until it finds what it is looking for. The pointer register is exactly like any other register with one exception: under the circumstances called "indirect addressing" it provides <i>its</i> contents, rather than the address-operand in the state machine's TABLE, to be the address of the target register (including possibly itself!)</p>
+<h3>Bounded indirection and the primitive recursive functions</h3>
+<p>If we eschew the Minsky approach of one monster number in one register, and specify that our machine model will be "like a computer" we have to confront this problem of indirection if we are to compute the recursive functions (also called the μ-recursive functions ) – both total and partial varieties.</p>
+<p>Our simpler counter-machine model can do a "bounded" form of indirection – and thereby compute the sub-class of primitive recursive functions – by using a primitive recursive "operator" called "definition by cases" (defined in Kleene (1952) p. 229 and Boolos-Burgess-Jeffrey p. 74). Such a "bounded indirection" is a laborious, tedious affair. "Definition by cases" requires the machine to determine/distinguish the contents of the pointer register by attempting, time after time until success, to match this contents against a number/name that the case operator <i>explicitly</i> declares. Thus the definition by cases starts from e.g. the lower bound address and continues ad nauseam toward the upper bound address attempting to make a match:</p>
+<p>"Bounded" indirection will not allow us to compute the partial recursive functions – for those we need <i>unbounded</i> indirection aka the μ operator.</p>
+<p>To be Turing equivalent the counter machine needs to either use the unfortunate single-register Minsky Gödel number method, or be augmented with an ability to explore the ends of its register string, ad infinitum if necessary. (A failure to find something "out there" defines what it means for an algorithm to fail to terminate; cf Kleene (1952) pp. 316ff <i>Chapter XII Partial Recursive Functions</i>, in particular p. 323-325.) See more on this in the example below.</p>
+<h3>Unbounded indirection and the partial recursive functions</h3>
+<p>For <i>unbounded</i> indirection we require a "hardware" change in our machine model. Once we make this change the model is no longer a counter machine, but rather a random-access machine.</p>
+<p>Now when e.g. INC is specified, the finite state machine's instruction will have to specify <i>where</i> the address of the register of interest will come from. This <i>where</i> can be either (i) the state machine's instruction that provides an <i>explicit label</i>, or (ii) the <i>pointer-register</i> whose <i>contents</i> is the address of interest. Whenever an instruction specifies a register address it now will <i>also</i> need to specify an additional parameter "i/d" – "indirect/direct". In a sense this new "i/d" parameter is a "switch" that flips one way to get the direct address as specified in the instruction or the other way to get the indirect address from the pointer register (which pointer register – in some models every register can be a pointer register – is specified by the instruction). This "mutually exclusive but exhaustive choice" is yet another example of "definition by cases", and the arithmetic equivalent shown in the example below is derived from the definition in Kleene (1952) p. 229.</p>
+<h3>The indirect COPY instruction</h3>
+<p>Probably the most useful of the added instructions is COPY. Indeed Elgot-Robinson (1964) provide their models P<sub>0</sub> and P'<sub>0</sub> with the COPY instructions, and Cook-Reckhow (1973) provide their accumulator-based model with only two indirect instructions – COPY to accumulator indirectly, COPY from accumulator indirectly.</p>
+<p><b>A plethora of instructions</b>: Because any instruction acting on a single register can be augmented with its indirect "dual" (including conditional and unconditional jumps, cf the Elgot-Robinson model), the inclusion of indirect instructions will double the number of single parameter/register instructions (e.g. INC (d, r), INC (i, r)). Worse, every two parameter/register instruction will have 4 possible varieties, e.g.:</p>
+<p>In a similar manner every three-register instruction that involves two source registers r<sub>s1</sub> r<sub>s2</sub> and a destination register r<sub>d</sub> will result in 8 varieties, for example the addition:</p>
+<p>will yield:</p>
+<ul>
+<li>ADD ( d, r<sub>s1</sub>, d, r<sub>s2</sub>, d, r<sub>d</sub> )</li>
+<li>ADD ( i, r<sub>sp1</sub>, d, r<sub>s2</sub>, d, r<sub>d</sub> )</li>
+<li>ADD ( d, r<sub>s1</sub>, i, r<sub>sp2</sub>, d, r<sub>d</sub> )</li>
+<li>ADD ( i, r<sub>sp1</sub>, i, r<sub>sp2</sub>, d, r<sub>d</sub> )</li>
+<li>ADD ( d, r<sub>s1</sub>, d, r<sub>s2</sub>, i, r<sub>dp</sub> )</li>
+<li>ADD ( i, r<sub>sp1</sub>, d, r<sub>s2</sub>, i, r<sub>dp</sub> )</li>
+<li>ADD ( d, r<sub>s1</sub>, i, r<sub>sp2</sub>, i, r<sub>dp</sub> )</li>
+<li>ADD ( i, r<sub>s1</sub>, i, r<sub>s2</sub>, i, r<sub>dp</sub> )</li>
+</ul>
+<p>If we designate one register to be the "accumulator" (see below) and place strong restrictions on the various instructions allowed then we can greatly reduce the plethora of direct and indirect operations. However, one must be sure that the resulting reduced instruction-set is sufficient, and we must be aware that the reduction will come at the expense of more instructions per "significant" operation.</p>
+<h2>The notion of "accumulator A"</h2>
+<p>Historical convention dedicates a register to the accumulator, an "arithmetic organ" that literally accumulates its number during a sequence of arithmetic operations:</p>
+<p>However, the accumulator comes at the expense of more instructions per arithmetic "operation", in particular with respect to what are called 'read-modify-write' instructions such as "Increment indirectly the contents of the register pointed to by register r2 ". "A" designates the "accumulator" register A:</p>
+<p>If we stick with a specific name for the accumulator, e.g. "A", we can imply the accumulator in the instructions, for example,</p>
+<p>However, when we write the CPY instructions without the accumulator called out the instructions are ambiguous or they must have empty parameters:</p>
+<p>Historically what has happened is these two CPY instructions have received distinctive names; however, no convention exists. Tradition (e.g. Knuth's (1973) imaginary MIX computer) uses two names called LOAD and STORE. Here we are adding the "i/d" parameter:</p>
+<p>The typical accumulator-based model will have all its two-variable arithmetic and constant operations (e.g. ADD (A, r), SUB (A, r) ) use (i) the accumulator's contents, together with (ii) a specified register's contents. The one-variable operations (e.g. INC (A), DEC (A) and CLR (A) ) require only the accumulator. Both instruction-types deposit the result (e.g. sum, difference, product, quotient or remainder) in the accumulator.</p>
+<p>If we so choose, we can abbreviate the mnemonics because at least one source-register and the destination register is always the accumulator A. Thus we have :</p>
+<h2>The notion of indirect address register "N"</h2>
+<p>If our model has an <i>unbounded accumulator</i> can we <i>bound</i> all the other registers? Not until we provide for at least one unbounded register from which we derive our indirect addresses.</p>
+<p>The minimimalist approach is to use itself (Schönhage does this).</p>
+<p>Another approach (Schönhage does this too) is to declare a specific register the "indirect address register" and confine indirection relative to this register (Schonhage's RAM0 model uses both A and N registers for indirect as well as direct instructions). Again our new register has no conventional name – perhaps "N" from "iNdex", or "iNdirect" or "address Number".</p>
+<p>For maximum flexibility, as we have done for the accumulator A – we will consider N just another register subject to increment, decrement, clear, test, direct copy, etc. Again we can shrink the instruction to a single-parameter that provides for direction and indirection, for example.</p>
+<p>Why is this such an interesting approach? At least two reasons:</p>
+<p><b>(1) An instruction set with no parameters:</b></p>
+<p>Schönhage does this to produce his RAM0 instruction set. See section below.</p>
+<p><b>(2) Reduce a RAM to a Post-Turing machine:</b></p>
+<p>Posing as minimalists, we reduce all the registers excepting the accumulator A and indirection register N e.g. <b>r</b> = { r0, r1, r2, ... } to an unbounded string of (very-) bounded-capacity pigeon-holes. These will do nothing but hold (very-) bounded numbers e.g. a lone bit with value { 0, 1 }. Likewise we shrink the accumulator to a single bit. We restrict any arithmetic to the registers { A, N }, use indirect operations to pull the contents of registers into the accumulator and write 0 or 1 from the accumulator to a register:</p>
+<p>We push further and eliminate A altogether by the use of two "constant" registers called "ERASE" and "PRINT": [ERASE]=0, [PRINT]=1.</p>
+<p>Rename the COPY instructions and call INC (N) = RIGHT, DEC (N) = LEFT and we have the same instructions as the Post-Turing machine, plus an extra CLRN :</p>
+<h2>Turing equivalence of the RAM with indirection</h2>
+<p>In the section above we informally showed that a RAM with an unbounded indirection capability produces a Post-Turing machine. The Post-Turing machine is Turing equivalent, so we have shown that the RAM with indirection is Turing equivalent.</p>
+<p>We give here a slightly more formal demonstration. Begin by designing our model with three reserved registers "E", "P", and "N", plus an unbounded set of registers 1, 2, ..., n to the right. The registers 1, 2, ..., n will be considered "the squares of the tape". Register "N" points to "the scanned square" that "the head" is currently observing. The "head" can be thought of as being in the conditional jump – observe that it uses indirect addressing ( cf Elgot-Robinson p. 398). As we decrement or increment "N" the (apparent) head will "move left" or "right" along the squares. We will move the contents of "E"=0 or "P"=1 to the "scanned square" as pointed to by N, using the indirect CPY.</p>
+<p>The fact that our tape is left-ended presents us with a minor problem: Whenever LEFT occurs our instructions will have to test to determine whether or not the contents of "N" is zero; if so we should leave its count at "0" (this is our choice as designers – for example we might have the machine/model "trigger an event" of our choosing).</p>
+<p>The following table both defines the Post-Turing instructions in terms of their RAM equivalent instructions and gives an example of their functioning. The (apparent)location of the head along the tape of registers r0-r5 . . . is shown shaded:</p>
+<h2>Example: Bounded indirection yields a machine that is not Turing equivalent</h2>
+<p>Throughout this demonstration we have to keep in mind that the instructions in the finite state machine's TABLE is <i>bounded</i>, i.e. <i>finite</i>:</p>
+<p>We will build the indirect CPY ( i, q, d, φ ) with the CASE operator. The address of the target register will be specified by the contents of register "q"; once the CASE operator has determined what this number is, CPY will directly deposit the contents of the register with that number into register "φ". We will need an additional register that we will call "y" – it serves as an up-counter.</p>
+<p>The CASE "operator" is described in Kleene (1952) (p. 229) and in Boolos-Burgess-Jeffrey (2002) (p. 74); the latter authors emphasize its utility. The following definition is per Kleene but modified to reflect the familiar "IF-THEN-ELSE" construction.</p>
+<p>The CASE operator "returns" a natural number into φ depending on which "case" is satisfied, starting with "case_0" and going successively through "case_last"; if no case is satisfied then the number called "default" (aka "woops") is returned into φ (here <b>x</b> designates some selection of parameters, e.g. register q and the string r0, ... rlast )):</p>
+<p><i>Definition by cases</i> φ (<b>x</b>, y):</p>
+<ul>
+<li>case_0: IF Q<sub>0</sub>(<b>x</b>, y) is true THEN φ<sub>0</sub>(<b>x</b>, y) ELSE</li>
+<li>case_1: IF Q<sub>1</sub>(<b>x</b>, y) is true THEN φ<sub>1</sub>(<b>x</b>, y) ELSE</li>
+<li>cases_2 through case_next_to_last: etc. . . . . . . . . ELSE</li>
+<li>case_last: IF Q<sub>last</sub>(<b>x</b>, y) is true THEN φ<sub>last</sub>(<b>x</b>, y) ELSE</li>
+<li>default: do φ<sub>default</sub>(<b>x</b>, y)</li>
+</ul>
+<p>Kleene require that the "predicates" Q<sub>n</sub> that doing the testing are all mutually exclusive – "predicates" are functions that produce only { true, false } for output; Boolos-Burgess-Jeffrey add the requirement that the cases are "exhaustive".</p>
+<p>We begin with a number in register q that represents the address of the target register. But what is this number? The "predicates" will test it to find out, one trial after another: JE (q, y, z) followed by INC (y). Once the number is identified explicitly, the CASE operator directly/explicitly copies the contents of this register to φ:</p>
+<ul>
+<li>case_0: IF CLR (y), [q] - [y]=0 THEN CPY ( r0, φ ), J (exit) ELSE</li>
+<li>case_1: IF INC (y), [q] = [y]=1 THEN CPY ( r1, φ ), J (exit) ELSE</li>
+<li>case_2 through case n: IF . . . THEN . . . ELSE</li>
+<li>case_n: IF INC (y), [q] = [y]=n THEN CPY ( rn, φ ), J (exit) ELSE</li>
+<li>case_n+1 to case_last: IF . . . THEN . . . ELSE</li>
+<li>case_last: IF INC (y), [q] = [y]="last" THEN CPY ( rlast, φ ), J (exit) ELSE</li>
+<li>default: woops</li>
+</ul>
+<p>Case_0 ( the base step of the recursion on y) looks like this:</p>
+<ul>
+<li><i>case_0</i>:</li>
+</ul>
+<ul>
+<li>CLR ( y ) ; set register y = 0</li>
+<li>JE ( q, y, <i>_φ0</i> )</li>
+<li>J ( <i>case_1</i> )</li>
+</ul>
+<ul>
+<li><i>_φ0:</i> CPY ( r0, φ )</li>
+<li>J ( <i>exit</i> )</li>
+</ul>
+<ul>
+<li><i>case_1:</i> etc.</li>
+</ul>
+<p>Case_n (the induction step) looks like this; remember, each instance of "n", "n+1", ..., "last" must be an explicit natural number:</p>
+<ul>
+<li><i>case_n</i>:</li>
+</ul>
+<ul>
+<li>INC ( y )</li>
+<li>JE ( q, y, <i>_φn</i> )</li>
+<li>J ( <i>case_n+1</i>)</li>
+</ul>
+<ul>
+<li><i>_φn:</i> CPY ( rn, φ )</li>
+<li>J ( <i>exit</i> )</li>
+</ul>
+<ul>
+<li><i>case__n+1:</i> etc.</li>
+</ul>
+<p>Case_last stops the induction and bounds the CASE operator (and thereby bounds the "indirect copy" operator):</p>
+<ul>
+<li><i>case_last</i>:</li>
+</ul>
+<ul>
+<li>INC ( y )</li>
+<li>JE ( q, y, <i>_φlast</i> )</li>
+<li>J ( <i>woops</i> )</li>
+</ul>
+<ul>
+<li><i>_φlast</i>: CPY ( rlast, φ )</li>
+<li>J ( <i>exit</i> )</li>
+</ul>
+<ul>
+<li><i>woops:</i> how do we handle an out-of-bounds attempt?</li>
+<li><i>exit:</i> etc.</li>
+</ul>
+<p>If the CASE could continue ad infinitum it would be the mu operator. But it can't – its finite state machine's "state register" has reached its maximum count (e.g. 65365 = 11111111,11111111<sub>2</sub> ) or its table has run out of instructions; it is a <i>finite</i> machine, after all.</p>
+<h2>Examples of models</h2>
+<h3>Register-to-register ("read-modify-write") model of Cook and Reckhow (1973)</h3>
+<p>The commonly encountered Cook and Rechkow model is a bit like the ternary-register Malzek model (written with Knuth mnemonics – the original instructions had no mnemonics excepting TRA, Read, Print).</p>
+<ul>
+<li><code>LOAD ( C, r<sub>d</sub> ) ; C → r<sub>d</sub></code>, C is any integer</li>
+</ul>
+<ul>
+<li><code>ADD ( r<sub>s1</sub>, r<sub>s2</sub>, r<sub>d</sub> ) ; [r<sub>s1</sub>] + [r<sub>s2</sub>] → r<sub>d</sub></code>, the registers can be the same or different;</li>
+</ul>
+<ul>
+<li><code>SUB ( r<sub>s1</sub>, r<sub>s2</sub>, r<sub>d</sub> ) ; [r<sub>s1</sub>] - [r<sub>s2</sub>] → r<sub>d</sub></code>, the registers can be the same or different:</li>
+</ul>
+<ul>
+<li><code>COPY ( i, r<sub>p</sub>, d, r<sub>d</sub> ) ; [[r<sub>p</sub>] ] → r<sub>d</sub></code>, Indirectly copy the contents of the source-register pointed to by pointer-register r<sub>p</sub> into the destination register.</li>
+<li><code>COPY ( d, r<sub>s</sub>, i, r<sub>p</sub> ) ; [r<sub>s</sub>] → [r<sub>p</sub>]</code>. Copy the contents of source register r<sub>s</sub> into the destination-register pointed to by the pointer-register r<sub>p</sub>.</li>
+<li><code>JNZ ( r, I<sub>z</sub> ) ;</code> Conditional jump if [r] is positive; i.e. IF [r] &gt; 0 THEN jump to instruction z else continue in sequence (Cook and Reckhow call this: "TRAnsfer control to line m if Xj &gt; 0")</li>
+<li><code>READ ( r<sub>d</sub> ) ;</code> copy "the input" into destination register r<sub>d</sub></li>
+<li><code>PRINT ( r<sub>s</sub> ) ;</code> copy the contents of source register r<sub>s</sub> to "the output."</li>
+</ul>
+<h3>Schönhage's RAM0 and RAM1 (1980)</h3>
+<p>Schönhage (1980) describes a very primitive, atomized model chosen for his proof of the equivalence of his SMM pointer machine model:</p>
+<p><b>RAM1 model</b>: Schönhage demonstrates how his construction can be used to form the more common, usable form of "successor"-like RAM (using this article's mnemonics):</p>
+<ul>
+<li><code>LDA k ; k --&gt; A</code> , k is a constant, an explicit number such as "47"</li>
+<li><code>LDA ( d, r ) ; [r] → A ;</code> directly load A</li>
+<li><code>LDA ( i, r ) ; [[r]] → A ;</code> indirectly load A</li>
+<li><code>STA ( d, r ) ; [A] → r ;</code> directly store A</li>
+<li><code>STA ( i, r ) ; [A] → [r] ;</code> indirectly store A</li>
+<li><code>JEA ( r, z ) ; IF [A] = [r] then I<sub>z</sub> else continue</code></li>
+<li><code>INCA ; [A] + 1 --&gt; A</code></li>
+</ul>
+<p><b>RAM0 model</b>: Schönhage's RAM0 machine has 6 instructions indicated by a single letter (the 6th "C xxx" seems to involve 'skip over next parameter'. Schönhage designated the accumulator with "z", "N" with "n", etc. Rather than Schönage's mnemonics we will use the mnemonics developed above.</p>
+<ul>
+<li><code>(Z), CLRA: 0 → A</code></li>
+<li><code>(A), INCA: [A] +1 → A</code></li>
+<li><code>(N), CPYAN: [A] → N</code></li>
+<li><code>(A), LDAA: [[A]] → A</code> ; contents of A points to register address; put register's contents into A</li>
+<li><code>(S), STAN: [A] → [N]</code> ; contents of N points to register address; put contents of A into register pointed to by N</li>
+<li><code>(C), JAZ ( z ): [A] = 0 then go to I<sub>z</sub></code> ; ambiguous in his treatment</li>
+</ul>
+<p>Indirection comes (i) from CPYAN (copy/transfer contents A to N) working with store_A_via_N STAN, and from (ii) the peculiar indirection instruction <code>LDAA ( [[A]] → [A] )</code>.</p>
+<h2>Footnotes</h2>
+<h3>Finite vs unbounded</h3>
+<p>The definitional fact that any sort of counter machine without an unbounded register-"address" register must specify a register "r" by name indicates that the model requires "r" to be <i>finite</i>, although it is "unbounded" in the sense that the model implies no upper limit to the number of registers necessary to do its job(s). For example we do not require r &lt; 83,617,563,821,029,283,746 nor r &lt; 2^1,000,001, etc.</p>
+<p>We can escape this restriction by providing an unbounded register to provide the address of the register that specifies an indirect address.</p>
+<h2>See also</h2>
+<ul>
+<li>Real RAM</li>
+<li>Transdichotomous model</li>
+</ul>
+<h2>External links</h2>
+<ul>
+<li>Random Access Machine Emulator</li>
+<li>Random Access Machine Emulator</li>
+</ul>
+</body>
+</html>

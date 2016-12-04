@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Interval-tree---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Interval tree</h1>
+<p>In computer science, an <b>interval tree</b> is an ordered tree data structure to hold intervals. Specifically, it allows one to efficiently find all intervals that overlap with any given interval or point. It is often used for windowing queries, for instance, to find all roads on a computerized map inside a rectangular viewport, or to find all visible elements inside a three-dimensional scene. A similar data structure is the segment tree.</p>
+<p>The trivial solution is to visit each interval and test whether it intersects the given point or interval, which requires Θ(<i>n</i>) time, where <i>n</i> is the number of intervals in the collection. Since a query may return all intervals, for example if the query is a large interval intersecting all intervals in the collection, this is asymptotically optimal; however, we can do better by considering output-sensitive algorithms, where the runtime is expressed in terms of <i>m</i>, the number of intervals produced by the query. Interval trees are dynamic, i.e., they allow insertion and deletion of intervals. They obtain a query time of O(log <i>n</i>) while the preprocessing time to construct the data structure is O(<i>n</i> log <i>n</i>) (but the space consumption is O(<i>n</i>)). If the endpoints of intervals are within a small integer range (e.g., in the range [1,...,O(<i>n</i>)]), faster data structures exist with preprocessing time O(<i>n</i>) and query time O(1+<i>m</i>) for reporting <i>m</i> intervals containing a given query point.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 Naive approach</li>
+<li>2 Centered interval tree
+<ul>
+<li>2.1 Construction</li>
+<li>2.2 Intersecting
+<ul>
+<li>2.2.1 With a Point</li>
+<li>2.2.2 With an Interval</li>
+</ul>
+</li>
+<li>2.3 Higher Dimensions</li>
+<li>2.4 Deletion</li>
+<li>2.5 Balancing</li>
+</ul>
+</li>
+<li>3 Augmented tree
+<ul>
+<li>3.1 Java Example: Adding a new interval to the tree</li>
+<li>3.2 Java Example: Searching a point or an interval in the tree</li>
+<li>3.3 Higher dimension</li>
+</ul>
+</li>
+<li>4 Medial- or length-oriented tree
+<ul>
+<li>4.1 Overlap test</li>
+<li>4.2 Adding interval</li>
+<li>4.3 Searching for all overlapping intervals</li>
+</ul>
+</li>
+<li>5 References</li>
+<li>6 External links</li>
+</ul>
+<ul>
+<li>2.1 Construction</li>
+<li>2.2 Intersecting
+<ul>
+<li>2.2.1 With a Point</li>
+<li>2.2.2 With an Interval</li>
+</ul>
+</li>
+<li>2.3 Higher Dimensions</li>
+<li>2.4 Deletion</li>
+<li>2.5 Balancing</li>
+</ul>
+<ul>
+<li>2.2.1 With a Point</li>
+<li>2.2.2 With an Interval</li>
+</ul>
+<ul>
+<li>3.1 Java Example: Adding a new interval to the tree</li>
+<li>3.2 Java Example: Searching a point or an interval in the tree</li>
+<li>3.3 Higher dimension</li>
+</ul>
+<ul>
+<li>4.1 Overlap test</li>
+<li>4.2 Adding interval</li>
+<li>4.3 Searching for all overlapping intervals</li>
+</ul>
+<p></p>
+<h2>Naive approach</h2>
+<p>In a simple case, the intervals do not overlap and they can be inserted into a simple binary search tree and queried in O(log <i>n</i>) time. However, with arbitrarily overlapping intervals, there is no way to compare two intervals for insertion into the tree since orderings sorted by the beginning points or the ending points may be different. A naive approach might be to build two parallel trees, one ordered by the beginning point, and one ordered by the ending point of each interval. This allows discarding half of each tree in O(log <i>n</i>) time, but the results must be merged, requiring O(<i>n</i>) time. This gives us queries in O(<i>n</i> + log <i>n</i>) = O(<i>n</i>), which is no better than brute-force.</p>
+<p>Interval trees solve this problem. This article describes two alternative designs for an interval tree, dubbed the <i>centered interval tree</i> and the <i>augmented tree</i>.</p>
+<h2>Centered interval tree</h2>
+<p>Queries require O(log <i>n</i> + <i>m</i>) time, with <i>n</i> being the total number of intervals and <i>m</i> being the number of reported results. Construction requires O(<i>n</i> log <i>n</i>) time, and storage requires O(<i>n</i>) space.</p>
+<h3>Construction</h3>
+<p>Given a set of <i>n</i> intervals on the number line, we want to construct a data structure so that we can efficiently retrieve all intervals overlapping another interval or point.</p>
+<p>We start by taking the entire range of all the intervals and dividing it in half at <i>x_center</i> (in practice, <i>x_center</i> should be picked to keep the tree relatively balanced). This gives three sets of intervals, those completely to the left of <i>x_center</i> which we'll call <i>S_left</i>, those completely to the right of <i>x_center</i> which we'll call <i>S_right</i>, and those overlapping <i>x_center</i> which we'll call <i>S_center</i>.</p>
+<p>The intervals in <i>S_left</i> and <i>S_right</i> are recursively divided in the same manner until there are no intervals left.</p>
+<p>The intervals in S_center that overlap the center point are stored in a separate data structure linked to the node in the interval tree. This data structure consists of two lists, one containing all the intervals sorted by their beginning points, and another containing all the intervals sorted by their ending points.</p>
+<p>The result is a ternary tree with each node storing:</p>
+<ul>
+<li>A center point</li>
+<li>A pointer to another node containing all intervals completely to the left of the center point</li>
+<li>A pointer to another node containing all intervals completely to the right of the center point</li>
+<li>All intervals overlapping the center point sorted by their beginning point</li>
+<li>All intervals overlapping the center point sorted by their ending point</li>
+</ul>
+<h3>Intersecting</h3>
+<p>Given the data structure constructed above, we receive queries consisting of ranges or points, and return all the ranges in the original set overlapping this input.</p>
+<h4>With a Point</h4>
+<p>The task is to find all intervals in the tree that overlap a given point <i>x</i>. The tree is walked with a similar recursive algorithm as would be used to traverse a traditional binary tree, but with extra affordance for the intervals overlapping the "center" point at each node.</p>
+<p>For each tree node, <i>x</i> is compared to <i>x_center</i>, the midpoint used in node construction above. If <i>x</i> is less than <i>x_center</i>, the leftmost set of intervals, <i>S_left</i>, is considered. If <i>x</i> is greater than <i>x_center</i>, the rightmost set of intervals, <i>S_right</i>, is considered.</p>
+<p>As each node is processed as we traverse the tree from the root to a leaf, the ranges in its <i>S_center</i> are processed. If <i>x</i> is less than <i>x_center</i>, we know that all intervals in <i>S_center</i> end after <i>x</i>, or they could not also overlap <i>x_center</i>. Therefore, we need only find those intervals in <i>S_center</i> that begin before <i>x</i>. We can consult the lists of <i>S_center</i> that have already been constructed. Since we only care about the interval beginnings in this scenario, we can consult the list sorted by beginnings. Suppose we find the closest number no greater than <i>x</i> in this list. All ranges from the beginning of the list to that found point overlap <i>x</i> because they begin before <i>x</i> and end after <i>x</i> (as we know because they overlap <i>x_center</i> which is larger than <i>x</i>). Thus, we can simply start enumerating intervals in the list until the endpoint value exceeds <i>x</i>.</p>
+<p>Likewise, if <i>x</i> is greater than <i>x_center</i>, we know that all intervals in <i>S_center</i> must begin before <i>x</i>, so we find those intervals that end after <i>x</i> using the list sorted by interval endings.</p>
+<p>If <i>x</i> exactly matches <i>x_center</i>, all intervals in <i>S_center</i> can be added to the results without further processing and tree traversal can be stopped.</p>
+<h4>With an Interval</h4>
+<p>First, we can reduce the case where an interval <i>R</i> is given as input to the simpler case where a single point is given as input. We do this by first finding all ranges with beginning or end points inside the input interval <i>R</i> using a separately constructed tree. In the one-dimensional case, we can use a simple tree containing all the beginning and ending points in the interval set, each with a pointer to its corresponding interval.</p>
+<p>A binary search in O(log <i>n</i>) time for the beginning and end of R reveals the minimum and maximum points to consider. Each point within this range references an interval that overlaps our range and is added to the result list. Care must be taken to avoid duplicates, since an interval might both begin and end within <i>R</i>. This can be done using a binary flag on each interval to mark whether or not it has been added to the result set.</p>
+<p>The only intervals not yet considered are those overlapping <i>R</i> that do not have an endpoint inside <i>R</i>, in other words, intervals that enclose it. To find these, we pick any point inside <i>R</i> and use the algorithm above to find all intervals intersecting that point (again, being careful to remove duplicates).</p>
+<h3>Higher Dimensions</h3>
+<p>The interval tree data structure can be generalized to a higher dimension <i>N</i> with identical query and construction time and O(<i>n</i> log <i>n</i>) space.</p>
+<p>First, a range tree in <i>N</i> dimensions is constructed that allows efficient retrieval of all intervals with beginning and end points inside the query region <i>R</i>. Once the corresponding ranges are found, the only thing that is left are those ranges that enclose the region in some dimension. To find these overlaps, N interval trees are created, and one axis intersecting <i>R</i> is queried for each. For example, in two dimensions, the bottom of the square <i>R</i> (or any other horizontal line intersecting R) would be queried against the interval tree constructed for the horizontal axis. Likewise, the left (or any other vertical line intersecting R) would be queried against the interval tree constructed on the vertical axis.</p>
+<p>Each interval tree also needs an addition for higher dimensions. At each node we traverse in the tree, <i>x</i> is compared with <i>S_center</i> to find overlaps. Instead of two sorted lists of points as was used in the one-dimensional case, a range tree is constructed. This allows efficient retrieval of all points in <i>S_center</i> that overlap region <i>R</i>.</p>
+<h3>Deletion</h3>
+<p>If after deleting an interval from the tree, the node containing that interval contains no more intervals, that node may be deleted from the tree. This is more complex than a normal binary tree deletion operation.</p>
+<p>An interval may overlap the center point of several nodes in the tree. Since each node stores the intervals that overlap it, with all intervals completely to the left of its center point in the left subtree, similarly for the right subtree, it follows that each interval is stored in the node closest to the root from the set of nodes whose center point it overlaps.</p>
+<p>Normal deletion operations in a binary tree (for the case where the node being deleted has two children) involve promoting a node further from the root to the position of the node being deleted (usually the leftmost child of the right subtree, or the rightmost child of the left subtree). As a result of this promotion, some nodes that were above the promoted node will become descendents of it; it is necessary to search these nodes for intervals that also overlap the promoted node, and move those intervals into the promoted node. As a consequence, this may result in new empty nodes, which must be deleted, following the same algorithm again.</p>
+<h3>Balancing</h3>
+<p>The same issues that affect deletion also affect rotation operations; rotation must preserve the invariant that intervals are stored as close to the root as possible.</p>
+<h2>Augmented tree</h2>
+<p>Another way to represent intervals is described in Cormen et al. (2009, Section 14.3: Interval trees, pp. 348–354).</p>
+<p>Both insertion and deletion require O(log <i>n</i>) time, with <i>n</i> being the total number of intervals in the tree prior to the insertion or deletion operation.</p>
+<p>Use a simple ordered tree, for example a binary search tree or self-balancing binary search tree, where the tree is ordered by the 'low' values of the intervals, and an extra annotation is added to every node recording the maximum high value of both its subtrees. It is simple to maintain this attribute in only O(<i>h</i>) steps during each addition or removal of a node, where <i>h</i> is the height of the node added or removed in the tree, by updating all ancestors of the node from the bottom up. Additionally, the tree rotations used during insertion and deletion may require updating the high value of the affected nodes.</p>
+<p>Now, it is known that two intervals <i>A</i> and <i>B</i> overlap only when both <i>A</i>.low ≤ <i>B</i>.high and <i>A</i>.high ≥ <i>B</i>.low. When searching the trees for nodes overlapping with a given interval, you can immediately skip:</p>
+<ul>
+<li>all nodes to the right of nodes whose low value is past the end of the given interval.</li>
+<li>all nodes that have their maximum 'high' value below the start of the given interval.</li>
+</ul>
+<p>A total order can be defined on the intervals by ordering them first by their 'low' value and finally by their 'high' value. This ordering can be used to prevent duplicate intervals from being inserted into the tree in O(log <i>n</i>) time, versus the O(<i>k</i> + log <i>n</i>) time required to find duplicates if <i>k</i> intervals overlap a new interval.</p>
+<h3>Java Example: Adding a new interval to the tree</h3>
+<p>The key of each node is the interval itself and the value of each node is the end point of the interval:</p>
+<p>WHATSON? 24e0f8bb-91cb-4940-9a5b-1030a8a38901</p>
+<pre>
+ public void add(Interval i) {
+     put(i, i.getEnd());
+ }
+</pre>
+<h3>Java Example: Searching a point or an interval in the tree</h3>
+<p>To search for an interval, you walk the tree, omitting those branches which can't contain what you're looking for. The simple case is looking for a point:</p>
+<p>WHATSON? 3e9ddd8b-b030-42b7-ae86-2e0c86456b7e</p>
+<pre>
+ // Search for all intervals which contain "p", starting with the
+ // node "n" and adding matching intervals to the list "result"
+ public void search(IntervalNode n, Point p, List&lt;Interval&gt; result) {
+     // Don't search nodes that don't exist
+     if (n == null)
+         return;
+ 
+     // If p is to the right of the rightmost point of any interval
+     // in this node and all children, there won't be any matches.
+     if (p.compareTo(n.getValue()) &gt; 0)
+         return;
+ 
+     // Search left children
+     if (n.getLeft() != null)
+         search(IntervalNode (n.getLeft()), p, result);
+ 
+     // Check this node
+     if (n.getKey().contains(p))
+         result.add(n.getKey());
+ 
+     // If p is to the left of the start of this interval,
+     // then it can't be in any child to the right.
+     if (p.compareTo(n.getKey().getStart()) &lt; 0)
+         return;
+ 
+     // Otherwise, search right children
+     if (n.getRight() != null)
+         search(IntervalNode (n.getRight()), p, result);
+ }
+</pre>
+<p>The code to search for an interval is similar, except for the check in the middle:</p>
+<p>WHATSON? f8c58710-b9e1-48f3-8d62-73fa123872cd</p>
+<pre>
+ // Check this node
+ if (n.getKey().overlapsWith(i))
+     result.add (n.getKey());
+</pre>
+<p><tt>overlapsWith()</tt> is defined as:</p>
+<p>WHATSON? f5124974-f5a4-47da-8b6e-ae3d937b4a34</p>
+<pre>
+ public boolean overlapsWith(Interval other) {
+     return start.compareTo(other.getEnd()) &lt;= 0 &amp;&amp;
+            end.compareTo(other.getStart()) &gt;= 0;
+ }
+</pre>
+<h3>Higher dimension</h3>
+<p>This can be extended to higher dimensions by cycling through the dimensions at each level of the tree. For example, for two dimensions, the odd levels of the tree might contain ranges for the <i>x</i> coordinate, while the even levels contain ranges for the <i>y</i> coordinate. However, it is not quite obvious how the rotation logic will have to be extended for such cases to keep the tree balanced.</p>
+<p>A much simpler solution is to use nested interval trees. First, create a tree using the ranges for the <i>y</i> coordinate. Now, for each node in the tree, add another interval tree on the <i>x</i> ranges, for all elements whose <i>y</i> range intersect that node's <i>y</i> range.</p>
+<p>The advantage of this solution is that it can be extended to an arbitrary amount of dimensions using the same code base.</p>
+<p>At first, the cost for the additional trees might seem prohibitive but that is usually not the case. As with the solution above, you need one node per <i>x</i> coordinate, so this cost is the same in both solutions. The only difference is that you need an additional tree structure per vertical interval. This structure is typically very small (a pointer to the root node plus maybe the number of nodes and the height of the tree).</p>
+<h2>Medial- or length-oriented tree</h2>
+<p>A medial- or length-oriented tree is similar to an augmented tree, but symmetrical, with the binary search tree ordered by the medial points of the intervals. There is a maximum-oriented binary heap in every node, ordered by the length of the interval (or half of the length). Also we store the minimum and maximum possible value of the subtree in each node (thus the symmetry).</p>
+<h3>Overlap test</h3>
+<p>Using only start and end values of two intervals <img class="mwe-math-fallback-image-inline tex" alt="\left( a_{i}, b_i \right)" src="//upload.wikimedia.org/math/a/b/e/abe26cf59c55672c9e45b1c6640f80ef.png">, for <img class="mwe-math-fallback-image-inline tex" alt="i=0,1" src="//upload.wikimedia.org/math/b/a/0/ba09723afc7dc13bdf1f9d4db20d4f26.png">, the overlap test can be performed as follows:</p>
+<p><img class="mwe-math-fallback-image-inline tex" alt="a_0 \leqslant a_1 &lt; b_0" src="//upload.wikimedia.org/math/a/3/4/a348e0e4727b0ee659f7450ae0edc57e.png">    OR    <img class="mwe-math-fallback-image-inline tex" alt="a_0 &lt; b_1 \leqslant b_0" src="//upload.wikimedia.org/math/a/6/e/a6e8918ab59601e474d89e8d28ef5f8e.png">    OR    <img class="mwe-math-fallback-image-inline tex" alt="a_1 \leqslant a_0 &lt; b_1" src="//upload.wikimedia.org/math/0/b/1/0b1cbe1f15c98387e6e724d893f11767.png">    OR    <img class="mwe-math-fallback-image-inline tex" alt="a_1 &lt; b_0 \leqslant b_1" src="//upload.wikimedia.org/math/e/2/5/e25af6b5358c1f5d958bdb49b8516914.png"></p>
+<p>But with defining:</p>
+<p><img class="mwe-math-fallback-image-inline tex" alt="m_i = \frac{a_i + b_i}{2}" src="//upload.wikimedia.org/math/d/1/7/d17254fa8bba688e82dc164a2d7479a8.png"></p>
+<p><img class="mwe-math-fallback-image-inline tex" alt="d_i = \frac{b_i - a_i}{2}" src="//upload.wikimedia.org/math/c/c/0/cc01b00354f55e246fa5b95d4feee1e0.png"></p>
+<p>The overlap test is simpler:</p>
+<p><img class="mwe-math-fallback-image-inline tex" alt="\left| m_1 - m_0 \right| &lt; d_0 + d_1" src="//upload.wikimedia.org/math/2/2/b/22b5477ebe5e2d0aa45f99de26ec3c80.png"></p>
+<h3>Adding interval</h3>
+<p>Adding new intervals to the tree is the same as for a binary search tree using the medial value as the key. We push <img class="mwe-math-fallback-image-inline tex" alt="d_i" src="//upload.wikimedia.org/math/3/5/b/35b35a527030cca017dbc36fcd8a0387.png"> onto the binary heap associated with the node, and update the minimum and maximum possible values associated with all higher nodes.</p>
+<h3>Searching for all overlapping intervals</h3>
+<p>Let's use <img class="mwe-math-fallback-image-inline tex" alt="a_q, b_q, m_q, d_q" src="//upload.wikimedia.org/math/e/b/d/ebde0ef0a73f9d2c36a68d1425bda731.png"> for the query interval, and <img class="mwe-math-fallback-image-inline tex" alt="M_n" src="//upload.wikimedia.org/math/1/5/4/1547a74739c1e2b6be3ebe927017bfbb.png"> for the key of a node (compared to <img class="mwe-math-fallback-image-inline tex" alt="m_i" src="//upload.wikimedia.org/math/2/1/2/212abcc00be63b38e4cd48603ee59f7d.png"> of intervals)</p>
+<p>Starting with root node, in each node, first we check if it is possible that our query interval overlaps with the node subtree using minimum and maximum values of node (if it is not, we don't continue for this node).</p>
+<p>Then we calculate <img class="mwe-math-fallback-image-inline tex" alt="\min \left\{ d_i \right\}" src="//upload.wikimedia.org/math/9/6/5/965a783553d3d308ee7c6a1fbbea9f8a.png"> for intervals inside this node (not its children) to overlap with query interval (knowing <img class="mwe-math-fallback-image-inline tex" alt="m_i = M_n" src="//upload.wikimedia.org/math/0/7/f/07ff8dcd285b1936ed43c2b3058fab57.png">):</p>
+<p><img class="mwe-math-fallback-image-inline tex" alt="\min \left\{ d_i \right\} = \left| m_q - M_n \right| - d_q" src="//upload.wikimedia.org/math/3/4/4/3445a5bef7a67d4e3d0acd5c086c516d.png"></p>
+<p>and perform a query on its binary heap for the <img class="mwe-math-fallback-image-inline tex" alt="d_i" src="//upload.wikimedia.org/math/3/5/b/35b35a527030cca017dbc36fcd8a0387.png">'s bigger than <img class="mwe-math-fallback-image-inline tex" alt="\min \left\{ d_i \right\}" src="//upload.wikimedia.org/math/9/6/5/965a783553d3d308ee7c6a1fbbea9f8a.png"></p>
+<p>Then we pass through both left and right children of the node, doing the same thing. In the worst-case, we have to scan all nodes of the binary search tree, but since binary heap query is optimum, this is acceptable (a 2- dimensional problem can not be optimum in both dimensions)</p>
+<p>This algorithm is expected to be faster than a traditional interval tree (augmented tree) for search operations, adding elements is a little slower (the order of growth is the same).</p>
+</body>
+</html>

@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Viterbi-algorithm---Wikipedia-the-free-encyclopedia.html</title></head>
+<body>
+<h1>Viterbi algorithm</h1>
+<p>The <b>Viterbi algorithm</b> is a dynamic programming algorithm for finding the most likely sequence of hidden states – called the <b>Viterbi path</b> – that results in a sequence of observed events, especially in the context of Markov information sources and hidden Markov models.</p>
+<p>The algorithm has found universal application in decoding the convolutional codes used in both CDMA and GSM digital cellular, dial-up modems, satellite, deep-space communications, and 802.11 wireless LANs. It is now also commonly used in speech recognition, speech synthesis, diarization, keyword spotting, computational linguistics, and bioinformatics. For example, in speech-to-text (speech recognition), the acoustic signal is treated as the observed sequence of events, and a string of text is considered to be the "hidden cause" of the acoustic signal. The Viterbi algorithm finds the most likely string of text given the acoustic signal.</p>
+<p></p>
+<h2>Contents</h2>
+<ul>
+<li>1 History</li>
+<li>2 Algorithm</li>
+<li>3 Example</li>
+<li>4 Extensions</li>
+<li>5 Pseudocode</li>
+<li>6 See also</li>
+<li>7 Notes</li>
+<li>8 References</li>
+<li>9 Implementations</li>
+<li>10 External links</li>
+</ul>
+<p></p>
+<h2>History</h2>
+<p>The Viterbi algorithm is named after Andrew Viterbi, who proposed it in 1967 as a decoding algorithm for convolutional codes over noisy digital communication links. It has, however, a history of multiple invention, with at least seven independent discoveries, including those by Viterbi, Needleman and Wunsch, and Wagner and Fischer.</p>
+<p>"Viterbi (path, algorithm)" has become a standard term for the application of dynamic programming algorithms to maximization problems involving probabilities. For example, in statistical parsing a dynamic programming algorithm can be used to discover the single most likely context-free derivation (parse) of a string, which is sometimes called the "Viterbi parse".</p>
+<h2>Algorithm</h2>
+<p>Suppose we are given a Hidden Markov Model (HMM) with state space <img class="mwe-math-fallback-image-inline tex" alt="S" src="//upload.wikimedia.org/math/5/d/b/5dbc98dcc983a70728bd082d1a47546e.png">, initial probabilities <img class="mwe-math-fallback-image-inline tex" alt="\pi_i" src="//upload.wikimedia.org/math/2/9/0/290401a8e62e89331cfaa44efff73c73.png"> of being in state <img class="mwe-math-fallback-image-inline tex" alt="i" src="//upload.wikimedia.org/math/8/6/5/865c0c0b4ab0e063e5caa3387c1a8741.png"> and transition probabilities <img class="mwe-math-fallback-image-inline tex" alt="a_{i,j}" src="//upload.wikimedia.org/math/5/8/7/587eb95aa96f4f79c032daaf1f2686cc.png"> of transitioning from state <img class="mwe-math-fallback-image-inline tex" alt="i" src="//upload.wikimedia.org/math/8/6/5/865c0c0b4ab0e063e5caa3387c1a8741.png"> to state <img class="mwe-math-fallback-image-inline tex" alt="j" src="//upload.wikimedia.org/math/3/6/3/363b122c528f54df4a0446b6bab05515.png">. Say we observe outputs <img class="mwe-math-fallback-image-inline tex" alt="y_1,\dots, y_T" src="//upload.wikimedia.org/math/e/2/9/e295675fa910543df112b0ee5315de84.png">. The most likely state sequence <img class="mwe-math-fallback-image-inline tex" alt="x_1,\dots,x_T" src="//upload.wikimedia.org/math/d/a/3/da3540e0b6020fe358bdb970771f77f2.png"> that produces the observations is given by the recurrence relations:</p>
+<p>Here <img class="mwe-math-fallback-image-inline tex" alt="V_{t,k}" src="//upload.wikimedia.org/math/a/5/1/a517e199ad9248ac0f3f5bdccca0f999.png"> is the probability of the most probable state sequence responsible for the first <img class="mwe-math-fallback-image-inline tex" alt="t" src="//upload.wikimedia.org/math/e/3/5/e358efa489f58062f10dd7316b65649e.png"> observations that has <img class="mwe-math-fallback-image-inline tex" alt="k" src="//upload.wikimedia.org/math/8/c/e/8ce4b16b22b58894aa86c421e8759df3.png"> as its final state. The Viterbi path can be retrieved by saving back pointers that remember which state <img class="mwe-math-fallback-image-inline tex" alt="x" src="//upload.wikimedia.org/math/9/d/d/9dd4e461268c8034f5c8564e155c67a6.png"> was used in the second equation. Let <img class="mwe-math-fallback-image-inline tex" alt="\mathrm{Ptr}(k,t)" src="//upload.wikimedia.org/math/6/7/d/67dc3dc5f7b5ebf7a90cdce0d084d111.png"> be the function that returns the value of <img class="mwe-math-fallback-image-inline tex" alt="x" src="//upload.wikimedia.org/math/9/d/d/9dd4e461268c8034f5c8564e155c67a6.png"> used to compute <img class="mwe-math-fallback-image-inline tex" alt="V_{t,k}" src="//upload.wikimedia.org/math/a/5/1/a517e199ad9248ac0f3f5bdccca0f999.png"> if <img class="mwe-math-fallback-image-inline tex" alt="t &gt; 1" src="//upload.wikimedia.org/math/a/f/7/af73024a54a91c6424ec5935b70d6300.png">, or <img class="mwe-math-fallback-image-inline tex" alt="k" src="//upload.wikimedia.org/math/8/c/e/8ce4b16b22b58894aa86c421e8759df3.png"> if <img class="mwe-math-fallback-image-inline tex" alt="t=1" src="//upload.wikimedia.org/math/b/7/3/b73c3280b6f85a6ac520af103083f535.png">. Then:</p>
+<p>Here we're using the standard definition of arg max.<br>
+The complexity of this algorithm is <img class="mwe-math-fallback-image-inline tex" alt="O(T\times\left|{S}\right|^2)" src="//upload.wikimedia.org/math/8/0/e/80e10c2dbe8e17730e1667f758e42e2e.png">.</p>
+<h2>Example</h2>
+<p>Consider a primitive clinic in a village. People in the village have a very nice property that they are either healthy or have a fever. They can only tell if they have a fever by asking a doctor in the clinic. The wise doctor makes a diagnosis of fever by asking patients how they feel. Villagers only answer that they feel normal, dizzy, or cold.</p>
+<p>Suppose a patient comes to the clinic each day and tells the doctor how she feels. The doctor believes that the health condition of this patient operates as a discrete Markov chain. There are two states, "Healthy" and "Fever", but the doctor cannot observe them directly, that is, they are <i>hidden</i> from him. On each day, there is a certain chance that the patient will tell the doctor she has one of the following feelings, depending on her health condition: "normal", "cold", or "dizzy". Those are the <i>observations</i>. The entire system is that of a hidden Markov model (HMM).</p>
+<p>The doctor knows the villager's general health condition, and what symptoms patients complain of with or without fever on average. In other words, the parameters of the HMM are known. They can be represented as follows in the Python programming language:</p>
+<p>WHATSON? f4ab253c-cfaa-4f04-bdcb-9fb6a3f2cb91</p>
+<pre>
+states = ('Healthy', 'Fever')
+ 
+observations = ('normal', 'cold', 'dizzy')
+ 
+start_probability = {'Healthy': 0.6, 'Fever': 0.4}
+ 
+transition_probability = {
+   'Healthy' : {'Healthy': 0.7, 'Fever': 0.3},
+   'Fever' : {'Healthy': 0.4, 'Fever': 0.6}
+   }
+ 
+emission_probability = {
+   'Healthy' : {'normal': 0.5, 'cold': 0.4, 'dizzy': 0.1},
+   'Fever' : {'normal': 0.1, 'cold': 0.3, 'dizzy': 0.6}
+   }
+</pre>
+<p>In this piece of code, <code>start_probability</code> represents the doctor's belief about which state the HMM is in when the patient first visits (all he knows is that the patient tends to be healthy). The particular probability distribution used here is not the equilibrium one, which is (given the transition probabilities) approximately <code>{'Healthy': 0.57, 'Fever': 0.43}</code>. The <code>transition_probability</code> represents the change of the health condition in the underlying Markov chain. In this example, there is only a 30% chance that tomorrow the patient will have a fever if he is healthy today. The <code>emission_probability</code> represents how likely the patient is to feel on each day. If he is healthy, there is a 50% chance that he feels normal; if he has a fever, there is a 60% chance that he feels dizzy.</p>
+<p>The patient visits three days in a row and the doctor discovers that on the first day she feels normal, on the second day she feels cold, on the third day she feels dizzy. The doctor has a question: what is the most likely sequence of health conditions of the patient that would explain these observations? This is answered by the Viterbi algorithm.</p>
+<p>WHATSON? e5898cdd-dd62-4ec9-99b2-040c57fc2588</p>
+<pre>
+def viterbi(obs, states, start_p, trans_p, emit_p):
+    V = [{}]
+    path = {}
+ 
+    # Initialize base cases (t == 0)
+    for y in states:
+        V[0][y] = start_p[y] * emit_p[y][obs[0]]
+        path[y] = [y]
+ 
+    # Run Viterbi for t &gt; 0
+    for t in range(1, len(obs)):
+        V.append({})
+        newpath = {}
+ 
+        for y in states:
+            (prob, state) = max((V[t-1][y0] * trans_p[y0][y] * emit_p[y][obs[t]], y0) for y0 in states)
+            V[t][y] = prob
+            newpath[y] = path[state] + [y]
+ 
+        # Don't need to remember the old paths
+        path = newpath
+    n = 0           # if only one element is observed max is sought in the initialization values
+    if len(obs) != 1:
+        n = t
+    print_dptable(V)
+    (prob, state) = max((V[n][y], y) for y in states)
+    return (prob, path[state])
+ 
+# Don't study this, it just prints a table of the steps.
+def print_dptable(V):
+    s = "    " + " ".join(("%7d" % i) for i in range(len(V))) + "\n"
+    for y in V[0]:
+        s += "%.5s: " % y
+        s += " ".join("%.7s" % ("%f" % v[y]) for v in V)
+        s += "\n"
+    print(s)
+</pre>
+<p>The function <code>viterbi</code> takes the following arguments: <code>obs</code> is the sequence of observations, e.g. <code>['normal', 'cold', 'dizzy']</code>; <code>states</code> is the set of hidden states; <code>start_p</code> is the start probability; <code>trans_p</code> are the transition probabilities; and <code>emit_p</code> are the emission probabilities. For simplicity of code, we assume that the observation sequence <code>obs</code> is non-empty and that <code>trans_p[i][j]</code> and <code>emit_p[i][j]</code> is defined for all states i,j.</p>
+<p>In the running example, the forward/Viterbi algorithm is used as follows:</p>
+<p>WHATSON? b57d9b30-e8ee-45b7-b143-d13574422448</p>
+<pre>
+def example():
+    return viterbi(observations,
+                   states,
+                   start_probability,
+                   transition_probability,
+                   emission_probability)
+print(example())
+</pre>
+<p>This reveals that the observations <code>['normal', 'cold', 'dizzy']</code> were most likely generated by states <code>['Healthy', 'Healthy', 'Fever']</code>. In other words, given the observed activities, the patient was most likely to have been healthy both on the first day when she felt normal as well as on the second day when she felt cold, and then she contracted a fever the third day.</p>
+<p>The operation of Viterbi's algorithm can be visualized by means of a trellis diagram. The Viterbi path is essentially the shortest path through this trellis. The trellis for the clinic example is shown below; the corresponding Viterbi path is in bold:</p>
+<p>When implementing Viterbi's algorithm, it should be noted that many languages use floating point arithmetic - as p is small, this may lead to underflow in the results. A common technique to avoid this is to take the logarithm of the probabilities and use it throughout the computation, the same technique used in the Logarithmic Number System. Once the algorithm has terminated, an accurate value can be obtained by performing the appropriate exponentiation.</p>
+<h2>Extensions</h2>
+<p>A generalization of the Viterbi algorithm, termed the <i>max-sum algorithm</i> (or <i>max-product algorithm</i>) can be used to find the most likely assignment of all or some subset of latent variables in a large number of graphical models, e.g. Bayesian networks, Markov random fields and conditional random fields. The latent variables need in general to be connected in a way somewhat similar to an HMM, with a limited number of connections between variables and some type of linear structure among the variables. The general algorithm involves <i>message passing</i> and is substantially similar to the belief propagation algorithm (which is the generalization of the forward-backward algorithm).</p>
+<p>With the algorithm called iterative Viterbi decoding one can find the subsequence of an observation that matches best (on average) to a given HMM. This algorithm is proposed by Qi Wang et al. to deal with turbo code. Iterative Viterbi decoding works by iteratively invoking a modified Viterbi algorithm, reestimating the score for a filler until convergence.</p>
+<p>An alternative algorithm, the Lazy Viterbi algorithm, has been proposed recently. For many codes of practical interest, under reasonable noise conditions, the lazy decoder (using Lazy Viterbi algorithm) is much faster than the original Viterbi decoder (using Viterbi algorithm). This algorithm works by not expanding any nodes until it really needs to, and usually manages to get away with doing a lot less work (in software) than the ordinary Viterbi algorithm for the same result - however, it is not so easy to parallelize in hardware.</p>
+<p>Moreover, the Viterbi algorithm has been extended to operate with a deterministic finite automaton in order to improve speed for use in stochastic letter-to-phoneme conversion.</p>
+<h2>Pseudocode</h2>
+<p>Given the observation space <img class="mwe-math-fallback-image-inline tex" alt=" O=\{o_1,o_2,\dots,o_N\}" src="//upload.wikimedia.org/math/1/6/4/164056dfba77dccb1535cc3894085383.png">, the state space <img class="mwe-math-fallback-image-inline tex" alt=" S=\{s_1,s_2,\dots,s_K\} " src="//upload.wikimedia.org/math/6/4/e/64edb799c77a806df30cea637822cdd9.png">, a sequence of observations <img class="mwe-math-fallback-image-inline tex" alt=" Y=\{y_1,y_2,\ldots, y_T\} " src="//upload.wikimedia.org/math/d/0/7/d074a6239e3b398fc86699fec67c8689.png">, transition matrix <img class="mwe-math-fallback-image-inline tex" alt=" A " src="//upload.wikimedia.org/math/7/f/c/7fc56270e7a70fa81a5935b72eacbe29.png"> of size <img class="mwe-math-fallback-image-inline tex" alt=" K\times K " src="//upload.wikimedia.org/math/8/a/1/8a15d79635e907ab88124e1c915e0ae5.png"> such that <img class="mwe-math-fallback-image-inline tex" alt=" A_{ij} " src="//upload.wikimedia.org/math/f/8/9/f896be3d8636bddc74beebe184293aff.png"> stores the transition probability of transiting from state <img class="mwe-math-fallback-image-inline tex" alt=" s_i " src="//upload.wikimedia.org/math/e/5/a/e5a7472d780a5a032c7775cc5e3ce901.png"> to state <img class="mwe-math-fallback-image-inline tex" alt=" s_j " src="//upload.wikimedia.org/math/3/5/4/3544084e4e8619625a93b6de1bae2ced.png">, emission matrix <img class="mwe-math-fallback-image-inline tex" alt=" B " src="//upload.wikimedia.org/math/9/d/5/9d5ed678fe57bcca610140957afab571.png"> of size <img class="mwe-math-fallback-image-inline tex" alt=" K\times N " src="//upload.wikimedia.org/math/d/0/e/d0e84acdc04cf1dd106441759e8bb4d1.png"> such that <img class="mwe-math-fallback-image-inline tex" alt=" B_{ij} " src="//upload.wikimedia.org/math/d/d/7/dd7f031d257df924e673217385c63760.png"> stores the probability of observing <img class="mwe-math-fallback-image-inline tex" alt=" o_j " src="//upload.wikimedia.org/math/9/e/9/9e95e1e1d4e3a9795198e9b3113a3ef7.png"> from state <img class="mwe-math-fallback-image-inline tex" alt=" s_i " src="//upload.wikimedia.org/math/e/5/a/e5a7472d780a5a032c7775cc5e3ce901.png">, an array of initial probabilities <img class="mwe-math-fallback-image-inline tex" alt=" \pi " src="//upload.wikimedia.org/math/5/2/2/522359592d78569a9eac16498aa7a087.png"> of size <img class="mwe-math-fallback-image-inline tex" alt=" K " src="//upload.wikimedia.org/math/a/5/f/a5f3c6a11b03839d46af9fb43c97c188.png"> such that <img class="mwe-math-fallback-image-inline tex" alt=" \pi_i " src="//upload.wikimedia.org/math/2/9/0/290401a8e62e89331cfaa44efff73c73.png"> stores the probability that <img class="mwe-math-fallback-image-inline tex" alt=" x_1 ==  s_i " src="//upload.wikimedia.org/math/e/e/6/ee60f6f2c60e936feea82e16d8d89029.png">.We say a path <img class="mwe-math-fallback-image-inline tex" alt=" X=\{x_1,x_2,\ldots,x_T\} " src="//upload.wikimedia.org/math/8/8/e/88e4e1edef7053f2a2f0371d7c196622.png"> is a sequence of states that generate the observations <img class="mwe-math-fallback-image-inline tex" alt=" Y=\{y_1,y_2,\ldots, y_T\} " src="//upload.wikimedia.org/math/d/0/7/d074a6239e3b398fc86699fec67c8689.png">.</p>
+<p>In this dynamic programming problem, we construct two 2-dimensional tables <img class="mwe-math-fallback-image-inline tex" alt="T_1, T_2" src="//upload.wikimedia.org/math/0/b/f/0bff1e5fddf042e193e35fafb147738a.png"> of size <img class="mwe-math-fallback-image-inline tex" alt="K\times T" src="//upload.wikimedia.org/math/0/3/b/03b6b432d87161945d9394d0093e0ce0.png">. Each element of <img class="mwe-math-fallback-image-inline tex" alt="T_1" src="//upload.wikimedia.org/math/a/5/7/a5749ec33f2c95fe8c19d702d76d4968.png">, <img class="mwe-math-fallback-image-inline tex" alt="T_1[i,j]" src="//upload.wikimedia.org/math/1/4/5/145921562569266e962da115c49711d0.png">, stores the probability of the most likely path so far <img class="mwe-math-fallback-image-inline tex" alt=" \hat{X}=\{\hat{x}_1,\hat{x}_2,\ldots,\hat{x}_j\} " src="//upload.wikimedia.org/math/9/2/8/9287314edeb1df46af277f7f6ad5821b.png"> with <img class="mwe-math-fallback-image-inline tex" alt="\hat{x}_j=s_i " src="//upload.wikimedia.org/math/7/d/6/7d61d92a5eb32ef0a5a5569766edd7a4.png"> that generates <img class="mwe-math-fallback-image-inline tex" alt=" Y=\{y_1,y_2,\ldots, y_j\}" src="//upload.wikimedia.org/math/c/b/2/cb2b1d530ee0098d017645a6197f8942.png">. Each element of <img class="mwe-math-fallback-image-inline tex" alt="T_2 " src="//upload.wikimedia.org/math/f/0/6/f066e1184caa1b9991cbceb207ea6341.png">, <img class="mwe-math-fallback-image-inline tex" alt="T_2[i,j] " src="//upload.wikimedia.org/math/f/b/9/fb945d40a0bfde3b05741736be37a8bf.png">, stores <img class="mwe-math-fallback-image-inline tex" alt="\hat{x}_{j-1} " src="//upload.wikimedia.org/math/c/4/0/c4080441c5cf830d211c2e745cff7409.png"> of the most likely path so far <img class="mwe-math-fallback-image-inline tex" alt=" \hat{X}=\{\hat{x}_1,\hat{x}_2,\ldots,\hat{x}_{j-1},\hat{x}_j\}" src="//upload.wikimedia.org/math/4/c/5/4c5e1fbe1ed721e3d38d993e9a4fed14.png"> for <img class="mwe-math-fallback-image-inline tex" alt="\forall j, 2\leq j \leq T  " src="//upload.wikimedia.org/math/a/e/3/ae31290fbca68dd4cfccd9c586b1ed73.png"></p>
+<p>We fill entries of two tables <img class="mwe-math-fallback-image-inline tex" alt=" T_1[i,j],T_2[i,j]" src="//upload.wikimedia.org/math/5/6/d/56de792d9c03670c514c98c949ece706.png"> by increasing order of <img class="mwe-math-fallback-image-inline tex" alt="K\cdot j+i " src="//upload.wikimedia.org/math/7/c/2/7c244f49b3934c61177417f86e0b0629.png">.</p>
+<p>Note that <img class="mwe-math-fallback-image-inline tex" alt="B_{iy_j}" src="//upload.wikimedia.org/math/e/7/a/e7acc7a6f2531eba0010007236f65409.png"> does not need to appear in the latter expression, as it's constant with <i>i</i> and <i>j</i> and does not affect the argmax.</p>
+<p>WHATSON? 11136730-54ae-41d1-972f-cc07b87d7b28</p>
+<pre>
+   INPUT:  The observation space <img class="mwe-math-fallback-image-inline tex" alt=" O=\{o_1,o_2,\dots,o_N\}" src="//upload.wikimedia.org/math/1/6/4/164056dfba77dccb1535cc3894085383.png">, 
+           the state space <img class="mwe-math-fallback-image-inline tex" alt=" S=\{s_1,s_2,\dots,s_K\} " src="//upload.wikimedia.org/math/6/4/e/64edb799c77a806df30cea637822cdd9.png">, 
+           a sequence of observations  <img class="mwe-math-fallback-image-inline tex" alt=" Y=\{y_1,y_2,\ldots, y_T\} " src="//upload.wikimedia.org/math/d/0/7/d074a6239e3b398fc86699fec67c8689.png"> such that <img class="mwe-math-fallback-image-inline tex" alt=" y_t==i " src="//upload.wikimedia.org/math/8/0/4/804699cacaa0c4e37da376c910d82210.png"> if the 
+             observation at time <img class="mwe-math-fallback-image-inline tex" alt=" t " src="//upload.wikimedia.org/math/e/3/5/e358efa489f58062f10dd7316b65649e.png"> is <img class="mwe-math-fallback-image-inline tex" alt=" o_i " src="//upload.wikimedia.org/math/0/d/1/0d1d8988af45dff714eeac65560939a2.png">,
+           transition matrix <img class="mwe-math-fallback-image-inline tex" alt=" A " src="//upload.wikimedia.org/math/7/f/c/7fc56270e7a70fa81a5935b72eacbe29.png"> of size <img class="mwe-math-fallback-image-inline tex" alt=" K\cdot K " src="//upload.wikimedia.org/math/6/9/7/697a17dd769c9f9bc81bef4f07f68582.png"> such that <img class="mwe-math-fallback-image-inline tex" alt=" A_{ij} " src="//upload.wikimedia.org/math/f/8/9/f896be3d8636bddc74beebe184293aff.png"> stores the transition
+             probability of transiting from state <img class="mwe-math-fallback-image-inline tex" alt=" s_i " src="//upload.wikimedia.org/math/e/5/a/e5a7472d780a5a032c7775cc5e3ce901.png"> to state <img class="mwe-math-fallback-image-inline tex" alt=" s_j " src="//upload.wikimedia.org/math/3/5/4/3544084e4e8619625a93b6de1bae2ced.png">,
+           emission matrix <img class="mwe-math-fallback-image-inline tex" alt=" B " src="//upload.wikimedia.org/math/9/d/5/9d5ed678fe57bcca610140957afab571.png"> of size <img class="mwe-math-fallback-image-inline tex" alt=" K\cdot N " src="//upload.wikimedia.org/math/f/3/5/f358f24a50dc69bb95477648e835070c.png"> such that <img class="mwe-math-fallback-image-inline tex" alt=" B_{ij} " src="//upload.wikimedia.org/math/d/d/7/dd7f031d257df924e673217385c63760.png"> stores the probability of
+             observing <img class="mwe-math-fallback-image-inline tex" alt=" o_j " src="//upload.wikimedia.org/math/9/e/9/9e95e1e1d4e3a9795198e9b3113a3ef7.png"> from  state <img class="mwe-math-fallback-image-inline tex" alt=" s_i " src="//upload.wikimedia.org/math/e/5/a/e5a7472d780a5a032c7775cc5e3ce901.png">, 
+           an array of initial probabilities <img class="mwe-math-fallback-image-inline tex" alt=" \pi " src="//upload.wikimedia.org/math/5/2/2/522359592d78569a9eac16498aa7a087.png"> of size <img class="mwe-math-fallback-image-inline tex" alt=" K " src="//upload.wikimedia.org/math/a/5/f/a5f3c6a11b03839d46af9fb43c97c188.png"> such that <img class="mwe-math-fallback-image-inline tex" alt=" \pi_i " src="//upload.wikimedia.org/math/2/9/0/290401a8e62e89331cfaa44efff73c73.png"> stores the probability
+             that <img class="mwe-math-fallback-image-inline tex" alt=" x_1 ==  s_i " src="//upload.wikimedia.org/math/e/e/6/ee60f6f2c60e936feea82e16d8d89029.png">
+   OUTPUT: The most likely hidden state sequence <img class="mwe-math-fallback-image-inline tex" alt=" X=\{x_1,x_2,\ldots,x_T\} " src="//upload.wikimedia.org/math/8/8/e/88e4e1edef7053f2a2f0371d7c196622.png">
+A01 <b>function</b> <i>VITERBI</i>( <i>O</i>, <i>S</i>,<i>π</i>,<i>Y</i>,<i>A</i>,<i>B</i> ) : <i>X</i>
+A02     <b>for</b> each state <i>s<sub>i</sub></i> <b>do</b>
+A03         <i>T<sub>1</sub>[i,1]</i>←<i>π<sub>i</sub></i><img class="mwe-math-fallback-image-inline tex" alt="\cdot" src="//upload.wikimedia.org/math/3/6/f/36f8ae4c86b69d52d037a6802d91cc4a.png"><i>B<sub>iy<sub>1</sub></sub></i>
+A04         <i>T<sub>2</sub>[i,1]</i>←0
+A05     <b>end for</b>
+A06     <b>for</b> <i>i</i>←<i>2</i>,<i>3</i>,...,<i>T</i> <b>do</b>
+A07         <b>for</b> each state <i>s<sub>j</sub></i> <b>do</b>
+A08             <i>T<sub>1</sub>[j,i]</i>←<img class="mwe-math-fallback-image-inline tex" alt="\max_{k}{(T_1[k,i-1]\cdot A_{kj}\cdot B_{jy_i})} " src="//upload.wikimedia.org/math/6/c/c/6cc7aee54fa96e4391bd25a098591802.png">
+A09             <i>T<sub>2</sub>[j,i]</i>←<img class="mwe-math-fallback-image-inline tex" alt="\arg\max_{k}{(T_1[k,i-1]\cdot A_{kj}\cdot B_{jy_i})} " src="//upload.wikimedia.org/math/c/a/2/ca2dd74a4d20fbf36e9c5262e373162c.png">
+A10         <b>end for</b>
+A11     <b>end for</b>
+A12     <i>z<sub>T</sub></i>←<img class="mwe-math-fallback-image-inline tex" alt="\arg\max_{k}{(T_1[k,T])} " src="//upload.wikimedia.org/math/d/3/6/d36356e9aa486271cf5023214fdcdbb5.png">
+A13     <i>x<sub>T</sub></i>←s<sub>z<sub>T</sub></sub>
+A14     <b>for</b> <i>i</i>←<i>T</i>,<i>T-1</i>,...,<i>2</i> <b>do</b>
+A15         <i>z<sub>i-1</sub></i>←T<sub>2</sub>[z<sub>i</sub>,i]
+A16         <i>x<sub>i-1</sub></i>←<i>s<sub>z<sub>i-1</sub></sub></i>
+A17     <b>end for</b>
+A18     <b>return</b> <i>X</i>
+A19 <b>end function</b>
+</pre>
+<h2>See also</h2>
+<ul>
+<li>Expectation–maximization algorithm</li>
+<li>Baum–Welch algorithm</li>
+<li>Forward-backward algorithm</li>
+<li>Forward algorithm</li>
+<li>Error-correcting code</li>
+<li>Soft output Viterbi algorithm</li>
+<li>Viterbi decoder</li>
+<li>Hidden Markov model</li>
+<li>Part-of-speech tagging</li>
+</ul>
+<h2>Notes</h2>
+<ol>
+<li><b>^</b> Xavier Anguera et Al, "Speaker Diarization: A Review of Recent Research", retrieved 19. August 2010, IEEE TASLP</li>
+<li><b>^</b> 29 Apr 2005, G. David Forney Jr: The Viterbi Algorithm: A Personal History</li>
+<li>^   Daniel Jurafsky; James H. Martin. <i>Speech and Language Processing</i>. Pearson Education International. p. 246. </li>
+<li><b>^</b> Xing E, slide 11</li>
+<li><b>^</b> Qi Wang; Lei Wei; Rodney A. Kennedy (2002). "Iterative Viterbi Decoding, Trellis Shaping,and Multilevel Structure for High-Rate Parity-Concatenated TCM". <i>IEEE Transactions on Communications</i> <b>50</b>: 48–55. </li>
+<li><b>^</b> "A fast maximum-likelihood decoder for convolutional codes" (PDF). Vehicular Technology Conference. December 2002. pp. 371–375. doi:10.1109/VETECF.2002.1040367. </li>
+<li><b>^</b> "A fast maximum-likelihood decoder for convolutional codes" (PDF). Vehicular Technology Conference. December 2002. p. 371. doi:10.1109/VETECF.2002.1040367. </li>
+<li><b>^</b> Luk, R.W.P.; R.I. Damper (1998). "Computational complexity of a fast Viterbi decoding algorithm for stochastic letter-phoneme transduction". <i>IEEE Trans. Speech and Audio Processing</i> <b>6</b> (3): 217–225. doi:10.1109/89.668816. </li>
+</ol>
+</body>
+</html>
